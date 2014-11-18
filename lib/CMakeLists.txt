@@ -332,24 +332,24 @@ gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk_machines.tmpl.h     ${CMAKE_BINARY_DI
 gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk_machines.tmpl.c     ${CMAKE_BINARY_DIR}/lib/volk_machines.c)
 
 set(BASE_CFLAGS NONE)
-STRING(TOUPPER ${CMAKE_BUILD_TYPE} CBTU)
-MESSAGE(STATUS BUILT TYPE ${CBTU})
-MESSAGE(STATUS "Base cflags = ${CMAKE_C_FLAGS_${CBTU}} ${CMAKE_C_FLAGS}")
+string(TOUPPER ${CMAKE_BUILD_TYPE} CBTU)
+message(STATUS "BUILD TYPE = ${CBTU}")
+message(STATUS "Base cflags = ${CMAKE_C_FLAGS_${CBTU}} ${CMAKE_C_FLAGS}")
 set(COMPILER_INFO "")
-IF(MSVC)
-    IF(MSVC90)   #Visual Studio 9
-        SET(cmake_c_compiler_version "Microsoft Visual Studio 9.0")
-    ELSE(MSVC10) #Visual Studio 10
-        SET(cmake_c_compiler_version "Microsoft Visual Studio 10.0")
-    ELSE(MSVC11) #Visual Studio 11
-        SET(cmake_c_compiler_version "Microsoft Visual Studio 11.0")
-    ELSE(MSVC12) #Visual Studio 12
+if(MSVC)
+    if(MSVC90)   #Visual Studio 9
+        set(cmake_c_compiler_version "Microsoft Visual Studio 9.0")
+    elseif(MSVC10) #Visual Studio 10
+        set(cmake_c_compiler_version "Microsoft Visual Studio 10.0")
+    elseif(MSVC11) #Visual Studio 11
+        set(cmake_c_compiler_version "Microsoft Visual Studio 11.0")
+    elseif(MSVC12) #Visual Studio 12
         SET(cmake_c_compiler_version "Microsoft Visual Studio 12.0")
-    ENDIF()
-ELSE()
+    endif()
+else()
     execute_process(COMMAND ${CMAKE_C_COMPILER} --version
             OUTPUT_VARIABLE cmake_c_compiler_version)
-ENDIF(MSVC)
+endif(MSVC)
 set(COMPILER_INFO "${CMAKE_C_COMPILER}:::${CMAKE_C_FLAGS_${GRCBTU}} ${CMAKE_C_FLAGS}\n${CMAKE_CXX_COMPILER}:::${CMAKE_CXX_FLAGS_${GRCBTU}} ${CMAKE_CXX_FLAGS}\n" )
 
 foreach(machine_name ${available_machines})

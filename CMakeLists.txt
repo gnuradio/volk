@@ -27,12 +27,17 @@ project(volk)
 enable_language(CXX)
 enable_language(C)
 enable_testing()
-set(VERSION 0.1)
-set(LIBVER 0.0.0)
 
 set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}) #allows this to be a sub-project
 set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}) #allows this to be a sub-project
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake) #location for custom "Modules"
+list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules) #location for custom "Modules"
+
+set(VERSION_INFO_MAJOR_VERSION 1)
+set(VERSION_INFO_API_COMPAT 0)
+set(VERSION_INFO_MINOR_VERSION 0)
+set(VERSION_INFO_MAINT_VERSION git)
+include(VolkVersion) #setup version info
+
 
 ########################################################################
 # Environment setup
@@ -50,7 +55,7 @@ SET(CROSSCOMPILE_MULTILIB ${CROSSCOMPILE_MULTILIB} CACHE STRING "Define \"true\"
 ########################################################################
 # Dependencies setup
 ########################################################################
-include(GrPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
+include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
 VOLK_PYTHON_CHECK_MODULE("python >= 2.5" sys "sys.version.split()[0] >= '2.5'" PYTHON_MIN_VER_FOUND)
 VOLK_PYTHON_CHECK_MODULE("Cheetah >= 2.0.0" Cheetah "Cheetah.Version >= '2.0.0'" CHEETAH_FOUND)
 
@@ -141,7 +146,7 @@ if(NOT CMAKE_MODULES_DIR)
 endif(NOT CMAKE_MODULES_DIR)
 
 install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/VolkConfig.cmake
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake
     DESTINATION ${CMAKE_MODULES_DIR}/volk
     COMPONENT "volk_devel"
 )
@@ -165,6 +170,18 @@ if(APPLE)
             BOOL "Do Build Using Library Install RPath" FORCE)
     endif(NOT CMAKE_BUILD_WITH_INSTALL_RPATH)
 endif(APPLE)
+
+########################################################################
+# Create uninstall target
+########################################################################
+configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+@ONLY)
+
+add_custom_target(uninstall
+    ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+)
 
 ########################################################################
 # Setup the library
