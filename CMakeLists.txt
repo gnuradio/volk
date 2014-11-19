@@ -171,7 +171,7 @@ add_custom_target(uninstall
 
 
 ########################################################################
-# Install our Cmake modules into $prefix/lib/cmake/gnuradio
+# Install our Cmake modules into $prefix/lib/cmake/volk
 # See "Package Configuration Files" on page:
 #    http://www.cmake.org/Wiki/CMake/Tutorials/Packaging
 ########################################################################
@@ -180,11 +180,6 @@ configure_file(
   ${CMAKE_SOURCE_DIR}/cmake/Modules/VolkConfigVersion.cmake.in
   ${CMAKE_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake
 @ONLY)
-
-SET(cmake_configs
-  ${CMAKE_SOURCE_DIR}/cmake/Modules/GnuradioConfig.cmake
-  ${CMAKE_BINARY_DIR}/cmake/Modules/GnuradioConfigVersion.cmake
-)
 
 
 ########################################################################
@@ -202,7 +197,6 @@ install(
     DESTINATION ${CMAKE_MODULES_DIR}/volk
     COMPONENT "volk_devel"
 )
-
 
 
 ########################################################################
