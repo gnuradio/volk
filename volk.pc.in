@@ -8,7 +8,6 @@ LV_CXXFLAGS=@LV_CXXFLAGS@
 Name: volk
 Description: VOLK: Vector Optimized Library of Kernels
 Requires:
-Version: @VERSION@
+Version: @LIBVER@
 Libs: -L${libdir} -lvolk
 Cflags: -I${includedir} ${LV_CXXFLAGS}
-

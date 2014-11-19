@@ -138,20 +138,6 @@ install(FILES
 )
 
 ########################################################################
-# Install cmake search routine for external use
-########################################################################
-
-if(NOT CMAKE_MODULES_DIR)
-    set(CMAKE_MODULES_DIR lib${LIB_SUFFIX}/cmake)
-endif(NOT CMAKE_MODULES_DIR)
-
-install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake
-    DESTINATION ${CMAKE_MODULES_DIR}/volk
-    COMPONENT "volk_devel"
-)
-
-########################################################################
 # On Apple only, set install name and use rpath correctly, if not already set
 ########################################################################
 if(APPLE)
@@ -182,6 +168,42 @@ configure_file(
 add_custom_target(uninstall
     ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
 )
+
+
+########################################################################
+# Install our Cmake modules into $prefix/lib/cmake/gnuradio
+# See "Package Configuration Files" on page:
+#    http://www.cmake.org/Wiki/CMake/Tutorials/Packaging
+########################################################################
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/cmake/Modules/VolkConfigVersion.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake
+@ONLY)
+
+SET(cmake_configs
+  ${CMAKE_SOURCE_DIR}/cmake/Modules/GnuradioConfig.cmake
+  ${CMAKE_BINARY_DIR}/cmake/Modules/GnuradioConfigVersion.cmake
+)
+
+
+########################################################################
+# Install cmake search routine for external use
+########################################################################
+
+if(NOT CMAKE_MODULES_DIR)
+    set(CMAKE_MODULES_DIR lib${LIB_SUFFIX}/cmake)
+endif(NOT CMAKE_MODULES_DIR)
+
+install(
+    FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake
+    DESTINATION ${CMAKE_MODULES_DIR}/volk
+    COMPONENT "volk_devel"
+)
+
+
 
 ########################################################################
 # Setup the library
