@@ -446,7 +446,7 @@ if(ORC_FOUND)
     list(APPEND volk_libraries ${ORC_LIBRARIES})
 
     #setup orc functions
-    file(GLOB orc_files ${CMAKE_SOURCE_DIR}/orc/*.orc)
+    file(GLOB orc_files ${CMAKE_SOURCE_DIR}/kernels/volk/asm/orc/*.orc)
     foreach(orc_file ${orc_files})
 
         #extract the name for the generated c source from the orc file

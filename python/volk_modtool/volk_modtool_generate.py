@@ -156,7 +156,7 @@ class volk_modtool:
         open(dest, 'w+').write(outstring);
 
         # copy orc proto-kernels if they exist
-        for orcfile in glob.glob(inpath + '/orc/' + top + name + '*.orc'):
+        for orcfile in glob.glob(inpath + '/kernels/volk/asm/orc/' + top + name + '*.orc'):
             if os.path.isfile(orcfile):
                 instring = open(orcfile, 'r').read();
                 outstring = re.sub(oldvolk, 'volk_' + self.my_dict['name'], instring);
@@ -230,8 +230,8 @@ class volk_modtool:
                 os.remove(infile);
         # remove the orc proto-kernels if they exist. There are no puppets here
         # so just need to glob for files matching kernel name
-        print glob.glob(inpath + '/orc/' + top + name + '*.orc');
-        for orcfile in glob.glob(inpath + '/orc/' + top + name + '*.orc'):
+        print glob.glob(inpath + '/kernel/volk/orc/' + top + name + '*.orc');
+        for orcfile in glob.glob(inpath + '/kernel/volk/orc/' + top + name + '*.orc'):
             print orcfile
             if(os.path.exists(orcfile)):
                 os.remove(orcfile);
