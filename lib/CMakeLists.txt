@@ -465,7 +465,6 @@ else()
     message(STATUS "Did not find liborc and orcc, disabling orc support...")
 endif()
 
-
 ########################################################################
 # Handle the generated constants
 ########################################################################

@@ -3,7 +3,6 @@
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/xpressive/xpressive.hpp>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -217,19 +216,6 @@ inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func, std::vector<void *> &b
     while(iter--) func(buffs[0], buffs[1], buffs[2], scalar, vlen, arch.c_str());
 }
 
-// This function is a nop that helps resolve GNU Radio bugs 582 and 583.
-// Without this the cast in run_volk_tests for tol_i = static_cast<int>(float tol)
-// won't happen on armhf (reported on cortex A9 and A15).
-void lv_force_cast_hf( int tol_i, float tol_f)
-{
-    int diff_i = 1;
-    float diff_f = 1;
-    if( diff_i > tol_i )
-        std::cout << "" ;
-    if( diff_f > tol_f )
-        std::cout << "" ;
-}
-
 template <class t>
 bool fcompare(t *in1, t *in2, unsigned int vlen, float tol) {
     bool fail = false;
@@ -326,37 +312,38 @@ private: std::vector<void * > _mems;
 bool run_volk_tests(volk_func_desc_t desc,
                     void (*manual_func)(),
                     std::string name,
+                    volk_test_params_t test_params,
+                    std::vector<volk_test_results_t> *results,
+                    std::string puppet_master_name
+)
+{
+    return run_volk_tests(desc, manual_func, name, test_params.tol(), test_params.scalar(),
+        test_params.vlen(), test_params.iter(), results, puppet_master_name,
+        test_params.benchmark_mode(), test_params.kernel_regex());
+}
+
+bool run_volk_tests(volk_func_desc_t desc,
+                    void (*manual_func)(),
+                    std::string name,
                     float tol,
                     lv_32fc_t scalar,
                     int vlen,
                     int iter,
                     std::vector<volk_test_results_t> *results,
                     std::string puppet_master_name,
-                    bool benchmark_mode, 
+                    bool benchmark_mode,
                     std::string kernel_regex
                    ) {
-    boost::xpressive::sregex kernel_expression = boost::xpressive::sregex::compile(kernel_regex);
-    if( !boost::xpressive::regex_search(name, kernel_expression) ) {
-        // in this case we have a regex and are only looking to test one kernel
-        return false;
-    }
     if(results) {
-        results->push_back(volk_test_results_t()); 
+        results->push_back(volk_test_results_t());
         results->back().name = name;
         results->back().vlen = vlen;
         results->back().iter = iter;
     }
     std::cout << "RUN_VOLK_TESTS: " << name << "(" << vlen << "," << iter << ")" << std::endl;
 
-    // The multiply and lv_force_cast_hf are work arounds for GNU Radio bugs 582 and 583
-    // The bug is the casting/assignment below do not happen, which results in false
-    // positives when testing for errors in fcompare and icompare.
-    // Since this only happens on armhf (reported for Cortex A9 and A15) combined with
-    // the following fixes it is suspected to be a compiler bug.
-    // Bug 1272024 on launchpad has been filed with Linaro GCC.
-    const float tol_f = tol*1.0000001;
+    const float tol_f = tol;
     const unsigned int tol_i = static_cast<const unsigned int>(tol);
-    lv_force_cast_hf( tol_i, tol_f );
 
     //first let's get a list of available architectures for the test
     std::vector<std::string> arch_list = get_arch_list(desc);
@@ -401,7 +388,9 @@ bool run_volk_tests(volk_func_desc_t desc,
             arch_buffs.push_back(mem_pool.get_new(vlen*outputsig[j].size*(outputsig[j].is_complex ? 2 : 1)));
         }
         for(size_t j=0; j<inputsig.size(); j++) {
-            arch_buffs.push_back(inbuffs[j]);
+            void *arch_inbuff = mem_pool.get_new(vlen*inputsig[j].size*(inputsig[j].is_complex ? 2 : 1));
+            memcpy(arch_inbuff, inbuffs[j], vlen * inputsig[j].size * (inputsig[j].is_complex ? 2 : 1));
+            arch_buffs.push_back(arch_inbuff);
         }
         test_data.push_back(arch_buffs);
     }
