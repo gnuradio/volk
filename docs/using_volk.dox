@@ -16,8 +16,9 @@ In most cases it is sufficient to call the dispatcher for the kernel you are usi
 For example the following code will compute the dot product between the taps and
 input vector as part of a FIR filter.
 \code
+// assume there is sufficient history in the input buffer
 for(unsigned int ii=0; ii < input_length-ntaps; ++ii) {
-    volk_32fc_32f_dot_prod_32fc(filter_output[ii], input++, taps, ntaps);
+    volk_32fc_32f_dot_prod_32fc(filter_output[ii], input[ii-ntaps] taps, ntaps);
 }
 \endcode
 

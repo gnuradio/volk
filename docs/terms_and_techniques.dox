@@ -1,0 +1,43 @@
+/*! \page concepts_terms_and_techniques Concepts, Terms, and Techniques
+
+This page is primarily a list of definitions and brief overview of successful
+techniques previously used to develop VOLK protokernels.
+
+## Definitions and Concepts
+
+### SIMD
+
+SIMD stands for Single Instruction Multiple Data. Leveraging SIMD instructions
+is the primary optimization in VOLK.
+
+### Architecture
+
+A VOLK architecture is normally called an Instruction Set Architecture (ISA).
+The architectures we target in VOLK usually have SIMD instructions.
+
+### Vector
+
+A vector in VOLK is the same as a C array. It sometimes, but not always
+coincides with the mathematical definition of a vector.
+
+### Kernel
+
+The 'kernel' part of the VOLK name comes from the high performance computing
+use of the word. In this context it is the inner loop of a vector operation.
+Since we don't use the word vector in the math sense a vector operation is an
+operation that is performed on a C array.
+
+### Protokernel
+
+A protokernel is an implementation of a kernel. Every kernel has a 'generic'
+protokernel that is implemented in C. Other protokernels are optimized for a
+particular architecture.
+
+## Techniques
+
+### New Kernels
+
+### Protokernels
+
+*/
+
