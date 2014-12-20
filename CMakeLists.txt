@@ -92,6 +92,23 @@ else(ENABLE_ORC)
 endif(ENABLE_ORC)
 
 ########################################################################
+# Setup doxygen
+########################################################################
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    configure_file(
+        ${CMAKE_SOURCE_DIR}/Doxyfile.in
+        ${CMAKE_BINARY_DIR}/Doxyfile
+    @ONLY)
+
+    add_custom_target(doc
+        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Generating documentation with Doxygen" VERBATIM
+    )
+endif(DOXYGEN_FOUND)
+
+########################################################################
 # Setup the package config file
 ########################################################################
 #set variables found in the pc.in file
