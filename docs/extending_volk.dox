@@ -1,0 +1,46 @@
+/*! \page extending_volk Extending VOLK
+
+There are two primary routes for extending VOLK for your own use. The
+preferred route is by writing kernels and proto-kernels as part of this
+repository and sending patches upstream. The alternative is creating your
+own VOLK module. The information for modifying this repository will be
+useful in both cases.
+
+## Modifying this repository
+
+### Adding kernels
+
+Adding kernels refers to introducing a new function to the VOLK API that is
+presumably a useful math function/operation. The first step is to create
+the file in volk/kernels/volk. Follow the naming scheme provided in the
+VOLK terms and techniques page. First create the generic protokernel.
+
+The generic protokernel should be written in plain C using explicitly sized
+types from stdint.h or volk_complex.h when appropriate. volk_complex.h
+includes explicitly sized complex types for floats and ints. The name of
+the generic kernel should be volk_signature_from_file_generic. If multiple
+versions of the generic kernel exist then a description can be appended to
+generic_, but it is not required to use alignment flags in the generic
+protokernel name. It is required to surround the entire generic function
+with preprocessor ifdef fences on the symbol LV_HAVE_GENERIC.
+
+### Adding protokernels
+
+Architecture specific protokernels can be written in one of three ways.
+The first approach should always be to use compiler intrinsic functions.
+The second and third approaches are using either in-line assembly or
+assembly with .S files. Both methods of writing assembly exist in VOLK and
+should yield equivalent performance; which method you might choose is a
+matter of opinion.
+
+#### Compiler Intrinsics
+
+#### Assembly with .S files
+
+#### In-line Assembly
+
+
+## VOLK Modules
+
+*/
+

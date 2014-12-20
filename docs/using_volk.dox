@@ -1,0 +1,25 @@
+/*! \page using_volk Using VOLK
+
+Using VOLK in your code requires proper linking and including the correct headers. VOLK currently supports both C and C++ bindings.
+
+VOLK provides both a pkgconfig and CMake module to help configuration and
+linking. The pkfconfig file is installed to
+$install_prefix/lib/pkgconfig/volk.pc. The CMake configuration module is in
+$install_prefix/lib/cmake/volk/VolkConfig.cmake.
+
+The header in the VOLK include directory (includedir in pkgconfig,
+VOLK_INCLUDE_DIRS in cmake module) contains the header volk/volk.h defines all
+of the symbols exposed by VOLK. Alternatively individual kernel headers are in
+the same location.
+
+In most cases it is sufficient to call the dispatcher for the kernel you are using.
+For example the following code will compute the dot product between the taps and
+input vector as part of a FIR filter.
+\code
+for(unsigned int ii=0; ii < input_length-ntaps; ++ii) {
+    volk_32fc_32f_dot_prod_32fc(filter_output[ii], input++, taps, ntaps);
+}
+\endcode
+
+*/
+
