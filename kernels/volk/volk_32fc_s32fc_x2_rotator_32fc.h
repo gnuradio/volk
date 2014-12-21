@@ -100,7 +100,8 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_generic(lv_32fc_t* outVector,
 #ifdef __cplusplus
         (*phase) /= std::abs((*phase));
 #else
-        (*phase) /= cabsf((*phase));
+        //(*phase) /= cabsf((*phase));
+        (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
 #endif
     }
     for(i = 0; i < num_points%ROTATOR_RELOAD; ++i) {
