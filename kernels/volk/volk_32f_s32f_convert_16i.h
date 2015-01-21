@@ -20,6 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_s32f_convert_16i
+ *
+ * \b Overview
+ *
+ * Converts a floating point number to a 16-bit short after applying a
+ * scaling factor.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_s32f_convert_16i(int16_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li inputVector: the input vector of floats.
+ * \li scalar: The value multiplied against each point in the input buffer.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li outputVector: The output vector.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_s32f_convert_16i();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_s32f_convert_16i_u_H
 #define INCLUDED_volk_32f_s32f_convert_16i_u_H
 
@@ -29,14 +60,11 @@
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-  /*!
-    \brief Multiplies each point in the input buffer by the scalar value, then converts the result into a 16 bit integer value
-    \param inputVector The floating point input data buffer
-    \param outputVector The 16 bit output data buffer
-    \param scalar The value multiplied against each point in the input buffer
-    \param num_points The number of data values to be converted
-  */
-static inline void volk_32f_s32f_convert_16i_u_avx(int16_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_convert_16i_u_avx(int16_t* outputVector, const float* inputVector,
+                                const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
 
   const unsigned int eighthPoints = num_points / 8;
@@ -84,17 +112,14 @@ static inline void volk_32f_s32f_convert_16i_u_avx(int16_t* outputVector, const 
 }
 #endif /* LV_HAVE_AVX */
 
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
-  /*!
-    \brief Multiplies each point in the input buffer by the scalar value, then converts the result into a 16 bit integer value
-    \param inputVector The floating point input data buffer
-    \param outputVector The 16 bit output data buffer
-    \param scalar The value multiplied against each point in the input buffer
-    \param num_points The number of data values to be converted
-    \note Input buffer does NOT need to be properly aligned
-  */
-static inline void volk_32f_s32f_convert_16i_u_sse2(int16_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_convert_16i_u_sse2(int16_t* outputVector, const float* inputVector,
+                                 const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
 
   const unsigned int eighthPoints = num_points / 8;
@@ -142,17 +167,14 @@ static inline void volk_32f_s32f_convert_16i_u_sse2(int16_t* outputVector, const
 }
 #endif /* LV_HAVE_SSE2 */
 
+
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-  /*!
-    \brief Multiplies each point in the input buffer by the scalar value, then converts the result into a 16 bit integer value
-    \param inputVector The floating point input data buffer
-    \param outputVector The 16 bit output data buffer
-    \param scalar The value multiplied against each point in the input buffer
-    \param num_points The number of data values to be converted
-    \note Input buffer does NOT need to be properly aligned
-  */
-static inline void volk_32f_s32f_convert_16i_u_sse(int16_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_convert_16i_u_sse(int16_t* outputVector, const float* inputVector,
+                                const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
 
   const unsigned int quarterPoints = num_points / 4;
@@ -197,16 +219,13 @@ static inline void volk_32f_s32f_convert_16i_u_sse(int16_t* outputVector, const 
 }
 #endif /* LV_HAVE_SSE */
 
+
 #ifdef LV_HAVE_GENERIC
-  /*!
-    \brief Multiplies each point in the input buffer by the scalar value, then converts the result into a 16 bit integer value
-    \param inputVector The floating point input data buffer
-    \param outputVector The 16 bit output data buffer
-    \param scalar The value multiplied against each point in the input buffer
-    \param num_points The number of data values to be converted
-    \note Input buffer does NOT need to be properly aligned
-  */
-static inline void volk_32f_s32f_convert_16i_generic(int16_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_convert_16i_generic(int16_t* outputVector, const float* inputVector,
+                                  const float scalar, unsigned int num_points)
+{
   int16_t* outputVectorPtr = outputVector;
   const float* inputVectorPtr = inputVector;
   unsigned int number = 0;
@@ -226,8 +245,6 @@ static inline void volk_32f_s32f_convert_16i_generic(int16_t* outputVector, cons
 #endif /* LV_HAVE_GENERIC */
 
 
-
-
 #endif /* INCLUDED_volk_32f_s32f_convert_16i_u_H */
 #ifndef INCLUDED_volk_32f_s32f_convert_16i_a_H
 #define INCLUDED_volk_32f_s32f_convert_16i_a_H
@@ -239,14 +256,11 @@ static inline void volk_32f_s32f_convert_16i_generic(int16_t* outputVector, cons
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-  /*!
-    \brief Multiplies each point in the input buffer by the scalar value, then converts the result into a 16 bit integer value
-    \param inputVector The floating point input data buffer
-    \param outputVector The 16 bit output data buffer
-    \param scalar The value multiplied against each point in the input buffer
-    \param num_points The number of data values to be converted
-  */
-static inline void volk_32f_s32f_convert_16i_a_avx(int16_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_convert_16i_a_avx(int16_t* outputVector, const float* inputVector,
+                                const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
 
   const unsigned int eighthPoints = num_points / 8;
@@ -296,14 +310,11 @@ static inline void volk_32f_s32f_convert_16i_a_avx(int16_t* outputVector, const 
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
-  /*!
-    \brief Multiplies each point in the input buffer by the scalar value, then converts the result into a 16 bit integer value
-    \param inputVector The floating point input data buffer
-    \param outputVector The 16 bit output data buffer
-    \param scalar The value multiplied against each point in the input buffer
-    \param num_points The number of data values to be converted
-  */
-static inline void volk_32f_s32f_convert_16i_a_sse2(int16_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_convert_16i_a_sse2(int16_t* outputVector, const float* inputVector,
+                                 const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
 
   const unsigned int eighthPoints = num_points / 8;
@@ -351,16 +362,14 @@ static inline void volk_32f_s32f_convert_16i_a_sse2(int16_t* outputVector, const
 }
 #endif /* LV_HAVE_SSE2 */
 
+
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-  /*!
-    \brief Multiplies each point in the input buffer by the scalar value, then converts the result into a 16 bit integer value
-    \param inputVector The floating point input data buffer
-    \param outputVector The 16 bit output data buffer
-    \param scalar The value multiplied against each point in the input buffer
-    \param num_points The number of data values to be converted
-  */
-static inline void volk_32f_s32f_convert_16i_a_sse(int16_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_convert_16i_a_sse(int16_t* outputVector, const float* inputVector,
+                                const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
 
   const unsigned int quarterPoints = num_points / 4;
@@ -405,15 +414,13 @@ static inline void volk_32f_s32f_convert_16i_a_sse(int16_t* outputVector, const 
 }
 #endif /* LV_HAVE_SSE */
 
+
 #ifdef LV_HAVE_GENERIC
-  /*!
-    \brief Multiplies each point in the input buffer by the scalar value, then converts the result into a 16 bit integer value
-    \param inputVector The floating point input data buffer
-    \param outputVector The 16 bit output data buffer
-    \param scalar The value multiplied against each point in the input buffer
-    \param num_points The number of data values to be converted
-  */
-static inline void volk_32f_s32f_convert_16i_a_generic(int16_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_convert_16i_a_generic(int16_t* outputVector, const float* inputVector,
+                                    const float scalar, unsigned int num_points)
+{
   int16_t* outputVectorPtr = outputVector;
   const float* inputVectorPtr = inputVector;
   unsigned int number = 0;
@@ -431,8 +438,5 @@ static inline void volk_32f_s32f_convert_16i_a_generic(int16_t* outputVector, co
   }
 }
 #endif /* LV_HAVE_GENERIC */
-
-
-
 
 #endif /* INCLUDED_volk_32f_s32f_convert_16i_a_H */

@@ -20,11 +20,46 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_x2_dot_prod_16i
+ *
+ * \b Overview
+ *
+ * This block computes the dot product (or inner product) between two
+ * vectors, the \p input and \p taps vectors. Given a set of \p
+ * num_points taps, the result is the sum of products between the two
+ * vectors. The result is a single value stored in the \p result
+ * address and is conerted to a fixed-point short.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_x2_dot_prod_16i(int16_t* result, const float* input, const float* taps, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li input: vector of floats.
+ * \li taps:  float taps.
+ * \li num_points: number of samples in both \p input and \p taps.
+ *
+ * \b Outputs
+ * \li result: pointer to a short value to hold the dot product result.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * <FIXME>
+ *
+ * volk_32f_x2_dot_prod_16i();
+ *
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_x2_dot_prod_16i_H
 #define INCLUDED_volk_32f_x2_dot_prod_16i_H
 
 #include <volk/volk_common.h>
-#include<stdio.h>
+#include <stdio.h>
 
 
 #ifdef LV_HAVE_GENERIC

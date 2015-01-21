@@ -20,6 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32i_s32f_convert_32f
+ *
+ * \b Overview
+ *
+ * Converts the samples in the inputVector from 32-bit integers into
+ * floating point values and then divides them by the input scalar.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32i_s32f_convert_32f(float* outputVector, const int32_t* inputVector, const float scalar, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li inputVector: The vector of 32-bit integers.
+ * \li scalar: The value that the output is divided by after being converted to a float.
+ * \li num_points: The number of values.
+ *
+ * \b Outputs
+ * \li complexVector: The output vector of floats.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32i_s32f_convert_32f();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32i_s32f_convert_32f_u_H
 #define INCLUDED_volk_32i_s32f_convert_32f_u_H
 
@@ -29,57 +60,47 @@
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-  /*!
-    \brief Converts the input 32 bit integer data into floating point data, and divides the each floating point output data point by the scalar value
-    \param inputVector The 32 bit input data buffer
-    \param outputVector The floating point output data buffer
-    \param scalar The value divided against each point in the output buffer
-    \param num_points The number of data values to be converted
-    \note Output buffer does NOT need to be properly aligned
-  */
-static inline void volk_32i_s32f_convert_32f_u_sse2(float* outputVector, const int32_t* inputVector, const float scalar, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
+static inline void
+volk_32i_s32f_convert_32f_u_sse2(float* outputVector, const int32_t* inputVector,
+                                 const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-     float* outputVectorPtr = outputVector;
-     const float iScalar = 1.0 / scalar;
-    __m128 invScalar = _mm_set_ps1(iScalar);
-    int32_t* inputPtr = (int32_t*)inputVector;
-    __m128i inputVal;
-    __m128 ret;
+  float* outputVectorPtr = outputVector;
+  const float iScalar = 1.0 / scalar;
+  __m128 invScalar = _mm_set_ps1(iScalar);
+  int32_t* inputPtr = (int32_t*)inputVector;
+  __m128i inputVal;
+  __m128 ret;
 
-    for(;number < quarterPoints; number++){
+  for(;number < quarterPoints; number++){
+    // Load the 4 values
+    inputVal = _mm_loadu_si128((__m128i*)inputPtr);
 
-      // Load the 4 values
-      inputVal = _mm_loadu_si128((__m128i*)inputPtr);
+    ret = _mm_cvtepi32_ps(inputVal);
+    ret = _mm_mul_ps(ret, invScalar);
 
-      ret = _mm_cvtepi32_ps(inputVal);
-      ret = _mm_mul_ps(ret, invScalar);
+    _mm_storeu_ps(outputVectorPtr, ret);
 
-      _mm_storeu_ps(outputVectorPtr, ret);
+    outputVectorPtr += 4;
+    inputPtr += 4;
+  }
 
-      outputVectorPtr += 4;
-      inputPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for(; number < num_points; number++){
-      outputVector[number] =((float)(inputVector[number])) * iScalar;
-    }
+  number = quarterPoints * 4;
+  for(; number < num_points; number++){
+    outputVector[number] =((float)(inputVector[number])) * iScalar;
+  }
 }
 #endif /* LV_HAVE_SSE2 */
 
 
 #ifdef LV_HAVE_GENERIC
-  /*!
-    \brief Converts the input 32 bit integer data into floating point data, and divides the each floating point output data point by the scalar value
-    \param inputVector The 32 bit input data buffer
-    \param outputVector The floating point output data buffer
-    \param scalar The value divided against each point in the output buffer
-    \param num_points The number of data values to be converted
-    \note Output buffer does NOT need to be properly aligned
-  */
-static inline void volk_32i_s32f_convert_32f_generic(float* outputVector, const int32_t* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32i_s32f_convert_32f_generic(float* outputVector, const int32_t* inputVector,
+                                  const float scalar, unsigned int num_points)
+{
   float* outputVectorPtr = outputVector;
   const int32_t* inputVectorPtr = inputVector;
   unsigned int number = 0;
@@ -91,10 +112,10 @@ static inline void volk_32i_s32f_convert_32f_generic(float* outputVector, const 
 }
 #endif /* LV_HAVE_GENERIC */
 
-
-
-
 #endif /* INCLUDED_volk_32i_s32f_convert_32f_u_H */
+
+
+
 #ifndef INCLUDED_volk_32i_s32f_convert_32f_a_H
 #define INCLUDED_volk_32i_s32f_convert_32f_a_H
 
@@ -104,55 +125,47 @@ static inline void volk_32i_s32f_convert_32f_generic(float* outputVector, const 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-  /*!
-    \brief Converts the input 32 bit integer data into floating point data, and divides the each floating point output data point by the scalar value
-    \param inputVector The 32 bit input data buffer
-    \param outputVector The floating point output data buffer
-    \param scalar The value divided against each point in the output buffer
-    \param num_points The number of data values to be converted
-  */
-static inline void volk_32i_s32f_convert_32f_a_sse2(float* outputVector, const int32_t* inputVector, const float scalar, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
+static inline void
+volk_32i_s32f_convert_32f_a_sse2(float* outputVector, const int32_t* inputVector,
+                                 const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-     float* outputVectorPtr = outputVector;
-     const float iScalar = 1.0 / scalar;
-    __m128 invScalar = _mm_set_ps1(iScalar);
-    int32_t* inputPtr = (int32_t*)inputVector;
-    __m128i inputVal;
-    __m128 ret;
+  float* outputVectorPtr = outputVector;
+  const float iScalar = 1.0 / scalar;
+  __m128 invScalar = _mm_set_ps1(iScalar);
+  int32_t* inputPtr = (int32_t*)inputVector;
+  __m128i inputVal;
+  __m128 ret;
 
-    for(;number < quarterPoints; number++){
+  for(;number < quarterPoints; number++){
+    // Load the 4 values
+    inputVal = _mm_load_si128((__m128i*)inputPtr);
 
-      // Load the 4 values
-      inputVal = _mm_load_si128((__m128i*)inputPtr);
+    ret = _mm_cvtepi32_ps(inputVal);
+    ret = _mm_mul_ps(ret, invScalar);
 
-      ret = _mm_cvtepi32_ps(inputVal);
-      ret = _mm_mul_ps(ret, invScalar);
+    _mm_store_ps(outputVectorPtr, ret);
 
-      _mm_store_ps(outputVectorPtr, ret);
+    outputVectorPtr += 4;
+    inputPtr += 4;
+  }
 
-      outputVectorPtr += 4;
-      inputPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for(; number < num_points; number++){
-      outputVector[number] =((float)(inputVector[number])) * iScalar;
-    }
+  number = quarterPoints * 4;
+  for(; number < num_points; number++){
+    outputVector[number] =((float)(inputVector[number])) * iScalar;
+  }
 }
 #endif /* LV_HAVE_SSE2 */
 
 
 #ifdef LV_HAVE_GENERIC
-  /*!
-    \brief Converts the input 32 bit integer data into floating point data, and divides the each floating point output data point by the scalar value
-    \param inputVector The 32 bit input data buffer
-    \param outputVector The floating point output data buffer
-    \param scalar The value divided against each point in the output buffer
-    \param num_points The number of data values to be converted
-  */
-static inline void volk_32i_s32f_convert_32f_a_generic(float* outputVector, const int32_t* inputVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32i_s32f_convert_32f_a_generic(float* outputVector, const int32_t* inputVector,
+                                    const float scalar, unsigned int num_points)
+{
   float* outputVectorPtr = outputVector;
   const int32_t* inputVectorPtr = inputVector;
   unsigned int number = 0;

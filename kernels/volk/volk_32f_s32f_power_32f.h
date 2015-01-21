@@ -20,6 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_s32f_power_32f
+ *
+ * \b Overview
+ *
+ * Takes each input vector value to the specified power and stores the
+ * results in the return vector.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_s32f_power_32f(float* cVector, const float* aVector, const float power, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: The input vector of floats.
+ * \li power: The power to raise the input value to.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li cVector: The output vector.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_s32f_power_32f();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_s32f_power_32f_a_H
 #define INCLUDED_volk_32f_s32f_power_32f_a_H
 
@@ -34,14 +65,10 @@
 #include <simdmath.h>
 #endif /* LV_HAVE_LIB_SIMDMATH */
 
-/*!
-  \brief Takes each the input vector value to the specified power and stores the results in the return vector
-  \param cVector The vector where the results will be stored
-  \param aVector The vector of values to be taken to a power
-  \param power The power value to be applied to each data point
-  \param num_points The number of values in aVector to be taken to the specified power level and stored into cVector
-*/
-static inline void volk_32f_s32f_power_32f_a_sse4_1(float* cVector, const float* aVector, const float power, unsigned int num_points){
+static inline void
+volk_32f_s32f_power_32f_a_sse4_1(float* cVector, const float* aVector,
+                                 const float power, unsigned int num_points)
+{
   unsigned int number = 0;
 
   float* cPtr = cVector;
@@ -82,7 +109,9 @@ static inline void volk_32f_s32f_power_32f_a_sse4_1(float* cVector, const float*
     *cPtr++ = powf((*aPtr++), power);
   }
 }
+
 #endif /* LV_HAVE_SSE4_1 */
+
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
@@ -91,14 +120,10 @@ static inline void volk_32f_s32f_power_32f_a_sse4_1(float* cVector, const float*
 #include <simdmath.h>
 #endif /* LV_HAVE_LIB_SIMDMATH */
 
-/*!
-  \brief Takes each the input vector value to the specified power and stores the results in the return vector
-  \param cVector The vector where the results will be stored
-  \param aVector The vector of values to be taken to a power
-  \param power The power value to be applied to each data point
-  \param num_points The number of values in aVector to be taken to the specified power level and stored into cVector
-*/
-static inline void volk_32f_s32f_power_32f_a_sse(float* cVector, const float* aVector, const float power, unsigned int num_points){
+static inline void
+volk_32f_s32f_power_32f_a_sse(float* cVector, const float* aVector,
+                              const float power, unsigned int num_points)
+{
   unsigned int number = 0;
 
   float* cPtr = cVector;
@@ -139,17 +164,16 @@ static inline void volk_32f_s32f_power_32f_a_sse(float* cVector, const float* aV
     *cPtr++ = powf((*aPtr++), power);
   }
 }
+
 #endif /* LV_HAVE_SSE */
 
+
 #ifdef LV_HAVE_GENERIC
-  /*!
-    \brief Takes each the input vector value to the specified power and stores the results in the return vector
-    \param cVector The vector where the results will be stored
-    \param aVector The vector of values to be taken to a power
-    \param power The power value to be applied to each data point
-    \param num_points The number of values in aVector to be taken to the specified power level and stored into cVector
-  */
-static inline void volk_32f_s32f_power_32f_generic(float* cVector, const float* aVector, const float power, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_power_32f_generic(float* cVector, const float* aVector,
+                                const float power, unsigned int num_points)
+{
   float* cPtr = cVector;
   const float* aPtr = aVector;
   unsigned int number = 0;
@@ -159,8 +183,6 @@ static inline void volk_32f_s32f_power_32f_generic(float* cVector, const float* 
   }
 }
 #endif /* LV_HAVE_GENERIC */
-
-
 
 
 #endif /* INCLUDED_volk_32f_s32f_power_32f_a_H */

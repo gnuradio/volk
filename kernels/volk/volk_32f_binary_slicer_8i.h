@@ -20,17 +20,42 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_binary_slicer_8i
+ *
+ * \b Overview
+ *
+ * Slices input floats and and returns 1 when the input >= 0 and 0
+ * when < 0. Results are converted to 8-bit chars.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_binary_slicer_8i(int8_t* cVector, const float* aVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: The input vector of floats.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li cVector: The output vector of 8-bit chars.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_binary_slicer_8i();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_binary_slicer_8i_H
 #define INCLUDED_volk_32f_binary_slicer_8i_H
 
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Returns integer 1 if float input is greater than or equal to 0, 1 otherwise
-  \param cVector The char (int8_t) output (either 0 or 1)
-  \param aVector The float input
-  \param num_points The number of values in aVector and stored into cVector
-*/
+
 static inline void
 volk_32f_binary_slicer_8i_generic(int8_t* cVector, const float* aVector,
                                   unsigned int num_points)
@@ -52,12 +77,7 @@ volk_32f_binary_slicer_8i_generic(int8_t* cVector, const float* aVector,
 
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Returns integer 1 if float input is greater than or equal to 0, 1 otherwise
-  \param cVector The char (int8_t) output (either 0 or 1)
-  \param aVector The float input
-  \param num_points The number of values in aVector and stored into cVector
-*/
+
 static inline void
 volk_32f_binary_slicer_8i_generic_branchless(int8_t* cVector, const float* aVector,
                                              unsigned int num_points)
@@ -75,12 +95,7 @@ volk_32f_binary_slicer_8i_generic_branchless(int8_t* cVector, const float* aVect
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
-/*!
-  \brief Returns integer 1 if float input is greater than or equal to 0, 1 otherwise
-  \param cVector The char (int8_t) output (either 0 or 1)
-  \param aVector The float input
-  \param num_points The number of values in aVector and stored into cVector
-*/
+
 static inline void
 volk_32f_binary_slicer_8i_a_sse2(int8_t* cVector, const float* aVector,
                                  unsigned int num_points)
@@ -142,12 +157,7 @@ volk_32f_binary_slicer_8i_a_sse2(int8_t* cVector, const float* aVector,
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
-/*!
-  \brief Returns integer 1 if float input is greater than or equal to 0, 1 otherwise
-  \param cVector The char (int8_t) output (either 0 or 1)
-  \param aVector The float input
-  \param num_points The number of values in aVector and stored into cVector
-*/
+
 static inline void
 volk_32f_binary_slicer_8i_u_sse2(int8_t* cVector, const float* aVector,
                                   unsigned int num_points)
@@ -208,12 +218,7 @@ volk_32f_binary_slicer_8i_u_sse2(int8_t* cVector, const float* aVector,
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-/*!
-  \brief Returns integer 1 if float input is greater than or equal to 0, 1 otherwise
-  \param cVector The char (int8_t) output (either 0 or 1)
-  \param aVector The float input
-  \param num_points The number of values in aVector and stored into cVector
-*/
+
 static inline void
 volk_32f_binary_slicer_8i_neon(int8_t* cVector, const float* aVector,
                                   unsigned int num_points)
@@ -233,7 +238,7 @@ volk_32f_binary_slicer_8i_neon(int8_t* cVector, const float* aVector,
 
   zero_val = vdupq_n_f32(0.0);
   one = vdup_n_u8(0x01);
-  
+
   // TODO: this is a good candidate for asm because the vcombines
   // can be eliminated simply by picking dst registers that are
   // adjacent.
@@ -255,7 +260,7 @@ volk_32f_binary_slicer_8i_neon(int8_t* cVector, const float* aVector,
 
     res_u16x8.val[0] = vcombine_u16(res0_u16x4.val[0], res1_u16x4.val[0]);
     res_u16x8.val[1] = vcombine_u16(res0_u16x4.val[1], res1_u16x4.val[1]);
-    
+
     // narrow uint16x8 -> uint8x8
     res_u8.val[0] = vmovn_u16(res_u16x8.val[0]);
     res_u8.val[1] = vmovn_u16(res_u16x8.val[1]);

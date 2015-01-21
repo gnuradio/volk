@@ -20,6 +20,35 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_acos_32f
+ *
+ * \b Overview
+ *
+ * Computes arccosine of the input vector and stores results in the output vector.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_acos_32f(float* bVector, const float* aVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: The input vector of floats.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li bVector: The vector where results will be stored.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_acos_32f();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include <inttypes.h>
@@ -32,14 +61,10 @@
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
-/*!
-  \brief Computes arccosine of input vector and stores results in output vector
-  \param bVector The vector where results will be stored
-  \param aVector The input vector of floats
-  \param num_points Number of points for which arccosine is to be computed
-*/
-static inline void volk_32f_acos_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num_points){
 
+static inline void
+volk_32f_acos_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
+{
   float* bPtr = bVector;
   const float* aPtr = aVector;
 
@@ -106,13 +131,10 @@ static inline void volk_32f_acos_32f_a_sse4_1(float* bVector, const float* aVect
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
-/*!
-  \brief Computes arccosine of input vector and stores results in output vector
-  \param bVector The vector where results will be stored
-  \param aVector The input vector of floats
-  \param num_points Number of points for which arccosine is to be computed
-*/
-static inline void volk_32f_acos_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num_points){
+
+static inline void
+volk_32f_acos_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
+{
   float* bPtr = bVector;
   const float* aPtr = aVector;
 
@@ -173,13 +195,10 @@ static inline void volk_32f_acos_32f_u_sse4_1(float* bVector, const float* aVect
 #endif /* LV_HAVE_SSE4_1 for aligned */
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Computes arccosine of input vector and stores results in output vector
-  \param bVector The vector where results will be stored
-  \param aVector The input vector of floats
-  \param num_points Number of points for which arccosine is to be computed
-*/
-static inline void volk_32f_acos_32f_generic(float* bVector, const float* aVector, unsigned int num_points){
+
+static inline void
+volk_32f_acos_32f_generic(float* bVector, const float* aVector, unsigned int num_points)
+{
   float* bPtr = bVector;
   const float* aPtr = aVector;
   unsigned int number = 0;

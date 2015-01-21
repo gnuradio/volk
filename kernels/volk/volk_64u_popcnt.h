@@ -20,6 +20,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_64u_popcnt
+ *
+ * \b Overview
+ *
+ * Computes the population count (popcnt), or Hamming distance of a
+ * binary string. This kernel takes in a single unsigned 64-bit value
+ * and returns the count of 1's that the value contains.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_64u_popcnt(uint64_t* ret, const uint64_t value)
+ * \endcode
+ *
+ * \b Inputs
+ * \li value: The input value.
+ *
+ * \b Outputs
+ * \li ret: The return value containing the popcnt.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_64u_popcnt();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_64u_popcnt_a_H
 #define INCLUDED_volk_64u_popcnt_a_H
 
@@ -30,8 +60,9 @@
 #ifdef LV_HAVE_GENERIC
 
 
-static inline void volk_64u_popcnt_generic(uint64_t* ret, const uint64_t value) {
-
+static inline void
+volk_64u_popcnt_generic(uint64_t* ret, const uint64_t value)
+{
   //const uint32_t* valueVector = (const uint32_t*)&value;
 
   // This is faster than a lookup table
@@ -55,40 +86,42 @@ static inline void volk_64u_popcnt_generic(uint64_t* ret, const uint64_t value) 
   retVal64 += retVal;
 
   *ret = retVal64;
-
 }
 
 #endif /*LV_HAVE_GENERIC*/
+
 
 #if LV_HAVE_SSE4_2 && LV_HAVE_64
 
 #include <nmmintrin.h>
 
-static inline void volk_64u_popcnt_a_sse4_2(uint64_t* ret, const uint64_t value) {
+static inline void volk_64u_popcnt_a_sse4_2(uint64_t* ret, const uint64_t value)
+{
   *ret = _mm_popcnt_u64(value);
-
 }
 
 #endif /*LV_HAVE_SSE4_2*/
 
+
 #if LV_HAVE_NEON
 #include <arm_neon.h>
-static inline void volk_64u_popcnt_neon(uint64_t* ret, const uint64_t value) {
-    uint8x8_t input_val, count8x8_val;
-    uint16x4_t count16x4_val;
-    uint32x2_t count32x2_val;
-    uint64x1_t count64x1_val;
+static inline void volk_64u_popcnt_neon(uint64_t* ret, const uint64_t value)
+{
+  uint8x8_t input_val, count8x8_val;
+  uint16x4_t count16x4_val;
+  uint32x2_t count32x2_val;
+  uint64x1_t count64x1_val;
 
-    input_val = vld1_u8((unsigned char *) &value);
-    count8x8_val = vcnt_u8(input_val);
-    count16x4_val = vpaddl_u8(count8x8_val);
-    count32x2_val = vpaddl_u16(count16x4_val);
-    count64x1_val = vpaddl_u32(count32x2_val);
-    vst1_u64(ret, count64x1_val);
+  input_val = vld1_u8((unsigned char *) &value);
+  count8x8_val = vcnt_u8(input_val);
+  count16x4_val = vpaddl_u8(count8x8_val);
+  count32x2_val = vpaddl_u16(count16x4_val);
+  count64x1_val = vpaddl_u32(count32x2_val);
+  vst1_u64(ret, count64x1_val);
 
-    //*ret = _mm_popcnt_u64(value);
-
+  //*ret = _mm_popcnt_u64(value);
 }
 #endif /*LV_HAVE_NEON*/
+
 
 #endif /*INCLUDED_volk_64u_popcnt_a_H*/

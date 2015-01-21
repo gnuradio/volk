@@ -20,6 +20,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32fc_s32f_power_32fc
+ *
+ * \b Overview
+ *
+ * Takes each the input complex vector value to the specified power
+ * and stores the results in the return vector. The output is scaled
+ * and converted to 16-bit shorts.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32fc_s32f_power_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector, const float power, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: The complex input vector.
+ * \li power: The power value to be applied to each data point.
+ * \li num_points: The number of samples.
+ *
+ * \b Outputs
+ * \li cVector: The output value as 16-bit shorts.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32fc_s32f_power_32fc();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32fc_s32f_power_32fc_a_H
 #define INCLUDED_volk_32fc_s32f_power_32fc_a_H
 
@@ -28,10 +60,11 @@
 #include <math.h>
 
 //! raise a complex float to a real float power
-static inline lv_32fc_t __volk_s32fc_s32f_power_s32fc_a(const lv_32fc_t exp, const float power){
-    const float arg = power*atan2f(lv_creal(exp), lv_cimag(exp));
-    const float mag = powf(lv_creal(exp)*lv_creal(exp) + lv_cimag(exp)*lv_cimag(exp), power/2);
-    return mag*lv_cmake(-cosf(arg), sinf(arg));
+static inline lv_32fc_t __volk_s32fc_s32f_power_s32fc_a(const lv_32fc_t exp, const float power)
+{
+  const float arg = power*atan2f(lv_creal(exp), lv_cimag(exp));
+  const float mag = powf(lv_creal(exp)*lv_creal(exp) + lv_cimag(exp)*lv_cimag(exp), power/2);
+  return mag*lv_cmake(-cosf(arg), sinf(arg));
 }
 
 #ifdef LV_HAVE_SSE
@@ -41,14 +74,10 @@ static inline lv_32fc_t __volk_s32fc_s32f_power_s32fc_a(const lv_32fc_t exp, con
 #include <simdmath.h>
 #endif /* LV_HAVE_LIB_SIMDMATH */
 
-/*!
-  \brief Takes each the input complex vector value to the specified power and stores the results in the return vector
-  \param cVector The vector where the results will be stored
-  \param aVector The complex vector of values to be taken to a power
-  \param power The power value to be applied to each data point
-  \param num_points The number of values in aVector to be taken to the specified power level and stored into cVector
-*/
-static inline void volk_32fc_s32f_power_32fc_a_sse(lv_32fc_t* cVector, const lv_32fc_t* aVector, const float power, unsigned int num_points){
+static inline void
+volk_32fc_s32f_power_32fc_a_sse(lv_32fc_t* cVector, const lv_32fc_t* aVector,
+                                const float power, unsigned int num_points)
+{
   unsigned int number = 0;
 
   lv_32fc_t* cPtr = cVector;
@@ -108,15 +137,13 @@ static inline void volk_32fc_s32f_power_32fc_a_sse(lv_32fc_t* cVector, const lv_
 }
 #endif /* LV_HAVE_SSE */
 
+
 #ifdef LV_HAVE_GENERIC
-  /*!
-    \brief Takes each the input complex vector value to the specified power and stores the results in the return vector
-    \param cVector The vector where the results will be stored
-    \param aVector The complex vector of values to be taken to a power
-    \param power The power value to be applied to each data point
-    \param num_points The number of values in aVector to be taken to the specified power level and stored into cVector
-  */
-static inline void volk_32fc_s32f_power_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, const float power, unsigned int num_points){
+
+static inline void
+volk_32fc_s32f_power_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector,
+                                  const float power, unsigned int num_points)
+{
   lv_32fc_t* cPtr = cVector;
   const lv_32fc_t* aPtr = aVector;
   unsigned int number = 0;
@@ -125,9 +152,8 @@ static inline void volk_32fc_s32f_power_32fc_generic(lv_32fc_t* cVector, const l
     *cPtr++ = __volk_s32fc_s32f_power_s32fc_a((*aPtr++), power);
   }
 }
+
 #endif /* LV_HAVE_GENERIC */
-
-
 
 
 #endif /* INCLUDED_volk_32fc_s32f_power_32fc_a_H */

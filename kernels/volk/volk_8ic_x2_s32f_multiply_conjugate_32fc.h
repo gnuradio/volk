@@ -20,6 +20,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_8ic_x2_s32f_multiply_conjugate_32fc
+ *
+ * \b Overview
+ *
+ * Multiplys the one complex vector with the complex conjugate of the
+ * second complex vector and stores their results in the third vector
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_8ic_x2_s32f_multiply_conjugate_32fc(lv_32fc_t* cVector, const lv_8sc_t* aVector, const lv_8sc_t* bVector, const float scalar, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: One of the complex vectors to be multiplied.
+ * \li bVector: The complex vector which will be converted to complex conjugate and multiplied.
+ * \li scalar: each output value is scaled by 1/scalar.
+ * \li num_points: The number of complex values in aVector and bVector to be multiplied together and stored into cVector.
+ *
+ * \b Outputs
+ * \li cVector: The complex vector where the results will be stored.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * <FIXME>
+ *
+ * volk_8ic_x2_s32f_multiply_conjugate_32fc();
+ *
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_8ic_x2_s32f_multiply_conjugate_32fc_a_H
 #define INCLUDED_volk_8ic_x2_s32f_multiply_conjugate_32fc_a_H
 
@@ -29,14 +62,12 @@
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
-/*!
-  \brief Multiplys the one complex vector with the complex conjugate of the second complex vector and stores their results in the third vector
-  \param cVector The complex vector where the results will be stored
-  \param aVector One of the complex vectors to be multiplied
-  \param bVector The complex vector which will be converted to complex conjugate and multiplied
-  \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
-*/
-static inline void volk_8ic_x2_s32f_multiply_conjugate_32fc_a_sse4_1(lv_32fc_t* cVector, const lv_8sc_t* aVector, const lv_8sc_t* bVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_8ic_x2_s32f_multiply_conjugate_32fc_a_sse4_1(lv_32fc_t* cVector, const lv_8sc_t* aVector,
+                                                  const lv_8sc_t* bVector, const float scalar,
+                                                  unsigned int num_points)
+{
   unsigned int number = 0;
   const unsigned int quarterPoints = num_points / 4;
 
@@ -109,15 +140,14 @@ static inline void volk_8ic_x2_s32f_multiply_conjugate_32fc_a_sse4_1(lv_32fc_t* 
 }
 #endif /* LV_HAVE_SSE4_1 */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Multiplys the one complex vector with the complex conjugate of the second complex vector and stores their results in the third vector
-  \param cVector The complex vector where the results will be stored
-  \param aVector One of the complex vectors to be multiplied
-  \param bVector The complex vector which will be converted to complex conjugate and multiplied
-  \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
-*/
-static inline void volk_8ic_x2_s32f_multiply_conjugate_32fc_generic(lv_32fc_t* cVector, const lv_8sc_t* aVector, const lv_8sc_t* bVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_8ic_x2_s32f_multiply_conjugate_32fc_generic(lv_32fc_t* cVector, const lv_8sc_t* aVector,
+                                                 const lv_8sc_t* bVector, const float scalar,
+                                                 unsigned int num_points)
+{
   unsigned int number = 0;
   float* cPtr = (float*)cVector;
   const float invScalar = 1.0 / scalar;
@@ -137,8 +167,6 @@ static inline void volk_8ic_x2_s32f_multiply_conjugate_32fc_generic(lv_32fc_t* c
   }
 }
 #endif /* LV_HAVE_GENERIC */
-
-
 
 
 #endif /* INCLUDED_volk_8ic_x2_s32f_multiply_conjugate_32fc_a_H */

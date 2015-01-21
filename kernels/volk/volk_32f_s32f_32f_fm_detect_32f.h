@@ -20,6 +20,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_s32f_32f_fm_detect_32f
+ *
+ * \b Overview
+ *
+ * Performs FM-detect differentiation on the input vector and stores
+ * the results in the output vector.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_s32f_32f_fm_detect_32f(float* outputVector, const float* inputVector, const float bound, float* saveValue, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li inputVector: The input vector containing phase data (must be on the interval (-bound, bound]).
+ * \li bound: The interval that the input phase data is in, which is used to modulo the differentiation.
+ * \li saveValue: A pointer to a float which contains the phase value of the sample before the first input sample.
+ * \li num_points The number of data points.
+ *
+ * \b Outputs
+ * \li outputVector: The vector where the results will be stored.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * <FIXME>
+ *
+ * volk_32f_s32f_32f_fm_detect_32f();
+ *
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_s32f_32f_fm_detect_32f_a_H
 #define INCLUDED_volk_32f_s32f_32f_fm_detect_32f_a_H
 
@@ -28,14 +61,7 @@
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief performs the FM-detect differentiation on the input vector and stores the results in the output vector.
-  \param outputVector The byte-aligned vector where the results will be stored.
-  \param inputVector The byte-aligned input vector containing phase data (must be on the interval (-bound,bound] )
-  \param bound The interval that the input phase data is in, which is used to modulo the differentiation
-  \param saveValue A pointer to a float which contains the phase value of the sample before the first input sample.
-  \param num_noints The number of real values in the input vector.
-*/
+
 static inline void volk_32f_s32f_32f_fm_detect_32f_a_sse(float* outputVector, const float* inputVector, const float bound, float* saveValue, unsigned int num_points){
   if (num_points < 1) {
     return;
@@ -101,14 +127,7 @@ static inline void volk_32f_s32f_32f_fm_detect_32f_a_sse(float* outputVector, co
 #endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief performs the FM-detect differentiation on the input vector and stores the results in the output vector.
-  \param outputVector The byte-aligned vector where the results will be stored.
-  \param inputVector The byte-aligned input vector containing phase data (must be on the interval (-bound,bound] )
-  \param bound The interval that the input phase data is in, which is used to modulo the differentiation
-  \param saveValue A pointer to a float which contains the phase value of the sample before the first input sample.
-  \param num_points The number of real values in the input vector.
-*/
+
 static inline void volk_32f_s32f_32f_fm_detect_32f_generic(float* outputVector, const float* inputVector, const float bound, float* saveValue, unsigned int num_points){
   if (num_points < 1) {
     return;

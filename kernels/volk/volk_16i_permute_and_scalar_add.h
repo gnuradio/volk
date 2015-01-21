@@ -20,22 +20,57 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_16i_permute_and_scalar_add
+ *
+ * \b Overview
+ *
+ * <FIXME>
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_16i_permute_and_scalar_add(short* target,  short* src0, short* permute_indexes, short* cntl0, short* cntl1, short* cntl2, short* cntl3, short* scalars, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li src0: The input vector.
+ * \li permute_indexes: <FIXME>
+ * \li cntl0: <FIXME>
+ * \li cntl1: <FIXME>
+ * \li cntl2: <FIXME>
+ * \li cntl3: <FIXME>
+ * \li scalars: <FIXME>
+ * \li num_points: The number of complex data points.
+ *
+ * \b Outputs
+ * \li target: The output value.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_16i_permute_and_scalar_add();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_16i_permute_and_scalar_add_a_H
 #define INCLUDED_volk_16i_permute_and_scalar_add_a_H
 
-
 #include<inttypes.h>
 #include<stdio.h>
-
-
-
 
 #ifdef LV_HAVE_SSE2
 
 #include<xmmintrin.h>
 #include<emmintrin.h>
 
-static inline  void volk_16i_permute_and_scalar_add_a_sse2(short* target,  short* src0, short* permute_indexes, short* cntl0, short* cntl1, short* cntl2, short* cntl3, short* scalars, unsigned int num_points) {
+static inline void
+volk_16i_permute_and_scalar_add_a_sse2(short* target,  short* src0, short* permute_indexes,
+                                       short* cntl0, short* cntl1, short* cntl2, short* cntl3,
+                                       short* scalars, unsigned int num_points)
+{
 
   const unsigned int num_bytes = num_points*2;
 
@@ -124,10 +159,6 @@ static inline  void volk_16i_permute_and_scalar_add_a_sse2(short* target,  short
     p_target += 1;
   }
 
-
-
-
-
   for(i = bound * 8; i < (bound * 8) + leftovers; ++i) {
     target[i] = src0[permute_indexes[i]]
       + (cntl0[i] & scalars[0])
@@ -136,29 +167,30 @@ static inline  void volk_16i_permute_and_scalar_add_a_sse2(short* target,  short
       + (cntl3[i] & scalars[3]);
   }
 }
-#endif /*LV_HAVE_SSEs*/
+#endif /*LV_HAVE_SSE*/
 
 
 #ifdef LV_HAVE_GENERIC
-static inline void volk_16i_permute_and_scalar_add_generic(short* target, short* src0, short* permute_indexes, short* cntl0, short* cntl1, short* cntl2, short* cntl3, short* scalars, unsigned int num_points) {
+static inline void
+volk_16i_permute_and_scalar_add_generic(short* target, short* src0, short* permute_indexes,
+                                        short* cntl0, short* cntl1, short* cntl2, short* cntl3,
+                                        short* scalars, unsigned int num_points)
+{
+  const unsigned int num_bytes = num_points*2;
 
-	const unsigned int num_bytes = num_points*2;
+  int i = 0;
 
-	int i = 0;
+  int bound = num_bytes >> 1;
 
-	int bound = num_bytes >> 1;
-
-	for(i = 0; i < bound; ++i) {
-		target[i] = src0[permute_indexes[i]]
-			+ (cntl0[i] & scalars[0])
-			+ (cntl1[i] & scalars[1])
-			+ (cntl2[i] & scalars[2])
-			+ (cntl3[i] & scalars[3]);
-
-	}
+  for(i = 0; i < bound; ++i) {
+    target[i] = src0[permute_indexes[i]]
+      + (cntl0[i] & scalars[0])
+      + (cntl1[i] & scalars[1])
+      + (cntl2[i] & scalars[2])
+      + (cntl3[i] & scalars[3]);
+  }
 }
 
 #endif /*LV_HAVE_GENERIC*/
-
 
 #endif /*INCLUDED_volk_16i_permute_and_scalar_add_a_H*/

@@ -20,6 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_expfast_32f
+ *
+ * \b Overview
+ *
+ * Computes exp of input vector and stores results in output
+ * vector. This uses a fast exp approximation with a maximum 7% error.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_expfast_32f(float* bVector, const float* aVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: Input vector of floats.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li bVector: The output vector.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_expfast_32f();
+ *
+ * volk_free(x);
+ * volk_free(t);
+ * \endcode
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include <inttypes.h>
@@ -34,182 +65,167 @@
 #define INCLUDED_volk_32f_expfast_32f_a_H
 
 #ifdef LV_HAVE_AVX
+
 #include <immintrin.h>
-/*!
-  \brief Computes fast exp (max 7% error) of input vector and stores results in output vector
-  \param bVector The vector where results will be stored
-  \param aVector The input vector of floats
-  \param num_points Number of points for which exp is to be computed
-*/
-static inline void volk_32f_expfast_32f_a_avx(float* bVector, const float* aVector, unsigned int num_points){
 
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
+static inline void
+ volk_32f_expfast_32f_a_avx(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
 
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
 
-    __m256 aVal, bVal, a, b;
-    __m256i exp;
-    a = _mm256_set1_ps(A/Mln2);
-    b = _mm256_set1_ps(B-C);
+  __m256 aVal, bVal, a, b;
+  __m256i exp;
+  a = _mm256_set1_ps(A/Mln2);
+  b = _mm256_set1_ps(B-C);
 
-    for(;number < eighthPoints; number++){
-        aVal = _mm256_load_ps(aPtr);
-        exp = _mm256_cvtps_epi32(_mm256_add_ps(_mm256_mul_ps(a,aVal), b));
-        bVal = _mm256_castsi256_ps(exp);
+  for(;number < eighthPoints; number++){
+    aVal = _mm256_load_ps(aPtr);
+    exp = _mm256_cvtps_epi32(_mm256_add_ps(_mm256_mul_ps(a,aVal), b));
+    bVal = _mm256_castsi256_ps(exp);
 
-        _mm256_store_ps(bPtr, bVal);
-        aPtr += 8;
-        bPtr += 8;
-    }
+    _mm256_store_ps(bPtr, bVal);
+    aPtr += 8;
+    bPtr += 8;
+  }
 
-    number = eighthPoints * 8;
-    for(;number < num_points; number++){
-        *bPtr++ = expf(*aPtr++);
-    }
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = expf(*aPtr++);
+  }
 }
 
 #endif /* LV_HAVE_AVX for aligned */
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
-/*!
-  \brief Computes fast exp (max 7% error) of input vector and stores results in output vector
-  \param bVector The vector where results will be stored
-  \param aVector The input vector of floats
-  \param num_points Number of points for which exp is to be computed
-*/
-static inline void volk_32f_expfast_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num_points){
 
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
+static inline void
+volk_32f_expfast_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
 
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-    __m128 aVal, bVal, a, b;
-    __m128i exp;
-    a = _mm_set1_ps(A/Mln2);
-    b = _mm_set1_ps(B-C);
+  __m128 aVal, bVal, a, b;
+  __m128i exp;
+  a = _mm_set1_ps(A/Mln2);
+  b = _mm_set1_ps(B-C);
 
-    for(;number < quarterPoints; number++){
-        aVal = _mm_load_ps(aPtr);
-        exp = _mm_cvtps_epi32(_mm_add_ps(_mm_mul_ps(a,aVal), b));
-        bVal = _mm_castsi128_ps(exp);
+  for(;number < quarterPoints; number++){
+    aVal = _mm_load_ps(aPtr);
+    exp = _mm_cvtps_epi32(_mm_add_ps(_mm_mul_ps(a,aVal), b));
+    bVal = _mm_castsi128_ps(exp);
 
-        _mm_store_ps(bPtr, bVal);
-        aPtr += 4;
-        bPtr += 4;
-    }
+    _mm_store_ps(bPtr, bVal);
+    aPtr += 4;
+    bPtr += 4;
+  }
 
-    number = quarterPoints * 4;
-    for(;number < num_points; number++){
-        *bPtr++ = expf(*aPtr++);
-    }
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    *bPtr++ = expf(*aPtr++);
+  }
 }
 
 #endif /* LV_HAVE_SSE4_1 for aligned */
 
 #endif /* INCLUDED_volk_32f_expfast_32f_a_H */
 
+
+
 #ifndef INCLUDED_volk_32f_expfast_32f_u_H
 #define INCLUDED_volk_32f_expfast_32f_u_H
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-/*!
-  \brief Computes fast exp (max 7% error) of input vector and stores results in output vector
-  \param bVector The vector where results will be stored
-  \param aVector The input vector of floats
-  \param num_points Number of points for which exp is to be computed
-*/
-static inline void volk_32f_expfast_32f_u_avx(float* bVector, const float* aVector, unsigned int num_points){
 
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
+static inline void
+volk_32f_expfast_32f_u_avx(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
 
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
 
-    __m256 aVal, bVal, a, b;
-    __m256i exp;
-    a = _mm256_set1_ps(A/Mln2);
-    b = _mm256_set1_ps(B-C);
+  __m256 aVal, bVal, a, b;
+  __m256i exp;
+  a = _mm256_set1_ps(A/Mln2);
+  b = _mm256_set1_ps(B-C);
 
-    for(;number < eighthPoints; number++){
-        aVal = _mm256_loadu_ps(aPtr);
-        exp = _mm256_cvtps_epi32(_mm256_add_ps(_mm256_mul_ps(a,aVal), b));
-        bVal = _mm256_castsi256_ps(exp);
+  for(;number < eighthPoints; number++){
+    aVal = _mm256_loadu_ps(aPtr);
+    exp = _mm256_cvtps_epi32(_mm256_add_ps(_mm256_mul_ps(a,aVal), b));
+    bVal = _mm256_castsi256_ps(exp);
 
-        _mm256_storeu_ps(bPtr, bVal);
-        aPtr += 8;
-        bPtr += 8;
-    }
+    _mm256_storeu_ps(bPtr, bVal);
+    aPtr += 8;
+    bPtr += 8;
+  }
 
-    number = eighthPoints * 8;
-    for(;number < num_points; number++){
-        *bPtr++ = expf(*aPtr++);
-    }
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = expf(*aPtr++);
+  }
 }
 
 #endif /* LV_HAVE_AVX for aligned */
 
+
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
-/*!
-  \brief Computes fast exp (max 7% error) of input vector and stores results in output vector
-  \param bVector The vector where results will be stored
-  \param aVector The input vector of floats
-  \param num_points Number of points for which log is to be computed
-*/
-static inline void volk_32f_expfast_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num_points){
 
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
+static inline void
+volk_32f_expfast_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
 
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-    __m128 aVal, bVal, a, b;
-    __m128i exp;
-    a = _mm_set1_ps(A/Mln2);
-    b = _mm_set1_ps(B-C);
+  __m128 aVal, bVal, a, b;
+  __m128i exp;
+  a = _mm_set1_ps(A/Mln2);
+  b = _mm_set1_ps(B-C);
 
-    for(;number < quarterPoints; number++){
-        aVal = _mm_loadu_ps(aPtr);
-        exp = _mm_cvtps_epi32(_mm_add_ps(_mm_mul_ps(a,aVal), b));
-        bVal = _mm_castsi128_ps(exp);
+  for(;number < quarterPoints; number++){
+    aVal = _mm_loadu_ps(aPtr);
+    exp = _mm_cvtps_epi32(_mm_add_ps(_mm_mul_ps(a,aVal), b));
+    bVal = _mm_castsi128_ps(exp);
 
-        _mm_storeu_ps(bPtr, bVal);
-        aPtr += 4;
-        bPtr += 4;
-    }
+    _mm_storeu_ps(bPtr, bVal);
+    aPtr += 4;
+    bPtr += 4;
+  }
 
-    number = quarterPoints * 4;
-    for(;number < num_points; number++){
-        *bPtr++ = expf(*aPtr++);
-    }
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    *bPtr++ = expf(*aPtr++);
+  }
 }
 
 #endif /* LV_HAVE_SSE4_1 for unaligned */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Computes fast exp (max 7% error) of input vector and stores results in output vector
-  \param bVector The vector where results will be stored
-  \param aVector The input vector of floats
-  \param num_points Number of points for which log is to be computed
-*/
-static inline void volk_32f_expfast_32f_generic(float* bVector, const float* aVector, unsigned int num_points){
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
-    unsigned int number = 0;
 
-    for(number = 0; number < num_points; number++){
-        *bPtr++ = expf(*aPtr++);
-    }
+static inline void
+volk_32f_expfast_32f_generic(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+  unsigned int number = 0;
 
+  for(number = 0; number < num_points; number++){
+    *bPtr++ = expf(*aPtr++);
+  }
 }
 #endif /* LV_HAVE_GENERIC */
 

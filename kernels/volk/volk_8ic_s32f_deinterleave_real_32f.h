@@ -20,6 +20,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_8ic_s32f_deinterleave_real_32f
+ *
+ * \b Overview
+ *
+ * Deinterleaves the complex 8-bit char vector into just the real (I)
+ * vector, converts the samples to floats, and divides the results by
+ * the scalar factor.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_8ic_s32f_deinterleave_real_32f(float* iBuffer, const lv_8sc_t* complexVector, const float scalar, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li complexVector: The complex input vector.
+ * \li scalar: The scalar value used to divide the floating point results.
+ * \li num_points: The number of complex data values to be deinterleaved.
+ *
+ * \b Outputs
+ * \li iBuffer: The I buffer output data.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_8ic_s32f_deinterleave_real_32f();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_8ic_s32f_deinterleave_real_32f_a_H
 #define INCLUDED_volk_8ic_s32f_deinterleave_real_32f_a_H
 
@@ -29,14 +61,11 @@
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
-/*!
-  \brief Deinterleaves the complex 8 bit vector into I float vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param scalar The scaling value being multiplied against each data point
-  \param num_points The number of complex data values to be deinterleaved
-*/
-static inline void volk_8ic_s32f_deinterleave_real_32f_a_sse4_1(float* iBuffer, const lv_8sc_t* complexVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_8ic_s32f_deinterleave_real_32f_a_sse4_1(float* iBuffer, const lv_8sc_t* complexVector,
+                                             const float scalar, unsigned int num_points)
+{
   float* iBufferPtr = iBuffer;
 
   unsigned int number = 0;
@@ -86,14 +115,11 @@ static inline void volk_8ic_s32f_deinterleave_real_32f_a_sse4_1(float* iBuffer, 
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief Deinterleaves the complex 8 bit vector into I float vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param scalar The scaling value being multiplied against each data point
-  \param num_points The number of complex data values to be deinterleaved
-*/
-static inline void volk_8ic_s32f_deinterleave_real_32f_a_sse(float* iBuffer, const lv_8sc_t* complexVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_8ic_s32f_deinterleave_real_32f_a_sse(float* iBuffer, const lv_8sc_t* complexVector,
+                                          const float scalar, unsigned int num_points)
+{
   float* iBufferPtr = iBuffer;
 
   unsigned int number = 0;
@@ -130,15 +156,13 @@ static inline void volk_8ic_s32f_deinterleave_real_32f_a_sse(float* iBuffer, con
 }
 #endif /* LV_HAVE_SSE */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Deinterleaves the complex 8 bit vector into I float vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param scalar The scaling value being multiplied against each data point
-  \param num_points The number of complex data values to be deinterleaved
-*/
-static inline void volk_8ic_s32f_deinterleave_real_32f_generic(float* iBuffer, const lv_8sc_t* complexVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_8ic_s32f_deinterleave_real_32f_generic(float* iBuffer, const lv_8sc_t* complexVector,
+                                            const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
   const int8_t* complexVectorPtr = (const int8_t*)complexVector;
   float* iBufferPtr = iBuffer;
@@ -149,7 +173,6 @@ static inline void volk_8ic_s32f_deinterleave_real_32f_generic(float* iBuffer, c
   }
 }
 #endif /* LV_HAVE_GENERIC */
-
 
 
 

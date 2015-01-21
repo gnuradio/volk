@@ -20,6 +20,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_s32f_multiply_32f
+ *
+ * \b Overview
+ *
+ * Multiplies a floating point vector by a floating point scalar.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_s32f_multiply_32f(float* cVector, const float* aVector, const float scalar, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: The input vector of floats.
+ * \li scalar: the scalar value to multiply against \p aVector.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li cVector: The output vector of floats.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_s32f_multiply_32f();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_s32f_multiply_32f_u_H
 #define INCLUDED_volk_32f_s32f_multiply_32f_u_H
 
@@ -28,87 +58,77 @@
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief Scalar float multiply
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be multiplied
-  \param scalar the scalar value
-  \param num_points The number of values in aVector and bVector to be multiplied together and stored into cVector
-*/
-static inline void volk_32f_s32f_multiply_32f_u_sse(float* cVector, const float* aVector, const float scalar, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
 
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
+static inline void
+volk_32f_s32f_multiply_32f_u_sse(float* cVector, const float* aVector,
+                                 const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-    __m128 aVal, bVal, cVal;
-    bVal = _mm_set_ps1(scalar);
-    for(;number < quarterPoints; number++){
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
 
-      aVal = _mm_loadu_ps(aPtr);
+  __m128 aVal, bVal, cVal;
+  bVal = _mm_set_ps1(scalar);
+  for(;number < quarterPoints; number++){
+    aVal = _mm_loadu_ps(aPtr);
 
-      cVal = _mm_mul_ps(aVal, bVal);
+    cVal = _mm_mul_ps(aVal, bVal);
 
-      _mm_storeu_ps(cPtr,cVal); // Store the results back into the C container
+    _mm_storeu_ps(cPtr,cVal); // Store the results back into the C container
 
-      aPtr += 4;
-      cPtr += 4;
-    }
+    aPtr += 4;
+    cPtr += 4;
+  }
 
-    number = quarterPoints * 4;
-    for(;number < num_points; number++){
-      *cPtr++ = (*aPtr++) * scalar;
-    }
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) * scalar;
+  }
 }
 #endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-/*!
-  \brief Scalar float multiply
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be multiplied
-  \param scalar the scalar value
-  \param num_points The number of values in aVector and bVector to be multiplied together and stored into cVector
-*/
-static inline void volk_32f_s32f_multiply_32f_u_avx(float* cVector, const float* aVector, const float scalar, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
 
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
+static inline void
+volk_32f_s32f_multiply_32f_u_avx(float* cVector, const float* aVector,
+                                 const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
 
-    __m256 aVal, bVal, cVal;
-    bVal = _mm256_set1_ps(scalar);
-    for(;number < eighthPoints; number++){
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
 
-      aVal = _mm256_loadu_ps(aPtr);
+  __m256 aVal, bVal, cVal;
+  bVal = _mm256_set1_ps(scalar);
+  for(;number < eighthPoints; number++){
 
-      cVal = _mm256_mul_ps(aVal, bVal);
+    aVal = _mm256_loadu_ps(aPtr);
 
-      _mm256_storeu_ps(cPtr,cVal); // Store the results back into the C container
+    cVal = _mm256_mul_ps(aVal, bVal);
 
-      aPtr += 8;
-      cPtr += 8;
-    }
+    _mm256_storeu_ps(cPtr,cVal); // Store the results back into the C container
 
-    number = eighthPoints * 8;
-    for(;number < num_points; number++){
-      *cPtr++ = (*aPtr++) * scalar;
-    }
+    aPtr += 8;
+    cPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) * scalar;
+  }
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Scalar float multiply
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be multiplied
-  \param scalar the scalar value
-  \param num_points The number of values in aVector and bVector to be multiplied together and stored into cVector
-*/
-static inline void volk_32f_s32f_multiply_32f_generic(float* cVector, const float* aVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_multiply_32f_generic(float* cVector, const float* aVector,
+                                   const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
   const float* inputPtr = aVector;
   float* outputPtr = cVector;
@@ -120,8 +140,9 @@ static inline void volk_32f_s32f_multiply_32f_generic(float* cVector, const floa
 }
 #endif /* LV_HAVE_GENERIC */
 
-
 #endif /* INCLUDED_volk_32f_s32f_multiply_32f_u_H */
+
+
 #ifndef INCLUDED_volk_32f_s32f_multiply_32f_a_H
 #define INCLUDED_volk_32f_s32f_multiply_32f_a_H
 
@@ -130,88 +151,77 @@ static inline void volk_32f_s32f_multiply_32f_generic(float* cVector, const floa
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief Scalar float multiply
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be multiplied
-  \param scalar the scalar value
-  \param num_points The number of values in aVector and bVector to be multiplied together and stored into cVector
-*/
-static inline void volk_32f_s32f_multiply_32f_a_sse(float* cVector, const float* aVector, const float scalar, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
 
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
+static inline void
+volk_32f_s32f_multiply_32f_a_sse(float* cVector, const float* aVector,
+                                 const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-    __m128 aVal, bVal, cVal;
-    bVal = _mm_set_ps1(scalar);
-    for(;number < quarterPoints; number++){
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
 
-      aVal = _mm_load_ps(aPtr);
+  __m128 aVal, bVal, cVal;
+  bVal = _mm_set_ps1(scalar);
+  for(;number < quarterPoints; number++){
+    aVal = _mm_load_ps(aPtr);
 
-      cVal = _mm_mul_ps(aVal, bVal);
+    cVal = _mm_mul_ps(aVal, bVal);
 
-      _mm_store_ps(cPtr,cVal); // Store the results back into the C container
+    _mm_store_ps(cPtr,cVal); // Store the results back into the C container
 
-      aPtr += 4;
-      cPtr += 4;
-    }
+    aPtr += 4;
+    cPtr += 4;
+  }
 
-    number = quarterPoints * 4;
-    for(;number < num_points; number++){
-      *cPtr++ = (*aPtr++) * scalar;
-    }
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) * scalar;
+  }
 }
 #endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-/*!
-  \brief Scalar float multiply
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be multiplied
-  \param scalar the scalar value
-  \param num_points The number of values in aVector and bVector to be multiplied together and stored into cVector
-*/
-static inline void volk_32f_s32f_multiply_32f_a_avx(float* cVector, const float* aVector, const float scalar, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
 
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
+static inline void
+volk_32f_s32f_multiply_32f_a_avx(float* cVector, const float* aVector,
+                                 const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
 
-    __m256 aVal, bVal, cVal;
-    bVal = _mm256_set1_ps(scalar);
-    for(;number < eighthPoints; number++){
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
 
-      aVal = _mm256_load_ps(aPtr);
+  __m256 aVal, bVal, cVal;
+  bVal = _mm256_set1_ps(scalar);
+  for(;number < eighthPoints; number++){
+    aVal = _mm256_load_ps(aPtr);
 
-      cVal = _mm256_mul_ps(aVal, bVal);
+    cVal = _mm256_mul_ps(aVal, bVal);
 
-      _mm256_store_ps(cPtr,cVal); // Store the results back into the C container
+    _mm256_store_ps(cPtr,cVal); // Store the results back into the C container
 
-      aPtr += 8;
-      cPtr += 8;
-    }
+    aPtr += 8;
+    cPtr += 8;
+  }
 
-    number = eighthPoints * 8;
-    for(;number < num_points; number++){
-      *cPtr++ = (*aPtr++) * scalar;
-    }
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) * scalar;
+  }
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-/*!
-  \brief Scalar float multiply
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be multiplied
-  \param scalar the scalar value
-  \param num_points The number of values in aVector and bVector to be multiplied together and stored into cVector
-*/
-static inline void volk_32f_s32f_multiply_32f_u_neon(float* cVector, const float* aVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_multiply_32f_u_neon(float* cVector, const float* aVector,
+                                  const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
   const float* inputPtr = aVector;
   float* outputPtr = cVector;
@@ -227,20 +237,18 @@ static inline void volk_32f_s32f_multiply_32f_u_neon(float* cVector, const float
     outputPtr += 4;
   }
   for(number = quarterPoints * 4; number < num_points; number++){
-      *outputPtr++ = (*inputPtr++) * scalar;
+    *outputPtr++ = (*inputPtr++) * scalar;
   }
 }
 #endif /* LV_HAVE_NEON */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Scalar float multiply
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be multiplied
-  \param scalar the scalar value
-  \param num_points The number of values in aVector and bVector to be multiplied together and stored into cVector
-*/
-static inline void volk_32f_s32f_multiply_32f_a_generic(float* cVector, const float* aVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_32f_s32f_multiply_32f_a_generic(float* cVector, const float* aVector,
+                                     const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
   const float* inputPtr = aVector;
   float* outputPtr = cVector;
@@ -252,19 +260,20 @@ static inline void volk_32f_s32f_multiply_32f_a_generic(float* cVector, const fl
 }
 #endif /* LV_HAVE_GENERIC */
 
-#ifdef LV_HAVE_ORC
-/*!
-  \brief Scalar float multiply
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be multiplied
-  \param scalar the scalar value
-  \param num_points The number of values in aVector and bVector to be multiplied together and stored into cVector
-*/
-extern void volk_32f_s32f_multiply_32f_a_orc_impl(float* dst, const float* src, const float scalar, unsigned int num_points);
-static inline void volk_32f_s32f_multiply_32f_u_orc(float* cVector, const float* aVector, const float scalar, unsigned int num_points){
-    volk_32f_s32f_multiply_32f_a_orc_impl(cVector, aVector, scalar, num_points);
-}
-#endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_ORC
+
+extern void
+volk_32f_s32f_multiply_32f_a_orc_impl(float* dst, const float* src,
+                                      const float scalar, unsigned int num_points);
+
+static inline void
+volk_32f_s32f_multiply_32f_u_orc(float* cVector, const float* aVector,
+                                 const float scalar, unsigned int num_points)
+{
+  volk_32f_s32f_multiply_32f_a_orc_impl(cVector, aVector, scalar, num_points);
+}
+
+#endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32f_s32f_multiply_32f_a_H */

@@ -20,6 +20,35 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32fc_conjugate_32fc
+ *
+ * \b Overview
+ *
+ * Takes the conjugate of a complex vector.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32fc_conjugate_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: The input vector of complex floats.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li bVector: The output vector of complex floats.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32fc_conjugate_32fc();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32fc_conjugate_32fc_u_H
 #define INCLUDED_volk_32fc_conjugate_32fc_u_H
 
@@ -30,93 +59,84 @@
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-  /*!
-    \brief Takes the conjugate of a complex vector.
-    \param cVector The vector where the results will be stored
-    \param aVector Vector to be conjugated
-    \param num_points The number of complex values in aVector to be conjugated and stored into cVector
-  */
-static inline void volk_32fc_conjugate_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
 
-    __m256 x;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
+static inline void
+volk_32fc_conjugate_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-    __m256 conjugator = _mm256_setr_ps(0, -0.f, 0, -0.f, 0, -0.f, 0, -0.f);
+  __m256 x;
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = aVector;
 
-    for(;number < quarterPoints; number++){
+  __m256 conjugator = _mm256_setr_ps(0, -0.f, 0, -0.f, 0, -0.f, 0, -0.f);
 
-      x = _mm256_loadu_ps((float*)a); // Load the complex data as ar,ai,br,bi
+  for(;number < quarterPoints; number++){
 
-      x = _mm256_xor_ps(x, conjugator); // conjugate register
+    x = _mm256_loadu_ps((float*)a); // Load the complex data as ar,ai,br,bi
 
-      _mm256_storeu_ps((float*)c,x); // Store the results back into the C container
+    x = _mm256_xor_ps(x, conjugator); // conjugate register
 
-      a += 4;
-      c += 4;
-    }
+    _mm256_storeu_ps((float*)c,x); // Store the results back into the C container
 
-    number = quarterPoints * 4;
+    a += 4;
+    c += 4;
+  }
 
-    for(;number < num_points; number++) {
-      *c++ = lv_conj(*a++);
-    }
+  number = quarterPoints * 4;
+
+  for(;number < num_points; number++) {
+    *c++ = lv_conj(*a++);
+  }
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
-  /*!
-    \brief Takes the conjugate of a complex vector.
-    \param cVector The vector where the results will be stored
-    \param aVector Vector to be conjugated
-    \param num_points The number of complex values in aVector to be conjugated and stored into cVector
-  */
-static inline void volk_32fc_conjugate_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_points / 2;
 
-    __m128 x;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
+static inline void
+volk_32fc_conjugate_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int halfPoints = num_points / 2;
 
-    __m128 conjugator = _mm_setr_ps(0, -0.f, 0, -0.f);
+  __m128 x;
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = aVector;
 
-    for(;number < halfPoints; number++){
+  __m128 conjugator = _mm_setr_ps(0, -0.f, 0, -0.f);
 
-      x = _mm_loadu_ps((float*)a); // Load the complex data as ar,ai,br,bi
+  for(;number < halfPoints; number++){
 
-      x = _mm_xor_ps(x, conjugator); // conjugate register
+    x = _mm_loadu_ps((float*)a); // Load the complex data as ar,ai,br,bi
 
-      _mm_storeu_ps((float*)c,x); // Store the results back into the C container
+    x = _mm_xor_ps(x, conjugator); // conjugate register
 
-      a += 2;
-      c += 2;
-    }
+    _mm_storeu_ps((float*)c,x); // Store the results back into the C container
 
-    if((num_points % 2) != 0) {
-      *c = lv_conj(*a);
-    }
+    a += 2;
+    c += 2;
+  }
+
+  if((num_points % 2) != 0) {
+    *c = lv_conj(*a);
+  }
 }
 #endif /* LV_HAVE_SSE3 */
 
 #ifdef LV_HAVE_GENERIC
-  /*!
-    \brief Takes the conjugate of a complex vector.
-    \param cVector The vector where the results will be stored
-    \param aVector Vector to be conjugated
-    \param num_points The number of complex values in aVector to be conjugated and stored into cVector
-  */
-static inline void volk_32fc_conjugate_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points){
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    unsigned int number = 0;
 
-    for(number = 0; number < num_points; number++){
-      *cPtr++ = lv_conj(*aPtr++);
-    }
+static inline void
+volk_32fc_conjugate_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points)
+{
+  lv_32fc_t* cPtr = cVector;
+  const lv_32fc_t* aPtr = aVector;
+  unsigned int number = 0;
+
+  for(number = 0; number < num_points; number++){
+    *cPtr++ = lv_conj(*aPtr++);
+  }
 }
 #endif /* LV_HAVE_GENERIC */
 
@@ -132,128 +152,117 @@ static inline void volk_32fc_conjugate_32fc_generic(lv_32fc_t* cVector, const lv
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-  /*!
-    \brief Takes the conjugate of a complex vector.
-    \param cVector The vector where the results will be stored
-    \param aVector Vector to be conjugated
-    \param num_points The number of complex values in aVector to be conjugated and stored into cVector
-  */
-static inline void volk_32fc_conjugate_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
 
-    __m256 x;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
+static inline void
+volk_32fc_conjugate_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-    __m256 conjugator = _mm256_setr_ps(0, -0.f, 0, -0.f, 0, -0.f, 0, -0.f);
+  __m256 x;
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = aVector;
 
-    for(;number < quarterPoints; number++){
+  __m256 conjugator = _mm256_setr_ps(0, -0.f, 0, -0.f, 0, -0.f, 0, -0.f);
 
-      x = _mm256_load_ps((float*)a); // Load the complex data as ar,ai,br,bi
+  for(;number < quarterPoints; number++){
 
-      x = _mm256_xor_ps(x, conjugator); // conjugate register
+    x = _mm256_load_ps((float*)a); // Load the complex data as ar,ai,br,bi
 
-      _mm256_store_ps((float*)c,x); // Store the results back into the C container
+    x = _mm256_xor_ps(x, conjugator); // conjugate register
 
-      a += 4;
-      c += 4;
-    }
+    _mm256_store_ps((float*)c,x); // Store the results back into the C container
 
-    number = quarterPoints * 4;
+    a += 4;
+    c += 4;
+  }
 
-    for(;number < num_points; number++) {
-      *c++ = lv_conj(*a++);
-    }
+  number = quarterPoints * 4;
+
+  for(;number < num_points; number++) {
+    *c++ = lv_conj(*a++);
+  }
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
-  /*!
-    \brief Takes the conjugate of a complex vector.
-    \param cVector The vector where the results will be stored
-    \param aVector Vector to be conjugated
-    \param num_points The number of complex values in aVector to be conjugated and stored into cVector
-  */
-static inline void volk_32fc_conjugate_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_points / 2;
 
-    __m128 x;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
+static inline void
+volk_32fc_conjugate_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int halfPoints = num_points / 2;
 
-    __m128 conjugator = _mm_setr_ps(0, -0.f, 0, -0.f);
+  __m128 x;
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = aVector;
 
-    for(;number < halfPoints; number++){
+  __m128 conjugator = _mm_setr_ps(0, -0.f, 0, -0.f);
 
-      x = _mm_load_ps((float*)a); // Load the complex data as ar,ai,br,bi
+  for(;number < halfPoints; number++){
 
-      x = _mm_xor_ps(x, conjugator); // conjugate register
+    x = _mm_load_ps((float*)a); // Load the complex data as ar,ai,br,bi
 
-      _mm_store_ps((float*)c,x); // Store the results back into the C container
+    x = _mm_xor_ps(x, conjugator); // conjugate register
 
-      a += 2;
-      c += 2;
-    }
+    _mm_store_ps((float*)c,x); // Store the results back into the C container
 
-    if((num_points % 2) != 0) {
-      *c = lv_conj(*a);
-    }
+    a += 2;
+    c += 2;
+  }
+
+  if((num_points % 2) != 0) {
+    *c = lv_conj(*a);
+  }
 }
 #endif /* LV_HAVE_SSE3 */
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-  /*!
-    \brief Takes the conjugate of a complex vector.
-    \param cVector The vector where the results will be stored
-    \param aVector Vector to be conjugated
-    \param num_points The number of complex values in aVector to be conjugated and stored into cVector
-  */
-static inline void volk_32fc_conjugate_32fc_a_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points){
-    unsigned int number;
-    const unsigned int quarterPoints = num_points / 4;
 
-    float32x4x2_t x;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
+static inline void
+volk_32fc_conjugate_32fc_a_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points)
+{
+  unsigned int number;
+  const unsigned int quarterPoints = num_points / 4;
 
-    for(number=0; number < quarterPoints; number++){
-      __builtin_prefetch(a+4);
-      x = vld2q_f32((float*)a); // Load the complex data as ar,br,cr,dr; ai,bi,ci,di
+  float32x4x2_t x;
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = aVector;
 
-      // xor the imaginary lane
-      x.val[1] = vnegq_f32( x.val[1]);
+  for(number=0; number < quarterPoints; number++){
+    __builtin_prefetch(a+4);
+    x = vld2q_f32((float*)a); // Load the complex data as ar,br,cr,dr; ai,bi,ci,di
 
-      vst2q_f32((float*)c,x); // Store the results back into the C container
+    // xor the imaginary lane
+    x.val[1] = vnegq_f32( x.val[1]);
 
-      a += 4;
-      c += 4;
-    }
+    vst2q_f32((float*)c,x); // Store the results back into the C container
 
-    for(number=quarterPoints*4; number < num_points; number++){
-      *c++ = lv_conj(*a++);
-    }
+    a += 4;
+    c += 4;
+  }
+
+  for(number=quarterPoints*4; number < num_points; number++){
+    *c++ = lv_conj(*a++);
+  }
 }
 #endif /* LV_HAVE_NEON */
 
-#ifdef LV_HAVE_GENERIC
-  /*!
-    \brief Takes the conjugate of a complex vector.
-    \param cVector The vector where the results will be stored
-    \param aVector Vector to be conjugated
-    \param num_points The number of complex values in aVector to be conjugated and stored into cVector
-  */
-static inline void volk_32fc_conjugate_32fc_a_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points){
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    unsigned int number = 0;
 
-    for(number = 0; number < num_points; number++){
-      *cPtr++ = lv_conj(*aPtr++);
-    }
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_32fc_conjugate_32fc_a_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, unsigned int num_points)
+{
+  lv_32fc_t* cPtr = cVector;
+  const lv_32fc_t* aPtr = aVector;
+  unsigned int number = 0;
+
+  for(number = 0; number < num_points; number++){
+    *cPtr++ = lv_conj(*aPtr++);
+  }
 }
 #endif /* LV_HAVE_GENERIC */
 

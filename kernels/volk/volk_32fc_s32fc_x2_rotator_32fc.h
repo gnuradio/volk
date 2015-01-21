@@ -20,6 +20,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32fc_s32fc_x2_rotator_32fc
+ *
+ * \b Overview
+ *
+ * Rotate input vector at fixed rate per sample from initial phase
+ * offset.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32fc_s32fc_x2_rotator_32fc(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, lv_32fc_t* phase, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li inVector: Vector to be rotated.
+ * \li phase_inc: rotational velocity.
+ * \li phase: initial phase offset.
+ * \li num_points: The number of values in inVector to be rotated and stored into outVector.
+ *
+ * \b Outputs
+ * \li outVector: The vector where the results will be stored.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * <FIXME>
+ *
+ * volk_32fc_s32fc_x2_rotator_32fc();
+ *
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32fc_s32fc_rotator_32fc_a_H
 #define INCLUDED_volk_32fc_s32fc_rotator_32fc_a_H
 
@@ -32,14 +65,6 @@
 
 #ifdef LV_HAVE_GENERIC
 
-/*!
-  \brief rotate input vector at fixed rate per sample from initial phase offset
-  \param outVector The vector where the results will be stored
-  \param inVector Vector to be rotated
-  \param phase_inc rotational velocity
-  \param phase initial phase offset
-  \param num_points The number of values in inVector to be rotated and stored into cVector
-*/
 static inline void volk_32fc_s32fc_x2_rotator_32fc_generic(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, lv_32fc_t* phase, unsigned int num_points){
     unsigned int i = 0;
     int j = 0;
@@ -165,14 +190,6 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_sse4_1(lv_32fc_t* outVector
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
-/*!
-  \brief rotate input vector at fixed rate per sample from initial phase offset
-  \param outVector The vector where the results will be stored
-  \param inVector Vector to be rotated
-  \param phase_inc rotational velocity
-  \param phase initial phase offset
-  \param num_points The number of values in inVector to be rotated and stored into cVector
-*/
 static inline void volk_32fc_s32fc_x2_rotator_32fc_u_sse4_1(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, lv_32fc_t* phase, unsigned int num_points){
     lv_32fc_t* cPtr = outVector;
     const lv_32fc_t* aPtr = inVector;
@@ -271,14 +288,6 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_sse4_1(lv_32fc_t* outVector
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
-/*!
-  \brief rotate input vector at fixed rate per sample from initial phase offset
-  \param outVector The vector where the results will be stored
-  \param inVector Vector to be rotated
-  \param phase_inc rotational velocity
-  \param phase initial phase offset
-  \param num_points The number of values in inVector to be rotated and stored into cVector
-*/
 static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, lv_32fc_t* phase, unsigned int num_points){
     lv_32fc_t* cPtr = outVector;
     const lv_32fc_t* aPtr = inVector;
@@ -378,14 +387,6 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx(lv_32fc_t* outVector, c
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
-/*!
-  \brief rotate input vector at fixed rate per sample from initial phase offset
-  \param outVector The vector where the results will be stored
-  \param inVector Vector to be rotated
-  \param phase_inc rotational velocity
-  \param phase initial phase offset
-  \param num_points The number of values in inVector to be rotated and stored into cVector
-*/
 static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, lv_32fc_t* phase, unsigned int num_points){
     lv_32fc_t* cPtr = outVector;
     const lv_32fc_t* aPtr = inVector;

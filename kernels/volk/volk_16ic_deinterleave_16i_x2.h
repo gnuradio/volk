@@ -20,6 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_16ic_deinterleave_16i_x2
+ *
+ * \b Overview
+ *
+ * Deinterleaves the complex 16 bit vector into I & Q vector data.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_16ic_deinterleave_16i_x2(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li complexVector: The complex input vector.
+ * \li num_points: The number of complex data values to be deinterleaved.
+ *
+ * \b Outputs
+ * \li iBuffer: The I buffer output data.
+ * \li qBuffer: The Q buffer output data.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_16ic_deinterleave_16i_x2();
+ *
+ * volk_free(x);
+ * volk_free(t);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_16ic_deinterleave_16i_x2_a_H
 #define INCLUDED_volk_16ic_deinterleave_16i_x2_a_H
 
@@ -28,14 +59,10 @@
 
 #ifdef LV_HAVE_SSSE3
 #include <tmmintrin.h>
-/*!
-  \brief Deinterleaves the complex 16 bit vector into I & Q vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param qBuffer The Q buffer output data
-  \param num_points The number of complex data values to be deinterleaved
-*/
-static inline void volk_16ic_deinterleave_16i_x2_a_ssse3(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points){
+
+static inline void
+volk_16ic_deinterleave_16i_x2_a_ssse3(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points)
+{
   unsigned int number = 0;
   const int8_t* complexVectorPtr = (int8_t*)complexVector;
   int16_t* iBufferPtr = iBuffer;
@@ -76,14 +103,10 @@ static inline void volk_16ic_deinterleave_16i_x2_a_ssse3(int16_t* iBuffer, int16
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
-/*!
-  \brief Deinterleaves the complex 16 bit vector into I & Q vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param qBuffer The Q buffer output data
-  \param num_points The number of complex data values to be deinterleaved
-*/
-static inline void volk_16ic_deinterleave_16i_x2_a_sse2(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points){
+
+static inline void
+volk_16ic_deinterleave_16i_x2_a_sse2(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points)
+{
   unsigned int number = 0;
   const int16_t* complexVectorPtr = (int16_t*)complexVector;
   int16_t* iBufferPtr = iBuffer;
@@ -143,14 +166,10 @@ static inline void volk_16ic_deinterleave_16i_x2_a_sse2(int16_t* iBuffer, int16_
 #endif /* LV_HAVE_SSE2 */
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Deinterleaves the complex 16 bit vector into I & Q vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param qBuffer The Q buffer output data
-  \param num_points The number of complex data values to be deinterleaved
-*/
-static inline void volk_16ic_deinterleave_16i_x2_generic(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points){
+
+static inline void
+volk_16ic_deinterleave_16i_x2_generic(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points)
+{
   const int16_t* complexVectorPtr = (const int16_t*)complexVector;
   int16_t* iBufferPtr = iBuffer;
   int16_t* qBufferPtr = qBuffer;
@@ -163,18 +182,14 @@ static inline void volk_16ic_deinterleave_16i_x2_generic(int16_t* iBuffer, int16
 #endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_ORC
-/*!
-  \brief Deinterleaves the complex 16 bit vector into I & Q vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param qBuffer The Q buffer output data
-  \param num_points The number of complex data values to be deinterleaved
-*/
-extern void volk_16ic_deinterleave_16i_x2_a_orc_impl(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points);
-static inline void volk_16ic_deinterleave_16i_x2_u_orc(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points){
-    volk_16ic_deinterleave_16i_x2_a_orc_impl(iBuffer, qBuffer, complexVector, num_points);
+
+extern void
+volk_16ic_deinterleave_16i_x2_a_orc_impl(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points);
+static inline void
+volk_16ic_deinterleave_16i_x2_u_orc(int16_t* iBuffer, int16_t* qBuffer, const lv_16sc_t* complexVector, unsigned int num_points)
+{
+  volk_16ic_deinterleave_16i_x2_a_orc_impl(iBuffer, qBuffer, complexVector, num_points);
 }
 #endif /* LV_HAVE_ORC */
-
 
 #endif /* INCLUDED_volk_16ic_deinterleave_16i_x2_a_H */

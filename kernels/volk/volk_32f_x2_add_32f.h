@@ -20,6 +20,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_x2_add_32f
+ *
+ * \b Overview
+ *
+ * Adds two vectors together element by element:
+ *
+ * c[i] = a[i] + b[i]
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_x2_add_32f(float* cVector, const float* aVector, const float* bVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: First vector of input points.
+ * \li bVector: Second vector of input points.
+ * \li num_points: The number of values in both input vector.
+ *
+ * \b Outputs
+ * \li cVector: The output vector.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_x2_add_32f();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_x2_add_32f_u_H
 #define INCLUDED_volk_32f_x2_add_32f_u_H
 
@@ -28,62 +60,58 @@
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief Adds the two input vectors and store their results in the third vector
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be added
-  \param bVector One of the vectors to be added
-  \param num_points The number of values in aVector and bVector to be added together and stored into cVector
-*/
-static inline void volk_32f_x2_add_32f_u_sse(float* cVector, const float* aVector, const float* bVector, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
 
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr=  bVector;
+static inline void
+volk_32f_x2_add_32f_u_sse(float* cVector, const float* aVector,
+                          const float* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-    __m128 aVal, bVal, cVal;
-    for(;number < quarterPoints; number++){
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+  const float* bPtr=  bVector;
 
-      aVal = _mm_loadu_ps(aPtr);
-      bVal = _mm_loadu_ps(bPtr);
+  __m128 aVal, bVal, cVal;
+  for(;number < quarterPoints; number++){
 
-      cVal = _mm_add_ps(aVal, bVal);
+    aVal = _mm_loadu_ps(aPtr);
+    bVal = _mm_loadu_ps(bPtr);
 
-      _mm_storeu_ps(cPtr,cVal); // Store the results back into the C container
+    cVal = _mm_add_ps(aVal, bVal);
 
-      aPtr += 4;
-      bPtr += 4;
-      cPtr += 4;
-    }
+    _mm_storeu_ps(cPtr,cVal); // Store the results back into the C container
 
-    number = quarterPoints * 4;
-    for(;number < num_points; number++){
-      *cPtr++ = (*aPtr++) + (*bPtr++);
-    }
+    aPtr += 4;
+    bPtr += 4;
+    cPtr += 4;
+  }
+
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) + (*bPtr++);
+  }
 }
 #endif /* LV_HAVE_SSE */
 
-#ifdef LV_HAVE_GENERIC
-/*!
-  \brief Adds the two input vectors and store their results in the third vector
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be added
-  \param bVector One of the vectors to be added
-  \param num_points The number of values in aVector and bVector to be added together and stored into cVector
-*/
-static inline void volk_32f_x2_add_32f_generic(float* cVector, const float* aVector, const float* bVector, unsigned int num_points){
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr=  bVector;
-    unsigned int number = 0;
 
-    for(number = 0; number < num_points; number++){
-      *cPtr++ = (*aPtr++) + (*bPtr++);
-    }
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_32f_x2_add_32f_generic(float* cVector, const float* aVector,
+                            const float* bVector, unsigned int num_points)
+{
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+  const float* bPtr=  bVector;
+  unsigned int number = 0;
+
+  for(number = 0; number < num_points; number++){
+    *cPtr++ = (*aPtr++) + (*bPtr++);
+  }
 }
 #endif /* LV_HAVE_GENERIC */
+
 
 #endif /* INCLUDED_volk_32f_x2_add_32f_u_H */
 #ifndef INCLUDED_volk_32f_x2_add_32f_a_H
@@ -94,118 +122,109 @@ static inline void volk_32f_x2_add_32f_generic(float* cVector, const float* aVec
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief Adds the two input vectors and store their results in the third vector
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be added
-  \param bVector One of the vectors to be added
-  \param num_points The number of values in aVector and bVector to be added together and stored into cVector
-*/
-static inline void volk_32f_x2_add_32f_a_sse(float* cVector, const float* aVector, const float* bVector, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
 
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr=  bVector;
+static inline void
+volk_32f_x2_add_32f_a_sse(float* cVector, const float* aVector, const float* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-    __m128 aVal, bVal, cVal;
-    for(;number < quarterPoints; number++){
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+  const float* bPtr=  bVector;
 
-      aVal = _mm_load_ps(aPtr);
-      bVal = _mm_load_ps(bPtr);
+  __m128 aVal, bVal, cVal;
+  for(;number < quarterPoints; number++){
+    aVal = _mm_load_ps(aPtr);
+    bVal = _mm_load_ps(bPtr);
 
-      cVal = _mm_add_ps(aVal, bVal);
+    cVal = _mm_add_ps(aVal, bVal);
 
-      _mm_store_ps(cPtr,cVal); // Store the results back into the C container
+    _mm_store_ps(cPtr,cVal); // Store the results back into the C container
 
-      aPtr += 4;
-      bPtr += 4;
-      cPtr += 4;
-    }
+    aPtr += 4;
+    bPtr += 4;
+    cPtr += 4;
+  }
 
-    number = quarterPoints * 4;
-    for(;number < num_points; number++){
-      *cPtr++ = (*aPtr++) + (*bPtr++);
-    }
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) + (*bPtr++);
+  }
 }
 #endif /* LV_HAVE_SSE */
 
+
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-/*
-  \brief Adds the two input vectors and store their results in the third vector
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be added
-  \param bVector One of the vectors to be added
-  \param num_points The number of values in aVector and bVector to be added together and stored into cVector
-*/
-static inline void volk_32f_x2_add_32f_u_neon(float* cVector, const float* aVector, const float* bVector, unsigned int num_points) {
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
 
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr=  bVector;
-    float32x4_t aVal, bVal, cVal;
-    for(number=0; number < quarterPoints; number++){
-      // Load in to NEON registers
-      aVal = vld1q_f32(aPtr);
-      bVal = vld1q_f32(bPtr);
-      __builtin_prefetch(aPtr+4);
-      __builtin_prefetch(bPtr+4);
+static inline void
+volk_32f_x2_add_32f_u_neon(float* cVector, const float* aVector,
+                           const float* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
 
-      // vector add
-      cVal = vaddq_f32(aVal, bVal);
-      // Store the results back into the C container
-      vst1q_f32(cPtr,cVal);
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+  const float* bPtr=  bVector;
+  float32x4_t aVal, bVal, cVal;
+  for(number=0; number < quarterPoints; number++){
+    // Load in to NEON registers
+    aVal = vld1q_f32(aPtr);
+    bVal = vld1q_f32(bPtr);
+    __builtin_prefetch(aPtr+4);
+    __builtin_prefetch(bPtr+4);
 
-      aPtr += 4; // q uses quadwords, 4 floats per vadd
-      bPtr += 4;
-      cPtr += 4;
-    }
+    // vector add
+    cVal = vaddq_f32(aVal, bVal);
+    // Store the results back into the C container
+    vst1q_f32(cPtr,cVal);
 
-    number = quarterPoints * 4; // should be = num_points
-    for(;number < num_points; number++){
-      *cPtr++ = (*aPtr++) + (*bPtr++);
-    }
+    aPtr += 4; // q uses quadwords, 4 floats per vadd
+    bPtr += 4;
+    cPtr += 4;
+  }
 
+  number = quarterPoints * 4; // should be = num_points
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) + (*bPtr++);
+  }
 }
 
 #endif /* LV_HAVE_NEON */
 
-#ifdef LV_HAVE_GENERIC
-/*!
-  \brief Adds the two input vectors and store their results in the third vector
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be added
-  \param bVector One of the vectors to be added
-  \param num_points The number of values in aVector and bVector to be added together and stored into cVector
-*/
-static inline void volk_32f_x2_add_32f_a_generic(float* cVector, const float* aVector, const float* bVector, unsigned int num_points){
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr=  bVector;
-    unsigned int number = 0;
 
-    for(number = 0; number < num_points; number++){
-      *cPtr++ = (*aPtr++) + (*bPtr++);
-    }
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_32f_x2_add_32f_a_generic(float* cVector, const float* aVector,
+                              const float* bVector, unsigned int num_points)
+{
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+  const float* bPtr=  bVector;
+  unsigned int number = 0;
+
+  for(number = 0; number < num_points; number++){
+    *cPtr++ = (*aPtr++) + (*bPtr++);
+  }
 }
 #endif /* LV_HAVE_GENERIC */
 
+
 #ifdef LV_HAVE_ORC
-/*!
-  \brief Adds the two input vectors and store their results in the third vector
-  \param cVector The vector where the results will be stored
-  \param aVector One of the vectors to be added
-  \param bVector One of the vectors to be added
-  \param num_points The number of values in aVector and bVector to be added together and stored into cVector
-*/
-extern void volk_32f_x2_add_32f_a_orc_impl(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
-static inline void volk_32f_x2_add_32f_u_orc(float* cVector, const float* aVector, const float* bVector, unsigned int num_points){
-    volk_32f_x2_add_32f_a_orc_impl(cVector, aVector, bVector, num_points);
+
+extern void
+volk_32f_x2_add_32f_a_orc_impl(float* cVector, const float* aVector,
+                               const float* bVector, unsigned int num_points);
+
+static inline void
+volk_32f_x2_add_32f_u_orc(float* cVector, const float* aVector,
+                          const float* bVector, unsigned int num_points){
+  volk_32f_x2_add_32f_a_orc_impl(cVector, aVector, bVector, num_points);
 }
+
 #endif /* LV_HAVE_ORC */
 
 

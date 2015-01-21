@@ -20,6 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32fc_x2_square_dist_32f
+ *
+ * \b Overview
+ *
+ * <FIXME>
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32fc_x2_square_dist_32f(float* target, lv_32fc_t* src0, lv_32fc_t* points, unsigned int num_points) {
+ * \endcode
+ *
+ * \b Inputs
+ * \li src0: <FIXME>
+ * \li points: <FIXME>
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li target: The output value.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32fc_x2_square_dist_32f();
+ *
+ * volk_free(x);
+ * volk_free(t);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32fc_x2_square_dist_32f_a_H
 #define INCLUDED_volk_32fc_x2_square_dist_32f_a_H
 
@@ -31,8 +62,10 @@
 #include<xmmintrin.h>
 #include<pmmintrin.h>
 
-static inline void volk_32fc_x2_square_dist_32f_a_sse3(float* target, lv_32fc_t* src0, lv_32fc_t* points, unsigned int num_points) {
-
+static inline void
+volk_32fc_x2_square_dist_32f_a_sse3(float* target, lv_32fc_t* src0, lv_32fc_t* points,
+                                    unsigned int num_points)
+{
   const unsigned int num_bytes = num_points*8;
 
   __m128 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
@@ -50,7 +83,6 @@ static inline void volk_32fc_x2_square_dist_32f_a_sse3(float* target, lv_32fc_t*
   xmm1 = _mm_movelh_ps(xmm1, xmm1);
   xmm3 = _mm_load_ps((float*)&points[2]);
 
-
   for(; i < bound - 1; ++i) {
     xmm4 = _mm_sub_ps(xmm1, xmm2);
     xmm5 = _mm_sub_ps(xmm1, xmm3);
@@ -67,13 +99,10 @@ static inline void volk_32fc_x2_square_dist_32f_a_sse3(float* target, lv_32fc_t*
     _mm_store_ps(target, xmm4);
 
     target += 4;
-
   }
 
   xmm4 = _mm_sub_ps(xmm1, xmm2);
   xmm5 = _mm_sub_ps(xmm1, xmm3);
-
-
 
   points += 4;
   xmm6 = _mm_mul_ps(xmm4, xmm4);
@@ -114,39 +143,45 @@ static inline void volk_32fc_x2_square_dist_32f_a_sse3(float* target, lv_32fc_t*
 
 #endif /*LV_HAVE_SSE3*/
 
+
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-static inline void volk_32fc_x2_square_dist_32f_neon(float* target, lv_32fc_t* src0, lv_32fc_t* points, unsigned int num_points) {
-    const unsigned int quarter_points = num_points / 4;
-    unsigned int number;
+static inline void
+volk_32fc_x2_square_dist_32f_neon(float* target, lv_32fc_t* src0, lv_32fc_t* points, unsigned int num_points)
+{
+  const unsigned int quarter_points = num_points / 4;
+  unsigned int number;
 
-    float32x4x2_t a_vec, b_vec;
-    float32x4x2_t diff_vec;
-    float32x4_t tmp, tmp1, dist_sq;
-    a_vec.val[0] = vdupq_n_f32( lv_creal(src0[0]) );
-    a_vec.val[1] = vdupq_n_f32( lv_cimag(src0[0]) );
-    for(number=0; number < quarter_points; ++number) {
-        b_vec = vld2q_f32((float*)points);
-        diff_vec.val[0] = vsubq_f32(a_vec.val[0], b_vec.val[0]);
-        diff_vec.val[1] = vsubq_f32(a_vec.val[1], b_vec.val[1]);
-        tmp = vmulq_f32(diff_vec.val[0], diff_vec.val[0]);
-        tmp1 = vmulq_f32(diff_vec.val[1], diff_vec.val[1]);
+  float32x4x2_t a_vec, b_vec;
+  float32x4x2_t diff_vec;
+  float32x4_t tmp, tmp1, dist_sq;
+  a_vec.val[0] = vdupq_n_f32( lv_creal(src0[0]) );
+  a_vec.val[1] = vdupq_n_f32( lv_cimag(src0[0]) );
+  for(number=0; number < quarter_points; ++number) {
+    b_vec = vld2q_f32((float*)points);
+    diff_vec.val[0] = vsubq_f32(a_vec.val[0], b_vec.val[0]);
+    diff_vec.val[1] = vsubq_f32(a_vec.val[1], b_vec.val[1]);
+    tmp = vmulq_f32(diff_vec.val[0], diff_vec.val[0]);
+    tmp1 = vmulq_f32(diff_vec.val[1], diff_vec.val[1]);
 
-        dist_sq = vaddq_f32(tmp, tmp1);
-        vst1q_f32(target, dist_sq);
-        points += 4;
-        target += 4;
-    }
-    for(number=quarter_points*4; number < num_points; ++number) {
-        lv_32fc_t diff = src0[0] - *points++;
-        *target++ = lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff);
-    }
+    dist_sq = vaddq_f32(tmp, tmp1);
+    vst1q_f32(target, dist_sq);
+    points += 4;
+    target += 4;
+  }
+  for(number=quarter_points*4; number < num_points; ++number) {
+    lv_32fc_t diff = src0[0] - *points++;
+    *target++ = lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff);
+  }
 }
 #endif /* LV_HAVE_NEON */
 
-#ifdef LV_HAVE_GENERIC
-static inline void volk_32fc_x2_square_dist_32f_generic(float* target, lv_32fc_t* src0, lv_32fc_t* points, unsigned int num_points) {
 
+#ifdef LV_HAVE_GENERIC
+static inline void
+volk_32fc_x2_square_dist_32f_generic(float* target, lv_32fc_t* src0, lv_32fc_t* points,
+                                     unsigned int num_points)
+{
   const unsigned int num_bytes = num_points*8;
 
   lv_32fc_t diff;

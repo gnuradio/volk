@@ -20,6 +20,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32fc_s32f_power_spectrum_32f
+ *
+ * \b Overview
+ *
+ * Calculates the log10 power value for each input point.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32fc_s32f_power_spectrum_32f(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li complexFFTInput The complex data output from the FFT point.
+ * \li normalizationFactor: This value is divided against all the input values before the power is calculated.
+ * \li num_points: The number of fft data points.
+ *
+ * \b Outputs
+ * \li logPowerOutput: The 10.0 * log10(r*r + i*i) for each data point.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32fc_s32f_power_spectrum_32f();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
 #define INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
 
@@ -34,14 +64,10 @@
 #include <simdmath.h>
 #endif /* LV_HAVE_LIB_SIMDMATH */
 
-/*!
-  \brief Calculates the log10 power value for each input point
-  \param logPowerOutput The 10.0 * log10(r*r + i*i) for each data point
-  \param complexFFTInput The complex data output from the FFT point
-  \param normalizationFactor This value is divided against all the input values before the power is calculated
-  \param num_points The number of fft data points
-*/
-static inline void volk_32fc_s32f_power_spectrum_32f_a_sse3(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, unsigned int num_points){
+static inline void
+volk_32fc_s32f_power_spectrum_32f_a_sse3(float* logPowerOutput, const lv_32fc_t* complexFFTInput,
+                                         const float normalizationFactor, unsigned int num_points)
+{
   const float* inputPtr = (const float*)complexFFTInput;
   float* destPtr = logPowerOutput;
   uint64_t number = 0;
@@ -110,15 +136,13 @@ static inline void volk_32fc_s32f_power_spectrum_32f_a_sse3(float* logPowerOutpu
 }
 #endif /* LV_HAVE_SSE3 */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Calculates the log10 power value for each input point
-  \param logPowerOutput The 10.0 * log10(r*r + i*i) for each data point
-  \param complexFFTInput The complex data output from the FFT point
-  \param normalizationFactor This value is divided agains all the input values before the power is calculated
-  \param num_points The number of fft data points
-*/
-static inline void volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, unsigned int num_points){
+
+static inline void
+volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutput, const lv_32fc_t* complexFFTInput,
+                                          const float normalizationFactor, unsigned int num_points)
+{
   // Calculate the Power of the complex point
   const float* inputPtr = (float*)complexFFTInput;
   float* realFFTDataPointsPtr = logPowerOutput;
@@ -135,14 +159,9 @@ static inline void volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutp
     const float imag = *inputPtr++ * iNormalizationFactor;
 
     *realFFTDataPointsPtr = 10.0*log10f(((real * real) + (imag * imag)) + 1e-20);
-
-
     realFFTDataPointsPtr++;
   }
 }
 #endif /* LV_HAVE_GENERIC */
-
-
-
 
 #endif /* INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H */

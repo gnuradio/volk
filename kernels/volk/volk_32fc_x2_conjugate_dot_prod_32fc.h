@@ -20,6 +20,42 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32fc_x2_conjugate_dot_prod_32fc
+ *
+ * \b Overview
+ *
+ * This block computes the conjugate dot product (or inner product)
+ * between two vectors, the \p input and \p taps vectors. Given a set
+ * of \p num_points taps, the result is the sum of products between
+ * the input vector and the conjugate of the taps. The result is a
+ * single value stored in the \p result address and is returned as a
+ * complex float.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32fc_x2_conjugate_dot_prod_32fc(lv_32fc_t* result, const lv_32fc_t* input, const lv_32fc_t* taps, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li input: vector of complex floats.
+ * \li taps:  complex float taps.
+ * \li num_points: number of samples in both \p input and \p taps.
+ *
+ * \b Outputs
+ * \li result: pointer to a complex float value to hold the dot product result.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * <FIXME>
+ *
+ * volk_32fc_x2_conjugate_dot_prod_32fc();
+ *
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32fc_x2_conjugate_dot_prod_32fc_u_H
 #define INCLUDED_volk_32fc_x2_conjugate_dot_prod_32fc_u_H
 

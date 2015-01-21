@@ -20,6 +20,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_64f_convert_32f
+ *
+ * \b Overview
+ *
+ * Converts doubles into floats.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_64f_convert_32f(float* outputVector, const double* inputVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li inputVector: The vector of doubles to convert to floats.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li outputVector: returns the converted floats.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ * double *x = (double*)volk_malloc(N*sizeof(double), volk_get_alignment());
+ * float *y = (float*)volk_malloc(N*sizeof(float), volk_get_alignment());
+ *
+ * volk_64f_convert_32f(y, x, N);
+ *
+ * volk_free(x);
+ * volk_free(y);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_64f_convert_32f_u_H
 #define INCLUDED_volk_64f_convert_32f_u_H
 
@@ -28,12 +60,7 @@
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
-  /*!
-    \brief Converts the double values into float values
-    \param dVector The converted float vector values
-    \param fVector The double vector values to be converted
-    \param num_points The number of points in the two vectors to be converted
-  */
+
 static inline void volk_64f_convert_32f_u_sse2(float* outputVector, const double* inputVector, unsigned int num_points){
   unsigned int number = 0;
 
@@ -66,12 +93,7 @@ static inline void volk_64f_convert_32f_u_sse2(float* outputVector, const double
 
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Converts the double values into float values
-  \param dVector The converted float vector values
-  \param fVector The double vector values to be converted
-  \param num_points The number of points in the two vectors to be converted
-*/
+
 static inline void volk_64f_convert_32f_generic(float* outputVector, const double* inputVector, unsigned int num_points){
   float* outputVectorPtr = outputVector;
   const double* inputVectorPtr = inputVector;
@@ -95,12 +117,7 @@ static inline void volk_64f_convert_32f_generic(float* outputVector, const doubl
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
-  /*!
-    \brief Converts the double values into float values
-    \param dVector The converted float vector values
-    \param fVector The double vector values to be converted
-    \param num_points The number of points in the two vectors to be converted
-  */
+
 static inline void volk_64f_convert_32f_a_sse2(float* outputVector, const double* inputVector, unsigned int num_points){
   unsigned int number = 0;
 
@@ -133,12 +150,7 @@ static inline void volk_64f_convert_32f_a_sse2(float* outputVector, const double
 
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Converts the double values into float values
-  \param dVector The converted float vector values
-  \param fVector The double vector values to be converted
-  \param num_points The number of points in the two vectors to be converted
-*/
+
 static inline void volk_64f_convert_32f_a_generic(float* outputVector, const double* inputVector, unsigned int num_points){
   float* outputVectorPtr = outputVector;
   const double* inputVectorPtr = inputVector;

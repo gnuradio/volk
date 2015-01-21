@@ -20,6 +20,40 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_x2_interleave_32fc
+ *
+ * \b Overview
+ *
+ * Takes input vector iBuffer as the real (inphase) part and input
+ * vector qBuffer as the imag (quadrature) part and combines them into
+ * a complex output vector.
+ *
+ * c[i] = complex(a[i], b[i])
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_x2_interleave_32fc(lv_32fc_t* complexVector, const float* iBuffer, const float* qBuffer, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li iBuffer: Input vector of samples for the real part.
+ * \li qBuffer: Input vector of samples for the imaginary part.
+ * \li num_points: The number of values in both input vectors.
+ *
+ * \b Outputs
+ * \li complexVector: The output vector of complex numbers.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_x2_interleave_32fc();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_x2_interleave_32fc_a_H
 #define INCLUDED_volk_32f_x2_interleave_32fc_a_H
 
@@ -28,14 +62,11 @@
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief Interleaves the I & Q vector data into the complex vector
-  \param iBuffer The I buffer data to be interleaved
-  \param qBuffer The Q buffer data to be interleaved
-  \param complexVector The complex output vector
-  \param num_points The number of complex data values to be interleaved
-*/
-static inline void volk_32f_x2_interleave_32fc_a_sse(lv_32fc_t* complexVector, const float* iBuffer, const float* qBuffer, unsigned int num_points){
+
+static inline void
+volk_32f_x2_interleave_32fc_a_sse(lv_32fc_t* complexVector, const float* iBuffer,
+                                  const float* qBuffer, unsigned int num_points)
+{
   unsigned int number = 0;
   float* complexVectorPtr = (float*)complexVector;
   const float* iBufferPtr = iBuffer;
@@ -70,48 +101,42 @@ static inline void volk_32f_x2_interleave_32fc_a_sse(lv_32fc_t* complexVector, c
 }
 #endif /* LV_HAVE_SSE */
 
+
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-/*!
-  \brief Interleaves the I & Q vector data into the complex vector.
-  \param iBuffer The I buffer data to be interleaved
-  \param qBuffer The Q buffer data to be interleaved
-  \param complexVector The complex output vector
-  \param num_points The number of complex data values to be interleaved
-*/
-static inline void volk_32f_x2_interleave_32fc_neon(lv_32fc_t* complexVector, const float* iBuffer, const float* qBuffer, unsigned int num_points){
-    unsigned int quarter_points = num_points / 4;
-    unsigned int number;
-    float* complexVectorPtr = (float*) complexVector;
 
-    float32x4x2_t complex_vec;
-    for(number=0; number < quarter_points; ++number) {
-        complex_vec.val[0] = vld1q_f32(iBuffer);
-        complex_vec.val[1] = vld1q_f32(qBuffer);
-        vst2q_f32(complexVectorPtr, complex_vec);
-        iBuffer += 4;
-        qBuffer += 4;
-        complexVectorPtr += 8;
-    }
+static inline void
+volk_32f_x2_interleave_32fc_neon(lv_32fc_t* complexVector, const float* iBuffer,
+                                 const float* qBuffer, unsigned int num_points)
+{
+  unsigned int quarter_points = num_points / 4;
+  unsigned int number;
+  float* complexVectorPtr = (float*) complexVector;
 
-    for(number=quarter_points * 4; number < num_points; ++number) {
-        *complexVectorPtr++ = *iBuffer++;
-        *complexVectorPtr++ = *qBuffer++;
-    }
+  float32x4x2_t complex_vec;
+  for(number=0; number < quarter_points; ++number) {
+    complex_vec.val[0] = vld1q_f32(iBuffer);
+    complex_vec.val[1] = vld1q_f32(qBuffer);
+    vst2q_f32(complexVectorPtr, complex_vec);
+    iBuffer += 4;
+    qBuffer += 4;
+    complexVectorPtr += 8;
+  }
 
+  for(number=quarter_points * 4; number < num_points; ++number) {
+    *complexVectorPtr++ = *iBuffer++;
+    *complexVectorPtr++ = *qBuffer++;
+  }
 }
 #endif /* LV_HAVE_NEON */
 
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Interleaves the I & Q vector data into the complex vector.
-  \param iBuffer The I buffer data to be interleaved
-  \param qBuffer The Q buffer data to be interleaved
-  \param complexVector The complex output vector
-  \param num_points The number of complex data values to be interleaved
-*/
-static inline void volk_32f_x2_interleave_32fc_generic(lv_32fc_t* complexVector, const float* iBuffer, const float* qBuffer, unsigned int num_points){
+
+static inline void
+volk_32f_x2_interleave_32fc_generic(lv_32fc_t* complexVector, const float* iBuffer,
+                                    const float* qBuffer, unsigned int num_points)
+{
   float* complexVectorPtr = (float*)complexVector;
   const float* iBufferPtr = iBuffer;
   const float* qBufferPtr = qBuffer;
@@ -123,7 +148,6 @@ static inline void volk_32f_x2_interleave_32fc_generic(lv_32fc_t* complexVector,
   }
 }
 #endif /* LV_HAVE_GENERIC */
-
 
 
 

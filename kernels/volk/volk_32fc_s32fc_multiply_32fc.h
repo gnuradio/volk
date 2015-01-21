@@ -20,6 +20,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32fc_s32fc_multiply_32fc
+ *
+ * \b Overview
+ *
+ * Multiplies the input complex vector by a complex scalar and returns
+ * the results.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32fc_s32fc_multiply_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t scalar, unsigned int num_points);
+ * \endcode
+ *
+ * \b Inputs
+ * \li aVector: The input vector to be multiplied.
+ * \li scalar The complex scalar to multiply against aVector.
+ * \li num_points: The number of complex values in aVector.
+ *
+ * \b Outputs
+ * \li cVector: The vector where the results will be stored.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * <FIXME>
+ *
+ * volk_32fc_s32fc_multiply_32fc();
+ *
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32fc_s32fc_multiply_32fc_u_H
 #define INCLUDED_volk_32fc_s32fc_multiply_32fc_u_H
 
@@ -30,13 +62,7 @@
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-  /*!
-    \brief Multiplies the two input complex vectors and stores their results in the third vector
-    \param cVector The vector where the results will be stored
-    \param aVector One of the vectors to be multiplied
-    \param bVector One of the vectors to be multiplied
-    \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
-  */
+
 static inline void volk_32fc_s32fc_multiply_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t scalar, unsigned int num_points){
     unsigned int number = 0;
     unsigned int i = 0;
@@ -76,13 +102,7 @@ static inline void volk_32fc_s32fc_multiply_32fc_u_avx(lv_32fc_t* cVector, const
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
-/*!
-  \brief Multiplies the input vector by a scalar and stores the results in the third vector
-  \param cVector The vector where the results will be stored
-  \param aVector The vector to be multiplied
-  \param scalar The complex scalar to multiply aVector
-  \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
-*/
+
 static inline void volk_32fc_s32fc_multiply_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t scalar, unsigned int num_points){
   unsigned int number = 0;
     const unsigned int halfPoints = num_points / 2;
@@ -120,13 +140,7 @@ static inline void volk_32fc_s32fc_multiply_32fc_u_sse3(lv_32fc_t* cVector, cons
 #endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Multiplies the input vector by a scalar and stores the results in the third vector
-  \param cVector The vector where the results will be stored
-  \param aVector The vector to be multiplied
-  \param scalar The complex scalar to multiply aVector
-  \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
-*/
+
 static inline void volk_32fc_s32fc_multiply_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t scalar, unsigned int num_points){
     lv_32fc_t* cPtr = cVector;
     const lv_32fc_t* aPtr = aVector;
@@ -163,13 +177,7 @@ static inline void volk_32fc_s32fc_multiply_32fc_generic(lv_32fc_t* cVector, con
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-  /*!
-    \brief Multiplies the two input complex vectors and stores their results in the third vector
-    \param cVector The vector where the results will be stored
-    \param aVector One of the vectors to be multiplied
-    \param bVector One of the vectors to be multiplied
-    \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
-  */
+
 static inline void volk_32fc_s32fc_multiply_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t scalar, unsigned int num_points){
     unsigned int number = 0;
     unsigned int i = 0;
@@ -209,13 +217,7 @@ static inline void volk_32fc_s32fc_multiply_32fc_a_avx(lv_32fc_t* cVector, const
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
-  /*!
-    \brief Multiplies the two input complex vectors and stores their results in the third vector
-    \param cVector The vector where the results will be stored
-    \param aVector One of the vectors to be multiplied
-    \param bVector One of the vectors to be multiplied
-    \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
-  */
+
 static inline void volk_32fc_s32fc_multiply_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t scalar, unsigned int num_points){
   unsigned int number = 0;
     const unsigned int halfPoints = num_points / 2;
@@ -254,13 +256,7 @@ static inline void volk_32fc_s32fc_multiply_32fc_a_sse3(lv_32fc_t* cVector, cons
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-  /*!
-    \brief Multiplies the two input complex vectors and stores their results in the third vector
-    \param cVector The vector where the results will be stored
-    \param aVector One of the vectors to be multiplied
-    \param bVector One of the vectors to be multiplied
-    \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
-  */
+
 static inline void volk_32fc_s32fc_multiply_32fc_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t scalar, unsigned int num_points){
     lv_32fc_t* cPtr = cVector;
     const lv_32fc_t* aPtr = aVector;
@@ -291,13 +287,7 @@ static inline void volk_32fc_s32fc_multiply_32fc_neon(lv_32fc_t* cVector, const 
 #endif /* LV_HAVE_NEON */
 
 #ifdef LV_HAVE_GENERIC
-  /*!
-    \brief Multiplies the two input complex vectors and stores their results in the third vector
-    \param cVector The vector where the results will be stored
-    \param aVector One of the vectors to be multiplied
-    \param bVector One of the vectors to be multiplied
-    \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
-  */
+
 static inline void volk_32fc_s32fc_multiply_32fc_a_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t scalar, unsigned int num_points){
     lv_32fc_t* cPtr = cVector;
     const lv_32fc_t* aPtr = aVector;

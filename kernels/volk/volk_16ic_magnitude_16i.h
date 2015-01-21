@@ -20,6 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_16ic_magnitude_16i
+ *
+ * \b Overview
+ *
+ * Computes the magnitude of the complexVector and stores the results
+ * in the magnitudeVector.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_16ic_magnitude_16i(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li complexVector: The complex input vector.
+ * \li num_points: The number of samples.
+ *
+ * \b Outputs
+ * \li magnitudeVector: The magnitude of the complex values.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_16ic_magnitude_16i();
+ *
+ * volk_free(x);
+ * volk_free(t);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_16ic_magnitude_16i_a_H
 #define INCLUDED_volk_16ic_magnitude_16i_a_H
 
@@ -30,13 +61,10 @@
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
-/*!
-  \brief Calculates the magnitude of the complexVector and stores the results in the magnitudeVector
-  \param complexVector The vector containing the complex input values
-  \param magnitudeVector The vector containing the real output values
-  \param num_points The number of complex values in complexVector to be calculated and stored into cVector
-*/
-static inline void volk_16ic_magnitude_16i_a_sse3(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points){
+
+static inline void
+volk_16ic_magnitude_16i_a_sse3(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points)
+{
   unsigned int number = 0;
   const unsigned int quarterPoints = num_points / 4;
 
@@ -101,13 +129,10 @@ static inline void volk_16ic_magnitude_16i_a_sse3(int16_t* magnitudeVector, cons
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief Calculates the magnitude of the complexVector and stores the results in the magnitudeVector
-  \param complexVector The vector containing the complex input values
-  \param magnitudeVector The vector containing the real output values
-  \param num_points The number of complex values in complexVector to be calculated and stored into cVector
-*/
-static inline void volk_16ic_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points){
+
+static inline void
+volk_16ic_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points)
+{
   unsigned int number = 0;
   const unsigned int quarterPoints = num_points / 4;
 
@@ -177,13 +202,10 @@ static inline void volk_16ic_magnitude_16i_a_sse(int16_t* magnitudeVector, const
 #endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Calculates the magnitude of the complexVector and stores the results in the magnitudeVector
-  \param complexVector The vector containing the complex input values
-  \param magnitudeVector The vector containing the real output values
-  \param num_points The number of complex values in complexVector to be calculated and stored into cVector
-*/
-static inline void volk_16ic_magnitude_16i_generic(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points){
+
+static inline void
+volk_16ic_magnitude_16i_generic(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points)
+{
   const int16_t* complexVectorPtr = (const int16_t*)complexVector;
   int16_t* magnitudeVectorPtr = magnitudeVector;
   unsigned int number = 0;
@@ -197,14 +219,12 @@ static inline void volk_16ic_magnitude_16i_generic(int16_t* magnitudeVector, con
 #endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_ORC_DISABLED
-/*!
-  \brief Calculates the magnitude of the complexVector and stores the results in the magnitudeVector
-  \param complexVector The vector containing the complex input values
-  \param magnitudeVector The vector containing the real output values
-  \param num_points The number of complex values in complexVector to be calculated and stored into cVector
-*/
-extern void volk_16ic_magnitude_16i_a_orc_impl(int16_t* magnitudeVector, const lv_16sc_t* complexVector, float scalar, unsigned int num_points);
-static inline void volk_16ic_magnitude_16i_u_orc(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points){
+extern void
+volk_16ic_magnitude_16i_a_orc_impl(int16_t* magnitudeVector, const lv_16sc_t* complexVector, float scalar, unsigned int num_points);
+
+static inline void
+volk_16ic_magnitude_16i_u_orc(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points)
+{
     volk_16ic_magnitude_16i_a_orc_impl(magnitudeVector, complexVector, 32768.0, num_points);
 }
 #endif /* LV_HAVE_ORC */

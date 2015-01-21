@@ -20,11 +20,46 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_16i_32fc_dot_prod_32fc
+ *
+ * \b Overview
+ *
+ * This block computes the dot product (or inner product) between two
+ * vectors, the \p input and \p taps vectors. Given a set of \p
+ * num_points taps, the result is the sum of products between the two
+ * vectors. The result is a single value stored in the \p result
+ * address and will be complex.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_16i_32fc_dot_prod_32fc(lv_32fc_t* result, const short* input, const lv_32fc_t * taps, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li input: vector of shorts.
+ * \li taps:  complex taps.
+ * \li num_points: number of samples in both \p input and \p taps.
+ *
+ * \b Outputs
+ * \li result: pointer to a complex value to hold the dot product result.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * <FIXME>
+ *
+ * volk_16i_32fc_dot_prod_32fc();
+ *
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_16i_32fc_dot_prod_32fc_H
 #define INCLUDED_volk_16i_32fc_dot_prod_32fc_H
 
 #include <volk/volk_common.h>
-#include<stdio.h>
+#include <stdio.h>
 
 
 #ifdef LV_HAVE_GENERIC

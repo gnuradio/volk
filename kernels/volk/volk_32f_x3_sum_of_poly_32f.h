@@ -20,6 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_x3_sum_of_poly_32f
+ *
+ * \b Overview
+ *
+ * <FIXME>
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_x3_sum_of_poly_32f(float* target, float* src0, float* center_point_array, float* cutoff, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li src0:
+ * \li center_point_array:
+ * \li cutoff:
+ * \li num_points: The number of values in both input vectors.
+ *
+ * \b Outputs
+ * \li complexVector: The output vector.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_x3_sum_of_poly_32f();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_x3_sum_of_poly_32f_a_H
 #define INCLUDED_volk_32f_x3_sum_of_poly_32f_a_H
 
@@ -35,8 +66,10 @@
 #include<xmmintrin.h>
 #include<pmmintrin.h>
 
-static inline void volk_32f_x3_sum_of_poly_32f_a_sse3(float* target, float* src0, float* center_point_array, float* cutoff, unsigned int num_points) {
-
+static inline void
+volk_32f_x3_sum_of_poly_32f_a_sse3(float* target, float* src0, float* center_point_array,
+                                   float* cutoff, unsigned int num_points)
+{
   const unsigned int num_bytes = num_points*4;
 
   float result = 0.0;
@@ -45,8 +78,6 @@ static inline void volk_32f_x3_sum_of_poly_32f_a_sse3(float* target, float* src0
   float thrd = 0.0;
   float frth = 0.0;
   //float fith = 0.0;
-
-
 
   __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9, xmm10;// xmm11, xmm12;
 
@@ -125,7 +156,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_a_sse3(float* target, float* src0
 #ifdef LV_HAVE_AVX
 #include<immintrin.h>
 
-static inline void volk_32f_x3_sum_of_poly_32f_a_avx(float* target, float* src0, float* center_point_array, float* cutoff, unsigned int num_points)
+static inline void
+volk_32f_x3_sum_of_poly_32f_a_avx(float* target, float* src0, float* center_point_array,
+                                  float* cutoff, unsigned int num_points)
 {
   const unsigned int eighth_points = num_points / 8;
   float fst = 0.0;
@@ -189,15 +222,16 @@ static inline void volk_32f_x3_sum_of_poly_32f_a_avx(float* target, float* src0,
   }
 
   *target += ((float)(num_points)) * center_point_array[4];
-
 }
 #endif // LV_HAVE_AVX
 
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void volk_32f_x3_sum_of_poly_32f_generic(float* target, float* src0, float* center_point_array, float* cutoff, unsigned int num_points) {
-
+static inline void
+volk_32f_x3_sum_of_poly_32f_generic(float* target, float* src0, float* center_point_array,
+                                    float* cutoff, unsigned int num_points)
+{
   const unsigned int num_bytes = num_points*4;
 
   float result = 0.0;
@@ -206,8 +240,6 @@ static inline void volk_32f_x3_sum_of_poly_32f_generic(float* target, float* src
   float thrd = 0.0;
   float frth = 0.0;
   //float fith = 0.0;
-
-
 
   unsigned int i = 0;
 
@@ -236,8 +268,6 @@ static inline void volk_32f_x3_sum_of_poly_32f_generic(float* target, float* src
 
   result += ((float)(num_bytes >> 2)) * (center_point_array[4]);//(center_point_array[5]);
 
-
-
   *target = result;
 }
 
@@ -247,7 +277,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_generic(float* target, float* src
 #ifdef LV_HAVE_AVX
 #include<immintrin.h>
 
-static inline void volk_32f_x3_sum_of_poly_32f_u_avx(float* target, float* src0, float* center_point_array, float* cutoff, unsigned int num_points)
+static inline void
+volk_32f_x3_sum_of_poly_32f_u_avx(float* target, float* src0, float* center_point_array,
+                                  float* cutoff, unsigned int num_points)
 {
   const unsigned int eighth_points = num_points / 8;
   float fst = 0.0;
@@ -311,16 +343,17 @@ static inline void volk_32f_x3_sum_of_poly_32f_u_avx(float* target, float* src0,
   }
 
   *target += ((float)(num_points)) * center_point_array[4];
-
 }
 #endif // LV_HAVE_AVX
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
-static inline void volk_32f_x3_sum_of_poly_32f_a_neon(float* __restrict target, float* __restrict src0, float* __restrict center_point_array, float* __restrict cutoff, unsigned int num_points) {
-
-
+static inline void
+volk_32f_x3_sum_of_poly_32f_a_neon(float* __restrict target, float* __restrict src0,
+                                   float* __restrict center_point_array,
+                                   float* __restrict cutoff, unsigned int num_points)
+{
   unsigned int i;
   float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f };
 
@@ -366,16 +399,18 @@ static inline void volk_32f_x3_sum_of_poly_32f_a_neon(float* __restrict target, 
 
 #endif /* LV_HAVE_NEON */
 
+
 #ifdef LV_HAVE_NEON
 
-static inline void volk_32f_x3_sum_of_poly_32f_neonvert(float* __restrict target, float* __restrict src0, float* __restrict center_point_array, float* __restrict cutoff, unsigned int num_points) {
-
-
+static inline void
+volk_32f_x3_sum_of_poly_32f_neonvert(float* __restrict target, float* __restrict src0,
+                                     float* __restrict center_point_array,
+                                     float* __restrict cutoff, unsigned int num_points)
+{
   unsigned int i;
   float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f };
 
   float accumulator;
-
 
   float32x4_t accumulator1_vec, accumulator2_vec, accumulator3_vec, accumulator4_vec;
   accumulator1_vec = vld1q_f32(zero);
@@ -392,7 +427,6 @@ static inline void volk_32f_x3_sum_of_poly_32f_neonvert(float* __restrict target
   cpa_1 = vdupq_n_f32(center_point_array[1]);
   cpa_2 = vdupq_n_f32(center_point_array[2]);
   cpa_3 = vdupq_n_f32(center_point_array[3]);
-
 
   // nathan is not sure why this is slower *and* wrong compared to neonvertfma
   for(i=0; i < num_points/4; ++i) {
@@ -439,9 +473,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_neonvert(float* __restrict target
     //fith = sq * thrd;
 
     accumulator += (center_point_array[0] * fst +
-           center_point_array[1] * sq +
-           center_point_array[2] * thrd +
-           center_point_array[3] * frth); //+
+                    center_point_array[1] * sq +
+                    center_point_array[2] * thrd +
+                    center_point_array[3] * frth); //+
   }
 
   *target = accumulator + center_point_array[4] * (float)num_points;

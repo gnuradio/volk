@@ -20,6 +20,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_16u_byteswap
+ *
+ * \b Overview
+ *
+ * Byteswaps (in-place) an aligned vector of int16_t's.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_16u_byteswap(uint16_t* intsToSwap, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li intsToSwap: The vector of data to byte swap.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li intsToSwap: returns as an in-place calculation.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * <FIXME>
+ *
+ * volk_16u_byteswap(x, N);
+ *
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_16u_byteswap_u_H
 #define INCLUDED_volk_16u_byteswap_u_H
 
@@ -29,11 +59,6 @@
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-/*!
-  \brief Byteswaps (in-place) an unaligned vector of int16_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
 static inline void volk_16u_byteswap_u_sse2(uint16_t* intsToSwap, unsigned int num_points){
   unsigned int number = 0;
   uint16_t* inputPtr = intsToSwap;
@@ -65,11 +90,7 @@ static inline void volk_16u_byteswap_u_sse2(uint16_t* intsToSwap, unsigned int n
 #endif /* LV_HAVE_SSE2 */
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Byteswaps (in-place) an unaligned vector of int16_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
+
 static inline void volk_16u_byteswap_generic(uint16_t* intsToSwap, unsigned int num_points){
   unsigned int point;
   uint16_t* inputPtr = intsToSwap;
@@ -92,11 +113,6 @@ static inline void volk_16u_byteswap_generic(uint16_t* intsToSwap, unsigned int 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-/*!
-  \brief Byteswaps (in-place) an aligned vector of int16_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
 static inline void volk_16u_byteswap_a_sse2(uint16_t* intsToSwap, unsigned int num_points){
   unsigned int number = 0;
   uint16_t* inputPtr = intsToSwap;
@@ -130,11 +146,7 @@ static inline void volk_16u_byteswap_a_sse2(uint16_t* intsToSwap, unsigned int n
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-/*!
-  \brief Byteswaps (in-place) an unaligned vector of int16_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
+
 static inline void volk_16u_byteswap_neon(uint16_t* intsToSwap, unsigned int num_points){
   unsigned int number;
   unsigned int eighth_points = num_points / 8;
@@ -160,11 +172,7 @@ static inline void volk_16u_byteswap_neon(uint16_t* intsToSwap, unsigned int num
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-/*!
-  \brief Byteswaps (in-place) an aligned vector of int32_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
+
 static inline void volk_16u_byteswap_neon_table(uint16_t* intsToSwap, unsigned int num_points){
   uint16_t* inputPtr = intsToSwap;
   unsigned int number = 0;
@@ -211,11 +219,7 @@ static inline void volk_16u_byteswap_neon_table(uint16_t* intsToSwap, unsigned i
 #endif /* LV_HAVE_NEON */
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Byteswaps (in-place) an aligned vector of int16_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
+
 static inline void volk_16u_byteswap_a_generic(uint16_t* intsToSwap, unsigned int num_points){
   unsigned int point;
   uint16_t* inputPtr = intsToSwap;
@@ -229,11 +233,7 @@ static inline void volk_16u_byteswap_a_generic(uint16_t* intsToSwap, unsigned in
 #endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_ORC
-/*!
-  \brief Byteswaps (in-place) an aligned vector of int16_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
+
 extern void volk_16u_byteswap_a_orc_impl(uint16_t* intsToSwap, unsigned int num_points);
 static inline void volk_16u_byteswap_u_orc(uint16_t* intsToSwap, unsigned int num_points){
     volk_16u_byteswap_a_orc_impl(intsToSwap, num_points);

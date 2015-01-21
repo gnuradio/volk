@@ -20,6 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32fc_s32f_x2_power_spectral_density_32f
+ *
+ * \b Overview
+ *
+ * Calculates the log10 power value divided by the RBW for each input point.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32fc_s32f_x2_power_spectral_density_32f(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, const float rbw, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li complexFFTInput The complex data output from the FFT point.
+ * \li normalizationFactor: This value is divided against all the input values before the power is calculated.
+ * \li rbw: The resolution bandwith of the fft spectrum
+ * \li num_points: The number of fft data points.
+ *
+ * \b Outputs
+ * \li logPowerOutput: The 10.0 * log10((r*r + i*i)/RBW) for each data point.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32fc_s32f_x2_power_spectral_density_32f();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_a_H
 #define INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_a_H
 
@@ -34,15 +65,11 @@
 #include <simdmath.h>
 #endif /* LV_HAVE_LIB_SIMDMATH */
 
-/*!
-  \brief Calculates the log10 power value divided by the RBW for each input point
-  \param logPowerOutput The 10.0 * log10((r*r + i*i)/RBW) for each data point
-  \param complexFFTInput The complex data output from the FFT point
-  \param normalizationFactor This value is divided against all the input values before the power is calculated
-  \param rbw The resolution bandwith of the fft spectrum
-  \param num_points The number of fft data points
-*/
-static inline void volk_32fc_s32f_x2_power_spectral_density_32f_a_avx(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, const float rbw, unsigned int num_points){
+static inline void
+volk_32fc_s32f_x2_power_spectral_density_32f_a_avx(float* logPowerOutput, const lv_32fc_t* complexFFTInput,
+                                                   const float normalizationFactor, const float rbw,
+                                                   unsigned int num_points)
+{
   const float* inputPtr = (const float*)complexFFTInput;
   float* destPtr = logPowerOutput;
   uint64_t number = 0;
@@ -122,19 +149,17 @@ static inline void volk_32fc_s32f_x2_power_spectral_density_32f_a_avx(float* log
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
 
+
+
 #ifdef LV_HAVE_LIB_SIMDMATH
 #include <simdmath.h>
 #endif /* LV_HAVE_LIB_SIMDMATH */
 
-/*!
-  \brief Calculates the log10 power value divided by the RBW for each input point
-  \param logPowerOutput The 10.0 * log10((r*r + i*i)/RBW) for each data point
-  \param complexFFTInput The complex data output from the FFT point
-  \param normalizationFactor This value is divided against all the input values before the power is calculated
-  \param rbw The resolution bandwith of the fft spectrum
-  \param num_points The number of fft data points
-*/
-static inline void volk_32fc_s32f_x2_power_spectral_density_32f_a_sse3(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, const float rbw, unsigned int num_points){
+static inline void
+volk_32fc_s32f_x2_power_spectral_density_32f_a_sse3(float* logPowerOutput, const lv_32fc_t* complexFFTInput,
+                                                    const float normalizationFactor, const float rbw,
+                                                    unsigned int num_points)
+{
   const float* inputPtr = (const float*)complexFFTInput;
   float* destPtr = logPowerOutput;
   uint64_t number = 0;
@@ -208,16 +233,14 @@ static inline void volk_32fc_s32f_x2_power_spectral_density_32f_a_sse3(float* lo
 }
 #endif /* LV_HAVE_SSE3 */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Calculates the log10 power value divided by the RBW for each input point
-  \param logPowerOutput The 10.0 * log10((r*r + i*i)/RBW) for each data point
-  \param complexFFTInput The complex data output from the FFT point
-  \param normalizationFactor This value is divided against all the input values before the power is calculated
-  \param rbw The resolution bandwith of the fft spectrum
-  \param num_points The number of fft data points
-*/
-static inline void volk_32fc_s32f_x2_power_spectral_density_32f_generic(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, const float rbw, unsigned int num_points){
+
+static inline void
+volk_32fc_s32f_x2_power_spectral_density_32f_generic(float* logPowerOutput, const lv_32fc_t* complexFFTInput,
+                                                     const float normalizationFactor, const float rbw,
+                                                     unsigned int num_points)
+{
   // Calculate the Power of the complex point
   const float* inputPtr = (float*)complexFFTInput;
   float* realFFTDataPointsPtr = logPowerOutput;
@@ -241,8 +264,5 @@ static inline void volk_32fc_s32f_x2_power_spectral_density_32f_generic(float* l
   }
 }
 #endif /* LV_HAVE_GENERIC */
-
-
-
 
 #endif /* INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_a_H */

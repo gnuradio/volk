@@ -20,6 +20,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_16ic_s32f_magnitude_32f
+ *
+ * \b Overview
+ *
+ * Computes the magnitude of the complexVector and stores the results
+ * in the magnitudeVector as a scaled floating point number.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_16ic_s32f_magnitude_32f(float* magnitudeVector, const lv_16sc_t* complexVector, const float scalar, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li complexVector: The complex input vector of complex 16-bit shorts.
+ * \li scalar: The value to be divided against each sample of the input complex vector.
+ * \li num_points: The number of samples.
+ *
+ * \b Outputs
+ * \li magnitudeVector: The magnitude of the complex values.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_16ic_s32f_magnitude_32f();
+ *
+ * volk_free(x);
+ * volk_free(t);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_16ic_s32f_magnitude_32f_a_H
 #define INCLUDED_volk_16ic_s32f_magnitude_32f_a_H
 
@@ -30,14 +62,11 @@
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
-/*!
-  \brief Calculates the magnitude of the complexVector and stores the results in the magnitudeVector
-  \param complexVector The vector containing the complex input values
-  \param magnitudeVector The vector containing the real output values
-  \param scalar The data value to be divided against each input data value of the input complex vector
-  \param num_points The number of complex values in complexVector to be calculated and stored into cVector
-*/
-static inline void volk_16ic_s32f_magnitude_32f_a_sse3(float* magnitudeVector, const lv_16sc_t* complexVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_16ic_s32f_magnitude_32f_a_sse3(float* magnitudeVector, const lv_16sc_t* complexVector,
+                                    const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
   const unsigned int quarterPoints = num_points / 4;
 
@@ -95,14 +124,11 @@ static inline void volk_16ic_s32f_magnitude_32f_a_sse3(float* magnitudeVector, c
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief Calculates the magnitude of the complexVector and stores the results in the magnitudeVector
-  \param complexVector The vector containing the complex input values
-  \param magnitudeVector The vector containing the real output values
-  \param scalar The data value to be divided against each input data value of the input complex vector
-  \param num_points The number of complex values in complexVector to be calculated and stored into cVector
-*/
-static inline void volk_16ic_s32f_magnitude_32f_a_sse(float* magnitudeVector, const lv_16sc_t* complexVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_16ic_s32f_magnitude_32f_a_sse(float* magnitudeVector, const lv_16sc_t* complexVector,
+                                   const float scalar, unsigned int num_points)
+{
   unsigned int number = 0;
   const unsigned int quarterPoints = num_points / 4;
 
@@ -164,14 +190,11 @@ static inline void volk_16ic_s32f_magnitude_32f_a_sse(float* magnitudeVector, co
 #endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Calculates the magnitude of the complexVector and stores the results in the magnitudeVector
-  \param complexVector The vector containing the complex input values
-  \param magnitudeVector The vector containing the real output values
-  \param scalar The data value to be divided against each input data value of the input complex vector
-  \param num_points The number of complex values in complexVector to be calculated and stored into cVector
-*/
-static inline void volk_16ic_s32f_magnitude_32f_generic(float* magnitudeVector, const lv_16sc_t* complexVector, const float scalar, unsigned int num_points){
+
+static inline void
+volk_16ic_s32f_magnitude_32f_generic(float* magnitudeVector, const lv_16sc_t* complexVector,
+                                     const float scalar, unsigned int num_points)
+{
   const int16_t* complexVectorPtr = (const int16_t*)complexVector;
   float* magnitudeVectorPtr = magnitudeVector;
   unsigned int number = 0;
@@ -185,16 +208,16 @@ static inline void volk_16ic_s32f_magnitude_32f_generic(float* magnitudeVector, 
 #endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_ORC_DISABLED
-/*!
-  \brief Calculates the magnitude of the complexVector and stores the results in the magnitudeVector
-  \param complexVector The vector containing the complex input values
-  \param magnitudeVector The vector containing the real output values
-  \param scalar The data value to be divided against each input data value of the input complex vector
-  \param num_points The number of complex values in complexVector to be calculated and stored into cVector
-*/
-extern void volk_16ic_s32f_magnitude_32f_a_orc_impl(float* magnitudeVector, const lv_16sc_t* complexVector, const float scalar, unsigned int num_points);
-static inline void volk_16ic_s32f_magnitude_32f_u_orc(float* magnitudeVector, const lv_16sc_t* complexVector, const float scalar, unsigned int num_points){
-    volk_16ic_s32f_magnitude_32f_a_orc_impl(magnitudeVector, complexVector, scalar, num_points);
+
+extern void
+volk_16ic_s32f_magnitude_32f_a_orc_impl(float* magnitudeVector, const lv_16sc_t* complexVector,
+                                        const float scalar, unsigned int num_points);
+
+static inline void
+volk_16ic_s32f_magnitude_32f_u_orc(float* magnitudeVector, const lv_16sc_t* complexVector,
+                                   const float scalar, unsigned int num_points)
+{
+  volk_16ic_s32f_magnitude_32f_a_orc_impl(magnitudeVector, complexVector, scalar, num_points);
 }
 #endif /* LV_HAVE_ORC */
 

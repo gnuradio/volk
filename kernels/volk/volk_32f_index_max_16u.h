@@ -20,6 +20,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_index_max_16u
+ *
+ * \b Overview
+ *
+ * <FIXME>
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li src0: <FIXME>
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li target: The output value.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_index_max_16u();
+ *
+ * volk_free(x);
+ * volk_free(t);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_index_max_16u_a_H
 #define INCLUDED_volk_32f_index_max_16u_a_H
 
@@ -31,7 +61,9 @@
 #ifdef LV_HAVE_SSE4_1
 #include<smmintrin.h>
 
-static inline void volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigned int num_points) {
+static inline void
+volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigned int num_points)
+{
   if(num_points > 0){
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
@@ -86,10 +118,14 @@ static inline void volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const f
 
 #endif /*LV_HAVE_SSE4_1*/
 
+
 #ifdef LV_HAVE_SSE
+
 #include<xmmintrin.h>
 
-static inline void volk_32f_index_max_16u_a_sse(unsigned int* target, const float* src0, unsigned int num_points) {
+static inline void
+volk_32f_index_max_16u_a_sse(unsigned int* target, const float* src0, unsigned int num_points)
+{
   if(num_points > 0){
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
@@ -145,8 +181,12 @@ static inline void volk_32f_index_max_16u_a_sse(unsigned int* target, const floa
 
 #endif /*LV_HAVE_SSE*/
 
+
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32f_index_max_16u_generic(unsigned int* target, const float* src0, unsigned int num_points) {
+
+static inline void
+volk_32f_index_max_16u_generic(unsigned int* target, const float* src0, unsigned int num_points)
+ {
   if(num_points > 0){
     float max = src0[0];
     unsigned int index = 0;
@@ -159,7 +199,6 @@ static inline void volk_32f_index_max_16u_generic(unsigned int* target, const fl
 	index = i;
 	max = src0[i];
       }
-
     }
     target[0] = index;
   }

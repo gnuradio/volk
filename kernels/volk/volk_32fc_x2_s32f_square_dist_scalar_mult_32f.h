@@ -20,6 +20,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32fc_x2_s32f_square_dist_scalar_mult_32f
+ *
+ * \b Overview
+ *
+ * <FIXME>
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32fc_x2_s32f_square_dist_scalar_mult_32f(float* target, lv_32fc_t* src0, lv_32fc_t* points, float scalar, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li src0: <FIXME>
+ * \li points: <FIXME>
+ * \li scalar: <FIXME>
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li target: The output value.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32fc_x2_s32f_square_dist_scalar_mult_32f();
+ *
+ * volk_free(x);
+ * volk_free(t);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_H
 #define INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_H
 
@@ -32,8 +64,10 @@
 #include<xmmintrin.h>
 #include<pmmintrin.h>
 
-static inline void volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* src0, lv_32fc_t* points, float scalar, unsigned int num_points) {
-
+static inline void
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* src0, lv_32fc_t* points,
+                                                     float scalar, unsigned int num_points)
+{
   const unsigned int num_bytes = num_points*8;
 
   __m128 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8;
@@ -47,8 +81,6 @@ static inline void volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* t
   int leftovers1 = (num_bytes >> 3) & 1;
   int i = 0;
 
-
-
   xmm1 = _mm_setzero_ps();
   xmm1 = _mm_loadl_pi(xmm1, (__m64*)src0);
   xmm2 = _mm_load_ps((float*)&points[0]);
@@ -56,9 +88,7 @@ static inline void volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* t
   xmm1 = _mm_movelh_ps(xmm1, xmm1);
   xmm3 = _mm_load_ps((float*)&points[2]);
 
-
   for(; i < bound - 1; ++i) {
-
     xmm4 = _mm_sub_ps(xmm1, xmm2);
     xmm5 = _mm_sub_ps(xmm1, xmm3);
     points += 4;
@@ -76,13 +106,10 @@ static inline void volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* t
     _mm_store_ps(target, xmm4);
 
     target += 4;
-
   }
 
   xmm4 = _mm_sub_ps(xmm1, xmm2);
   xmm5 = _mm_sub_ps(xmm1, xmm3);
-
-
 
   points += 4;
   xmm6 = _mm_mul_ps(xmm4, xmm4);
@@ -96,9 +123,7 @@ static inline void volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* t
 
   target += 4;
 
-
   for(i = 0; i < leftovers0; ++i) {
-
     xmm2 = _mm_load_ps((float*)&points[0]);
 
     xmm4 = _mm_sub_ps(xmm1, xmm2);
@@ -128,9 +153,12 @@ static inline void volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* t
 
 #endif /*LV_HAVE_SSE3*/
 
-#ifdef LV_HAVE_GENERIC
-static inline void volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target, lv_32fc_t* src0, lv_32fc_t* points, float scalar, unsigned int num_points) {
 
+#ifdef LV_HAVE_GENERIC
+static inline void
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target, lv_32fc_t* src0, lv_32fc_t* points,
+                                                      float scalar, unsigned int num_points)
+{
   const unsigned int num_bytes = num_points*8;
 
   lv_32fc_t diff;

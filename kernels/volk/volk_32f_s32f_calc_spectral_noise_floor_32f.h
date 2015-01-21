@@ -20,6 +20,42 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32f_s32f_calc_spectral_noise_floor_32f
+ *
+ * \b Overview
+ *
+ * Computes the spectral noise floor of an input power spectrum.
+ *
+ * Calculates the spectral noise floor of an input power spectrum by
+ * determining the mean of the input power spectrum, then
+ * recalculating the mean excluding any power spectrum values that
+ * exceed the mean by the spectralExclusionValue (in dB).  Provides a
+ * rough estimation of the signal noise floor.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32f_s32f_calc_spectral_noise_floor_32f(float* noiseFloorAmplitude, const float* realDataPoints, const float spectralExclusionValue, const unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li realDataPoints: The input power spectrum.
+ * \li spectralExclusionValue: The number of dB above the noise floor that a data point must be to be excluded from the noise floor calculation - default value is 20.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li noiseFloorAmplitude: The noise floor of the input spectrum, in dB.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_32f_s32f_calc_spectral_noise_floor_32f
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32f_s32f_calc_spectral_noise_floor_32f_a_H
 #define INCLUDED_volk_32f_s32f_calc_spectral_noise_floor_32f_a_H
 
@@ -29,17 +65,13 @@
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
-/*!
-  \brief Calculates the spectral noise floor of an input power spectrum
 
-  Calculates the spectral noise floor of an input power spectrum by determining the mean of the input power spectrum, then recalculating the mean excluding any power spectrum values that exceed the mean by the spectralExclusionValue (in dB).  Provides a rough estimation of the signal noise floor.
-
-  \param realDataPoints The input power spectrum
-  \param num_points The number of data points in the input power spectrum vector
-  \param spectralExclusionValue The number of dB above the noise floor that a data point must be to be excluded from the noise floor calculation - default value is 20
-  \param noiseFloorAmplitude The noise floor of the input spectrum, in dB
-*/
-static inline void volk_32f_s32f_calc_spectral_noise_floor_32f_a_sse(float* noiseFloorAmplitude, const float* realDataPoints, const float spectralExclusionValue, const unsigned int num_points){
+static inline void
+volk_32f_s32f_calc_spectral_noise_floor_32f_a_sse(float* noiseFloorAmplitude,
+                                                  const float* realDataPoints,
+                                                  const float spectralExclusionValue,
+                                                  const unsigned int num_points)
+{
   unsigned int number = 0;
   const unsigned int quarterPoints = num_points / 4;
 
@@ -139,18 +171,15 @@ static inline void volk_32f_s32f_calc_spectral_noise_floor_32f_a_sse(float* nois
 }
 #endif /* LV_HAVE_SSE */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Calculates the spectral noise floor of an input power spectrum
 
-  Calculates the spectral noise floor of an input power spectrum by determining the mean of the input power spectrum, then recalculating the mean excluding any power spectrum values that exceed the mean by the spectralExclusionValue (in dB).  Provides a rough estimation of the signal noise floor.
-
-  \param realDataPoints The input power spectrum
-  \param num_points The number of data points in the input power spectrum vector
-  \param spectralExclusionValue The number of dB above the noise floor that a data point must be to be excluded from the noise floor calculation - default value is 20
-  \param noiseFloorAmplitude The noise floor of the input spectrum, in dB
-*/
-static inline void volk_32f_s32f_calc_spectral_noise_floor_32f_generic(float* noiseFloorAmplitude, const float* realDataPoints, const float spectralExclusionValue, const unsigned int num_points){
+static inline void
+volk_32f_s32f_calc_spectral_noise_floor_32f_generic(float* noiseFloorAmplitude,
+                                                    const float* realDataPoints,
+                                                    const float spectralExclusionValue,
+                                                    const unsigned int num_points)
+{
   float sumMean = 0.0;
   unsigned int number;
   // find the sum (for mean), etc
@@ -183,8 +212,6 @@ static inline void volk_32f_s32f_calc_spectral_noise_floor_32f_generic(float* no
   *noiseFloorAmplitude = localNoiseFloorAmplitude;
 }
 #endif /* LV_HAVE_GENERIC */
-
-
 
 
 #endif /* INCLUDED_volk_32f_s32f_calc_spectral_noise_floor_32f_a_H */

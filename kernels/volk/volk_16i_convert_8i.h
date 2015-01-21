@@ -20,6 +20,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_16i_convert_8i
+ *
+ * \b Overview
+ *
+ * Converts 16-bit shorts to 8-bit chars.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_16i_convert_8i(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li inputVector: The input vector of 16-bit shorts.
+ * \li num_points: The number of complex data points.
+ *
+ * \b Outputs
+ * \li outputVector: The output vector of 8-bit chars.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_16i_convert_8i();
+ *
+ * volk_free(x);
+ * volk_free(t);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_16i_convert_8i_u_H
 #define INCLUDED_volk_16i_convert_8i_u_H
 
@@ -28,55 +58,48 @@
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
-/*!
-  \brief Converts the input 16 bit integer data into 8 bit integer data
-  \param inputVector The 16 bit input data buffer
-  \param outputVector The 8 bit output data buffer
-  \param num_points The number of data values to be converted
-  \note Input and output buffers do NOT need to be properly aligned
-*/
-static inline void volk_16i_convert_8i_u_sse2(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int sixteenthPoints = num_points / 16;
 
-     int8_t* outputVectorPtr = outputVector;
-    int16_t* inputPtr = (int16_t*)inputVector;
-    __m128i inputVal1;
-    __m128i inputVal2;
-    __m128i ret;
+static inline void
+volk_16i_convert_8i_u_sse2(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
 
-    for(;number < sixteenthPoints; number++){
+  int8_t* outputVectorPtr = outputVector;
+  int16_t* inputPtr = (int16_t*)inputVector;
+  __m128i inputVal1;
+  __m128i inputVal2;
+  __m128i ret;
 
-      // Load the 16 values
-      inputVal1 = _mm_loadu_si128((__m128i*)inputPtr); inputPtr += 8;
-      inputVal2 = _mm_loadu_si128((__m128i*)inputPtr); inputPtr += 8;
+  for(;number < sixteenthPoints; number++){
 
-      inputVal1 = _mm_srai_epi16(inputVal1, 8);
-      inputVal2 = _mm_srai_epi16(inputVal2, 8);
+    // Load the 16 values
+    inputVal1 = _mm_loadu_si128((__m128i*)inputPtr); inputPtr += 8;
+    inputVal2 = _mm_loadu_si128((__m128i*)inputPtr); inputPtr += 8;
 
-      ret = _mm_packs_epi16(inputVal1, inputVal2);
+    inputVal1 = _mm_srai_epi16(inputVal1, 8);
+    inputVal2 = _mm_srai_epi16(inputVal2, 8);
 
-      _mm_storeu_si128((__m128i*)outputVectorPtr, ret);
+    ret = _mm_packs_epi16(inputVal1, inputVal2);
 
-      outputVectorPtr += 16;
-    }
+    _mm_storeu_si128((__m128i*)outputVectorPtr, ret);
 
-    number = sixteenthPoints * 16;
-    for(; number < num_points; number++){
-      outputVector[number] =(int8_t)(inputVector[number] >> 8);
-    }
+    outputVectorPtr += 16;
+  }
+
+  number = sixteenthPoints * 16;
+  for(; number < num_points; number++){
+    outputVector[number] =(int8_t)(inputVector[number] >> 8);
+  }
 }
 #endif /* LV_HAVE_SSE2 */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Converts the input 16 bit integer data into 8 bit integer data
-  \param inputVector The 16 bit input data buffer
-  \param outputVector The 8 bit output data buffer
-  \param num_points The number of data values to be converted
-  \note Input and output buffers do NOT need to be properly aligned
-*/
-static inline void volk_16i_convert_8i_generic(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points){
+
+static inline void
+volk_16i_convert_8i_generic(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+{
   int8_t* outputVectorPtr = outputVector;
   const int16_t* inputVectorPtr = inputVector;
   unsigned int number = 0;
@@ -99,54 +122,49 @@ static inline void volk_16i_convert_8i_generic(int8_t* outputVector, const int16
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
-/*!
-  \brief Converts the input 16 bit integer data into 8 bit integer data
-  \param inputVector The 16 bit input data buffer
-  \param outputVector The 8 bit output data buffer
-  \param num_points The number of data values to be converted
-*/
-static inline void volk_16i_convert_8i_a_sse2(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points){
-    unsigned int number = 0;
-    const unsigned int sixteenthPoints = num_points / 16;
 
-     int8_t* outputVectorPtr = outputVector;
-    int16_t* inputPtr = (int16_t*)inputVector;
-    __m128i inputVal1;
-    __m128i inputVal2;
-    __m128i ret;
+static inline void
+volk_16i_convert_8i_a_sse2(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
 
-    for(;number < sixteenthPoints; number++){
+  int8_t* outputVectorPtr = outputVector;
+  int16_t* inputPtr = (int16_t*)inputVector;
+  __m128i inputVal1;
+  __m128i inputVal2;
+  __m128i ret;
 
-      // Load the 16 values
-      inputVal1 = _mm_load_si128((__m128i*)inputPtr); inputPtr += 8;
-      inputVal2 = _mm_load_si128((__m128i*)inputPtr); inputPtr += 8;
+  for(;number < sixteenthPoints; number++){
 
-      inputVal1 = _mm_srai_epi16(inputVal1, 8);
-      inputVal2 = _mm_srai_epi16(inputVal2, 8);
+    // Load the 16 values
+    inputVal1 = _mm_load_si128((__m128i*)inputPtr); inputPtr += 8;
+    inputVal2 = _mm_load_si128((__m128i*)inputPtr); inputPtr += 8;
 
-      ret = _mm_packs_epi16(inputVal1, inputVal2);
+    inputVal1 = _mm_srai_epi16(inputVal1, 8);
+    inputVal2 = _mm_srai_epi16(inputVal2, 8);
 
-      _mm_store_si128((__m128i*)outputVectorPtr, ret);
+    ret = _mm_packs_epi16(inputVal1, inputVal2);
 
-      outputVectorPtr += 16;
-    }
+    _mm_store_si128((__m128i*)outputVectorPtr, ret);
 
-    number = sixteenthPoints * 16;
-    for(; number < num_points; number++){
-      outputVector[number] =(int8_t)(inputVector[number] >> 8);
-    }
+    outputVectorPtr += 16;
+  }
+
+  number = sixteenthPoints * 16;
+  for(; number < num_points; number++){
+    outputVector[number] =(int8_t)(inputVector[number] >> 8);
+  }
 }
 #endif /* LV_HAVE_SSE2 */
 
+
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-/*!
-  \brief Converts the input 16 bit integer data into 8 bit integer data
-  \param inputVector The 16 bit input data buffer
-  \param outputVector The 8 bit output data buffer
-  \param num_points The number of data values to be converted
-*/
-static inline void volk_16i_convert_8i_neon(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points){
+
+static inline void
+volk_16i_convert_8i_neon(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+{
   int8_t* outputVectorPtr = outputVector;
   const int16_t* inputVectorPtr = inputVector;
   unsigned int number = 0;
@@ -157,7 +175,7 @@ static inline void volk_16i_convert_8i_neon(int8_t* outputVector, const int16_t*
   int8x8_t outputVal0;
   int8x8_t outputVal1;
   int8x16_t outputVal;
-  
+
   for(number = 0; number < sixteenth_points; number++){
     // load two input vectors
     inputVal0 = vld1q_s16(inputVectorPtr);
@@ -178,14 +196,12 @@ static inline void volk_16i_convert_8i_neon(int8_t* outputVector, const int16_t*
 }
 #endif /* LV_HAVE_NEON */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Converts the input 16 bit integer data into 8 bit integer data
-  \param inputVector The 16 bit input data buffer
-  \param outputVector The 8 bit output data buffer
-  \param num_points The number of data values to be converted
-*/
-static inline void volk_16i_convert_8i_a_generic(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points){
+
+static inline void
+volk_16i_convert_8i_a_generic(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+{
   int8_t* outputVectorPtr = outputVector;
   const int16_t* inputVectorPtr = inputVector;
   unsigned int number = 0;

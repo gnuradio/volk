@@ -39,5 +39,9 @@ particular architecture.
 
 ### Protokernels
 
-*/
 
+### Allocating Memory
+
+Information on using volk_malloc and volk_free.
+
+*/

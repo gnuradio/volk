@@ -20,6 +20,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_32u_byteswap
+ *
+ * \b Overview
+ *
+ * Byteswaps (in-place) an aligned vector of int32_t's.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_32u_byteswap(uint32_t* intsToSwap, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li intsToSwap: The vector of data to byte swap.
+ * \li num_points: The number of data points.
+ *
+ * \b Outputs
+ * \li intsToSwap: returns as an in-place calculation.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * <FIXME>
+ *
+ * volk_32u_byteswap(x, N);
+ *
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_32u_byteswap_u_H
 #define INCLUDED_volk_32u_byteswap_u_H
 
@@ -29,11 +59,6 @@
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-/*!
-  \brief Byteswaps (in-place) an aligned vector of int32_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
 static inline void volk_32u_byteswap_u_sse2(uint32_t* intsToSwap, unsigned int num_points){
   unsigned int number = 0;
 
@@ -73,13 +98,10 @@ static inline void volk_32u_byteswap_u_sse2(uint32_t* intsToSwap, unsigned int n
 }
 #endif /* LV_HAVE_SSE2 */
 
+
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-/*!
-  \brief Byteswaps (in-place) an aligned vector of int32_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
+
 static inline void volk_32u_byteswap_neon(uint32_t* intsToSwap, unsigned int num_points){
   uint32_t* inputPtr = intsToSwap;
   unsigned int number = 0;
@@ -101,7 +123,7 @@ static inline void volk_32u_byteswap_neon(uint32_t* intsToSwap, unsigned int num
   int_lookup23 = vcreate_u8(219290013576860186);
   int_lookup45 = vcreate_u8(363970359253013532);
   int_lookup67 = vcreate_u8(508650704929166878);
-  
+
   for(number = 0; number < n8points; ++number){
     input_table = vld4_u8((uint8_t*) inputPtr);
     swapped_int01 = vtbl4_u8(input_table, int_lookup01);
@@ -126,12 +148,9 @@ static inline void volk_32u_byteswap_neon(uint32_t* intsToSwap, unsigned int num
 }
 #endif /* LV_HAVE_NEON */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Byteswaps (in-place) an aligned vector of int32_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
+
 static inline void volk_32u_byteswap_generic(uint32_t* intsToSwap, unsigned int num_points){
   uint32_t* inputPtr = intsToSwap;
 
@@ -154,14 +173,11 @@ static inline void volk_32u_byteswap_generic(uint32_t* intsToSwap, unsigned int 
 #include <inttypes.h>
 #include <stdio.h>
 
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-/*!
-  \brief Byteswaps (in-place) an aligned vector of int32_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
+
 static inline void volk_32u_byteswap_a_sse2(uint32_t* intsToSwap, unsigned int num_points){
   unsigned int number = 0;
 
@@ -201,12 +217,9 @@ static inline void volk_32u_byteswap_a_sse2(uint32_t* intsToSwap, unsigned int n
 }
 #endif /* LV_HAVE_SSE2 */
 
+
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Byteswaps (in-place) an aligned vector of int32_t's.
-  \param intsToSwap The vector of data to byte swap
-  \param numDataPoints The number of data points
-*/
+
 static inline void volk_32u_byteswap_a_generic(uint32_t* intsToSwap, unsigned int num_points){
   uint32_t* inputPtr = intsToSwap;
 

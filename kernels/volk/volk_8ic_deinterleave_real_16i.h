@@ -20,6 +20,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*!
+ * \page volk_8ic_deinterleave_real_16i
+ *
+ * \b Overview
+ *
+ * Deinterleaves the complex 8-bit char vector into just the I (real)
+ * vector and converts it to 16-bit shorts.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_8ic_deinterleave_real_16i(int16_t* iBuffer, const lv_8sc_t* complexVector, unsigned int num_points)
+ * \endcode
+ *
+ * \b Inputs
+ * \li complexVector: The complex input vector.
+ * \li num_points: The number of complex data values to be deinterleaved.
+ *
+ * \b Outputs
+ * \li iBuffer: The I buffer output data.
+ *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * volk_8ic_deinterleave_real_16i();
+ *
+ * volk_free(x);
+ * \endcode
+ */
+
 #ifndef INCLUDED_volk_8ic_deinterleave_real_16i_a_H
 #define INCLUDED_volk_8ic_deinterleave_real_16i_a_H
 
@@ -28,13 +58,11 @@
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
-/*!
-  \brief Deinterleaves the complex 8 bit vector into I 16 bit vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param num_points The number of complex data values to be deinterleaved
-*/
-static inline void volk_8ic_deinterleave_real_16i_a_sse4_1(int16_t* iBuffer, const lv_8sc_t* complexVector, unsigned int num_points){
+
+static inline void
+volk_8ic_deinterleave_real_16i_a_sse4_1(int16_t* iBuffer, const lv_8sc_t* complexVector,
+                                        unsigned int num_points)
+{
   unsigned int number = 0;
   const int8_t* complexVectorPtr = (int8_t*)complexVector;
   int16_t* iBufferPtr = iBuffer;
@@ -63,15 +91,14 @@ static inline void volk_8ic_deinterleave_real_16i_a_sse4_1(int16_t* iBuffer, con
 }
 #endif /* LV_HAVE_SSE4_1 */
 
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
-/*!
-  \brief Deinterleaves the complex 8 bit vector into I 16 bit vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param num_points The number of complex data values to be deinterleaved
-*/
-static inline void volk_8ic_deinterleave_real_16i_a_avx(int16_t* iBuffer, const lv_8sc_t* complexVector, unsigned int num_points){
+
+static inline void
+volk_8ic_deinterleave_real_16i_a_avx(int16_t* iBuffer, const lv_8sc_t* complexVector,
+                                     unsigned int num_points)
+{
   unsigned int number = 0;
   const int8_t* complexVectorPtr = (int8_t*)complexVector;
   int16_t* iBufferPtr = iBuffer;
@@ -113,13 +140,11 @@ static inline void volk_8ic_deinterleave_real_16i_a_avx(int16_t* iBuffer, const 
 
 
 #ifdef LV_HAVE_GENERIC
-/*!
-  \brief Deinterleaves the complex 8 bit vector into I 16 bit vector data
-  \param complexVector The complex input vector
-  \param iBuffer The I buffer output data
-  \param num_points The number of complex data values to be deinterleaved
-*/
-static inline void volk_8ic_deinterleave_real_16i_generic(int16_t* iBuffer, const lv_8sc_t* complexVector, unsigned int num_points){
+
+static inline void
+volk_8ic_deinterleave_real_16i_generic(int16_t* iBuffer, const lv_8sc_t* complexVector,
+                                       unsigned int num_points)
+{
   unsigned int number = 0;
   const int8_t* complexVectorPtr = (const int8_t*)complexVector;
   int16_t* iBufferPtr = iBuffer;
@@ -129,8 +154,6 @@ static inline void volk_8ic_deinterleave_real_16i_generic(int16_t* iBuffer, cons
   }
 }
 #endif /* LV_HAVE_GENERIC */
-
-
 
 
 #endif /* INCLUDED_volk_8ic_deinterleave_real_16i_a_H */
