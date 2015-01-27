@@ -4,16 +4,6 @@
 <archs>generic orc|</archs>
 </machine>
 
-<!--
-<machine name="mmx">
-<archs>generic 32|64 mmx orc|</archs>
-</machine>
-
-<machine name="sse">
-<archs>generic 32|64| mmx| sse orc|</archs>
-</machine>
--->
-
 <machine name="neon">
 <archs>generic neon softfp|hardfp orc|</archs>
 </machine>
