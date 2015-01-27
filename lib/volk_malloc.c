@@ -29,29 +29,6 @@
  * see: http://linux.die.net/man/3/aligned_alloc
 */
 
-// Disabling use of aligned_alloc. This function requires that size be
-// a multiple of alignment, which is too restrictive for many uses of
-// VOLK.
-
-//// If we are using C11 standard, use the aligned_alloc
-//#ifdef _ISOC11_SOURCE
-//
-//void *volk_malloc(size_t size, size_t alignment)
-//{
-//  void *ptr = aligned_alloc(alignment, size);
-//  if(ptr == NULL) {
-//    fprintf(stderr, "VOLK: Error allocating memory (aligned_alloc)\n");
-//  }
-//  return ptr;
-//}
-//
-//void volk_free(void *ptr)
-//{
-//  free(ptr);
-//}
-//
-//#else // _ISOC11_SOURCE
-
 // Otherwise, test if we are a POSIX or X/Open system
 // This only has a restriction that alignment be a power of 2.
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || HAVE_POSIX_MEMALIGN
