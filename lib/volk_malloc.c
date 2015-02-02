@@ -23,6 +23,7 @@
 #include <volk/volk_malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * For #defines used to determine support for allocation functions,
@@ -30,18 +31,28 @@
 */
 
 // Otherwise, test if we are a POSIX or X/Open system
-// This only has a restriction that alignment be a power of 2.
+// This only has a restriction that alignment be a power of 2 and a
+// multiple of sizeof(void *).
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || HAVE_POSIX_MEMALIGN
 
 void *volk_malloc(size_t size, size_t alignment)
 {
   void *ptr;
+
+  // quoting posix_memalign() man page:
+  // "alignment must be a power of two and a multiple of sizeof(void *)"
+  // volk_get_alignment() could return 1 for some machines (e.g. generic_orc)
+  if (alignment == 1)
+    return malloc(size);
+
   int err = posix_memalign(&ptr, alignment, size);
   if(err == 0) {
     return ptr;
   }
   else {
-    fprintf(stderr, "VOLK: Error allocating memory (posix_memalign: %d)\n", err);
+    fprintf(stderr,
+            "VOLK: Error allocating memory "
+            "(posix_memalign: error %d: %s)\n", err, strerror(err));
     return NULL;
   }
 }
