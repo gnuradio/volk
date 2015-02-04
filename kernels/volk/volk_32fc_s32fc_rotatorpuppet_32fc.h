@@ -21,39 +21,6 @@
  */
 
 
-/*!
- * \page volk_32fc_s32fc_rotatorpuppet_32fc
- *
- * \b Overview
- *
- * Rotate input vector at fixed rate per sample from initial phase
- * offset. This is a puppet mostly for use in the QA and profiling
- * utilities. \see \ref volk_32fc_s32fc_x2_rotator_32fc.
- *
- * <b>Dispatcher Prototype</b>
- * \code
- * void volk_32fc_s32fc_rotatorpuppet_32fc(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
- * \endcode
- *
- * \b Inputs
- * \li inVector: Vector to be rotated.
- * \li phase_inc: rotational velocity.
- * \li num_points: The number of values in inVector to be rotated and stored into cVector.
- *
- * \b Outputs
- * \li outVector: The vector where the results will be stored.
- *
- * \b Example
- * \code
- * int N = 10000;
- *
- * <FIXME>
- *
- * volk_32fc_s32fc_rotatorpuppet_32fc();
- *
- * \endcode
- */
-
 #ifndef INCLUDED_volk_32fc_s32fc_rotatorpuppet_32fc_a_H
 #define INCLUDED_volk_32fc_s32fc_rotatorpuppet_32fc_a_H
 
