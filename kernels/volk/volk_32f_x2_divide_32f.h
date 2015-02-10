@@ -43,12 +43,28 @@
  * \li cVector: The output vector.
  *
  * \b Example
+ * Divide an increasing vector by a decreasing vector
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* decreasing = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32f_x2_divide_32f();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       increasing[ii] = (float)ii;
+ *       decreasing[ii] = 10.f - (float)ii;
+ *   }
  *
- * volk_free(x);
+ *   volk_32f_x2_divide_32f(out, increasing, decreasing, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out[%u] = %1.2f\n", ii, out[ii]);
+ *   }
+ *
+ *   volk_free(increasing);
+ *   volk_free(decreasing);
+ *   volk_free(out);
  * \endcode
  */
 

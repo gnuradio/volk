@@ -43,12 +43,28 @@
  * \li cVector: The output vector.
  *
  * \b Example
+ * Calculate the first two powers of two (2^x).
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* twos = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32f_x2_pow_32f(c, b, a, N);
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       increasing[ii] = (float)ii;
+ *       twos[ii] = 2.f;
+ *   }
  *
- * volk_free(x);
+ *   volk_32f_x2_pow_32f(out, increasing, twos, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out[%u] = %1.2f\n", ii, out[ii]);
+ *   }
+ *
+ *   volk_free(increasing);
+ *   volk_free(twos);
+ *   volk_free(out);
  * \endcode
  */
 

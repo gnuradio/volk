@@ -45,12 +45,28 @@
  * \li complexVector: The output vector of complex numbers.
  *
  * \b Example
+ * Generate the top half of the unit circle with real points equally spaced.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* imag = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* real = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   lv_32fc_t* out = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *
- * volk_32f_x2_interleave_32fc();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       real[ii] = 2.f * ((float)ii / (float)N) - 1.f;
+ *       imag[ii] = std::sqrt(1.f - real[ii] * real[ii]);
+ *   }
  *
- * volk_free(x);
+ *   volk_32f_x2_interleave_32fc(out, imag, real, N);
+ *
+ *  for(unsigned int ii = 0; ii < N; ++ii){
+ *      printf("out[%u] = %1.2f + %1.2fj\n", ii, std::real(out[ii]), std::imag(out[ii]));
+ *  }
+ *
+ *   volk_free(imag);
+ *   volk_free(real);
+ *   volk_free(out);
  * \endcode
  */
 
