@@ -42,12 +42,22 @@
  * \li complexVector: The output vector of floats.
  *
  * \b Example
+ * Convert full-range integers to floats in range [0,1].
  * \code
- * int N = 10000;
+ *   int N = 1<<8;
+ *   unsigned int alignment = volk_get_alignment();
  *
- * volk_32i_s32f_convert_32f();
+ *   int32_t* x = (int32_t*)volk_malloc(N*sizeof(int32_t), alignment);
+ *   float* z = (float*)volk_malloc(N*sizeof(float), alignment);
+ *   float scale = (float)N;
+ *   for(unsigned int ii=0; ii<N; ++ii){
+ *       x[ii] = ii;
+ *   }
  *
- * volk_free(x);
+ *   volk_32i_s32f_convert_32f(z, x, scale, N);
+ *
+ *   volk_free(x);
+ *   volk_free(z);
  * \endcode
  */
 
