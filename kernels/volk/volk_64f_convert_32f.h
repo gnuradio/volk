@@ -41,14 +41,23 @@
  *
  * \b Example
  * \code
- * int N = 10000;
- * double *x = (double*)volk_malloc(N*sizeof(double), volk_get_alignment());
- * float *y = (float*)volk_malloc(N*sizeof(float), volk_get_alignment());
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   double* increasing = (double*)volk_malloc(sizeof(double)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_64f_convert_32f(y, x, N);
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       increasing[ii] = (double)ii;
+ *   }
  *
- * volk_free(x);
- * volk_free(y);
+ *   volk_64f_convert_32f(out, increasing, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out[%u] = %1.2f\n", ii, out[ii]);
+ *   }
+ *
+ *   volk_free(increasing);
+ *   volk_free(out);
  * \endcode
  */
 

@@ -45,12 +45,30 @@
  * \li complexVector: The output vector of complex numbers.
  *
  * \b Example
+ * Generate points around the unit circle and convert to complex integers.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* imag = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* real = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   lv_16sc_t* out = (lv_16sc_t*)volk_malloc(sizeof(lv_16sc_t)*N, alignment);
  *
- * volk_32f_x2_s32f_interleave_16ic();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       real[ii] = 2.f * ((float)ii / (float)N) - 1.f;
+ *       imag[ii] = std::sqrt(1.f - real[ii] * real[ii]);
+ *   }
+ *   // Normalize by smallest delta (0.02 in this example)
+ *   float scale = 50.f;
  *
- * volk_free(x);
+ *   volk_32f_x2_s32f_interleave_16ic(out, imag, real, scale, N);
+ *
+ *  for(unsigned int ii = 0; ii < N; ++ii){
+ *      printf("out[%u] = %i + %ij\n", ii, std::real(out[ii]), std::imag(out[ii]));
+ *  }
+ *
+ *   volk_free(imag);
+ *   volk_free(real);
+ *   volk_free(out);
  * \endcode
  */
 

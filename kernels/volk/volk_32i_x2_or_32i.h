@@ -41,12 +41,40 @@
  * \li cVector: The output vector.
  *
  * \b Example
+ * This example generates a Karnaugh map for the first two bits of x OR y
  * \code
- * int N = 10000;
+ *   int N = 1<<4;
+ *   unsigned int alignment = volk_get_alignment();
  *
- * volk_32i_x2_or_32i();
+ *   int32_t* x = (int32_t*)volk_malloc(N*sizeof(int32_t), alignment);
+ *   int32_t* y = (int32_t*)volk_malloc(N*sizeof(int32_t), alignment);
+ *   int32_t* z = (int32_t*)volk_malloc(N*sizeof(int32_t), alignment);
+ *   int32_t in_seq[] = {0,1,3,2};
+ *   unsigned int jj=0;
+ *   for(unsigned int ii=0; ii<N; ++ii){
+ *       x[ii] = in_seq[ii%4];
+ *       y[ii] = in_seq[jj];
+ *       if(((ii+1) % 4) == 0) jj++;
+ *   }
  *
- * volk_free(x);
+ *   volk_32i_x2_or_32i(z, x, y, N);
+ *
+ *   printf("Karnaugh map for x OR y\n");
+ *   printf("y\\x|");
+ *   for(unsigned int ii=0; ii<4; ++ii){
+ *       printf(" %.2x ", in_seq[ii]);
+ *   }
+ *   printf("\n---|---------------\n");
+ *   jj = 0;
+ *   for(unsigned int ii=0; ii<N; ++ii){
+ *       if(((ii+1) % 4) == 1){
+ *           printf("%.2x | ", in_seq[jj++]);
+ *       }
+ *       printf("%.2x  ", z[ii]);
+ *       if(!((ii+1) % 4)){
+ *           printf("\n");
+ *       }
+ *   }
  * \endcode
  */
 

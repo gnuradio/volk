@@ -45,11 +45,26 @@
  *
  * \b Example
  * \code
- * int N = 10000;
- *
- * volk_64f_x2_min_64f();
- *
- * volk_free(x);
+    int N = 10;
+    unsigned int alignment = volk_get_alignment();
+    double* increasing = (double*)volk_malloc(sizeof(double)*N, alignment);
+    double* decreasing = (double*)volk_malloc(sizeof(double)*N, alignment);
+    double* out = (double*)volk_malloc(sizeof(double)*N, alignment);
+
+    for(unsigned int ii = 0; ii < N; ++ii){
+        increasing[ii] = (double)ii;
+        decreasing[ii] = 10.f - (double)ii;
+    }
+
+    volk_64f_x2_min_64f(out, increasing, decreasing, N);
+
+    for(unsigned int ii = 0; ii < N; ++ii){
+        printf("out[%u] = %1.2g\n", ii, out[ii]);
+    }
+
+    volk_free(increasing);
+    volk_free(decreasing);
+    volk_free(out);
  * \endcode
  */
 

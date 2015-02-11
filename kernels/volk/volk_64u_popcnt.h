@@ -42,11 +42,18 @@
  *
  * \b Example
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
  *
- * volk_64u_popcnt();
+ *   uint64_t bitstring[] = {0x0, 0x1, 0xf, 0xffffffffffffffff,
+ *       0x5555555555555555, 0xaaaaaaaaaaaaaaaa, 0x2a2a2a2a2a2a2a2a,
+ *       0xffffffff, 0x32, 0x64};
+ *   uint64_t hamming_distance = 0;
  *
- * volk_free(x);
+ *   for(unsigned int ii=0; ii<N; ++ii){
+ *       volk_64u_popcnt(&hamming_distance, bitstring[ii]);
+ *       printf("hamming distance of %lx = %li\n", bitstring[ii], hamming_distance);
+ *   }
  * \endcode
  */
 

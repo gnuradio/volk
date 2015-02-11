@@ -41,12 +41,25 @@
  *
  * \b Example
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
  *
- * <FIXME>
+ *   uint32_t bitstring[] = {0x0, 0x1, 0xf, 0xffffffff,
+ *       0x5a5a5a5a, 0xa5a5a5a5, 0x2a2a2a2a,
+ *       0xffffffff, 0x32, 0x64};
+ *   uint32_t hamming_distance = 0;
  *
- * volk_32u_byteswap(x, N);
+ *   printf("byteswap vector =\n");
+ *   for(unsigned int ii=0; ii<N; ++ii){
+ *       printf("    %.8x\n", bitstring[ii]);
+ *   }
  *
+ *   volk_32u_byteswap(bitstring, N);
+ *
+ *   printf("byteswapped vector =\n");
+ *   for(unsigned int ii=0; ii<N; ++ii){
+ *       printf("    %.8x\n", bitstring[ii]);
+ *   }
  * \endcode
  */
 

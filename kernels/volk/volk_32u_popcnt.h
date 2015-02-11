@@ -42,11 +42,14 @@
  *
  * \b Example
  * \code
- * int N = 10000;
- *
- * volk_32u_popcnt();
- *
- * volk_free(x);
+    int N = 10;
+    unsigned int alignment = volk_get_alignment();
+
+    uint32_t bitstring = 0x55555555;
+    uint32_t hamming_distance = 0;
+
+    volk_32u_popcnt(&hamming_distance, bitstring);
+    printf("hamming distance of %x = %i\n", bitstring, hamming_distance);
  * \endcode
  */
 

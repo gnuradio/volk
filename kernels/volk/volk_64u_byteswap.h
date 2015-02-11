@@ -40,13 +40,25 @@
  * \li intsToSwap: returns as an in-place calculation.
  *
  * \b Example
- * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
  *
- * <FIXME>
+ *   uint64_t bitstring[] = {0x0, 0x1, 0xf, 0xffffffffffffffff,
+ *       0x5a5a5a5a5a5a5a5a, 0xa5a5a5a5a5a5a5a5, 0x2a2a2a2a2a2a2a2a,
+ *       0xffffffff, 0x32, 0x64};
+ *   uint64_t hamming_distance = 0;
  *
- * volk_64u_byteswap(x, N);
+ *   printf("byteswap vector =\n");
+ *   for(unsigned int ii=0; ii<N; ++ii){
+ *       printf("    %.16lx\n", bitstring[ii]);
+ *   }
  *
+ *   volk_64u_byteswap(bitstring, N);
+ *
+ *   printf("byteswapped vector =\n");
+ *   for(unsigned int ii=0; ii<N; ++ii){
+ *       printf("    %.16lx\n", bitstring[ii]);
+ *   }
  * \endcode
  */
 
