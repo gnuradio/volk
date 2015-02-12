@@ -41,12 +41,30 @@
  * \li mean: The mean of the input buffer.
  *
  * \b Example
+ * Generate random numbers with c++11's normal distribution and estimate the mean and standard deviation
  * \code
- * int N = 10000;
+ *   int N = 1000;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* rand_numbers = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* mean = (float*)volk_malloc(sizeof(float), alignment);
+ *   float* stddev = (float*)volk_malloc(sizeof(float), alignment);
  *
- * volk_32f_stddev_and_mean_32f_x2;
+ *   // Use a normal generator with 0 mean, stddev 1
+ *   std::default_random_engine generator;
+ *   std::normal_distribution<float> distribution(0,1);
  *
- * volk_free(x);
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       rand_numbers[ii] =  distribution(generator);
+ *   }
+ *
+ *   volk_32f_stddev_and_mean_32f_x2(stddev, mean, rand_numbers, N);
+ *
+ *   printf("std. dev. = %f\n", *stddev);
+ *   printf("mean = %f\n", *mean);
+ *
+ *   volk_free(rand_numbers);
+ *   volk_free(mean);
+ *   volk_free(stddev);
  * \endcode
  */
 

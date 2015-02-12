@@ -42,12 +42,29 @@
  * \li cVector: The output vector.
  *
  * \b Example
+ * Square the numbers (0,9)
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32f_s32f_power_32f();
  *
- * volk_free(x);
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       increasing[ii] = (float)ii;
+ *   }
+ *
+ *   // Normalize by the smallest delta (0.2 in this example)
+ *   float scale = 2.0f;
+ *
+ *   volk_32f_s32f_power_32f(out, increasing, scale, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out[%u] = %f\n", ii, out[ii]);
+ *   }
+ *
+ *   volk_free(increasing);
+ *   volk_free(out);
  * \endcode
  */
 

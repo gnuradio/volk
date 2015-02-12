@@ -43,12 +43,27 @@
  *
  * \b Example
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * <FIXME>
  *
- * volk_32f_s32f_normalize();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       increasing[ii] = 2.f * ((float)ii / (float)N) - 1.f;
+ *   }
  *
+ *   // Normalize by the smallest delta (0.2 in this example)
+ *   float scale = 5.0f;
+ *
+ *   volk_32f_s32f_normalize(increasing, scale, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("increasing[%u] = %f\n", ii, increasing[ii]);
+ *   }
+ *
+ *   volk_free(increasing);
+ *   volk_free(out);
  * \endcode
  */
 
