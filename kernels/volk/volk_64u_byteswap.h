@@ -40,6 +40,7 @@
  * \li intsToSwap: returns as an in-place calculation.
  *
  * \b Example
+ * \code
  *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *
