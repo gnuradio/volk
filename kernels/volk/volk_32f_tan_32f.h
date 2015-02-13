@@ -42,12 +42,32 @@
  * \li bVector: The output buffer.
  *
  * \b Example
+ * Calculate tan(theta) for common angles.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32f_tan_32f();
+ *   in[0] = 0.000;
+ *   in[1] = 0.524;
+ *   in[2] = 0.785;
+ *   in[3] = 1.047;
+ *   in[4] = 1.571  ;
+ *   in[5] = 1.571  ;
+ *   in[6] = -1.047;
+ *   in[7] = -0.785;
+ *   in[8] = -0.524;
+ *   in[9] = -0.000;
  *
- * volk_free(x);
+ *   volk_32f_tan_32f(out, in, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("tan(%1.3f) = %1.3f\n", in[ii], out[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(out);
  * \endcode
  */
 

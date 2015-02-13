@@ -41,12 +41,29 @@
  * \li cVector: The output vector of 32-bit ints.
  *
  * \b Example
+ * Generate ints of a 7-bit barker code from floats.
  * \code
- * int N = 10000;
+ *   int N = 7;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   int32_t* out = (int32_t*)volk_malloc(sizeof(int32_t)*N, alignment);
  *
- * volk_32f_binary_slicer_32i();
+ *   in[0] = 0.9f;
+ *   in[1] = 1.1f;
+ *   in[2] = 0.4f;
+ *   in[3] = -0.7f;
+ *   in[5] = -1.2f;
+ *   in[6] = 0.2f;
+ *   in[7] = -0.8f;
  *
- * volk_free(x);
+ *   volk_32f_binary_slicer_32i(out, in, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out(%i) = %i\n", ii, out[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(out);
  * \endcode
  */
 

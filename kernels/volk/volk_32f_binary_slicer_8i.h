@@ -41,12 +41,30 @@
  * \li cVector: The output vector of 8-bit chars.
  *
  * \b Example
+ * Generate bytes of a 7-bit barker code from floats.
  * \code
- * int N = 10000;
- *
- * volk_32f_binary_slicer_8i();
- *
- * volk_free(x);
+    int N = 7;
+    unsigned int alignment = volk_get_alignment();
+    float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
+    int8_t* out = (int8_t*)volk_malloc(sizeof(int8_t)*N, alignment);
+
+    in[0] = 0.9f;
+    in[1] = 1.1f;
+    in[2] = 0.4f;
+    in[3] = -0.7f;
+    in[5] = -1.2f;
+    in[6] = 0.2f;
+    in[7] = -0.8f;
+
+    volk_32f_binary_slicer_8i(out, in, N);
+
+    for(unsigned int ii = 0; ii < N; ++ii){
+        printf("out(%i) = %i\n", ii, out[ii]);
+    }
+
+    volk_free(in);
+    volk_free(out);
+
  * \endcode
  */
 

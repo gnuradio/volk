@@ -40,12 +40,30 @@
  * \li bVector: The vector where results will be stored.
  *
  * \b Example
+ * Calculate common angles around the top half of the unit circle.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32f_acos_32f();
+ *   in[0] = 1;
+ *   in[1] = std::sqrt(3.f)/2.f;
+ *   in[2] = std::sqrt(2.f)/2.f;
+ *   in[3] = 0.5;
+ *   in[4] = in[5] = 0;
+ *   for(unsigned int ii = 6; ii < N; ++ii){
+ *       in[ii] = - in[N-ii-1];
+ *   }
  *
- * volk_free(x);
+ *   volk_32f_acos_32f(out, in, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("acos(%1.3f) = %1.3f\n", in[ii], out[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(out);
  * \endcode
  */
 

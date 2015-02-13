@@ -43,11 +43,25 @@
  *
  * \b Example
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32f_tanh_32f();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       // the approximate artanh(x) for x<1
+ *       float x = (float)ii / (float)N;
+ *       in[ii] = 0.5 * std::log((1.f+x)/(1.f-x));
+ *   }
  *
- * volk_free(x);
+ *   volk_32f_tanh_32f(out, in, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out(%i) = %f\n", ii, out[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(out);
  * \endcode
  */
 

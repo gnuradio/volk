@@ -40,15 +40,25 @@
  * \li outputVector: returns the converted doubles.
  *
  * \b Example
+ * Generate floats and convert them to doubles.
  * \code
- * int N = 10000;
- * float *x = (float*)volk_malloc(N*sizeof(float), volk_get_alignment());
- * double *y = (double*)volk_malloc(N*sizeof(double), volk_get_alignment());
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   double* out = (double*)volk_malloc(sizeof(double)*N, alignment);
  *
- * volk_32f_convert_64f(y, x, N);
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       in[ii] = (float)ii;
+ *   }
  *
- * volk_free(x);
- * volk_free(y);
+ *   volk_32f_convert_64f(out, in, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out(%i) = %g\n", ii, out[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(out);
  * \endcode
  */
 

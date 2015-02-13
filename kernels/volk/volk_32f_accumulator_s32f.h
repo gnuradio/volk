@@ -40,12 +40,23 @@
  * \li result The accumulated result.
  *
  * \b Example
+ * Calculate the sum of numbers  0 through 99
  * \code
- * int N = 10000;
+ *   int N = 100;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float), alignment);
  *
- * volk_32f_accumulator_s32f();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       increasing[ii] = (float)ii;
+ *   }
  *
- * volk_free(x);
+ *   volk_32f_accumulator_s32f(out, increasing, N);
+ *
+ *   printf("sum(1..100) = %1.2f\n", out[0]);
+ *
+ *   volk_free(increasing);
+ *   volk_free(out);
  * \endcode
  */
 

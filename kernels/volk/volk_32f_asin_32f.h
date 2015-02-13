@@ -41,11 +41,29 @@
  *
  * \b Example
  * \code
- * int N = 10000;
+ * Calculate common angles around the top half of the unit circle.
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32f_asin_32f();
+ *   in[0] = 0;
+ *   in[1] = 0.5;
+ *   in[2] = std::sqrt(2.f)/2.f;
+ *   in[3] = std::sqrt(3.f)/2.f;
+ *   in[4] = in[5] = 1;
+ *   for(unsigned int ii = 6; ii < N; ++ii){
+ *       in[ii] = - in[N-ii-1];
+ *   }
  *
- * volk_free(x);
+ *   volk_32f_asin_32f(out, in, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("asin(%1.3f) = %1.3f\n", in[ii], out[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(out);
  * \endcode
  */
 

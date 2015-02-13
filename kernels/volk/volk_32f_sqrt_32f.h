@@ -42,11 +42,23 @@
  *
  * \b Example
  * \code
- * int N = 10000;
- *
- * volk_32f_sqrt_32f();
- *
- * volk_free(x);
+    int N = 10;
+    unsigned int alignment = volk_get_alignment();
+    float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
+    float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
+
+    for(unsigned int ii = 0; ii < N; ++ii){
+        in[ii] = (float)(ii*ii);
+    }
+
+    volk_32f_sqrt_32f(out, in, N);
+
+    for(unsigned int ii = 0; ii < N; ++ii){
+        printf("out(%i) = %f\n", ii, out[ii]);
+    }
+
+    volk_free(in);
+    volk_free(out);
  * \endcode
  */
 
