@@ -41,12 +41,30 @@
  * \li magnitudeVector: The output value.
  *
  * \b Example
+ * Calculate the magnitude of \f$x^2 + x\f$ for points around the unit circle.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   float* magnitude = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32fc_magnitude_32f();
+ *   for(unsigned int ii = 0; ii < N/2; ++ii){
+ *       float real = 2.f * ((float)ii / (float)N) - 1.f;
+ *       float imag = std::sqrt(1.f - real * real);
+ *       in[ii] = lv_cmake(real, imag);
+ *       in[ii] = in[ii] * in[ii] + in[ii];
+ *       in[N-ii] = lv_cmake(real, imag);
+ *       in[N-ii] = in[N-ii] * in[N-ii] + in[N-ii];
+ *   }
  *
- * volk_free(x);
+ *   volk_32fc_magnitude_32f(magnitude, in, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out(%i) = %+.1f\n", ii, magnitude[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(magnitude);
  * \endcode
  */
 

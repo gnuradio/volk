@@ -40,12 +40,28 @@
  * \li bVector: The output vector of complex floats.
  *
  * \b Example
+ * Generate points around the top half of the unit circle and conjugate them
+ * to give bottom half of the unit circle.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   lv_32fc_t* out = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *
- * volk_32fc_conjugate_32fc();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       float real = 2.f * ((float)ii / (float)N) - 1.f;
+ *       float imag = std::sqrt(1.f - real * real);
+ *       in[ii] = lv_cmake(real, imag);
+ *   }
  *
- * volk_free(x);
+ *   volk_32fc_conjugate_32fc(out, in, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out(%i) = %.1f + %.1fi\n", ii, lv_creal(out[ii]), lv_cimag(out[ii]));
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(out);
  * \endcode
  */
 

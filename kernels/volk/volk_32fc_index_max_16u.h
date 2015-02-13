@@ -25,7 +25,8 @@
  *
  * \b Overview
  *
- * <FIXME>
+ * Returns Argmax_i mag(x[i]). Finds and returns the index which contains the
+ * maximum magnitude for complex points in the given vector.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -37,15 +38,32 @@
  * \li num_points: The number of samples.
  *
  * \b Outputs
- * \li target: The output value.
+ * \li target: The index of the point with maximum magnitude.
  *
  * \b Example
+ * Calculate the index of the maximum value of \f$x^2 + x\f$ for points around
+ * the unit circle.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   uint32_t* max = (uint32_t*)volk_malloc(sizeof(uint32_t), alignment);
  *
- * volk_32fc_index_max_16u();
+ *   for(unsigned int ii = 0; ii < N/2; ++ii){
+ *       float real = 2.f * ((float)ii / (float)N) - 1.f;
+ *       float imag = std::sqrt(1.f - real * real);
+ *       in[ii] = lv_cmake(real, imag);
+ *       in[ii] = in[ii] * in[ii] + in[ii];
+ *       in[N-ii] = lv_cmake(real, imag);
+ *       in[N-ii] = in[N-ii] * in[N-ii] + in[N-ii];
+ *   }
  *
- * volk_free(x);
+ *   volk_32fc_index_max_16u(max, in, N);
+ *
+ *   printf("index of max value = %u\n",  *max);
+ *
+ *   volk_free(in);
+ *   volk_free(max);
  * \endcode
  */
 

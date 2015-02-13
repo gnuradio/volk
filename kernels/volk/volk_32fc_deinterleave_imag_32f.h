@@ -41,12 +41,29 @@
  * \li qBuffer: The Q buffer output data.
  *
  * \b Example
+ * Generate complex numbers around the top half of the unit circle and
+ * extract all of the imaginary parts to a float buffer.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   float* im = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32fc_deinterleave_imag_32f();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       float real = 2.f * ((float)ii / (float)N) - 1.f;
+ *       float imag = std::sqrt(1.f - real * real);
+ *       in[ii] = lv_cmake(real, imag);
+ *   }
  *
- * volk_free(x);
+ *   volk_32fc_deinterleave_imag_32f(im, in, N);
+ *
+ *   printf("          imaginary part\n");
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out(%i) = %+.1f\n", ii, im[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(im);
  * \endcode
  */
 

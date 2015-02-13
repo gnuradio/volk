@@ -42,11 +42,29 @@
  *
  * \b Example
  * \code
- * int N = 10000;
+ * Generate complex numbers around the top half of the unit circle and
+ * extract all of the real parts to a double buffer.
+ * \code
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   double* re = (double*)volk_malloc(sizeof(double)*N, alignment);
  *
- * volk_32fc_deinterleave_real_64f();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       float real = 2.f * ((float)ii / (float)N) - 1.f;
+ *       float imag = std::sqrt(1.f - real * real);
+ *       in[ii] = lv_cmake(real, imag);
+ *   }
  *
- * volk_free(x);
+ *   volk_32fc_deinterleave_real_64f(re, in, N);
+ *
+ *   printf("          real part\n");
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out(%i) = %+.1g\n", ii, re[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(re);
  * \endcode
  */
 

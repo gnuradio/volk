@@ -42,13 +42,31 @@
  * \li qBuffer: The Q buffer output data.
  *
  * \b Example
+ * Generate complex numbers around the top half of the unit circle and
+ * deinterleave in to real and imaginary buffers.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   float* re = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float* im = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
- * volk_32fc_deinterleave_32f_x2();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       float real = 2.f * ((float)ii / (float)N) - 1.f;
+ *       float imag = std::sqrt(1.f - real * real);
+ *       in[ii] = lv_cmake(real, imag);
+ *   }
  *
- * volk_free(x);
- * volk_free(t);
+ *   volk_32fc_deinterleave_32f_x2(re, im, in, N);
+ *
+ *   printf("          re  | im\n");
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("out(%i) = %+.1f | %+.1f\n", ii, re[ii], im[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(re);
+ *   volk_free(im);
  * \endcode
  */
 
