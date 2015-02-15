@@ -41,13 +41,29 @@
  * \li outputVector: The output vector complex floats.
  *
  * \b Example
+ * Mix two signals at f=0.3 and 0.1.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* sig_1  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   lv_32fc_t* sig_2  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   lv_32fc_t* out = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *
- * volk_32fc_x2_multiply_32fc();
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       // Generate two tones
+ *       float real_1 = std::cos(0.3f * (float)ii);
+ *       float imag_1 = std::sin(0.3f * (float)ii);
+ *       sig_1[ii] = lv_cmake(real_1, imag_1);
+ *       float real_2 = std::cos(0.1f * (float)ii);
+ *       float imag_2 = std::sin(0.1f * (float)ii);
+ *       sig_2[ii] = lv_cmake(real_2, imag_2);
+ *   }
  *
- * volk_free(x);
- * volk_free(t);
+ *   volk_32fc_x2_multiply_32fc(out, sig_1, sig_2, N);
+ * *
+ *   volk_free(sig_1);
+ *   volk_free(sig_2);
+ *   volk_free(out);
  * \endcode
  */
 

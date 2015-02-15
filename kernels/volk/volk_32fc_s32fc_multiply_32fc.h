@@ -42,13 +42,34 @@
  * \li cVector: The vector where the results will be stored.
  *
  * \b Example
+ * Generate points around the unit circle and shift the phase pi/3 rad.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   lv_32fc_t* out = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   lv_32fc_t scalar = lv_cmake((float)std::cos(M_PI/3.f), (float)std::sin(M_PI/3.f));
  *
- * <FIXME>
+ *   float delta = 2.f*M_PI / (float)N;
+ *   for(unsigned int ii = 0; ii < N/2; ++ii){
+ *       // Generate points around the unit circle
+ *       float real = std::cos(delta * (float)ii);
+ *       float imag = std::sin(delta * (float)ii);
+ *       in[ii] = lv_cmake(real, imag);
+ *       in[ii+N/2] = lv_cmake(-real, -imag);
+ *   }
  *
- * volk_32fc_s32fc_multiply_32fc();
+ *   volk_32fc_s32fc_multiply_32fc(out, in, scalar, N);
  *
+ *   printf(" mag   phase  |   mag   phase\n");
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("%+1.2f  %+1.2f  |  %+1.2f   %+1.2f\n",
+ *           std::abs(in[ii]), std::arg(in[ii]),
+ *           std::abs(out[ii]), std::arg(out[ii]));
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(out);
  * \endcode
  */
 

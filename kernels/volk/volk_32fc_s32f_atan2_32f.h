@@ -42,13 +42,31 @@
  * \li outputVector: The vector where the results will be stored.
  *
  * \b Example
+ * Calculate the arctangent of points around the unit circle.
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float scale = 1.f; // we want unit circle
  *
- * <FIXME>
+ *   for(unsigned int ii = 0; ii < N/2; ++ii){
+ *       // Generate points around the unit circle
+ *       float real = -4.f * ((float)ii / (float)N) + 1.f;
+ *       float imag = std::sqrt(1.f - real * real);
+ *       in[ii] = lv_cmake(real, imag);
+ *       in[ii+N/2] = lv_cmake(-real, -imag);
+ *   }
  *
- * volk_32fc_s32f_atan2_32f();
+ *   volk_32fc_s32f_atan2_32f(out, in, scale, N);
  *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("atan2(%1.2f, %1.2f) = %1.2f\n",
+ *           lv_cimag(in[ii]), lv_creal(in[ii]), out[ii]);
+ *   }
+ *
+ *   volk_free(in);
+ *   volk_free(out);
  * \endcode
  */
 

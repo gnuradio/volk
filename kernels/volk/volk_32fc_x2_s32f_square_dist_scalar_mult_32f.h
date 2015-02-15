@@ -25,7 +25,8 @@
  *
  * \b Overview
  *
- * <FIXME>
+ * Calculates the square distance between a single complex input for each
+ * point in a complex vector scaled by a scalar value.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -33,22 +34,45 @@
  * \endcode
  *
  * \b Inputs
- * \li src0: <FIXME>
- * \li points: <FIXME>
- * \li scalar: <FIXME>
+ * \li src0: The complex input. Only the first point is used.
+ * \li points: A complex vector of reference points.
+ * \li scalar: A float to scale the distances by
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li target: The output value.
+ * \li target: A vector of distances between src0 and the vector of points.
  *
  * \b Example
+ * Calculate the distance between an input and reference points in a square
+ * 16-qam constellation. Normalize distances by the area of the constellation.
  * \code
- * int N = 10000;
+ *   int N = 16;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* constellation  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   lv_32fc_t* rx  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   float const_vals[] = {-3, -1, 1, 3};
  *
- * volk_32fc_x2_s32f_square_dist_scalar_mult_32f();
+ *   unsigned int jj = 0;
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       constellation[ii] = lv_cmake(const_vals[ii%4], const_vals[jj]);
+ *       if((ii+1)%4 == 0) ++jj;
+ *   }
  *
- * volk_free(x);
- * volk_free(t);
+ *   *rx = lv_cmake(0.5f, 2.f);
+ *   float scale = 1.f/64.f; // 1 / constellation area
+ *
+ *   volk_32fc_x2_s32f_square_dist_scalar_mult_32f(out, rx, constellation, scale, N);
+ *
+ *   printf("Distance from each constellation point:\n");
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("%.4f  ", out[ii]);
+ *       if((ii+1)%4 == 0) printf("\n");
+ *   }
+ *
+ *   volk_free(rx);
+ *   volk_free(constellation);
+ *   volk_free(out);
  * \endcode
  */
 

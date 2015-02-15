@@ -42,13 +42,29 @@
  * \li outputVector: The output vector complex floats.
  *
  * \b Example
+ * Calculate mag^2 of a signal using x * conj(x).
  * \code
- * int N = 10000;
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   lv_32fc_t* sig_1  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   lv_32fc_t* out = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *
- * volk_32fc_x2_multiply_conjugate_32fc();
+ *   float delta = 2.f*M_PI / (float)N;
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       float real_1 = std::cos(0.3f * (float)ii);
+ *       float imag_1 = std::sin(0.3f * (float)ii);
+ *       sig_1[ii] = lv_cmake(real_1, imag_1);
+ *   }
  *
- * volk_free(x);
- * volk_free(t);
+ *   volk_32fc_x2_multiply_conjugate_32fc(out, sig_1, sig_1, N);
+ *
+ *   for(unsigned int ii = 0; ii < N; ++ii){
+ *       printf("%1.4f%+1.4fj,", lv_creal(out[ii]), lv_cimag(out[ii]));
+ *   }
+ *   printf("\n");
+ *
+ *   volk_free(sig_1);
+ *   volk_free(out);
  * \endcode
  */
 
