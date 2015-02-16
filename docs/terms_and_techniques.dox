@@ -33,15 +33,80 @@ A protokernel is an implementation of a kernel. Every kernel has a 'generic'
 protokernel that is implemented in C. Other protokernels are optimized for a
 particular architecture.
 
+
 ## Techniques
 
 ### New Kernels
 
+Add new kernels to the list in lib/kernel_tests.h. This adds the kernel to
+VOLK's QA tool as well as the volk profiler. Many kernels are able to
+share test parameters, but new kernels might need new ones.
+
+If the VOLK kernel does not 'fit' the the standard set of function parameters
+expected by the volk_profile structure, you need to create a VOLK puppet
+function to help the profiler call the kernel. This is essentially due to the
+function run_volk_tests which has a limited number of function prototypes that
+it can test.
+
 ### Protokernels
 
+Adding new proto-kernels (implementations of VOLK kernels for specific
+architectures) is relatively easy. In the relevant <kernel>.h file in
+the volk/include/volk/volk_<input-fingerprint_function-name_output-fingerprint>.h
+file, add a new #ifdef/#endif block for the LV_HAVE_<arch> corresponding
+to the <arch> you a working on (e.g. SSE, AVX, NEON, etc.).
+
+For example, for volk_32f_s32f_multiply_32f_u_neon:
+
+\code
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+/*!
+  \brief Scalar float multiply
+  \param cVector The vector where the results will be stored
+  \param aVector One of the vectors to be multiplied
+  \param scalar the scalar value
+  \param num_points The number of values in aVector and bVector to be multiplied together and stored into cVector
+*/
+static inline void volk_32f_s32f_multiply_32f_u_neon(float* cVector, const float* aVector, const float scalar, unsigned int num_points){
+  unsigned int number = 0;
+  const float* inputPtr = aVector;
+  float* outputPtr = cVector;
+  const unsigned int quarterPoints = num_points / 4;
+
+  float32x4_t aVal, cVal;
+
+  for(number = 0; number < num_points; number++){
+    aVal = vld1q_f32(inputPtr); // Load into NEON regs
+    cVal = vmulq_n_f32 (aVal, scalar); // Do the multiply
+    vst1q_f32(outputPtr, cVal); // Store results back to output
+    inputPtr += 8;
+    outputPtr += 8;
+  }
+  for(number = quarterPoints * 4; number < num_points; number++){
+      *outputPtr++ = (*inputPtr++) * scalar;
+  }
+}
+#endif /* LV_HAVE_NEON */
+\endcode
 
 ### Allocating Memory
 
-Information on using volk_malloc and volk_free.
+SIMD code can be very sensitive to the alignment of the vectors, which is
+generally something like a 16-byte or 32-byte alignment requirement. The
+VOLK dispatcher functions, which is what we will normally call as users of
+VOLK, makes sure that the correct aligned or unaligned version is called
+depending on the state of the vectors passed to it. However, things typically
+work faster and more efficiently when the vectors are aligned. As such, VOLK
+has memory allocate and free methods to provide us with properly aligned
+vectors. We can also ask VOLK to give us the current machine's alignment
+requirement, which makes our job even easier when porting code.
+
+To get the machine's alignment, simply call the size_t volk_get_alignment().
+
+Allocate memory using void* volk_malloc(size_t size, size_t alignment).
+
+Make sure that any memory allocated by VOLK is also freed by VOLK with volk_free(void *p).
+
 
 */
