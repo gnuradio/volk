@@ -66,7 +66,7 @@ class volk_test_params_t {
 class volk_test_case_t {
     private:
         volk_func_desc_t _desc;
-        void(*_kernel_ptr)();
+        static void(*_kernel_ptr)();
         std::string _name;
         volk_test_params_t _test_parameters;
         std::string _puppet_master_name;
@@ -117,8 +117,7 @@ bool run_volk_tests(
     int,
     std::vector<volk_test_results_t> *results = NULL,
     std::string puppet_master_name = "NULL",
-    bool benchmark_mode=false,
-    std::string kernel_regex=""
+    bool benchmark_mode=false
     );
 
 

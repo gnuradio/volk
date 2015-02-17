@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 float uniform() {
-  return 2.0 * ((float) rand() / RAND_MAX - 0.5);	// uniformly (-1, 1)
+  return 2.0f * ((float) rand() / RAND_MAX - 0.5f);	// uniformly (-1, 1)
 }
 
 template <class t>
@@ -319,7 +319,7 @@ bool run_volk_tests(volk_func_desc_t desc,
 {
     return run_volk_tests(desc, manual_func, name, test_params.tol(), test_params.scalar(),
         test_params.vlen(), test_params.iter(), results, puppet_master_name,
-        test_params.benchmark_mode(), test_params.kernel_regex());
+        test_params.benchmark_mode());
 }
 
 bool run_volk_tests(volk_func_desc_t desc,
@@ -331,8 +331,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                     int iter,
                     std::vector<volk_test_results_t> *results,
                     std::string puppet_master_name,
-                    bool benchmark_mode,
-                    std::string kernel_regex
+                    bool benchmark_mode
                    ) {
     if(results) {
         results->push_back(volk_test_results_t());
