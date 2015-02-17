@@ -68,6 +68,9 @@
  * \endcode
  */
 
+#ifndef INCLUDED_volk_32f_x2_pow_32f_a_H
+#define INCLUDED_volk_32f_x2_pow_32f_a_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -80,10 +83,7 @@
 #define POLY4(x, c0, c1, c2, c3, c4) _mm_add_ps(_mm_mul_ps(POLY3(x, c1, c2, c3, c4), x), _mm_set1_ps(c0))
 #define POLY5(x, c0, c1, c2, c3, c4, c5) _mm_add_ps(_mm_mul_ps(POLY4(x, c1, c2, c3, c4, c5), x), _mm_set1_ps(c0))
 
-#define LOG_POLY_DEGREE 3
-
-#ifndef INCLUDED_volk_32f_x2_pow_32f_a_H
-#define INCLUDED_volk_32f_x2_pow_32f_a_H
+#define POW_POLY_DEGREE 3
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
@@ -132,13 +132,13 @@ volk_32f_x2_pow_32f_a_sse4_1(float* cVector, const float* bVector,
 
     frac = _mm_or_ps(leadingOne, _mm_and_ps(aVal, _mm_castsi128_ps(_mm_set1_epi32(0x7fffff))));
 
-#if LOG_POLY_DEGREE == 6
+#if POW_POLY_DEGREE == 6
     mantissa = POLY5( frac, 3.1157899f, -3.3241990f, 2.5988452f, -1.2315303f,  3.1821337e-1f, -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
+#elif POW_POLY_DEGREE == 5
     mantissa = POLY4( frac, 2.8882704548164776201f, -2.52074962577807006663f, 1.48116647521213171641f, -0.465725644288844778798f, 0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
+#elif POW_POLY_DEGREE == 4
     mantissa = POLY3( frac, 2.61761038894603480148f, -1.75647175389045657003f, 0.688243882994381274313f, -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
+#elif POW_POLY_DEGREE == 3
     mantissa = POLY2( frac, 2.28330284476918490682f, -1.04913055217340124191f, 0.204446009836232697516f);
 #else
 #error
@@ -268,13 +268,13 @@ volk_32f_x2_pow_32f_u_sse4_1(float* cVector, const float* bVector,
 
     frac = _mm_or_ps(leadingOne, _mm_and_ps(aVal, _mm_castsi128_ps(_mm_set1_epi32(0x7fffff))));
 
-#if LOG_POLY_DEGREE == 6
+#if POW_POLY_DEGREE == 6
     mantissa = POLY5( frac, 3.1157899f, -3.3241990f, 2.5988452f, -1.2315303f,  3.1821337e-1f, -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
+#elif POW_POLY_DEGREE == 5
     mantissa = POLY4( frac, 2.8882704548164776201f, -2.52074962577807006663f, 1.48116647521213171641f, -0.465725644288844778798f, 0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
+#elif POW_POLY_DEGREE == 4
     mantissa = POLY3( frac, 2.61761038894603480148f, -1.75647175389045657003f, 0.688243882994381274313f, -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
+#elif POW_POLY_DEGREE == 3
     mantissa = POLY2( frac, 2.28330284476918490682f, -1.04913055217340124191f, 0.204446009836232697516f);
 #else
 #error
