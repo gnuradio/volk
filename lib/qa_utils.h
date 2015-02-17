@@ -66,7 +66,7 @@ class volk_test_params_t {
 class volk_test_case_t {
     private:
         volk_func_desc_t _desc;
-        static void(*_kernel_ptr)();
+        void(*_kernel_ptr)();
         std::string _name;
         volk_test_params_t _test_parameters;
         std::string _puppet_master_name;
