@@ -19,9 +19,6 @@
 # Project setup
 ########################################################################
 cmake_minimum_required(VERSION 2.6)
-if(NOT DEFINED CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
-endif()
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose build type: None Debug Release RelWithDebInfo MinSizeRel")
 project(volk)
 enable_language(CXX)
@@ -31,6 +28,16 @@ enable_testing()
 set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}) #allows this to be a sub-project
 set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}) #allows this to be a sub-project
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules) #location for custom "Modules"
+
+include(VolkBuildTypes)
+#select the release build type by default to get optimization flags
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+    message(STATUS "Build type not specified: defaulting to release.")
+endif()
+VOLK_CHECK_BUILD_TYPE(${CMAKE_BUILD_TYPE})
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
+message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 
 set(VERSION_INFO_MAJOR_VERSION 1)
 set(VERSION_INFO_API_COMPAT 0)
