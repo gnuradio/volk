@@ -86,6 +86,9 @@
  * \endcode
  */
 
+#ifndef INCLUDED_volk_32f_log2_32f_a_H
+#define INCLUDED_volk_32f_log2_32f_a_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -99,10 +102,6 @@
 #define POLY5(x, c0, c1, c2, c3, c4, c5) _mm_add_ps(_mm_mul_ps(POLY4(x, c1, c2, c3, c4, c5), x), _mm_set1_ps(c0))
 
 #define LOG_POLY_DEGREE 6
-
-
-#ifndef INCLUDED_volk_32f_log2_32f_a_H
-#define INCLUDED_volk_32f_log2_32f_a_H
 
 #ifdef LV_HAVE_GENERIC
 
