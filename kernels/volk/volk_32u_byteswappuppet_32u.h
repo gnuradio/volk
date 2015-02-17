@@ -1,9 +1,9 @@
 #ifndef INCLUDED_volk_32u_byteswappuppet_32u_H
 #define INCLUDED_volk_32u_byteswappuppet_32u_H
 
-
-#include <stdint.h>
 #include <volk/volk_32u_byteswap.h>
+#include <stdint.h>
+#include <string.h>
 
 #ifdef LV_HAVE_GENERIC
 static inline void volk_32u_byteswappuppet_32u_generic(uint32_t*output, uint32_t* intsToSwap, unsigned int num_points){
