@@ -75,9 +75,9 @@ endfunction(VOLK_CHECK_BUILD_TYPE)
 # NOTE: This is not defined on Windows systems.
 ########################################################################
 if(NOT WIN32)
-  SET(CMAKE_CXX_FLAGS_DEBUGPARANOID "-Wall -Werror -g -O0" CACHE STRING
+  SET(CMAKE_CXX_FLAGS_DEBUGPARANOID "-Wall -Wextra -g -O0" CACHE STRING
     "Flags used by the C++ compiler during DebugParanoid builds." FORCE)
-  SET(CMAKE_C_FLAGS_DEBUGPARANOID "-Wall -Werror -g -O0" CACHE STRING
+  SET(CMAKE_C_FLAGS_DEBUGPARANOID "-Wall -Wextra -g -O0" CACHE STRING
     "Flags used by the C compiler during DebugParanoid builds." FORCE)
   SET(CMAKE_EXE_LINKER_FLAGS_DEBUGPARANOID
     "-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
