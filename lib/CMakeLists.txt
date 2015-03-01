@@ -515,31 +515,66 @@ if(MSVC)
     set_source_files_properties(${volk_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
-#create the volk runtime library
-add_library(volk SHARED ${volk_sources})
-target_link_libraries(volk ${volk_libraries})
-set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
-set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
+#Use object library for faster overall build in newer versions of cmake
+if(CMAKE_VERSION VERSION_GREATER "2.8.7")
+    #Create a volk object library (requires cmake >= 2.8.8)
+    add_library(volk_obj OBJECT ${volk_sources})
 
-install(TARGETS volk
-    LIBRARY DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_runtime" # .so file
-    ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
-    RUNTIME DESTINATION bin              COMPONENT "volk_runtime" # .dll file
-)
+    #Add dynamic library
+    add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
+    target_link_libraries(volk ${volk_libraries})
 
-if(ENABLE_STATIC_LIBS)
-  add_library(volk_static STATIC ${volk_sources})
+    #Configure target properties
+    set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
+    set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
+    set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
 
-  if(NOT WIN32)
-    set_target_properties(volk_static
-      PROPERTIES OUTPUT_NAME volk)
-  endif(NOT WIN32)
-
-  install(TARGETS volk_static
-    ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
+    #Install locations
+    install(TARGETS volk
+        LIBRARY DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_runtime" # .so file
+        ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
+        RUNTIME DESTINATION bin              COMPONENT "volk_runtime" # .dll file
     )
-endif(ENABLE_STATIC_LIBS)
 
+    #Configure static library
+    if(ENABLE_STATIC_LIBS)
+        add_library(volk_static STATIC $<TARGET_OBJECTS:volk_obj>)
+
+        set_target_properties(volk_static PROPERTIES OUTPUT_NAME volk)
+
+        install(TARGETS volk_static
+            ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"
+        )
+    endif(ENABLE_STATIC_LIBS)
+
+#Older cmake versions (slower to build when building dynamic/static libs)
+else()
+    #create the volk runtime library
+    add_library(volk SHARED ${volk_sources})
+    target_link_libraries(volk ${volk_libraries})
+    set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
+    set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
+
+    install(TARGETS volk
+        LIBRARY DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_runtime" # .so file
+        ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
+        RUNTIME DESTINATION bin              COMPONENT "volk_runtime" # .dll file
+    )
+
+    if(ENABLE_STATIC_LIBS)
+        add_library(volk_static STATIC ${volk_sources})
+
+        if(NOT WIN32)
+            set_target_properties(volk_static
+                PROPERTIES OUTPUT_NAME volk)
+        endif(NOT WIN32)
+
+        install(TARGETS volk_static
+            ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
+        )
+    endif(ENABLE_STATIC_LIBS)
+
+endif(CMAKE_VERSION VERSION_GREATER "2.8.7")
 ########################################################################
 # Build the QA test application
 ########################################################################
