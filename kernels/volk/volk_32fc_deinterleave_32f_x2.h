@@ -164,7 +164,7 @@ volk_32fc_deinterleave_32f_x2_a_sse(float* iBuffer, float* qBuffer, const lv_32f
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-*/
+
 static inline void
 volk_32fc_deinterleave_32f_x2_neon(float* iBuffer, float* qBuffer, const lv_32fc_t* complexVector,
                                    unsigned int num_points)
