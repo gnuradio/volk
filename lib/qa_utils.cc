@@ -454,6 +454,7 @@ bool run_volk_tests(volk_func_desc_t desc,
             result.name = arch_list[i];
             result.time = arch_time;
             result.units = "ms";
+            result.pass = true;
             results->back().results[result.name] = result;
         }
 
@@ -527,12 +528,15 @@ bool run_volk_tests(volk_func_desc_t desc,
                     }
                 }
                 if(fail) {
+                    volk_test_time_t *result = &results->back().results[arch_list[i]];
+                    result->pass = !fail;
                     fail_global = true;
                     std::cout << name << ": fail on arch " << arch_list[i] << std::endl;
                 }
                 //fail = memcmp(outbuffs[generic_offset], outbuffs[i], outputsig[0].size * vlen * (outputsig[0].is_complex ? 2:1));
             }
         }
+        std::cout << "arch name : " << arch_list[i] << std::endl;
         arch_results.push_back(!fail);
     }
 

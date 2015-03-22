@@ -25,8 +25,12 @@
 
 #include <volk/volk.h>
 
+#include <vector>
+#include <utility>
 #include <iostream>
+#include <fstream>
 
+void print_qa_xml(std::vector<volk_test_results_t> results, unsigned int nfails);
 
 int main()
 {
@@ -44,13 +48,14 @@ int main()
     std::vector<volk_test_case_t> test_cases = init_test_list(test_params);
 
     std::vector<std::string> qa_failures;
+    std::vector<volk_test_results_t> results;
     // Test every kernel reporting failures when they occur
     for(unsigned int ii = 0; ii < test_cases.size(); ++ii) {
         bool qa_result = false;
         volk_test_case_t test_case = test_cases[ii];
         try {
             qa_result = run_volk_tests(test_case.desc(), test_case.kernel_ptr(), test_case.name(),
-                test_case.test_parameters(), 0, test_case.puppet_master_name());
+                test_case.test_parameters(), &results, test_case.puppet_master_name());
         }
         catch(...) {
             // TODO: what exceptions might we need to catch and how do we handle them?
@@ -64,6 +69,9 @@ int main()
         }
     }
 
+    // Generate XML results
+    print_qa_xml(results, qa_failures.size());
+
     // Summarize QA results
     std::cerr << "Kernel QA finished: " << qa_failures.size() << " failures out of "
         << test_cases.size() << " tests." << std::endl;
@@ -76,4 +84,45 @@ int main()
     }
 
     return qa_ret_val;
+}
+
+/*
+ * This function prints qa results as XML output similar to output
+ * from Junit. For reference output see http://llg.cubic.org/docs/junit/
+ */
+void print_qa_xml(std::vector<volk_test_results_t> results, unsigned int nfails)
+{
+    std::ofstream qa_file;
+    qa_file.open("kernels.xml");
+
+    qa_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+    qa_file << "<testsuites name=\"kernels\" " <<
+        "tests=\"" << results.size() << "\" " <<
+        "failures=\"" << nfails << "\" id=\"1\">" << std::endl;
+
+    // Results are in a vector by kernel. Each element has a result
+    // map containing time and arch name with test result
+    for(unsigned int ii; ii < results.size(); ++ii) {
+        volk_test_results_t result = results[ii];
+        qa_file << "  <testsuite name=\"" << result.name << "\">" << std::endl;
+
+        std::map<std::string, volk_test_time_t>::iterator kernel_time_pair;
+        for(kernel_time_pair = result.results.begin(); kernel_time_pair != result.results.end(); ++kernel_time_pair) {
+            volk_test_time_t test_time = kernel_time_pair->second;
+            qa_file << "    <testcase name=\"" << test_time.name << "\" " <<
+                "classname=\"" << result.name << test_time.name << "\" " <<
+                "time=\"" << test_time.time << "\">" << std::endl;
+            if(!test_time.pass)
+                qa_file << "      <failure " <<
+                    "message=\"fail on arch " <<  test_time.name << "\">" <<
+                    "</failure>" << std::endl;
+            qa_file << "    </testcase>" << std::endl;
+        }
+        qa_file << "  </testsuite>" << std::endl;
+    }
+    
+
+    qa_file << "</testsuites>" << std::endl;
+    qa_file.close();
+
 }
