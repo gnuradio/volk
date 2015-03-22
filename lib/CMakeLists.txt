@@ -544,22 +544,9 @@ endif(ENABLE_STATIC_LIBS)
 # Build the QA test application
 ########################################################################
 
-
-if(Boost_FOUND)
-
-    set_source_files_properties(
-        ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc PROPERTIES
-        COMPILE_DEFINITIONS "BOOST_TEST_DYN_LINK;BOOST_TEST_MAIN"
-    )
-
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIRS})
-
-    add_executable(test_all
-        ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
-    )
-    target_link_libraries(test_all volk ${Boost_LIBRARIES})
-    add_test(qa_volk_test_all test_all)
-
-endif(Boost_FOUND)
+add_executable(test_all
+    ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
+)
+target_link_libraries(test_all volk)
+add_test(qa_volk_test_all test_all)
