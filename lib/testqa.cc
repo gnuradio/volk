@@ -93,7 +93,7 @@ int main()
 void print_qa_xml(std::vector<volk_test_results_t> results, unsigned int nfails)
 {
     std::ofstream qa_file;
-    qa_file.open("kernels.xml");
+    qa_file.open(".unittest/kernels.xml");
 
     qa_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
     qa_file << "<testsuites name=\"kernels\" " <<
@@ -110,7 +110,7 @@ void print_qa_xml(std::vector<volk_test_results_t> results, unsigned int nfails)
         for(kernel_time_pair = result.results.begin(); kernel_time_pair != result.results.end(); ++kernel_time_pair) {
             volk_test_time_t test_time = kernel_time_pair->second;
             qa_file << "    <testcase name=\"" << test_time.name << "\" " <<
-                "classname=\"" << result.name << test_time.name << "\" " <<
+                "classname=\"" << result.name << "\" " <<
                 "time=\"" << test_time.time << "\">" << std::endl;
             if(!test_time.pass)
                 qa_file << "      <failure " <<
