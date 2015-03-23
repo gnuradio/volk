@@ -544,6 +544,7 @@ endif(ENABLE_STATIC_LIBS)
 # Build the QA test application
 ########################################################################
 
+make_directory(${CMAKE_CURRENT_BINARY_DIR}/.unittest)
 add_executable(test_all
     ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
