@@ -27,6 +27,7 @@ class volk_test_time_t {
         std::string name;
         double time;
         std::string units;
+        bool pass;
 };
 
 class volk_test_results_t {
