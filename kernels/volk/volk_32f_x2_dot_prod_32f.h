@@ -646,8 +646,50 @@ static inline void volk_32f_x2_dot_prod_32f_a_avx( float* result, const  float* 
   *result = dotProduct;
 
 }
-
 #endif /*LV_HAVE_AVX*/
+
+
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+static inline void volk_32f_x2_dot_prod_32f_a_avx2_fma(float * result, const float * input, const float* taps, unsigned int num_points){
+  unsigned int number;
+  const unsigned int eighthPoints = num_points / 8;
+
+  const float* aPtr = input;
+  const float* bPtr = taps;
+
+  __m256 dotProdVal = _mm256_setzero_ps();
+  __m256 aVal1, bVal1;
+
+  for (number = 0; number < eighthPoints; number++ ) {
+
+    aVal1 = _mm256_load_ps(aPtr);
+    bVal1 = _mm256_load_ps(bPtr);
+    aPtr += 8;
+    bPtr += 8;
+
+    dotProdVal = _mm256_fmadd_ps(aVal1, bVal1, dotProdVal);
+  }
+
+  float dotProductVector[8] __attribute__((aligned(32)));
+  _mm256_store_ps(dotProductVector, dotProdVal); // Store the results back into the dot product vector
+  _mm256_zeroupper();
+
+  float dotProduct =
+    dotProductVector[0] + dotProductVector[1] +
+    dotProductVector[2] + dotProductVector[3] +
+    dotProductVector[4] + dotProductVector[5] +
+    dotProductVector[6] + dotProductVector[7];
+
+  for(number = eighthPoints * 8; number < num_points; number++){
+    dotProduct += ((*aPtr++) * (*bPtr++));
+  }
+
+  *result = dotProduct;
+
+}
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
+
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
