@@ -24,6 +24,8 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     // Some kernels need a lower tolerance
     volk_test_params_t test_params_inacc = volk_test_params_t(1e-3, test_params.scalar(),
             test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
+    volk_test_params_t test_params_int1 = volk_test_params_t(1, test_params.scalar(),
+            test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
 
     std::vector<volk_test_case_t> test_cases = boost::assign::list_of
         (VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt,     test_params))
@@ -40,7 +42,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_16ic_deinterleave_16i_x2,                  test_params))
         (VOLK_INIT_TEST(volk_16ic_s32f_deinterleave_32f_x2,             test_params))
         (VOLK_INIT_TEST(volk_16ic_deinterleave_real_16i,                test_params))
-        (VOLK_INIT_TEST(volk_16ic_magnitude_16i,                        test_params))
+        (VOLK_INIT_TEST(volk_16ic_magnitude_16i,                        test_params_int1))
         (VOLK_INIT_TEST(volk_16ic_s32f_magnitude_32f,                   test_params))
         (VOLK_INIT_TEST(volk_16i_s32f_convert_32f,                      test_params))
         (VOLK_INIT_TEST(volk_16i_convert_8i,                            test_params))
@@ -70,7 +72,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_32fc_x2_dot_prod_32fc,                     test_params_inacc))
         (VOLK_INIT_TEST(volk_32fc_32f_dot_prod_32fc,                    test_params_inacc))
         (VOLK_INIT_TEST(volk_32fc_index_max_16u,      volk_test_params_t(3, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
-        (VOLK_INIT_TEST(volk_32fc_s32f_magnitude_16i,                   test_params))
+        (VOLK_INIT_TEST(volk_32fc_s32f_magnitude_16i,                   test_params_int1))
         (VOLK_INIT_TEST(volk_32fc_magnitude_32f,                        test_params))
         (VOLK_INIT_TEST(volk_32fc_magnitude_squared_32f,                test_params))
         (VOLK_INIT_TEST(volk_32fc_x2_multiply_32fc,                     test_params))
