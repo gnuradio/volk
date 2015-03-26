@@ -102,7 +102,7 @@ void print_qa_xml(std::vector<volk_test_results_t> results, unsigned int nfails)
 
     // Results are in a vector by kernel. Each element has a result
     // map containing time and arch name with test result
-    for(unsigned int ii; ii < results.size(); ++ii) {
+    for(unsigned int ii=0; ii < results.size(); ++ii) {
         volk_test_results_t result = results[ii];
         qa_file << "  <testsuite name=\"" << result.name << "\">" << std::endl;
 
@@ -120,7 +120,7 @@ void print_qa_xml(std::vector<volk_test_results_t> results, unsigned int nfails)
         }
         qa_file << "  </testsuite>" << std::endl;
     }
-    
+
 
     qa_file << "</testsuites>" << std::endl;
     qa_file.close();
