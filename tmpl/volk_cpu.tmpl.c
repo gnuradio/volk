@@ -69,6 +69,16 @@ struct VOLK_CPU volk_cpu;
 
 #endif //defined(VOLK_CPU_x86)
 
+static inline unsigned int cpuid_count_x86_bit(unsigned int level, unsigned int count, unsigned int reg, unsigned int bit) {
+#if defined(VOLK_CPU_x86)
+    unsigned int regs[4];
+    __cpuid_count(level, count, regs[0],  regs[1],  regs[2], regs[3]);
+    return regs[reg] >> bit & 0x01;
+#else
+    return 0;
+#endif
+}
+
 static inline unsigned int cpuid_x86_bit(unsigned int reg, unsigned int op, unsigned int bit) {
 #if defined(VOLK_CPU_x86)
     unsigned int regs[4];
@@ -92,6 +102,14 @@ static inline unsigned int check_extended_cpuid(unsigned int val) {
 }
 
 static inline unsigned int get_avx_enabled(void) {
+#if defined(VOLK_CPU_x86)
+    return __xgetbv() & 0x6;
+#else
+    return 0;
+#endif
+}
+
+static inline unsigned int get_avx2_enabled(void) {
 #if defined(VOLK_CPU_x86)
     return __xgetbv() & 0x6;
 #else
