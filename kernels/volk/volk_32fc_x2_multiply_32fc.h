@@ -75,6 +75,54 @@
 #include <volk/volk_complex.h>
 #include <float.h>
 
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+/*!
+  \brief Multiplies the two input complex vectors and stores their results in the third vector
+  \param cVector The vector where the results will be stored
+  \param aVector One of the vectors to be multiplied
+  \param bVector One of the vectors to be multiplied
+  \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
+*/
+static inline void volk_32fc_x2_multiply_32fc_u_avx2_fma(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, unsigned int num_points){
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
+
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = aVector;
+  const lv_32fc_t* b = bVector;
+
+  for(;number < quarterPoints; number++){
+
+    const __m256 x = _mm256_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+    const __m256 y = _mm256_loadu_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+
+    const __m256 yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr
+    const __m256 yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di
+
+    const __m256 tmp2x = _mm256_permute_ps(x,0xB1); // Re-arrange x to be ai,ar,bi,br
+
+    const __m256 tmp2 = _mm256_mul_ps(tmp2x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
+
+    const __m256 z = _mm256_fmaddsub_ps(x, yl, tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
+
+    _mm256_storeu_ps((float*)c,z); // Store the results back into the C container
+
+    a += 4;
+    b += 4;
+    c += 4;
+  }
+
+  _mm256_zeroupper();
+
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    *c++ = (*a++) * (*b++);
+  }
+}
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -193,6 +241,54 @@ volk_32fc_x2_multiply_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 #include <stdio.h>
 #include <volk/volk_complex.h>
 #include <float.h>
+
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+/*!
+  \brief Multiplies the two input complex vectors and stores their results in the third vector
+  \param cVector The vector where the results will be stored
+  \param aVector One of the vectors to be multiplied
+  \param bVector One of the vectors to be multiplied
+  \param num_points The number of complex values in aVector and bVector to be multiplied together and stored into cVector
+*/
+static inline void volk_32fc_x2_multiply_32fc_a_avx2_fma(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, unsigned int num_points){
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
+
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = aVector;
+  const lv_32fc_t* b = bVector;
+
+  for(;number < quarterPoints; number++){
+
+    const __m256 x = _mm256_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+    const __m256 y = _mm256_load_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+
+    const __m256 yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr
+    const __m256 yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di
+
+    const __m256 tmp2x = _mm256_permute_ps(x,0xB1); // Re-arrange x to be ai,ar,bi,br
+
+    const __m256 tmp2 = _mm256_mul_ps(tmp2x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
+
+    const __m256 z = _mm256_fmaddsub_ps(x, yl, tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
+
+    _mm256_store_ps((float*)c,z); // Store the results back into the C container
+
+    a += 4;
+    b += 4;
+    c += 4;
+  }
+
+  _mm256_zeroupper();
+
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    *c++ = (*a++) * (*b++);
+  }
+}
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
+
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
