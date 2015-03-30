@@ -111,7 +111,89 @@ volk_32f_binary_slicer_8i_generic_branchless(int8_t* cVector, const float* aVect
 #endif /* LV_HAVE_GENERIC */
 
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32f_binary_slicer_8i_a_avx2(int8_t* cVector, const float* aVector,
+                                 unsigned int num_points)
+{
+  int8_t* cPtr = cVector;
+  const float* aPtr = aVector;
+  unsigned int number = 0;
+  unsigned int n32points = num_points / 32;
+
+  __m256 zero_val;
+  __m256 a0_val, a1_val, a2_val, a3_val;
+  __m256 res0_f, res1_f, res2_f, res3_f;
+  __m256i res0_i, res1_i, res2_i, res3_i;
+  __m256i byte_shuffle = _mm256_set_epi8(
+                                        //31, 30, 29, 28, 23, 22, 21, 20,
+                                        //27, 26, 25, 24, 19, 18, 17, 16,
+                                        15, 14, 13, 12, 7, 6, 5, 4,
+                                        11, 10, 9, 8, 3, 2, 1, 0,
+                                        //128, 128, 128, 128, 128, 128, 128, 128,
+                                        15, 14, 13, 12, 7, 6, 5, 4,
+                                        11, 10, 9, 8, 3, 2, 1, 0);
+
+  for(number = 0; number < n32points; number++) {
+    a0_val = _mm256_loadu_ps(aPtr);
+    a1_val = _mm256_loadu_ps(aPtr+8);
+    a2_val = _mm256_loadu_ps(aPtr+16);
+    a3_val = _mm256_loadu_ps(aPtr+24);
+
+    // compare >= 0; return float
+    res0_f = _mm256_cmp_ps(a0_val, zero_val, 13);
+    res1_f = _mm256_cmp_ps(a1_val, zero_val, 13);
+    res2_f = _mm256_cmp_ps(a2_val, zero_val, 13);
+    res3_f = _mm256_cmp_ps(a3_val, zero_val, 13);
+
+    // convert to 32i and >> 31
+    res0_i = _mm256_srli_epi32(_mm256_cvtps_epi32(res0_f), 31);
+    res1_i = _mm256_srli_epi32(_mm256_cvtps_epi32(res1_f), 31);
+    res2_i = _mm256_srli_epi32(_mm256_cvtps_epi32(res2_f), 31);
+    res3_i = _mm256_srli_epi32(_mm256_cvtps_epi32(res3_f), 31);
+
+    // pack in to 16-bit results
+    res0_i = _mm256_packs_epi32(res0_i, res1_i);
+    res2_i = _mm256_packs_epi32(res2_i, res3_i);
+    // pack in to 8-bit results
+    // res0: (after packs_epi32)
+    //  a0, a1, a2, a3, b0, b1, b2, b3, a4, a5, a6, a7, b4, b5, b6, b7
+    // res2:
+    //  c0, c1, c2, c3, d0, d1, d2, d3, c4, c5, c6, c7, d4, d5, d6, d7
+    res0_i = _mm256_packs_epi16(res0_i, res2_i);
+    // shuffle the lanes
+    // res0: (after packs_epi16)
+    //  a0, a1, a2, a3, b0, b1, b2, b3, c0, c1, c2, c3, d0, d1, d2, d3
+    //  a4, a5, a6, a7, b4, b5, b6, b7, c4, c5, c6, c7, d4, d5, d6, d7
+    //   0, 2, 1, 3 -> 11 01 10 00 (0xd8)
+    res0_i = _mm256_permute4x64_epi64(res0_i, 0xd8);
+
+    // shuffle bytes within lanes
+    // res0: (after shuffle_epi8)
+    //  a0, a1, a2, a3, b0, b1, b2, b3, a4, a5, a6, a7, b4, b5, b6, b7
+    //  c0, c1, c2, c3, d0, d1, d2, d3, c4, c5, c6, c7, d4, d5, d6, d7
+    res0_i = _mm256_shuffle_epi8(res0_i, byte_shuffle);
+
+    _mm256_storeu_si256((__m256i*)cPtr, res0_i);
+    aPtr += 32;
+    cPtr += 32;
+  }
+
+  for(number = n32points * 32; number < num_points; number++) {
+    if( *aPtr++ >= 0) {
+      *cPtr++ = 1;
+    }
+    else {
+      *cPtr++ = 0;
+    }
+  }
+}
+#endif
+
 #ifdef LV_HAVE_SSE2
+
 #include <emmintrin.h>
 
 static inline void
