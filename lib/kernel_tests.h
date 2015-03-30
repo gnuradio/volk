@@ -30,7 +30,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
 
         (VOLK_INIT_PUPP(volk_16u_byteswappuppet_16u, volk_16u_byteswap, test_params))
         (VOLK_INIT_PUPP(volk_32u_byteswappuppet_32u, volk_32u_byteswap, test_params))
-        (VOLK_INIT_PUPP(volk_32u_popcntpuppet_32u, volk32u_popcnt_32u,  test_params))
+        (VOLK_INIT_PUPP(volk_32u_popcntpuppet_32u, volk_32u_popcnt_32u,  test_params))
         (VOLK_INIT_PUPP(volk_64u_byteswappuppet_64u, volk_64u_byteswap, test_params))
         (VOLK_INIT_PUPP(volk_32fc_s32fc_rotatorpuppet_32fc, volk_32fc_s32fc_x2_rotator_32fc, test_params))
         (VOLK_INIT_PUPP(volk_8u_conv_k7_r2puppet_8u, volk_8u_x4_conv_k7_r2_8u, volk_test_params_t(0, test_params.scalar(), test_params.vlen(), test_params.iter()/10, test_params.benchmark_mode(), test_params.kernel_regex())))

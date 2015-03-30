@@ -536,7 +536,6 @@ bool run_volk_tests(volk_func_desc_t desc,
                 //fail = memcmp(outbuffs[generic_offset], outbuffs[i], outputsig[0].size * vlen * (outputsig[0].is_complex ? 2:1));
             }
         }
-        std::cout << "arch name : " << arch_list[i] << std::endl;
         arch_results.push_back(!fail);
     }
 
