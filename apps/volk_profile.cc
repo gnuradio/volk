@@ -29,7 +29,6 @@
 
 #include <ciso646>
 #include <vector>
-#include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/xpressive/xpressive.hpp>
@@ -85,7 +84,7 @@ int main(int argc, char *argv[]) {
     int def_vlen;
     bool def_benchmark_mode;
     std::string def_kernel_regex;
-    bool update_mode = true;
+    bool update_mode = false;
     bool dry_run = false;
 
     // Handle the provided options
@@ -134,7 +133,9 @@ int main(int argc, char *argv[]) {
 
     // Run tests
     std::vector<volk_test_results_t> results;
-    read_results(&results);
+    if(update_mode) {
+        read_results(&results);
+    }
 
     // Initialize the list of tests
     // the default test parameters come from options
@@ -259,10 +260,11 @@ void write_results(const std::vector<volk_test_results_t> *results)
 #the function name is followed by the preferred architecture.\n\
 ";
 
-    BOOST_FOREACH(volk_test_results_t result, *results) {
-        config << result.config_name << " "
-            << result.best_arch_a << " "
-            << result.best_arch_u << std::endl;
+    std::vector<volk_test_results_t>::const_iterator profile_results;
+    for(profile_results = results->begin(); profile_results != results->end(); ++profile_results) {
+        config << profile_results->config_name << " "
+            << profile_results->best_arch_a << " "
+            << profile_results->best_arch_u << std::endl;
     }
     config.close();
 }
@@ -273,21 +275,23 @@ void write_json(std::ofstream &json_file, std::vector<volk_test_results_t> resul
     json_file << " \"volk_tests\": [" << std::endl;
     size_t len = results.size();
     size_t i = 0;
-    BOOST_FOREACH(volk_test_results_t &result, results) {
+    std::vector<volk_test_results_t>::iterator result;
+    for(result = results.begin(); result != results.end(); ++result) {
         json_file << "  {" << std::endl;
-        json_file << "   \"name\": \"" << result.name << "\"," << std::endl;
-        json_file << "   \"vlen\": " << result.vlen << "," << std::endl;
-        json_file << "   \"iter\": " << result.iter << "," << std::endl;
-        json_file << "   \"best_arch_a\": \"" << result.best_arch_a
+        json_file << "   \"name\": \"" << result->name << "\"," << std::endl;
+        json_file << "   \"vlen\": " << (int)(result->vlen) << "," << std::endl;
+        json_file << "   \"iter\": " << result->iter << "," << std::endl;
+        json_file << "   \"best_arch_a\": \"" << result->best_arch_a
             << "\"," << std::endl;
-        json_file << "   \"best_arch_u\": \"" << result.best_arch_u
+        json_file << "   \"best_arch_u\": \"" << result->best_arch_u
             << "\"," << std::endl;
         json_file << "   \"results\": {" << std::endl;
-        size_t results_len = result.results.size();
+        size_t results_len = result->results.size();
         size_t ri = 0;
-        typedef std::pair<std::string, volk_test_time_t> tpair;
-        BOOST_FOREACH(tpair pair, result.results) {
-            volk_test_time_t time = pair.second;
+
+        std::map<std::string, volk_test_time_t>::iterator kernel_time_pair;
+        for(kernel_time_pair = result->results.begin(); kernel_time_pair != result->results.end(); ++kernel_time_pair) {
+            volk_test_time_t time = kernel_time_pair->second;
             json_file << "    \"" << time.name << "\": {" << std::endl;
             json_file << "     \"name\": \"" << time.name << "\"," << std::endl;
             json_file << "     \"time\": " << time.time << "," << std::endl;
