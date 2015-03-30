@@ -33,7 +33,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/xpressive/xpressive.hpp>
-#include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
@@ -168,7 +167,6 @@ int main(int argc, char *argv[]) {
             }
         }
 
-
         if( regex_match && update ) {
             run_volk_tests(test_case.desc(), test_case.kernel_ptr(), test_case.name(),
                 test_case.test_parameters(), &results, test_case.puppet_master_name());
@@ -196,7 +194,6 @@ void read_results(std::vector<volk_test_results_t> *results)
     volk_get_config_path(path);
     const fs::path config_path(path);
 
-    std::vector<std::string> single_kernel_result;
     if(fs::exists(config_path)) {
         // a config exists and we are reading results from it
         std::ifstream config(config_path.string().c_str());
@@ -204,7 +201,25 @@ void read_results(std::vector<volk_test_results_t> *results)
         while(config.getline(config_line, 255)) {
             // tokenize the input line by kernel_name unaligned aligned
             // then push back in the results vector with fields filled in
-            boost::split(single_kernel_result, config_line, boost::is_any_of(" \n\r"));
+
+            std::vector<std::string> single_kernel_result;
+            std::string config_str(config_line);
+            std::size_t str_size = config_str.size();
+            std::size_t found = 1;
+
+            found = config_str.find(" ");
+            // Split line by spaces
+            while(found && found < str_size)
+            {
+                found = config_str.find(" ");
+                str_size = config_str.size();
+                char buffer[256];
+                config_str.copy(buffer, found, 0);
+                buffer[found] = '\0';
+                single_kernel_result.push_back(std::string(buffer));
+                config_str.erase(0, found+1);
+            }
+
             if(single_kernel_result.size() == 3) {
                 volk_test_results_t kernel_result;
                 kernel_result.name = std::string(single_kernel_result[0]);
