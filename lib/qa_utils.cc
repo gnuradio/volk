@@ -1,9 +1,13 @@
 #include "qa_utils.h"
-#include <cstring>
+
 #include <boost/foreach.hpp>
-#include <boost/assign/list_of.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/typeof/typeof.hpp>
+#include <boost/type_traits.hpp>
+
 #include <iostream>
+#include <cstring>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -11,14 +15,11 @@
 #include <ctime>
 #include <cmath>
 #include <limits>
-#include <boost/lexical_cast.hpp>
+
 #include <volk/volk.h>
 #include <volk/volk_cpu.h>
 #include <volk/volk_common.h>
 #include <volk/volk_malloc.h>
-#include <boost/typeof/typeof.hpp>
-#include <boost/type_traits.hpp>
-#include <stdio.h>
 
 float uniform() {
   return 2.0f * ((float) rand() / RAND_MAX - 0.5f);	// uniformly (-1, 1)
