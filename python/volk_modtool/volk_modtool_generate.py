@@ -32,6 +32,7 @@ class volk_modtool:
         self.remove_after_underscore = re.compile("_.*")
         self.volk_run_tests = re.compile('^\s*VOLK_RUN_TESTS.*\n', re.MULTILINE)
         self.volk_profile = re.compile('^\s*(VOLK_PROFILE|VOLK_PUPPET_PROFILE).*\n', re.MULTILINE)
+        self.volk_kernel_tests = re.compile('^\s*\((VOLK_INIT_TEST|VOLK_INIT_PUPP).*\n', re.MULTILINE)
         self.my_dict = cfg
         self.lastline = re.compile('\s*char path\[1024\];.*')
         self.badassert = re.compile('^\s*assert\(toked\[0\] == "volk_.*\n', re.MULTILINE)
@@ -112,14 +113,9 @@ class volk_modtool:
                         os.makedirs(os.path.dirname(dest))
                     open(dest, 'w+').write(outstring)
 
-        infile = os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'lib/testqa.cc')
+        infile = os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'lib/kernel_tests.h')
         instring = open(infile, 'r').read()
-        outstring = re.sub(self.volk_run_tests, '', instring)
-        open(infile, 'w+').write(outstring)
-
-        infile = os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'apps/volk_' + self.my_dict['name'] + '_profile.cc')
-        instring = open(infile, 'r').read()
-        outstring = re.sub(self.volk_profile, '', instring)
+        outstring = re.sub(self.volk_kernel_tests, '', instring)
         open(infile, 'w+').write(outstring)
 
         infile = os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'lib/qa_utils.cc')
