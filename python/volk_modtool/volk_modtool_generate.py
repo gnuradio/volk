@@ -33,6 +33,7 @@ class volk_modtool:
         self.volk_run_tests = re.compile('^\s*VOLK_RUN_TESTS.*\n', re.MULTILINE)
         self.volk_profile = re.compile('^\s*(VOLK_PROFILE|VOLK_PUPPET_PROFILE).*\n', re.MULTILINE)
         self.volk_kernel_tests = re.compile('^\s*\((VOLK_INIT_TEST|VOLK_INIT_PUPP).*\n', re.MULTILINE)
+        self.volk_null_kernel = re.compile('^\s*;\n', re.MULTILINE)
         self.my_dict = cfg
         self.lastline = re.compile('\s*char path\[1024\];.*')
         self.badassert = re.compile('^\s*assert\(toked\[0\] == "volk_.*\n', re.MULTILINE)
@@ -100,7 +101,7 @@ class volk_modtool:
             for name in filenames:
                 t_table = map(lambda a: re.search(a, name), current_kernel_names)
                 t_table = set(t_table)
-                if t_table == set([None]):
+                if (t_table == set([None])) or (name == "volk_32f_null_32f.h"):
                     infile = os.path.join(root, name)
                     instring = open(infile, 'r').read()
                     outstring = re.sub(self.volk, 'volk_' + self.my_dict['name'], instring)
@@ -116,6 +117,7 @@ class volk_modtool:
         infile = os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'lib/kernel_tests.h')
         instring = open(infile, 'r').read()
         outstring = re.sub(self.volk_kernel_tests, '', instring)
+        outstring = re.sub(self.volk_null_kernel,'        (VOLK_INIT_TEST(volk_' + self.my_dict['name'] + '_32f_null_32f, test_params))\n        ;', outstring)
         open(infile, 'w+').write(outstring)
 
         infile = os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'lib/qa_utils.cc')
