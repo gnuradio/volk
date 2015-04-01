@@ -515,6 +515,11 @@ if(MSVC)
     set_source_files_properties(${volk_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
+#add Boost include dir
+include_directories(
+    ${Boost_INCLUDE_DIRS}
+)
+
 #create the volk runtime library
 add_library(volk SHARED ${volk_sources})
 target_link_libraries(volk ${volk_libraries})
