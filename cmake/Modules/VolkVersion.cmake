@@ -40,7 +40,15 @@ if(GIT_FOUND AND EXISTS ${CMAKE_SOURCE_DIR}/.git)
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
 else()
-    set(GIT_DESCRIBE "v${MAJOR_VERSION}.${MINOR_VERSION}.x-xxx-xunknown")
+  if(NOT VOLK_GIT_COUNT)
+    set(VOLK_GIT_COUNT "0")
+  endif()
+
+  if(NOT VOLK_GIT_HASH)
+    set(VOLK_GIT_HASH "unknown")
+  endif()
+
+  set(GIT_DESCRIBE "v${MAJOR_VERSION}.${MINOR_VERSION}-${VOLK_GIT_COUNT}-${VOLK_GIT_HASH}")
 endif()
 
 ########################################################################
