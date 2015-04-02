@@ -24,7 +24,6 @@ set(__INCLUDED_VOLK_VERSION_CMAKE TRUE)
 
 #eventually, replace version.sh and fill in the variables below
 set(MAJOR_VERSION ${VERSION_INFO_MAJOR_VERSION})
-set(API_COMPAT    ${VERSION_INFO_API_COMPAT})
 set(MINOR_VERSION ${VERSION_INFO_MINOR_VERSION})
 set(MAINT_VERSION ${VERSION_INFO_MAINT_VERSION})
 
@@ -41,39 +40,39 @@ if(GIT_FOUND AND EXISTS ${CMAKE_SOURCE_DIR}/.git)
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
 else()
-    set(GIT_DESCRIBE "v${MAJOR_VERSION}.${API_COMPAT}.x-xxx-xunknown")
+    set(GIT_DESCRIBE "v${MAJOR_VERSION}.${MINOR_VERSION}.x-xxx-xunknown")
 endif()
 
 ########################################################################
 # Use the logic below to set the version constants
 ########################################################################
 if("${MINOR_VERSION}" STREQUAL "git")
-    # VERSION: 3.3git-xxx-gxxxxxxxx
-    # DOCVER:  3.3git
-    # LIBVER:  3.3git
+    # VERSION: 1.0git-xxx-gxxxxxxxx
+    # DOCVER:  1.0git
+    # LIBVER:  1.0git
     set(VERSION "${GIT_DESCRIBE}")
-    set(DOCVER  "${MAJOR_VERSION}.${API_COMPAT}${MINOR_VERSION}")
-    set(LIBVER  "${MAJOR_VERSION}.${API_COMPAT}${MINOR_VERSION}")
+    set(DOCVER  "${MAJOR_VERSION}.0${MINOR_VERSION}")
+    set(LIBVER  "${MAJOR_VERSION}.0${MINOR_VERSION}")
     set(RC_MINOR_VERSION "0")
     set(RC_MAINT_VERSION "0")
 elseif("${MAINT_VERSION}" STREQUAL "git")
-    # VERSION: 3.3.1git-xxx-gxxxxxxxx
-    # DOCVER:  3.3.1git
-    # LIBVER:  3.3.1git
+    # VERSION: 1.xgit-xxx-gxxxxxxxx
+    # DOCVER:  1.xgit
+    # LIBVER:  1.xgit
     set(VERSION "${GIT_DESCRIBE}")
-    set(DOCVER  "${MAJOR_VERSION}.${API_COMPAT}.${MINOR_VERSION}${MAINT_VERSION}")
-    set(LIBVER  "${MAJOR_VERSION}.${API_COMPAT}.${MINOR_VERSION}${MAINT_VERSION}")
+    set(DOCVER  "${MAJOR_VERSION}.${MINOR_VERSION}${MAINT_VERSION}")
+    set(LIBVER  "${MAJOR_VERSION}.${MINOR_VERSION}${MAINT_VERSION}")
     math(EXPR RC_MINOR_VERSION "${MINOR_VERSION} - 1")
     set(RC_MAINT_VERSION "0")
 else()
     # This is a numbered release.
-    # VERSION: 3.3.1{.x}
-    # DOCVER:  3.3.1{.x}
-    # LIBVER:  3.3.1{.x}
+    # VERSION: 1.1{.x}
+    # DOCVER:  1.1{.x}
+    # LIBVER:  1.1{.x}
     if("${MAINT_VERSION}" STREQUAL "0")
-        set(VERSION "${MAJOR_VERSION}.${API_COMPAT}.${MINOR_VERSION}")
+        set(VERSION "${MAJOR_VERSION}.${MINOR_VERSION}")
     else()
-        set(VERSION "${MAJOR_VERSION}.${API_COMPAT}.${MINOR_VERSION}.${MAINT_VERSION}")
+        set(VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${MAINT_VERSION}")
     endif()
     set(DOCVER "${VERSION}")
     set(LIBVER "${VERSION}")
