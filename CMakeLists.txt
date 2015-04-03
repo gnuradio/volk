@@ -61,6 +61,8 @@ SET(CROSSCOMPILE_MULTILIB ${CROSSCOMPILE_MULTILIB} CACHE STRING "Define \"true\"
 ########################################################################
 # Dependencies setup
 ########################################################################
+
+# Python
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
 VOLK_PYTHON_CHECK_MODULE("python >= 2.5" sys "sys.version.split()[0] >= '2.5'" PYTHON_MIN_VER_FOUND)
 VOLK_PYTHON_CHECK_MODULE("Cheetah >= 2.0.0" Cheetah "Cheetah.Version >= '2.0.0'" CHEETAH_FOUND)
@@ -69,10 +71,12 @@ if(NOT PYTHON_MIN_VER_FOUND)
     message(FATAL_ERROR "Python 2.5 or greater required to build VOLK")
 endif()
 
+# Cheetah
 if(NOT CHEETAH_FOUND)
     message(FATAL_ERROR "Cheetah templates required to build VOLK")
 endif()
 
+# Boost
 if(MSVC)
     if (NOT DEFINED BOOST_ALL_DYN_LINK)
         set(BOOST_ALL_DYN_LINK TRUE)
@@ -84,12 +88,14 @@ if(MSVC)
         unset(BOOST_REQUIRED_COMPONENTS) #empty components list for static link
     endif(BOOST_ALL_DYN_LINK)
 endif(MSVC)
+
 include(VolkBoost)
 
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "VOLK Requires boost to build")
 endif()
 
+# Orc
 option(ENABLE_ORC "Enable Orc" True)
 if(ENABLE_ORC)
   find_package(ORC)
@@ -223,7 +229,6 @@ install(
     DESTINATION ${CMAKE_MODULES_DIR}/volk
     COMPONENT "volk_devel"
 )
-
 
 ########################################################################
 # Setup the library
