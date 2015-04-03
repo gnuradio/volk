@@ -578,23 +578,20 @@ endif(CMAKE_VERSION VERSION_GREATER "2.8.7")
 ########################################################################
 # Build the QA test application
 ########################################################################
+if(ENABLE_TESTING)
 
-
-if(Boost_FOUND)
-
+    #include Boost headers
+    include_directories(${Boost_INCLUDE_DIRS})
     set_source_files_properties(
         ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc PROPERTIES
         COMPILE_DEFINITIONS "BOOST_TEST_DYN_LINK;BOOST_TEST_MAIN"
     )
 
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIRS})
-
-    add_executable(test_all
-        ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
+    include(VolkAddTest)
+    VOLK_ADD_TEST(test_all
+        SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
+                       ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
+        TARGET_DEPS volk
     )
-    target_link_libraries(test_all volk ${Boost_LIBRARIES})
-    add_test(qa_volk_test_all test_all)
 
-endif(Boost_FOUND)
+endif(ENABLE_TESTING)
