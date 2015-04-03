@@ -231,6 +231,17 @@ install(
 )
 
 ########################################################################
+# Option to enable QA testing, on by default
+########################################################################
+OPTION(ENABLE_TESTING "Enable QA testing" ON)
+if(ENABLE_TESTING)
+  message(STATUS "QA Testing is enabled.")
+else()
+  message(STATUS "QA Testing is disabled.")
+endif()
+message(STATUS "  Modify using: -DENABLE_TESTING=ON/OFF")
+
+########################################################################
 # Setup the library
 ########################################################################
 add_subdirectory(lib)
