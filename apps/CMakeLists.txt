@@ -18,8 +18,6 @@
 ########################################################################
 # Setup profiler
 ########################################################################
-if(Boost_FOUND)
-
 if(MSVC)
     include_directories(${CMAKE_SOURCE_DIR}/cmake/msvc)
 endif(MSVC)
@@ -57,5 +55,3 @@ install(
     DESTINATION bin
     COMPONENT "volk"
 )
-
-endif(Boost_FOUND)
