@@ -44,7 +44,7 @@ function(VOLK_ADD_TEST test_name)
   #set the initial environs to use
   set(environs ${VOLK_TEST_ENVIRONS})
 
-  #create the library path
+  #create the initial library path
   file(TO_NATIVE_PATH "${VOLK_TEST_EXTRA_LIB_DIRS}" libpath)
 
   #set the source directory, which is mostly FYI
@@ -62,9 +62,10 @@ function(VOLK_ADD_TEST test_name)
     endif()
 
     #create a list of target directories to be determined by the
-    #"add_test" command, via the $<FOO:BAR> operator
+    #"add_test" command, via the $<FOO:BAR> operator; make sure the
+    #test's directory is first, since it ($1) is prepended to PATH.
     unset(TARGET_DIR_LIST)
-    foreach(target ${VOLK_TEST_TARGET_DEPS})
+    foreach(target ${test_name} ${VOLK_TEST_TARGET_DEPS})
       list(APPEND TARGET_DIR_LIST "\$<TARGET_FILE_DIR:${target}>")
     endforeach()
 
@@ -169,14 +170,13 @@ function(VOLK_ADD_TEST test_name)
     #NOTE: get_target_property LOCATION is being deprecated as of
     #CMake 3.2.0, which just prints a warning & notes that this
     #functionality will be removed in the future.  Leave it here for
-    #now until someone can figure out how to do this in Windows
-    #propertly.
-    foreach(target ${VOLK_TEST_TARGET_DEPS})
+    #now until someone can figure out how to do this in Windows.
+    foreach(target ${test_name} ${VOLK_TEST_TARGET_DEPS})
       get_target_property(location ${target} LOCATION)
       if(location)
         get_filename_component(path ${location} PATH)
         string(REGEX REPLACE "\\$\\(.*\\)" ${CMAKE_BUILD_TYPE} path ${path})
-        list(APPEND VOLK_TEST_LIBRARY_DIRS ${path})
+        list(APPEND libpath ${path})
       endif(location)
     endforeach(target)
 
@@ -189,15 +189,21 @@ function(VOLK_ADD_TEST test_name)
     #generate a bat file that sets the environment and runs the test
     set(bat_file ${CMAKE_CURRENT_BINARY_DIR}/${test_name}_test.bat)
     file(WRITE ${bat_file} "@echo off\n")
+
     #each line sets an environment variable
     foreach(environ ${environs})
       file(APPEND ${bat_file} "SET ${environ}\n")
     endforeach(environ)
-    #load the command to run with its arguments
-    foreach(arg ${ARGN})
-      file(APPEND ${bat_file} "${arg} ")
-    endforeach(arg)
+
+    #redo the test args to have a space between each
+    string(REPLACE ";" " " VOLK_TEST_ARGS "${VOLK_TEST_ARGS}")
+
+    #finally: append the test name to execute
+    file(APPEND ${bat_file} ${test_name} " " ${VOLK_TEST_ARGS} "\n")
     file(APPEND ${bat_file} "\n")
+
+    add_executable(${test_name} ${VOLK_TEST_SOURCES})
+    target_link_libraries(${test_name} ${VOLK_TEST_TARGET_DEPS})
 
     add_test(${test_name} ${bat_file})
   endif(WIN32)
