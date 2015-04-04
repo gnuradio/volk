@@ -582,6 +582,7 @@ if(ENABLE_TESTING)
 
     #include Boost headers
     include_directories(${Boost_INCLUDE_DIRS})
+    make_directory(${CMAKE_CURRENT_BINARY_DIR}/.unittest)
     set_source_files_properties(
         ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc PROPERTIES
         COMPILE_DEFINITIONS "BOOST_TEST_DYN_LINK;BOOST_TEST_MAIN"
