@@ -140,12 +140,6 @@ function(VOLK_ADD_TEST test_name)
     #finally: append the test name to execute
     file(APPEND ${sh_file} ${test_name} " " ${VOLK_TEST_ARGS} "\n")
 
-    #load the command to run with its arguments
-    #foreach(arg ${ARGN})
-    #  file(APPEND ${sh_file} "${arg} ")
-    #endforeach(arg)
-    #file(APPEND ${sh_file} "\n")
-
     #make the shell file executable
     execute_process(COMMAND chmod +x ${sh_file})
 
