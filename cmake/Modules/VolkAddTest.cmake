@@ -70,7 +70,7 @@ function(VOLK_ADD_TEST test_name)
     endforeach()
 
     #augment the PATH to start with the directory of the test
-    set(binpath "$1:\$PATH")
+    set(binpath "\"$1:\$PATH\"")
     list(APPEND environs "PATH=${binpath}")
 
     #set the shell to use
@@ -106,7 +106,7 @@ function(VOLK_ADD_TEST test_name)
       #"$*" expands in the shell into a list of all of the arguments
       #to the shell script, concatenated using the character provided
       #in ${IFS}.
-      list(APPEND testlibpath "\"$*\"")
+      list(APPEND testlibpath "$*")
     else()
       #shell does not support IFS expansion; use a loop instead
       list(APPEND testlibpath "\${LL}")
@@ -118,7 +118,7 @@ function(VOLK_ADD_TEST test_name)
 
     #replace list separator with the path separator
     string(REPLACE ";" ":" libpath "${libpath}")
-    list(APPEND environs "${LD_PATH_VAR}=${libpath}")
+    list(APPEND environs "${LD_PATH_VAR}=\"${libpath}\"")
 
     #generate a shell script file that sets the environment and runs the test
     set(sh_file ${CMAKE_CURRENT_BINARY_DIR}/${test_name}_test.sh)
@@ -126,7 +126,7 @@ function(VOLK_ADD_TEST test_name)
     if(SHELL_SUPPORTS_IFS)
       file(APPEND ${sh_file} "export IFS=:\n")
     else()
-      file(APPEND ${sh_file} "LL=$1 && for tf in \"\$@\"; do LL=\${LL}:\${tf}; done\n")
+      file(APPEND ${sh_file} "LL=\"$1\" && for tf in \"\$@\"; do LL=\"\${LL}:\${tf}\"; done\n")
     endif()
 
     #each line sets an environment variable
