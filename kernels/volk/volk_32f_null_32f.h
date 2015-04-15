@@ -34,7 +34,7 @@ volk_32f_null_32f_generic(float* bVector, const float* aVector, unsigned int num
 {
   float* bPtr = bVector;
   const float* aPtr = aVector;
-  unsigned int number = 0;
+  unsigned int number;
 
   for(number = 0; number < num_points; number++){
     *bPtr++ = *aPtr++;
