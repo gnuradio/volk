@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
       ("update,u",
             boost::program_options::value<bool>()->default_value( false )
                                                      ->implicit_value( true ),
-            "Run only kernels missing from config OR matching regex")
+            "Run only kernels missing from config; use -R to further restrict the candidates")
       ("dry-run,n",
             boost::program_options::value<bool>()->default_value( false )
                                                      ->implicit_value( true ),
