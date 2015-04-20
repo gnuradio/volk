@@ -32,6 +32,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/xpressive/xpressive.hpp>
+#include <boost/algorithm/string.hpp>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
@@ -63,7 +65,7 @@ int main(int argc, char *argv[]) {
       ("update,u",
             boost::program_options::value<bool>()->default_value( false )
                                                      ->implicit_value( true ),
-            "Run only kernels missing from config OR matching regex")
+            "Run only kernels missing from config; use -R to further restrict the candidates")
       ("dry-run,n",
             boost::program_options::value<bool>()->default_value( false )
                                                      ->implicit_value( true ),
@@ -198,28 +200,12 @@ void read_results(std::vector<volk_test_results_t> *results)
     if(fs::exists(config_path)) {
         // a config exists and we are reading results from it
         std::ifstream config(config_path.string().c_str());
-        char config_line[256];
-        while(config.getline(config_line, 255)) {
+        for(std::string config_line; std::getline(config, config_line);) {
             // tokenize the input line by kernel_name unaligned aligned
             // then push back in the results vector with fields filled in
 
             std::vector<std::string> single_kernel_result;
-            std::string config_str(config_line);
-            std::size_t str_size = config_str.size();
-            std::size_t found = 1;
-
-            found = config_str.find(" ");
-            // Split line by spaces
-            while(found && found < str_size)
-            {
-                found = config_str.find(" ");
-                str_size = config_str.size();
-                char buffer[256];
-                config_str.copy(buffer, found, 0);
-                buffer[found] = '\0';
-                single_kernel_result.push_back(std::string(buffer));
-                config_str.erase(0, found+1);
-            }
+            boost::split(single_kernel_result, config_line , boost::is_any_of(" \t"));
 
             if(single_kernel_result.size() == 3) {
                 volk_test_results_t kernel_result;
