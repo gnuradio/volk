@@ -137,6 +137,7 @@ int main(int argc, char *argv[]) {
         read_results(&results);
     }
 
+
     // Initialize the list of tests
     // the default test parameters come from options
     std::vector<volk_test_case_t> test_cases = init_test_list(test_params);
@@ -210,11 +211,17 @@ void read_results(std::vector<volk_test_results_t> *results)
 
             found = config_str.find(" ");
             // Split line by spaces
-            while(found && found < str_size)
-            {
+            while(found && found < str_size) {
                 found = config_str.find(" ");
+                // kernel names MUST be less than 128 chars, which is
+                // a length restricted by volk/volk_prefs.c
+                // on the last token in the parsed string we won't find a space
+                // so make sure we copy at most 128 chars.
+                if(found > 128) {
+                    found = 128;
+                }
                 str_size = config_str.size();
-                char buffer[256];
+                char buffer[128];
                 config_str.copy(buffer, found, 0);
                 buffer[found] = '\0';
                 single_kernel_result.push_back(std::string(buffer));
