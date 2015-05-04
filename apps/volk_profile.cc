@@ -107,24 +107,21 @@ int main(int argc, char *argv[]) {
         def_kernel_regex = kernel_regex;
         update_mode = vm["update"].as<bool>();
         dry_run = vm["dry-run"].as<bool>();
-
-
-
-    } catch (boost::program_options::error& error) {
+    }
+    catch (boost::program_options::error& error) {
         std::cerr << "Error: " << error.what() << std::endl << std::endl;
         std::cerr << desc << std::endl;
         return 1;
     }
+
     /** --help option */
-    if ( vm.count("help") )
-    {
+    if ( vm.count("help") ) {
       std::cout << "The VOLK profiler." << std::endl
                 << desc << std::endl;
       return 0;
     }
 
-    if ( vm.count("json") )
-    {
+    if ( vm.count("json") ) {
         json_file.open( vm["json"].as<std::string>().c_str() );
     }
 
@@ -141,7 +138,14 @@ int main(int argc, char *argv[]) {
     // Initialize the list of tests
     // the default test parameters come from options
     std::vector<volk_test_case_t> test_cases = init_test_list(test_params);
-    boost::xpressive::sregex kernel_expression = boost::xpressive::sregex::compile(kernel_regex);
+    boost::xpressive::sregex kernel_expression;
+    try {
+        kernel_expression = boost::xpressive::sregex::compile(kernel_regex);
+    }
+    catch (boost::xpressive::regex_error& error) {
+        std::cerr << "Error occured while compiling regex" << std::endl << std::endl;
+        return 1;
+    }
 
     // Iteratate through list of tests running each one
     for(unsigned int ii = 0; ii < test_cases.size(); ++ii) {
