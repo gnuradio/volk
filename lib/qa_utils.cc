@@ -334,12 +334,11 @@ bool run_volk_tests(volk_func_desc_t desc,
                     std::string puppet_master_name,
                     bool benchmark_mode
                    ) {
-    if(results) {
-        results->push_back(volk_test_results_t());
-        results->back().name = name;
-        results->back().vlen = vlen;
-        results->back().iter = iter;
-    }
+    // Initialize this entry in results vector
+    results->push_back(volk_test_results_t());
+    results->back().name = name;
+    results->back().vlen = vlen;
+    results->back().iter = iter;
     std::cout << "RUN_VOLK_TESTS: " << name << "(" << vlen << "," << iter << ")" << std::endl;
 
     const float tol_f = tol;
