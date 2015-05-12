@@ -358,7 +358,14 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     //now we have to get a function signature by parsing the name
     std::vector<volk_type_t> inputsig, outputsig;
-    get_signatures_from_name(inputsig, outputsig, name);
+    try {
+        get_signatures_from_name(inputsig, outputsig, name);
+    }
+    catch (boost::bad_lexical_cast& error) {
+        std::cerr << "Error: unable to get function signature from kernel name" << std::endl;
+        std::cerr << "  - " << name << std::endl;
+        return false;
+    }
 
     //pull the input scalars into their own vector
     std::vector<volk_type_t> inputsc;
