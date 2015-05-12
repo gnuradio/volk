@@ -34,8 +34,8 @@ class volk_test_results_t {
     public:
         std::string name;
         std::string config_name;
-        int vlen;
-        int iter;
+        unsigned int vlen;
+        unsigned int iter;
         std::map<std::string, volk_test_time_t> results;
         std::string best_arch_a;
         std::string best_arch_u;
@@ -45,21 +45,21 @@ class volk_test_params_t {
     private:
         float _tol;
         lv_32fc_t _scalar;
-        int _vlen;
-        int _iter;
+        unsigned int _vlen;
+        unsigned int _iter;
         bool _benchmark_mode;
         std::string _kernel_regex;
     public:
         // ctor
-        volk_test_params_t(float tol, lv_32fc_t scalar, int vlen, int iter,
-            bool benchmark_mode, std::string kernel_regex) :
+        volk_test_params_t(float tol, lv_32fc_t scalar, unsigned int vlen, unsigned int iter,
+                           bool benchmark_mode, std::string kernel_regex) :
             _tol(tol), _scalar(scalar), _vlen(vlen), _iter(iter),
             _benchmark_mode(benchmark_mode), _kernel_regex(kernel_regex) {};
         // getters
         float tol() {return _tol;};
         lv_32fc_t scalar() {return _scalar;};
-        int vlen() {return _vlen;};
-        int iter() {return _iter;};
+        unsigned int vlen() {return _vlen;};
+        unsigned int iter() {return _iter;};
         bool benchmark_mode() {return _benchmark_mode;};
         std::string kernel_regex() {return _kernel_regex;};
 };
@@ -109,17 +109,17 @@ bool run_volk_tests(
     );
 
 bool run_volk_tests(
-    volk_func_desc_t,
-    void(*)(),
-    std::string,
-    float,
-    lv_32fc_t,
-    int,
-    int,
-    std::vector<volk_test_results_t> *results = NULL,
-    std::string puppet_master_name = "NULL",
-    bool benchmark_mode=false
-    );
+        volk_func_desc_t,
+        void(*)(),
+        std::string,
+        float,
+        lv_32fc_t,
+        unsigned int,
+        unsigned int,
+        std::vector<volk_test_results_t> *results = NULL,
+        std::string puppet_master_name = "NULL",
+        bool benchmark_mode = false
+);
 
 
 #define VOLK_RUN_TESTS(func, tol, scalar, len, iter) \
