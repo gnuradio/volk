@@ -311,7 +311,7 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_sse4_1(lv_32fc_t* result, const 
   p_input = (float*)input;
   p_taps = (float*)taps;
 
-  static const __m128i neg = {0x000000000000000080000000};
+  __m128i neg = _mm_set_epi32(0, 0, 0, 0x80000000);
 
   real0 = _mm_setzero_ps();
   real1 = _mm_setzero_ps();
@@ -808,7 +808,7 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_sse4_1(lv_32fc_t* result, const 
   float *p_input, *p_taps;
   __m64 *p_result;
 
-  static const __m128i neg = {0x000000000000000080000000};
+  __m128i neg = _mm_set_epi32(0, 0, 0, 0x80000000);
 
   p_result = (__m64*)result;
   p_input = (float*)input;
