@@ -80,7 +80,7 @@ endif(HAVE_POSIX_MEMALIGN)
 ########################################################################
 # detect x86 flavor of CPU
 ########################################################################
-if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "^(i.86|x86|x86_64|amd64)$")
+if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "^(i.86|x86|x86_64|amd64|AMD64)$")
     message(STATUS "x86* CPU detected")
     set(CPU_IS_x86 TRUE)
 endif()
@@ -134,80 +134,85 @@ endmacro(OVERRULE_ARCH)
 # the xgetbv instruction, or {if not cross-compiling and the xgetbv
 # executable does not function correctly}.
 ########################################################################
-set(HAVE_XGETBV 0)
-set(HAVE_AVX_CVTPI32_PS 0)
-if(CPU_IS_x86)
-    # check to see if the compiler/linker works with xgetb instruction
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c "unsigned long long _xgetbv(unsigned int index) { unsigned int eax, edx; __asm__ __volatile__(\"xgetbv\" : \"=a\"(eax), \"=d\"(edx) : \"c\"(index)); return ((unsigned long long)edx << 32) | eax; } int main (void) { (void) _xgetbv(0); return (0); }")
-    execute_process(COMMAND ${CMAKE_C_COMPILER} -o
-        ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
-        ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c
-        OUTPUT_QUIET ERROR_QUIET
-        RESULT_VARIABLE avx_compile_result)
-    if(NOT ${avx_compile_result} EQUAL 0)
-        OVERRULE_ARCH(avx "Compiler or linker missing xgetbv instruction")
-    elseif(NOT CROSSCOMPILE_MULTILIB)
-        execute_process(COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
+if(MSVC)
+    set(HAVE_XGETBV 1)
+    set(HAVE_AVX_CVTPI32_PS 1)
+else(MSVC)
+    set(HAVE_XGETBV 0)
+    set(HAVE_AVX_CVTPI32_PS 0)
+    if(CPU_IS_x86)
+        # check to see if the compiler/linker works with xgetb instruction
+        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c "unsigned long long _xgetbv(unsigned int index) { unsigned int eax, edx; __asm__ __volatile__(\"xgetbv\" : \"=a\"(eax), \"=d\"(edx) : \"c\"(index)); return ((unsigned long long)edx << 32) | eax; } int main (void) { (void) _xgetbv(0); return (0); }")
+        execute_process(COMMAND ${CMAKE_C_COMPILER} -o
+            ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
+            ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c
             OUTPUT_QUIET ERROR_QUIET
-            RESULT_VARIABLE avx_exe_result)
-        if(NOT ${avx_exe_result} EQUAL 0)
-            OVERRULE_ARCH(avx "CPU missing xgetbv")
+            RESULT_VARIABLE avx_compile_result)
+        if(NOT ${avx_compile_result} EQUAL 0)
+            OVERRULE_ARCH(avx "Compiler or linker missing xgetbv instruction")
+        elseif(NOT CROSSCOMPILE_MULTILIB)
+            execute_process(COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
+                OUTPUT_QUIET ERROR_QUIET
+                RESULT_VARIABLE avx_exe_result)
+            if(NOT ${avx_exe_result} EQUAL 0)
+                OVERRULE_ARCH(avx "CPU missing xgetbv")
+            else()
+                set(HAVE_XGETBV 1)
+            endif()
         else()
+            # cross compiling and compiler/linker seems to work; assume working
             set(HAVE_XGETBV 1)
         endif()
-    else()
-        # cross compiling and compiler/linker seems to work; assume working
-        set(HAVE_XGETBV 1)
-    endif()
-    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
-        ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c)
+        file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
+            ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c)
 
-    #########################################################################
-    # eliminate AVX if cvtpi32_ps intrinsic fails like some versions of clang
-    #########################################################################
+        #########################################################################
+        # eliminate AVX if cvtpi32_ps intrinsic fails like some versions of clang
+        #########################################################################
 
-    # check to see if the compiler/linker works with cvtpi32_ps instrinsic when using AVX
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps.c "#include <immintrin.h>\nint main (void) {__m128 __a; __m64 __b; __m128 foo = _mm_cvtpi32_ps(__a, __b); return (0); }")
-    execute_process(COMMAND ${CMAKE_C_COMPILER} -mavx -o
-      ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps
-      ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps.c
-      OUTPUT_QUIET ERROR_QUIET
-      RESULT_VARIABLE avx_compile_result)
-    if(NOT ${avx_compile_result} EQUAL 0)
-      OVERRULE_ARCH(avx "Compiler missing cvtpi32_ps instrinsic")
-    elseif(NOT CROSSCOMPILE_MULTILIB)
-      execute_process(COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps
-        OUTPUT_QUIET ERROR_QUIET
-        RESULT_VARIABLE avx_exe_result)
-      if(NOT ${avx_exe_result} EQUAL 0)
-        OVERRULE_ARCH(avx "CPU missing cvtpi32_ps")
-      else()
-        set(HAVE_AVX_CVTPI32_PS 1)
-      endif()
-    else()
-      set(HAVE_AVX_CVTPI32_PS 1)
-    endif()
-    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps
-      ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps.c)
+        # check to see if the compiler/linker works with cvtpi32_ps instrinsic when using AVX
+        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps.c "#include <immintrin.h>\nint main (void) {__m128 __a; __m64 __b; __m128 foo = _mm_cvtpi32_ps(__a, __b); return (0); }")
+        execute_process(COMMAND ${CMAKE_C_COMPILER} -mavx -o
+          ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps
+          ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps.c
+          OUTPUT_QUIET ERROR_QUIET
+          RESULT_VARIABLE avx_compile_result)
+        if(NOT ${avx_compile_result} EQUAL 0)
+          OVERRULE_ARCH(avx "Compiler missing cvtpi32_ps instrinsic")
+        elseif(NOT CROSSCOMPILE_MULTILIB)
+          execute_process(COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps
+            OUTPUT_QUIET ERROR_QUIET
+            RESULT_VARIABLE avx_exe_result)
+          if(NOT ${avx_exe_result} EQUAL 0)
+            OVERRULE_ARCH(avx "CPU missing cvtpi32_ps")
+          else()
+            set(HAVE_AVX_CVTPI32_PS 1)
+          endif()
+        else()
+          set(HAVE_AVX_CVTPI32_PS 1)
+        endif()
+        file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps
+          ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps.c)
 
-    # Disable SSE4a if Clang is less than version 3.2
-    if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-      # Figure out the version of Clang
-      if(CMAKE_VERSION VERSION_LESS "2.8.10")
-        # Exctract the Clang version from the --version string.
-        # In cmake 2.8.10, we can just use CMAKE_C_COMPILER_VERSION
-        # without having to go through these string manipulations
-        execute_process(COMMAND ${CMAKE_C_COMPILER} --version
-          OUTPUT_VARIABLE clang_version)
-        string(REGEX MATCH "[0-9].[0-9]" CMAKE_C_COMPILER_VERSION ${clang_version})
-      endif(CMAKE_VERSION VERSION_LESS "2.8.10")
+        # Disable SSE4a if Clang is less than version 3.2
+        if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+          # Figure out the version of Clang
+          if(CMAKE_VERSION VERSION_LESS "2.8.10")
+            # Exctract the Clang version from the --version string.
+            # In cmake 2.8.10, we can just use CMAKE_C_COMPILER_VERSION
+            # without having to go through these string manipulations
+            execute_process(COMMAND ${CMAKE_C_COMPILER} --version
+              OUTPUT_VARIABLE clang_version)
+            string(REGEX MATCH "[0-9].[0-9]" CMAKE_C_COMPILER_VERSION ${clang_version})
+          endif(CMAKE_VERSION VERSION_LESS "2.8.10")
 
-      if(CMAKE_C_COMPILER_VERSION VERSION_LESS "3.2")
-        OVERRULE_ARCH(sse4_a "Clang >= 3.2 required for SSE4a")
-      endif(CMAKE_C_COMPILER_VERSION VERSION_LESS "3.2")
-    endif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+          if(CMAKE_C_COMPILER_VERSION VERSION_LESS "3.2")
+            OVERRULE_ARCH(sse4_a "Clang >= 3.2 required for SSE4a")
+          endif(CMAKE_C_COMPILER_VERSION VERSION_LESS "3.2")
+        endif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 
-endif(CPU_IS_x86)
+    endif(CPU_IS_x86)
+endif(MSVC)
 
 if(${HAVE_XGETBV})
     add_definitions(-DHAVE_XGETBV)
