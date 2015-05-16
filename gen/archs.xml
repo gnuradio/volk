@@ -73,6 +73,7 @@
   <flag compiler="gnu">-mpopcnt</flag>
   <flag compiler="clang">-mpopcnt</flag>
   <flag compiler="msvc">/arch:AVX</flag>
+  <flag compiler="msvc64">/arch:AVX</flag>
 </arch>
 
 <arch name="mmx">
@@ -84,6 +85,7 @@
   <flag compiler="gnu">-mmmx</flag>
   <flag compiler="clang">-mmmx</flag>
   <flag compiler="msvc">/arch:SSE</flag>
+  <flag compiler="msvc64"> </flag>
   <alignment>8</alignment>
 </arch>
 
@@ -96,6 +98,7 @@
   <flag compiler="gnu">-msse</flag>
   <flag compiler="clang">-msse</flag>
   <flag compiler="msvc">/arch:SSE</flag>
+  <flag compiler="msvc64"> </flag> <!-- msvc does not need a flag in 64 bit mode --> 
   <environment>_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);</environment>
   <include>xmmintrin.h</include>
   <alignment>16</alignment>
@@ -110,6 +113,7 @@
   <flag compiler="gnu">-msse2</flag>
   <flag compiler="clang">-msse2</flag>
   <flag compiler="msvc">/arch:SSE2</flag>
+  <flag compiler="msvc64"> </flag> <!-- msvc does not need a flag in 64 bit mode --> 
   <alignment>16</alignment>
 </arch>
 
@@ -129,6 +133,7 @@
   <flag compiler="gnu">-msse3</flag>
   <flag compiler="clang">-msse3</flag>
   <flag compiler="msvc">/arch:AVX</flag>
+  <flag compiler="msvc64"> </flag> <!-- msvc64 has no sse3 flag, intrinsics will work, cpuid check will guard --> 
   <environment>_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);</environment>
   <include>pmmintrin.h</include>
   <alignment>16</alignment>
@@ -143,6 +148,7 @@
   <flag compiler="gnu">-mssse3</flag>
   <flag compiler="clang">-mssse3</flag>
   <flag compiler="msvc">/arch:AVX</flag>
+  <flag compiler="msvc64">/arch:AVX</flag>
   <alignment>16</alignment>
 </arch>
 
@@ -154,6 +160,7 @@
   </check>
   <flag compiler="gnu">-msse4a</flag>
   <flag compiler="clang">-msse4a</flag>
+  <flag compiler="msvc64">/arch:AVX</flag>
   <alignment>16</alignment>
 </arch>
 
@@ -166,6 +173,7 @@
   <flag compiler="gnu">-msse4.1</flag>
   <flag compiler="clang">-msse4.1</flag>
   <flag compiler="msvc">/arch:AVX</flag>
+  <flag compiler="msvc64">/arch:AVX</flag>
   <alignment>16</alignment>
 </arch>
 
@@ -178,6 +186,7 @@
   <flag compiler="gnu">-msse4.2</flag>
   <flag compiler="clang">-msse4.2</flag>
   <flag compiler="msvc">/arch:AVX</flag>
+  <flag compiler="msvc64">/arch:AVX</flag>
   <alignment>16</alignment>
 </arch>
 
@@ -198,6 +207,7 @@
   <flag compiler="gnu">-mavx</flag>
   <flag compiler="clang">-mavx</flag>
   <flag compiler="msvc">/arch:AVX</flag>
+  <flag compiler="msvc64">/arch:AVX</flag>
   <alignment>32</alignment>
 </arch>
 

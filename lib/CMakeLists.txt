@@ -45,7 +45,13 @@ endif()
 ########################################################################
 set(COMPILER_NAME ${CMAKE_C_COMPILER_ID})
 if(MSVC) #its not set otherwise
-    set(COMPILER_NAME MSVC)
+    include(CheckTypeSize)
+    check_type_size("void*[8]" SIZEOF_CPU BUILTIN_TYPES_ONLY)
+    if (${SIZEOF_CPU} EQUAL 64)    
+      set(COMPILER_NAME MSVC64)
+    else()
+      set(COMPILER_NAME MSVC)
+    endif()
 endif()
 
 message(STATUS "Compiler name: ${COMPILER_NAME}")
