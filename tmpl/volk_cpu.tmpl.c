@@ -22,6 +22,7 @@
 #include <volk/volk_cpu.h>
 #include <volk/volk_config_fixed.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct VOLK_CPU volk_cpu;
 
@@ -71,6 +72,7 @@ struct VOLK_CPU volk_cpu;
 static inline unsigned int cpuid_x86_bit(unsigned int reg, unsigned int op, unsigned int bit) {
 #if defined(VOLK_CPU_x86)
     unsigned int regs[4];
+    memset(regs, 0, sizeof(unsigned int)*4);
     cpuid_x86(op, regs);
     return regs[reg] >> bit & 0x01;
 #else
@@ -81,6 +83,7 @@ static inline unsigned int cpuid_x86_bit(unsigned int reg, unsigned int op, unsi
 static inline unsigned int check_extended_cpuid(unsigned int val) {
 #if defined(VOLK_CPU_x86)
     unsigned int regs[4];
+    memset(regs, 0, sizeof(unsigned int)*4);
     cpuid_x86(0x80000000, regs);
     return regs[0] >= val;
 #else
