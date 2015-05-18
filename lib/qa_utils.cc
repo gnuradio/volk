@@ -456,6 +456,12 @@ bool run_volk_tests(volk_func_desc_t desc,
         end = clock();
         double arch_time = 1000.0 * (double)(end-start)/(double)CLOCKS_PER_SEC;
         std::cout << arch_list[i] << " completed in " << arch_time << "ms" << std::endl;
+        volk_test_time_t result;
+        result.name = arch_list[i];
+        result.time = arch_time;
+        result.units = "ms";
+        result.pass = true;
+        results->back().results[result.name] = result;
 
         profile_times.push_back(arch_time);
     }
