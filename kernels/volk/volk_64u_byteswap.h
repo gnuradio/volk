@@ -106,15 +106,15 @@ static inline void volk_64u_byteswap_u_sse2(uint64_t* intsToSwap, unsigned int n
     // Byteswap any remaining points:
     number = halfPoints*2;
     for(; number < num_points; number++){
-      uint32_t output1 = *inputPtr;
-      uint32_t output2 = inputPtr[1];
+    uint32_t output1 = *inputPtr;
+    uint32_t output2 = inputPtr[1];
 
-      output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) | ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
+    output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) | ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
 
-      output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) | ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
+    output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) | ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
 
-      *inputPtr++ = output2;
-      *inputPtr++ = output1;
+    *inputPtr++ = output2;
+    *inputPtr++ = output1;
     }
 }
 #endif /* LV_HAVE_SSE2 */
@@ -169,23 +169,21 @@ static inline void volk_64u_byteswap_a_avx2(uint64_t* intsToSwap, unsigned int n
   }
   _mm256_zeroupper();
 
-  // Byteswap any remaining points
-  uint32_t* input = (uint32_t*)intsToSwap;
-  unsigned int i;
-  for(i = nSets * nPerSet; i < num_points; ++i ) {
-    uint32_t out1 = ((((input[0]) >> 24) & 0x000000ff) |
-		     (((input[0]) >>  8) & 0x0000ff00) |
-		     (((input[0]) <<  8) & 0x00ff0000) |
-		     (((input[0]) << 24) & 0xff000000)   );
+  // Byteswap any remaining points:
+  for(number = nSets * nPerSet; number < num_points; ++number ) {
+    uint32_t output1 = *inputPtr;
+    uint32_t output2 = inputPtr[1];
+    uint32_t out1 = ((((output1) >> 24) & 0x000000ff) |
+		     (((output1) >>  8) & 0x0000ff00) |
+		     (((output1) <<  8) & 0x00ff0000) |
+		     (((output1) << 24) & 0xff000000)   );
 
-    uint32_t out2 = ((((input[1]) >> 24) & 0x000000ff) |
-		     (((input[1]) >>  8) & 0x0000ff00) |
-		     (((input[1]) <<  8) & 0x00ff0000) |
-		     (((input[1]) << 24) & 0xff000000)   );
-    input[0] = out2;
-    input[1] = out1;
-
-    input += 2;
+    uint32_t out2 = ((((output2) >> 24) & 0x000000ff) |
+		     (((output2) >>  8) & 0x0000ff00) |
+		     (((output2) <<  8) & 0x00ff0000) |
+		     (((output2) << 24) & 0xff000000)   );
+    *inputPtr++ = out2;
+    *inputPtr++ = out1;
   }
 }
 
@@ -221,22 +219,20 @@ static inline void volk_64u_byteswap_a_ssse3(uint64_t* intsToSwap, unsigned int 
   }
 
   // Byteswap any remaining points:
-  uint32_t* input = (uint32_t*)intsToSwap;
-  unsigned int i;
-  for(i = nSets * nPerSet; i < num_points; ++i ) {
-    uint32_t out1 = ((((input[0]) >> 24) & 0x000000ff) |
-		     (((input[0]) >>  8) & 0x0000ff00) |
-		     (((input[0]) <<  8) & 0x00ff0000) |
-		     (((input[0]) << 24) & 0xff000000)   );
+  for(number = nSets * nPerSet; number < num_points; ++number ) {
+    uint32_t output1 = *inputPtr;
+    uint32_t output2 = inputPtr[1];
+    uint32_t out1 = ((((output1) >> 24) & 0x000000ff) |
+		     (((output1) >>  8) & 0x0000ff00) |
+		     (((output1) <<  8) & 0x00ff0000) |
+		     (((output1) << 24) & 0xff000000)   );
 
-    uint32_t out2 = ((((input[1]) >> 24) & 0x000000ff) |
-		     (((input[1]) >>  8) & 0x0000ff00) |
-		     (((input[1]) <<  8) & 0x00ff0000) |
-		     (((input[1]) << 24) & 0xff000000)   );
-    input[0] = out2;
-    input[1] = out1;
-
-    input += 2;
+    uint32_t out2 = ((((output2) >> 24) & 0x000000ff) |
+		     (((output2) >>  8) & 0x0000ff00) |
+		     (((output2) <<  8) & 0x00ff0000) |
+		     (((output2) << 24) & 0xff000000)   );
+    *inputPtr++ = out2;
+    *inputPtr++ = out1;
   }
 }
 #endif /* LV_HAVE_SSSE3 */
@@ -383,23 +379,20 @@ static inline void volk_64u_byteswap_u_avx2(uint64_t* intsToSwap, unsigned int n
   _mm256_zeroupper();
 
   // Byteswap any remaining points:
-  uint32_t* input = (uint32_t*)intsToSwap;
-  unsigned int i;
-  for(i = nSets * nPerSet; i < num_points; ++i ) {
+  for(number = nSets * nPerSet; number < num_points; ++number ) {
+    uint32_t output1 = *inputPtr;
+    uint32_t output2 = inputPtr[1];
+    uint32_t out1 = ((((output1) >> 24) & 0x000000ff) |
+		     (((output1) >>  8) & 0x0000ff00) |
+		     (((output1) <<  8) & 0x00ff0000) |
+		     (((output1) << 24) & 0xff000000)   );
 
-    uint32_t out1 = ((((input[0]) >> 24) & 0x000000ff) |
-		     (((input[0]) >>  8) & 0x0000ff00) |
-		     (((input[0]) <<  8) & 0x00ff0000) |
-		     (((input[0]) << 24) & 0xff000000)   );
-
-    uint32_t out2 = ((((input[1]) >> 24) & 0x000000ff) |
-		     (((input[1]) >>  8) & 0x0000ff00) |
-		     (((input[1]) <<  8) & 0x00ff0000) |
-		     (((input[1]) << 24) & 0xff000000)   );
-    input[0] = out2;
-    input[1] = out1;
-
-    input += 2;
+    uint32_t out2 = ((((output2) >> 24) & 0x000000ff) |
+		     (((output2) >>  8) & 0x0000ff00) |
+		     (((output2) <<  8) & 0x00ff0000) |
+		     (((output2) << 24) & 0xff000000)   );
+    *inputPtr++ = out2;
+    *inputPtr++ = out1;
   }
 }
 
@@ -434,22 +427,20 @@ static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap, unsigned int 
   }
 
   // Byteswap any remaining points:
-  uint32_t* input = (uint32_t*)intsToSwap;
-  unsigned int i;
-  for (i = nSets * nPerSet; i < num_points; ++i ) {
-    uint32_t out1 = ((((input[0]) >> 24) & 0x000000ff) |
-		     (((input[0]) >>  8) & 0x0000ff00) |
-		     (((input[0]) <<  8) & 0x00ff0000) |
-		     (((input[0]) << 24) & 0xff000000)   );
+  for(number = nSets * nPerSet; number < num_points; ++number ) {
+    uint32_t output1 = *inputPtr;
+    uint32_t output2 = inputPtr[1];
+    uint32_t out1 = ((((output1) >> 24) & 0x000000ff) |
+		     (((output1) >>  8) & 0x0000ff00) |
+		     (((output1) <<  8) & 0x00ff0000) |
+		     (((output1) << 24) & 0xff000000)   );
 
-    uint32_t out2 = ((((input[1]) >> 24) & 0x000000ff) |
-		     (((input[1]) >>  8) & 0x0000ff00) |
-		     (((input[1]) <<  8) & 0x00ff0000) |
-		     (((input[1]) << 24) & 0xff000000)   );
-    input[0] = out2;
-    input[1] = out1;
-
-    input += 2;
+    uint32_t out2 = ((((output2) >> 24) & 0x000000ff) |
+		     (((output2) >>  8) & 0x0000ff00) |
+		     (((output2) <<  8) & 0x00ff0000) |
+		     (((output2) << 24) & 0xff000000)   );
+    *inputPtr++ = out2;
+    *inputPtr++ = out1;
   }
 }
 #endif /* LV_HAVE_SSSE3 */
