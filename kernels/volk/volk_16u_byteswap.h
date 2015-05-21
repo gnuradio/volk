@@ -56,6 +56,80 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#if LV_HAVE_AVX2
+#include <immintrin.h>
+static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int num_points){
+  unsigned int number;
+
+  const unsigned int nPerSet   = 16;
+  const uint64_t     nSets   = num_points / nPerSet;
+
+  uint16_t* inputPtr = (uint16_t*) intsToSwap;
+
+  const uint8_t shuffleVector[32] = { 1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14, 17, 16, 19, 18, 21, 20, 23, 22, 25, 24, 27, 26, 29, 28, 31, 30};
+
+  const __m256i myShuffle = _mm256_loadu_si256((__m256i*) &shuffleVector[0]);
+
+  for(number = 0; number < nSets; number++) {
+    // Load the 32t values, increment inputPtr later since we're doing it in-place.
+    const __m256i input  = _mm256_load_si256((__m256i*)inputPtr);
+    const __m256i output = _mm256_shuffle_epi8(input, myShuffle);
+
+    // Store the results
+    _mm256_store_si256((__m256i*)inputPtr, output);
+    inputPtr += nPerSet;
+  }
+
+  _mm256_zeroupper();
+
+  // Byteswap any remaining points:
+  for(number = nPerSet * nSets; number < num_points; number++) {
+    uint16_t outputVal = *inputPtr;
+    outputVal = (((outputVal >> 8) & 0xff) | ((outputVal << 8) & 0xff00));
+    *inputPtr = outputVal;
+    inputPtr++;
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+
+#if LV_HAVE_AVX2
+#include <immintrin.h>
+static inline void volk_16u_byteswap_u_avx2(uint16_t* intsToSwap, unsigned int num_points){
+  unsigned int number;
+
+  const unsigned int nPerSet   = 16;
+  const uint64_t     nSets   = num_points / nPerSet;
+
+  uint16_t* inputPtr = (uint16_t*) intsToSwap;
+
+  const uint8_t shuffleVector[32] = { 1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14, 17, 16, 19, 18, 21, 20, 23, 22, 25, 24, 27, 26, 29, 28, 31, 30};
+
+  const __m256i myShuffle = _mm256_loadu_si256((__m256i*) &shuffleVector[0]);
+
+  for (number = 0; number < nSets; number++) {
+    // Load the 32t values, increment inputPtr later since we're doing it in-place.
+    const __m256i input  = _mm256_loadu_si256((__m256i*)inputPtr);
+    const __m256i output = _mm256_shuffle_epi8(input,myShuffle);
+
+    // Store the results
+    _mm256_storeu_si256((__m256i*)inputPtr, output);
+    inputPtr += nPerSet;
+  }
+
+  _mm256_zeroupper();
+
+  // Byteswap any remaining points:
+  for(number = nPerSet * nSets; number < num_points; number++) {
+    uint16_t outputVal = *inputPtr;
+    outputVal = (((outputVal >> 8) & 0xff) | ((outputVal << 8) & 0xff00));
+    *inputPtr = outputVal;
+    inputPtr++;
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
