@@ -71,7 +71,6 @@ static std::vector<std::string> get_arch_list(volk_func_desc_t desc) {
     std::vector<std::string> archlist;
 
     for(size_t i = 0; i < desc.n_impls; i++) {
-        //if(!(archs[i+1] & volk_get_lvarch())) continue; //this arch isn't available on this pc
         archlist.push_back(std::string(desc.impl_names[i]));
     }
 
@@ -87,7 +86,9 @@ volk_type_t volk_type_from_string(std::string name) {
     type.size = 0;
     type.str = name;
 
-    if(name.size() < 2) throw std::string("name too short to be a datatype");
+    if(name.size() < 2) {
+        throw std::string("name too short to be a datatype");
+    }
 
     //is it a scalar?
     if(name[0] == 's') {
@@ -97,8 +98,9 @@ volk_type_t volk_type_from_string(std::string name) {
 
     //get the data size
     size_t last_size_pos = name.find_last_of("0123456789");
-    if(last_size_pos == std::string::npos)
-      throw std::string("no size spec in type ").append(name);
+    if(last_size_pos == std::string::npos) {
+        throw std::string("no size spec in type ").append(name);
+    }
     //will throw if malformed
     int size = boost::lexical_cast<int>(name.substr(0, last_size_pos+1));
 
@@ -328,18 +330,17 @@ bool run_volk_tests(volk_func_desc_t desc,
                     std::string name,
                     float tol,
                     lv_32fc_t scalar,
-                    int vlen,
-                    int iter,
+                    unsigned int vlen,
+                    unsigned int iter,
                     std::vector<volk_test_results_t> *results,
                     std::string puppet_master_name,
                     bool benchmark_mode
-                   ) {
-    if(results) {
-        results->push_back(volk_test_results_t());
-        results->back().name = name;
-        results->back().vlen = vlen;
-        results->back().iter = iter;
-    }
+) {
+    // Initialize this entry in results vector
+    results->push_back(volk_test_results_t());
+    results->back().name = name;
+    results->back().vlen = vlen;
+    results->back().iter = iter;
     std::cout << "RUN_VOLK_TESTS: " << name << "(" << vlen << "," << iter << ")" << std::endl;
 
     const float tol_f = tol;
@@ -358,7 +359,14 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     //now we have to get a function signature by parsing the name
     std::vector<volk_type_t> inputsig, outputsig;
-    get_signatures_from_name(inputsig, outputsig, name);
+    try {
+        get_signatures_from_name(inputsig, outputsig, name);
+    }
+    catch (boost::bad_lexical_cast& error) {
+        std::cerr << "Error: unable to get function signature from kernel name" << std::endl;
+        std::cerr << "  - " << name << std::endl;
+        return false;
+    }
 
     //pull the input scalars into their own vector
     std::vector<volk_type_t> inputsc;
@@ -369,8 +377,6 @@ bool run_volk_tests(volk_func_desc_t desc,
             i -= 1;
         }
     }
-    //for(int i=0; i<inputsig.size(); i++) std::cout << "Input: " << inputsig[i].str << std::endl;
-    //for(int i=0; i<outputsig.size(); i++) std::cout << "Output: " << outputsig[i].str << std::endl;
     std::vector<void *> inbuffs;
     BOOST_FOREACH(volk_type_t sig, inputsig) {
         if(!sig.is_scalar) //we don't make buffers for scalars
@@ -450,6 +456,12 @@ bool run_volk_tests(volk_func_desc_t desc,
         end = clock();
         double arch_time = 1000.0 * (double)(end-start)/(double)CLOCKS_PER_SEC;
         std::cout << arch_list[i] << " completed in " << arch_time << "ms" << std::endl;
+        volk_test_time_t result;
+        result.name = arch_list[i];
+        result.time = arch_time;
+        result.units = "ms";
+        result.pass = true;
+        results->back().results[result.name] = result;
 
         profile_times.push_back(arch_time);
     }
@@ -457,13 +469,13 @@ bool run_volk_tests(volk_func_desc_t desc,
     //and now compare each output to the generic output
     //first we have to know which output is the generic one, they aren't in order...
     size_t generic_offset=0;
-    for(size_t i=0; i<arch_list.size(); i++)
-        if(arch_list[i] == "generic") generic_offset=i;
+    for(size_t i=0; i<arch_list.size(); i++) {
+        if (arch_list[i] == "generic") {
+            generic_offset = i;
+        }
+    }
 
-    //now compare
-    //if(outputsig.size() == 0) outputsig = inputsig; //a hack, i know
-
-    bool fail = false;
+    bool fail;
     bool fail_global = false;
     std::vector<bool> arch_results;
     for(size_t i=0; i<arch_list.size(); i++) {
@@ -474,7 +486,6 @@ bool run_volk_tests(volk_func_desc_t desc,
                     if(both_sigs[j].size == 8) {
                         if (both_sigs[j].is_complex) {
                             fail = ccompare((double *) test_data[generic_offset][j], (double *) test_data[i][j], vlen, tol_f);
-
                         } else {
                             fail = fcompare((double *) test_data[generic_offset][j], (double *) test_data[i][j], vlen, tol_f);
                         }
@@ -526,7 +537,6 @@ bool run_volk_tests(volk_func_desc_t desc,
                     fail_global = true;
                     std::cout << name << ": fail on arch " << arch_list[i] << std::endl;
                 }
-                //fail = memcmp(outbuffs[generic_offset], outbuffs[i], outputsig[0].size * vlen * (outputsig[0].is_complex ? 2:1));
             }
         }
         arch_results.push_back(!fail);
@@ -564,5 +574,3 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     return fail_global;
 }
-
-

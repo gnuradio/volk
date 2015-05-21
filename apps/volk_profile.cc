@@ -122,7 +122,15 @@ int main(int argc, char *argv[]) {
     }
 
     if ( vm.count("json") ) {
-        json_file.open( vm["json"].as<std::string>().c_str() );
+        std::string filename;
+        try {
+             filename = vm["json"].as<std::string>();
+        }
+        catch (boost::bad_any_cast& error) {
+            std::cerr << error.what() << std::endl;
+            return 1;
+        }
+        json_file.open( filename.c_str() );
     }
 
     volk_test_params_t test_params(def_tol, def_scalar, def_vlen, def_iter,

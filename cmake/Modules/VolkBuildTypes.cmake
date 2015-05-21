@@ -106,9 +106,9 @@ endif(NOT WIN32)
 # NOTE: This is not defined on Windows systems.
 ########################################################################
 if(NOT WIN32)
-  SET(CMAKE_CXX_FLAGS_NOOPTWITHASM "-Wall -save-temps -g -O0" CACHE STRING
+  SET(CMAKE_CXX_FLAGS_NOOPTWITHASM "-save-temps -g -O0" CACHE STRING
     "Flags used by the C++ compiler during NoOptWithASM builds." FORCE)
-  SET(CMAKE_C_FLAGS_NOOPTWITHASM "-Wall -save-temps -g -O0" CACHE STRING
+  SET(CMAKE_C_FLAGS_NOOPTWITHASM "-save-temps -g -O0" CACHE STRING
     "Flags used by the C compiler during NoOptWithASM builds." FORCE)
   SET(CMAKE_EXE_LINKER_FLAGS_NOOPTWITHASM
     "-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
@@ -138,9 +138,9 @@ endif(NOT WIN32)
 ########################################################################
 
 if(NOT WIN32)
-  SET(CMAKE_CXX_FLAGS_O2WITHASM "-Wall -save-temps -g -O2" CACHE STRING
+  SET(CMAKE_CXX_FLAGS_O2WITHASM "-save-temps -g -O2" CACHE STRING
     "Flags used by the C++ compiler during O2WithASM builds." FORCE)
-  SET(CMAKE_C_FLAGS_O2WITHASM "-Wall -save-temps -g -O2" CACHE STRING
+  SET(CMAKE_C_FLAGS_O2WITHASM "-save-temps -g -O2" CACHE STRING
     "Flags used by the C compiler during O2WithASM builds." FORCE)
   SET(CMAKE_EXE_LINKER_FLAGS_O2WITHASM
     "-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
@@ -170,9 +170,9 @@ endif(NOT WIN32)
 ########################################################################
 
 if(NOT WIN32)
-  SET(CMAKE_CXX_FLAGS_O3WITHASM "-Wall -save-temps -g -O3" CACHE STRING
+  SET(CMAKE_CXX_FLAGS_O3WITHASM "-save-temps -g -O3" CACHE STRING
     "Flags used by the C++ compiler during O3WithASM builds." FORCE)
-  SET(CMAKE_C_FLAGS_O3WITHASM "-Wall -save-temps -g -O3" CACHE STRING
+  SET(CMAKE_C_FLAGS_O3WITHASM "-save-temps -g -O3" CACHE STRING
     "Flags used by the C compiler during O3WithASM builds." FORCE)
   SET(CMAKE_EXE_LINKER_FLAGS_O3WITHASM
     "-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
