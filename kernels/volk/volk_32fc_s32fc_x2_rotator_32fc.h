@@ -84,6 +84,7 @@
 #include <volk/volk_complex.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #define ROTATOR_RELOAD 512
 
 
