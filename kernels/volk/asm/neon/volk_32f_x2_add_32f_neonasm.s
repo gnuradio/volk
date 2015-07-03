@@ -34,7 +34,7 @@ volk_32f_x2_add_32f_neonasm:
 	cmp	number, quarterPoints
 	vst1.32	{d4-d5}, [cVector:128]!	@ cVal
 
-	ble	.loop1	@ first loop
+	blt	.loop1	@ first loop
 
 	mov	number, quarterPoints, asl #2
 
