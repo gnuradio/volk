@@ -34,8 +34,8 @@ volk_32f_x2_dot_prod_32f_neonasm:
 
 	add	number, number, #1
 	cmp	number, quarterPoints
-	ble	.loop1	@ first loop
-    
+	blt	.loop1	@ first loop
+
     @ strange order comes from trying to schedule instructions
     vadd.f32 s0, s0, s1
     vadd.f32 s2, s2, s3
