@@ -287,14 +287,15 @@ static inline void volk_32fc_s32fc_multiply_32fc_neon(lv_32fc_t* cVector, const 
     float32x4x2_t a_val, scalar_val;
     float32x4x2_t tmp_imag;
 
-    scalar_val = vld2q_f32((const float*)&scalar);
+    scalar_val.val[0] = vld1q_dup_f32((const float*)&scalar);
+    scalar_val.val[1] = vld1q_dup_f32(((const float*)&scalar) + 1);
     for(number = 0; number < quarter_points; ++number) {
         a_val = vld2q_f32((float*)aPtr);
         tmp_imag.val[1] = vmulq_f32(a_val.val[1], scalar_val.val[0]);
         tmp_imag.val[0] = vmulq_f32(a_val.val[0], scalar_val.val[0]);
 
         tmp_imag.val[1] = vmlaq_f32(tmp_imag.val[1], a_val.val[0], scalar_val.val[1]);
-        tmp_imag.val[0] = vmlaq_f32(tmp_imag.val[0], a_val.val[1], scalar_val.val[1]);
+        tmp_imag.val[0] = vmlsq_f32(tmp_imag.val[0], a_val.val[1], scalar_val.val[1]);
 
         vst2q_f32((float*)cVector, tmp_imag);
         aPtr += 4;
@@ -302,7 +303,7 @@ static inline void volk_32fc_s32fc_multiply_32fc_neon(lv_32fc_t* cVector, const 
     }
 
     for(number = quarter_points*4; number < num_points; number++){
-      *cPtr++ = *aPtr++ * scalar;
+      *cVector++ = *aPtr++ * scalar;
     }
 }
 #endif /* LV_HAVE_NEON */
