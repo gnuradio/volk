@@ -494,6 +494,10 @@ extern void volk_32fc_32f_dot_prod_32fc_a_neonasm ( lv_32fc_t* result, const  lv
 #endif /*LV_HAVE_NEON*/
 
 #ifdef LV_HAVE_NEON
+extern void volk_32fc_32f_dot_prod_32fc_a_neonasmvmla ( lv_32fc_t* result, const  lv_32fc_t* input, const  float* taps, unsigned int num_points);
+#endif /*LV_HAVE_NEON*/
+
+#ifdef LV_HAVE_NEON
 extern void volk_32fc_32f_dot_prod_32fc_a_neonpipeline ( lv_32fc_t* result, const  lv_32fc_t* input, const  float* taps, unsigned int num_points);
 #endif /*LV_HAVE_NEON*/
 

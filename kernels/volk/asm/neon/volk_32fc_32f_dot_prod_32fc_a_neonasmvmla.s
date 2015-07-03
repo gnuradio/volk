@@ -40,16 +40,16 @@ volk_32fc_32f_dot_prod_32fc_a_neonasmvmla:
 	@ do work here
 	pld [taps, #128] @ pre-load hint - this is implementation specific!
 	pld [input, #128] @ pre-load hint - this is implementation specific!
-	vld1.32 {d4-d5}, [taps:128]! @ tapsVal
-	vld2.32 {d18-d21}, [input:128]! @ inRealVal, inCompVal
+	vld1.32 {tapsVal}, [taps:128]! @ tapsVal
+	vld2.32 {inRealVal-inCompVal}, [input:128]! @ inRealVal, inCompVal
 	vmla.f32 realAccQ, tapsVal, inRealVal
 	vmla.f32 compAccQ, tapsVal, inCompVal
 	subs number, number, #1
 	bne	.loop1	@ first loop
 
     @ Sum up across realAccQ and compAccQ
-    vpadd.f32 d0, d0, d1      @ realAccQ +-> d0
-    vpadd.f32 d2, d2, d3      @ compAccQ +-> d2
+    vadd.f32 d0, d0, d1      @ realAccQ +-> d0
+    vadd.f32 d2, d2, d3      @ compAccQ +-> d2
     vadd.f32 realAccS, s0, s1 @ sum the contents of d0 together (realAccQ)
     vadd.f32 compAccS, s4, s5 @ sum the contents of d2 together (compAccQ)
     @ critical values are now in s0 (realAccS), s4 (compAccS)
