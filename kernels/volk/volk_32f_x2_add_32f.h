@@ -212,6 +212,13 @@ volk_32f_x2_add_32f_u_neon(float* cVector, const float* aVector,
 
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEON
+extern void volk_32f_x2_add_32f_neonasm(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEON
+extern void volk_32f_x2_add_32f_neonpipeline(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
+#endif /* LV_HAVE_NEON */
 
 #ifdef LV_HAVE_GENERIC
 
