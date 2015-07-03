@@ -343,6 +343,12 @@ bool run_volk_tests(volk_func_desc_t desc,
     results->back().iter = iter;
     std::cout << "RUN_VOLK_TESTS: " << name << "(" << vlen << "," << iter << ")" << std::endl;
 
+    // vlen_twiddle will increase vlen for malloc and data generation
+    // but kernels will still be called with the user provided vlen.
+    // This is useful for causing errors in kernels that do bad reads
+    const unsigned int vlen_twiddle = 5;
+    vlen = vlen + vlen_twiddle;
+
     const float tol_f = tol;
     const unsigned int tol_i = static_cast<const unsigned int>(tol);
 
@@ -406,6 +412,7 @@ bool run_volk_tests(volk_func_desc_t desc,
     both_sigs.insert(both_sigs.end(), inputsig.begin(), inputsig.end());
 
     //now run the test
+    vlen = vlen - vlen_twiddle;
     clock_t start, end;
     std::vector<double> profile_times;
     for(size_t i = 0; i < arch_list.size(); i++) {
@@ -475,6 +482,8 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
+    // Just in case a kernel wrote to OOB memory, use the twiddled vlen
+    vlen = vlen + vlen_twiddle;
     bool fail;
     bool fail_global = false;
     std::vector<bool> arch_results;
