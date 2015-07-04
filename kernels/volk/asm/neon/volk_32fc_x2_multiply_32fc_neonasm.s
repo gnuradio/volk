@@ -21,25 +21,27 @@ volk_32fc_x2_multiply_32fc_neonasm:
    vmul.f32  q1, q13, q11 @ q11 = ai*bi
    vmul.f32  q2, q12, q11 @ q14 = ar*bi
    vmul.f32  q3, q13, q10 @ q12 = ai*br
-   vsub.f32  q8, q0, q1  @ real
-   vadd.f32  q9, q2, q3  @ imag
-   vst2.32   {d16-d19}, [r0]!
-   bne     .mainloop 
+   vsub.f32  q9, q0, q1  @ real
+   vadd.f32  q10, q2, q3  @ imag
+   vst2.32   {q9-q10}, [r0]!
+   bne     .mainloop
 
 .smallvector:
-   lsl     r5, r7, #2
-   cmp     r3, r7
+   lsl     r5, r7, #2   @ r5 = quarter_points * 4
+   cmp     r3, r5       @ num_points == quarter_points?
    bls     .done
 .tailcase:
-   add    r5, r5, #1
+   add    r5, r5, #1    @ r5 +=1 <- number++
    vld1.32    d1, [r1]! @ s2, s3 = ar, ai
    vld1.32    d0, [r2]! @ s0, s1 = br, bi
    vmul.f32   s4, s0, s2 @ s4 = ar*br
    vmul.f32   s5, s0, s3 @ s5 = ar*bi
    vmls.f32   s4, s1, s3 @ s4 = s4 - ai*bi
    vmla.f32   s5, s1, s2 @ s5 = s5 + ai*br
-   vst1.32    d2, [r0]!
-   cmp     r3, r5
-   bne     .tailcase 
+   @vst2.32    d2[0], [r0]!
+   vst1.32    {d2}, [r0]!
+   cmp     r3, r5       @ r3 == r5? num_points == number?
+   bne     .tailcase
 .done:
    pop     {r4, r5, r6, r7, r8, r9, r15}
+   bx lr
