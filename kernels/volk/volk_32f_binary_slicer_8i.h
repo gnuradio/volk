@@ -123,7 +123,7 @@ volk_32f_binary_slicer_8i_a_avx2(int8_t* cVector, const float* aVector,
   unsigned int number = 0;
   unsigned int n32points = num_points / 32;
 
-  __m256 zero_val;
+  const __m256 zero_val = _mm256_set1_ps(0.0f);
   __m256 a0_val, a1_val, a2_val, a3_val;
   __m256 res0_f, res1_f, res2_f, res3_f;
   __m256i res0_i, res1_i, res2_i, res3_i;
@@ -200,7 +200,7 @@ volk_32f_binary_slicer_8i_u_avx2(int8_t* cVector, const float* aVector,
   unsigned int number = 0;
   unsigned int n32points = num_points / 32;
 
-  __m256 zero_val;
+  const __m256 zero_val = _mm256_set1_ps(0.0f);
   __m256 a0_val, a1_val, a2_val, a3_val;
   __m256 res0_f, res1_f, res2_f, res3_f;
   __m256i res0_i, res1_i, res2_i, res3_i;
