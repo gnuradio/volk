@@ -398,7 +398,7 @@ include_directories(
 #  on by default, but let users turn it off
 ########################################################################
 if(${CMAKE_VERSION} VERSION_GREATER "2.8.9")
-  set(ASM_ARCHS_AVAILABLE "armv7")
+  set(ASM_ARCHS_AVAILABLE "neon")
 
   set(FULL_C_FLAGS "${CMAKE_C_FLAGS}" "${CMAKE_CXX_COMPILER_ARG1}")
 
@@ -406,10 +406,10 @@ if(${CMAKE_VERSION} VERSION_GREATER "2.8.9")
   # if we find one that matches our current system architecture
   # set up the assembler flags and include the source files
   foreach(ARCH ${ASM_ARCHS_AVAILABLE})
-    string(REGEX MATCH "${ARCH}" ASM_ARCH "${FULL_C_FLAGS}")
-    if( ASM_ARCH STREQUAL "armv7" )
+      string(REGEX MATCH "${ARCH}" ASM_ARCH "${available_archs}")
+    if( ASM_ARCH STREQUAL "neon" )
       message(STATUS "---- Adding ASM files") # we always use ATT syntax
-      message(STATUS "-- Detected armv7 architecture; enabling ASM")
+      message(STATUS "-- Detected neon architecture; enabling ASM")
       # setup architecture specific assembler flags
       set(ARCH_ASM_FLAGS "-mfpu=neon -g")
       # then add the files
