@@ -4,12 +4,6 @@
 <arch name="generic"> <!-- name is required-->
 </arch>
 
-<arch name="altivec">
-  <flag compiler="gnu">-maltivec</flag>
-  <alignment>16</alignment>
-  <check name="has_ppc"></check>
-</arch>
-
 <arch name="softfp">
   <flag compiler="gnu">-mfloat-abi=softfp</flag>
 </arch>

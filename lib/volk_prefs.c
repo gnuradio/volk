@@ -3,10 +3,6 @@
 #include <string.h>
 #include <volk/volk_prefs.h>
 
-//#if defined(_WIN32)
-//#include <Windows.h>
-//#endif
-
 void volk_get_config_path(char *path)
 {
     if (!path) return;
