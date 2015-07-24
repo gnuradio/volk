@@ -25,21 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if __GNUC__ > 3 || __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-    #define __popcnt __builtin_popcount
-#else
-    inline unsigned __popcnt(unsigned num)
-    {
-        unsigned pop = 0;
-        while(num)
-        {
-            if (num & 0x1) pop++;
-            num >>= 1;
-        }
-        return pop;
-    }
-#endif
-
 int volk_get_index(
     const char *impl_names[], //list of implementations by name
     const size_t n_impls,     //number of implementations available
@@ -64,22 +49,23 @@ int volk_rank_archs(
     const bool* alignment,    //alignment status of each implementation
     size_t n_impls,            //number of implementations available
     const bool align          //if false, filter aligned implementations
-){
-  size_t i;
-  static volk_arch_pref_t *volk_arch_prefs;
-  static size_t n_arch_prefs = 0;
-  static int prefs_loaded = 0;
-  if(!prefs_loaded) {
-      n_arch_prefs = volk_load_preferences(&volk_arch_prefs);
-      prefs_loaded = 1;
-  }
+)
+{
+    size_t i;
+    static volk_arch_pref_t *volk_arch_prefs;
+    static size_t n_arch_prefs = 0;
+    static int prefs_loaded = 0;
+    if(!prefs_loaded) {
+        n_arch_prefs = volk_load_preferences(&volk_arch_prefs);
+        prefs_loaded = 1;
+    }
 
-  // If we've defined VOLK_GENERIC to be anything, always return the
-  // 'generic' kernel. Used in GR's QA code.
-  char *gen_env = getenv("VOLK_GENERIC");
-  if(gen_env) {
-    return volk_get_index(impl_names, n_impls, "generic");
-  }
+    // If we've defined VOLK_GENERIC to be anything, always return the
+    // 'generic' kernel. Used in GR's QA code.
+    char *gen_env = getenv("VOLK_GENERIC");
+    if(gen_env) {
+      return volk_get_index(impl_names, n_impls, "generic");
+    }
 
     //now look for the function name in the prefs list
     for(i = 0; i < n_arch_prefs; i++)
@@ -98,7 +84,7 @@ int volk_rank_archs(
     int best_value_u = -1;
     for(i = 0; i < n_impls; i++)
     {
-        const signed val = __popcnt(impl_deps[i]);
+        const signed val = impl_deps[i];
         if (alignment[i] && val > best_value_a)
         {
             best_index_a = i;
