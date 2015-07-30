@@ -209,6 +209,7 @@ volk_16i_s32f_convert_32f_generic(float* outputVector, const int16_t* inputVecto
 #endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_NEON
+#include <arm_neon.h>
 
 static inline void
 volk_16i_s32f_convert_32f_neon(float* outputVector, const int16_t* inputVector,

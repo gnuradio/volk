@@ -138,7 +138,7 @@ volk_16ic_s32f_deinterleave_32f_x2_generic(float* iBuffer, float* qBuffer, const
 #endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_NEON
-
+#include <arm_neon.h>
 static inline void
 volk_16ic_s32f_deinterleave_32f_x2_neon(float* iBuffer, float* qBuffer, const lv_16sc_t* complexVector,
                                         const float scalar, unsigned int num_points)
