@@ -88,6 +88,21 @@ union bit128{
   #endif
 };
 
+union bit256{
+  uint8_t i8[32];
+  uint16_t i16[16];
+  uint32_t i[8];
+  float f[8];
+  double d[4];
+
+  #ifdef LV_HAVE_AVX
+  __m256 float_vec;
+  __m256i int_vec;
+  __m256d double_vec;
+  #endif
+};
+
 #define bit128_p(x) ((union bit128 *)(x))
+#define bit256_p(x) ((union bit256 *)(x))
 
 #endif /*INCLUDED_LIBVOLK_COMMON_H*/
