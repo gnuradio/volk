@@ -72,6 +72,7 @@
 #endif
 
 union bit128{
+  uint8_t i8[16];
   uint16_t i16[8];
   uint32_t i[4];
   float f[4];
