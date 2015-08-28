@@ -68,11 +68,7 @@
 #include <inttypes.h>
 
 #ifdef LV_HAVE_SSE
-#include <xmmintrin.h>
-#endif
-
-#ifdef LV_HAVE_SSE2
-#include <emmintrin.h>
+#include <x86intrin.h>
 #endif
 
 union bit128{
