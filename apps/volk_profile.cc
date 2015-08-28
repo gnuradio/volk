@@ -229,12 +229,12 @@ void read_results(std::vector<volk_test_results_t> *results)
                 // a length restricted by volk/volk_prefs.c
                 // on the last token in the parsed string we won't find a space
                 // so make sure we copy at most 128 chars.
-                if(found > 128) {
-                    found = 128;
+                if(found > 127) {
+                    found = 127;
                 }
                 str_size = config_str.size();
                 char buffer[128];
-                config_str.copy(buffer, found, 0);
+                config_str.copy(buffer, found + 1, 0);
                 buffer[found] = '\0';
                 single_kernel_result.push_back(std::string(buffer));
                 config_str.erase(0, found+1);
