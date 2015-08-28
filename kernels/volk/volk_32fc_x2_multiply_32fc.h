@@ -125,6 +125,7 @@ static inline void volk_32fc_x2_multiply_32fc_u_avx2_fma(lv_32fc_t* cVector, con
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
 
 static inline void
 volk_32fc_x2_multiply_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
@@ -133,28 +134,16 @@ volk_32fc_x2_multiply_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
   unsigned int number = 0;
   const unsigned int quarterPoints = num_points / 4;
 
-  __m256 x, y, yl, yh, z, tmp1, tmp2;
+  __m256 x, y, z;
   lv_32fc_t* c = cVector;
   const lv_32fc_t* a = aVector;
   const lv_32fc_t* b = bVector;
 
-  for(;number < quarterPoints; number++){
-
-    x = _mm256_loadu_ps((float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
-    y = _mm256_loadu_ps((float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
-
-    yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr ...
-    yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di ...
-
-    tmp1 = _mm256_mul_ps(x,yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr ...
-
-    x = _mm256_shuffle_ps(x,x,0xB1); // Re-arrange x to be ai,ar,bi,br ...
-
-    tmp2 = _mm256_mul_ps(x,yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-    z = _mm256_addsub_ps(tmp1,tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-    _mm256_storeu_ps((float*)c,z); // Store the results back into the C container
+  for(; number < quarterPoints; number++){
+    x = _mm256_loadu_ps((float*) a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
+    y = _mm256_loadu_ps((float*) b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
+    z = _mm256_complexmul_ps(x, y);
+    _mm256_storeu_ps((float*) c, z); // Store the results back into the C container
 
     a += 4;
     b += 4;
@@ -163,7 +152,7 @@ volk_32fc_x2_multiply_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 
   number = quarterPoints * 4;
 
-  for(; number < num_points; number++) {
+  for(; number < num_points; number++){
     *c++ = (*a++) * (*b++);
   }
 }
@@ -172,6 +161,7 @@ volk_32fc_x2_multiply_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
+#include <volk/volk_sse3_intrinsics.h>
 
 static inline void
 volk_32fc_x2_multiply_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector,
@@ -180,35 +170,23 @@ volk_32fc_x2_multiply_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector,
   unsigned int number = 0;
   const unsigned int halfPoints = num_points / 2;
 
-  __m128 x, y, yl, yh, z, tmp1, tmp2;
+  __m128 x, y, z;
   lv_32fc_t* c = cVector;
   const lv_32fc_t* a = aVector;
   const lv_32fc_t* b = bVector;
 
-  for(;number < halfPoints; number++){
-
-    x = _mm_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-    y = _mm_loadu_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
-
-    yl = _mm_moveldup_ps(y); // Load yl with cr,cr,dr,dr
-    yh = _mm_movehdup_ps(y); // Load yh with ci,ci,di,di
-
-    tmp1 = _mm_mul_ps(x,yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-    x = _mm_shuffle_ps(x,x,0xB1); // Re-arrange x to be ai,ar,bi,br
-
-    tmp2 = _mm_mul_ps(x,yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-    z = _mm_addsub_ps(tmp1,tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-    _mm_storeu_ps((float*)c,z); // Store the results back into the C container
+  for(; number < halfPoints; number++){
+    x = _mm_loadu_ps((float*) a); // Load the ar + ai, br + bi as ar,ai,br,bi
+    y = _mm_loadu_ps((float*) b); // Load the cr + ci, dr + di as cr,ci,dr,di
+    z = _mm_complexmul_ps(x, y);
+    _mm_storeu_ps((float*) c, z); // Store the results back into the C container
 
     a += 2;
     b += 2;
     c += 2;
   }
 
-  if((num_points % 2) != 0) {
+  if((num_points % 2) != 0){
     *c = (*a) * (*b);
   }
 }
@@ -292,6 +270,7 @@ static inline void volk_32fc_x2_multiply_32fc_a_avx2_fma(lv_32fc_t* cVector, con
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
 
 static inline void
 volk_32fc_x2_multiply_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
@@ -300,28 +279,16 @@ volk_32fc_x2_multiply_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
   unsigned int number = 0;
   const unsigned int quarterPoints = num_points / 4;
 
-  __m256 x, y, yl, yh, z, tmp1, tmp2;
+  __m256 x, y, z;
   lv_32fc_t* c = cVector;
   const lv_32fc_t* a = aVector;
   const lv_32fc_t* b = bVector;
 
-  for(;number < quarterPoints; number++){
-
-    x = _mm256_load_ps((float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
-    y = _mm256_load_ps((float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
-
-    yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr ...
-    yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di ...
-
-    tmp1 = _mm256_mul_ps(x,yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr ...
-
-    x = _mm256_shuffle_ps(x,x,0xB1); // Re-arrange x to be ai,ar,bi,br ...
-
-    tmp2 = _mm256_mul_ps(x,yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-    z = _mm256_addsub_ps(tmp1,tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-    _mm256_store_ps((float*)c,z); // Store the results back into the C container
+  for(; number < quarterPoints; number++){
+    x = _mm256_load_ps((float*) a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
+    y = _mm256_load_ps((float*) b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
+    z = _mm256_complexmul_ps(x, y);
+    _mm256_store_ps((float*) c, z); // Store the results back into the C container
 
     a += 4;
     b += 4;
@@ -330,7 +297,7 @@ volk_32fc_x2_multiply_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 
   number = quarterPoints * 4;
 
-  for(; number < num_points; number++) {
+  for(; number < num_points; number++){
     *c++ = (*a++) * (*b++);
   }
 }
@@ -338,6 +305,7 @@ volk_32fc_x2_multiply_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
+#include <volk/volk_sse3_intrinsics.h>
 
 static inline void
 volk_32fc_x2_multiply_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector,
@@ -346,34 +314,23 @@ volk_32fc_x2_multiply_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector,
   unsigned int number = 0;
   const unsigned int halfPoints = num_points / 2;
 
-  __m128 x, y, yl, yh, z, tmp1, tmp2;
+  __m128 x, y, z;
   lv_32fc_t* c = cVector;
   const lv_32fc_t* a = aVector;
   const lv_32fc_t* b = bVector;
-  for(;number < halfPoints; number++){
 
-    x = _mm_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-    y = _mm_load_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
-
-    yl = _mm_moveldup_ps(y); // Load yl with cr,cr,dr,dr
-    yh = _mm_movehdup_ps(y); // Load yh with ci,ci,di,di
-
-    tmp1 = _mm_mul_ps(x,yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-    x = _mm_shuffle_ps(x,x,0xB1); // Re-arrange x to be ai,ar,bi,br
-
-    tmp2 = _mm_mul_ps(x,yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-    z = _mm_addsub_ps(tmp1,tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-    _mm_store_ps((float*)c,z); // Store the results back into the C container
+  for(; number < halfPoints; number++){
+    x = _mm_load_ps((float*) a); // Load the ar + ai, br + bi as ar,ai,br,bi
+    y = _mm_load_ps((float*) b); // Load the cr + ci, dr + di as cr,ci,dr,di
+    z = _mm_complexmul_ps(x, y);
+    _mm_store_ps((float*) c, z); // Store the results back into the C container
 
     a += 2;
     b += 2;
     c += 2;
   }
 
-  if((num_points % 2) != 0) {
+  if((num_points % 2) != 0){
     *c = (*a) * (*b);
   }
 }
