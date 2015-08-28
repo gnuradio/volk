@@ -28,7 +28,6 @@
 __VOLK_DECL_BEGIN
 
 VOLK_API char* volk_prefix();
-VOLK_API char* volk_build_date();
 VOLK_API char* volk_version();
 VOLK_API char* volk_c_compiler();
 VOLK_API char* volk_compiler_flags();
