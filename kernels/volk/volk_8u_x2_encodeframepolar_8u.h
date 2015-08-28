@@ -58,20 +58,6 @@ encodepolar_single_stage(unsigned char* frame_ptr, const unsigned char* temp_ptr
   }
 }
 
-static inline void
-print_vector_elements(const unsigned char* buf, int elems){
-  int i, l;
-  for(l = 0; l < elems / 8; l++){
-    for(i = 0; i < 8; i++){
-      unsigned char b = buf[i];
-      printf("%02x ", (int) b);
-    }
-    printf("   ");
-    buf += 8;
-  }
-  printf("\n");
-}
-
 #ifdef LV_HAVE_GENERIC
 
 static inline void
