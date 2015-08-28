@@ -26,7 +26,7 @@
 
 #ifndef VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_
 #define VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_
-#include <stdio.h>
+#include <string.h>
 
 static inline unsigned int
 log2_of_power_of_2(unsigned int val){
