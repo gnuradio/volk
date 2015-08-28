@@ -469,11 +469,6 @@ endif()
 # Handle the generated constants
 ########################################################################
 
-execute_process(COMMAND ${PYTHON_EXECUTABLE} -c
-    "import time;print time.strftime('%a, %d %b %Y %H:%M:%S', time.gmtime())"
-    OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-message(STATUS "Loading build date ${BUILD_DATE} into constants...")
 message(STATUS "Loading version ${VERSION} into constants...")
 
 #double escape for windows backslash path separators
