@@ -182,8 +182,14 @@ int main(int argc, char *argv[]) {
         }
 
         if( regex_match && update ) {
+            try {
             run_volk_tests(test_case.desc(), test_case.kernel_ptr(), test_case.name(),
                 test_case.test_parameters(), &results, test_case.puppet_master_name());
+            }
+            catch (std::string error) {
+                std::cerr << "Caught Exception in 'run_volk_tests': " << error << std::endl;
+            }
+
         }
     }
 
