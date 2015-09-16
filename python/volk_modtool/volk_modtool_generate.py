@@ -30,6 +30,7 @@ class volk_modtool:
     def __init__(self, cfg):
         self.volk = re.compile('volk')
         self.remove_after_underscore = re.compile("_.*")
+        self.volk_included = re.compile('INCLUDED_VOLK')
         self.volk_run_tests = re.compile('^\s*VOLK_RUN_TESTS.*\n', re.MULTILINE)
         self.volk_profile = re.compile('^\s*(VOLK_PROFILE|VOLK_PUPPET_PROFILE).*\n', re.MULTILINE)
         self.volk_kernel_tests = re.compile('^\s*\((VOLK_INIT_TEST|VOLK_INIT_PUPP).*\n', re.MULTILINE)
@@ -105,6 +106,12 @@ class volk_modtool:
                     infile = os.path.join(root, name)
                     instring = open(infile, 'r').read()
                     outstring = re.sub(self.volk, 'volk_' + self.my_dict['name'], instring)
+                    # Update the header ifdef guards only where needed
+                    if((name == "constants.h") or
+                       (name == "volk_complex.h") or
+                       (name == "volk_malloc.h") or
+                       (name == "volk_prefs.h")):
+                        outstring = re.sub(self.volk_included, 'INCLUDED_VOLK_' + self.my_dict['name'].upper(), outstring)
                     newname = re.sub(self.volk, 'volk_' + self.my_dict['name'], name)
                     relpath = os.path.relpath(infile, self.my_dict['base'])
                     newrelpath = re.sub(self.volk, 'volk_' + self.my_dict['name'], relpath)

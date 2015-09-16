@@ -571,15 +571,14 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     std::cout << "Best aligned arch: " << best_arch_a << std::endl;
     std::cout << "Best unaligned arch: " << best_arch_u << std::endl;
-    if(results) {
-        if(puppet_master_name == "NULL") {
-            results->back().config_name = name;
-        } else {
-            results->back().config_name = puppet_master_name;
-        }
-        results->back().best_arch_a = best_arch_a;
-        results->back().best_arch_u = best_arch_u;
+
+    if(puppet_master_name == "NULL") {
+        results->back().config_name = name;
+    } else {
+        results->back().config_name = puppet_master_name;
     }
+    results->back().best_arch_a = best_arch_a;
+    results->back().best_arch_u = best_arch_u;
 
     return fail_global;
 }
