@@ -59,7 +59,7 @@
  *   volk_32f_s32f_normalize(increasing, scale, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("increasing[%u] = %f\n", ii, increasing[ii]);
+ *       VOLK_LOG("increasing[%u] = %f\n", ii, increasing[ii]);
  *   }
  *
  *   volk_free(increasing);
@@ -71,7 +71,7 @@
 #define INCLUDED_volk_32f_s32f_normalize_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>

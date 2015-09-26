@@ -60,7 +60,7 @@
 #define INCLUDED_volk_16i_x5_add_quad_16i_x4_a_H
 
 #include<inttypes.h>
-#include<stdio.h>
+#include<volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include<xmmintrin.h>

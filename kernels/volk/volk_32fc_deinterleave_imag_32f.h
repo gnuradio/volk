@@ -57,9 +57,9 @@
  *
  *   volk_32fc_deinterleave_imag_32f(im, in, N);
  *
- *   printf("          imaginary part\n");
+ *   VOLK_LOG("          imaginary part\n");
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %+.1f\n", ii, im[ii]);
+ *       VOLK_LOG("out(%i) = %+.1f\n", ii, im[ii]);
  *   }
  *
  *   volk_free(in);
@@ -71,7 +71,7 @@
 #define INCLUDED_volk_32fc_deinterleave_imag_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>

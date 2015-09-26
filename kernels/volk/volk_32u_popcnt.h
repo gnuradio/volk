@@ -49,14 +49,14 @@
     uint32_t hamming_distance = 0;
 
     volk_32u_popcnt(&hamming_distance, bitstring);
-    printf("hamming distance of %x = %i\n", bitstring, hamming_distance);
+    VOLK_LOG("hamming distance of %x = %i\n", bitstring, hamming_distance);
  * \endcode
  */
 
 #ifndef INCLUDED_VOLK_32u_POPCNT_A16_H
 #define INCLUDED_VOLK_32u_POPCNT_A16_H
 
-#include <stdio.h>
+#include <volk/logging.h>
 #include <inttypes.h>
 
 #ifdef LV_HAVE_GENERIC

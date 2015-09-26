@@ -64,10 +64,10 @@
  *
  *   volk_32fc_x2_s32f_square_dist_scalar_mult_32f(out, rx, constellation, scale, N);
  *
- *   printf("Distance from each constellation point:\n");
+ *   VOLK_LOG("Distance from each constellation point:\n");
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("%.4f  ", out[ii]);
- *       if((ii+1)%4 == 0) printf("\n");
+ *       VOLK_LOG("%.4f  ", out[ii]);
+ *       if((ii+1)%4 == 0) VOLK_LOG("\n");
  *   }
  *
  *   volk_free(rx);
@@ -80,7 +80,7 @@
 #define INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_H
 
 #include<inttypes.h>
-#include<stdio.h>
+#include<volk/logging.h>
 #include<volk/volk_complex.h>
 #include <string.h>
 

@@ -59,9 +59,9 @@
  *
  *   volk_32fc_deinterleave_64f_x2(re, im, in, N);
  *
- *   printf("          re  | im\n");
+ *   VOLK_LOG("          re  | im\n");
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %+.1g | %+.1g\n", ii, re[ii], im[ii]);
+ *       VOLK_LOG("out(%i) = %+.1g | %+.1g\n", ii, re[ii], im[ii]);
  *   }
  *
  *   volk_free(in);
@@ -74,7 +74,7 @@
 #define INCLUDED_volk_32fc_deinterleave_64f_x2_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -194,7 +194,7 @@ volk_32fc_deinterleave_64f_x2_generic(double* iBuffer, double* qBuffer, const lv
 #define INCLUDED_volk_32fc_deinterleave_64f_x2_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>

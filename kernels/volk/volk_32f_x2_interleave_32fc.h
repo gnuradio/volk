@@ -61,7 +61,7 @@
  *   volk_32f_x2_interleave_32fc(out, imag, real, N);
  *
  *  for(unsigned int ii = 0; ii < N; ++ii){
- *      printf("out[%u] = %1.2f + %1.2fj\n", ii, std::real(out[ii]), std::imag(out[ii]));
+ *      VOLK_LOG("out[%u] = %1.2f + %1.2fj\n", ii, std::real(out[ii]), std::imag(out[ii]));
  *  }
  *
  *   volk_free(imag);
@@ -74,7 +74,7 @@
 #define INCLUDED_volk_32f_x2_interleave_32fc_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>

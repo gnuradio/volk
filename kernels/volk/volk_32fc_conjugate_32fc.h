@@ -57,7 +57,7 @@
  *   volk_32fc_conjugate_32fc(out, in, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %.1f + %.1fi\n", ii, lv_creal(out[ii]), lv_cimag(out[ii]));
+ *       VOLK_LOG("out(%i) = %.1f + %.1fi\n", ii, lv_creal(out[ii]), lv_cimag(out[ii]));
  *   }
  *
  *   volk_free(in);
@@ -69,7 +69,7 @@
 #define INCLUDED_volk_32fc_conjugate_32fc_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <volk/volk_complex.h>
 #include <float.h>
 
@@ -162,7 +162,7 @@ volk_32fc_conjugate_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, u
 #define INCLUDED_volk_32fc_conjugate_32fc_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <volk/volk_complex.h>
 #include <float.h>
 

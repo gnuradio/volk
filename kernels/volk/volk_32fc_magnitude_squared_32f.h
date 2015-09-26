@@ -60,7 +60,7 @@
  *   volk_32fc_magnitude_32f(magnitude, in, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %+.1f\n", ii, magnitude[ii]);
+ *       VOLK_LOG("out(%i) = %+.1f\n", ii, magnitude[ii]);
  *   }
  *
  *   volk_free(in);
@@ -72,7 +72,7 @@
 #define INCLUDED_volk_32fc_magnitude_squared_32f_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 
 #ifdef LV_HAVE_AVX
@@ -227,7 +227,7 @@ volk_32fc_magnitude_squared_32f_generic(float* magnitudeVector, const lv_32fc_t*
 #define INCLUDED_volk_32fc_magnitude_squared_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 
 #ifdef LV_HAVE_AVX

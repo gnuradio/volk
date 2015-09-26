@@ -49,16 +49,16 @@
  *       0xffffffff, 0x32, 0x64};
  *   uint32_t hamming_distance = 0;
  *
- *   printf("byteswap vector =\n");
+ *   VOLK_LOG("byteswap vector =\n");
  *   for(unsigned int ii=0; ii<N; ++ii){
- *       printf("    %.8x\n", bitstring[ii]);
+ *       VOLK_LOG("    %.8x\n", bitstring[ii]);
  *   }
  *
  *   volk_32u_byteswap(bitstring, N);
  *
- *   printf("byteswapped vector =\n");
+ *   VOLK_LOG("byteswapped vector =\n");
  *   for(unsigned int ii=0; ii<N; ++ii){
- *       printf("    %.8x\n", bitstring[ii]);
+ *       VOLK_LOG("    %.8x\n", bitstring[ii]);
  *   }
  * \endcode
  */
@@ -67,7 +67,7 @@
 #define INCLUDED_volk_32u_byteswap_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #if LV_HAVE_AVX2
 #include <immintrin.h>
@@ -222,7 +222,7 @@ static inline void volk_32u_byteswap_generic(uint32_t* intsToSwap, unsigned int 
 #define INCLUDED_volk_32u_byteswap_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 
 #if LV_HAVE_AVX2

@@ -53,7 +53,7 @@
  *
  *   volk_32f_accumulator_s32f(out, increasing, N);
  *
- *   printf("sum(1..100) = %1.2f\n", out[0]);
+ *   VOLK_LOG("sum(1..100) = %1.2f\n", out[0]);
  *
  *   volk_free(increasing);
  *   volk_free(out);
@@ -65,7 +65,7 @@
 
 #include <volk/volk_common.h>
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE
 

@@ -55,7 +55,7 @@
 #define INCLUDED_volk_8ic_deinterleave_16i_x2_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>

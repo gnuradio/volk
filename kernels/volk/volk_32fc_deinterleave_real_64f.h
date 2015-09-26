@@ -58,9 +58,9 @@
  *
  *   volk_32fc_deinterleave_real_64f(re, in, N);
  *
- *   printf("          real part\n");
+ *   VOLK_LOG("          real part\n");
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %+.1g\n", ii, re[ii]);
+ *       VOLK_LOG("out(%i) = %+.1g\n", ii, re[ii]);
  *   }
  *
  *   volk_free(in);
@@ -72,7 +72,7 @@
 #define INCLUDED_volk_32fc_deinterleave_real_64f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>

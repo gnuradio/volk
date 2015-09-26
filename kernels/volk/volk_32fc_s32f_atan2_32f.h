@@ -61,7 +61,7 @@
  *   volk_32fc_s32f_atan2_32f(out, in, scale, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("atan2(%1.2f, %1.2f) = %1.2f\n",
+ *       VOLK_LOG("atan2(%1.2f, %1.2f) = %1.2f\n",
  *           lv_cimag(in[ii]), lv_creal(in[ii]), out[ii]);
  *   }
  *
@@ -75,7 +75,7 @@
 #define INCLUDED_volk_32fc_s32f_atan2_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 
 #ifdef LV_HAVE_SSE4_1

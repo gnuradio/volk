@@ -21,7 +21,7 @@
 
 #include <volk_rank_archs.h>
 #include <volk/volk_prefs.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -38,7 +38,7 @@ int volk_get_index(
     }
     //TODO return -1;
     //something terrible should happen here
-    printf("Volk warning: no arch found, returning generic impl\n");
+    VOLK_LOG("Volk warning: no arch found, returning generic impl\n");
     return volk_get_index(impl_names, n_impls, "generic"); //but we'll fake it for now
 }
 

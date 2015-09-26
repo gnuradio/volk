@@ -83,7 +83,7 @@
 #define INCLUDED_volk_32f_x3_sum_of_poly_32f_a_H
 
 #include<inttypes.h>
-#include<stdio.h>
+#include<volk/logging.h>
 #include<volk/volk_complex.h>
 
 #ifndef MAX
@@ -285,7 +285,7 @@ volk_32f_x3_sum_of_poly_32f_generic(float* target, float* src0, float* center_po
 	       center_point_array[2] * thrd +
 	       center_point_array[3] * frth); //+
 	       //center_point_array[4] * fith);
-    /*printf("%f12...%d\n", (center_point_array[0] * fst +
+    /*VOLK_LOG("%f12...%d\n", (center_point_array[0] * fst +
 		  center_point_array[1] * sq +
 		  center_point_array[2] * thrd +
 			 center_point_array[3] * frth) +

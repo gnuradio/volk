@@ -257,7 +257,7 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_neon(lv_32fc_t* result, 
 
 #include <volk/volk_common.h>
 #include<volk/volk_complex.h>
-#include<stdio.h>
+#include<volk/logging.h>
 
 
 #ifdef LV_HAVE_GENERIC
@@ -580,7 +580,7 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse_32(lv_32fc_t* resu
 
 
 
-  printf("%d, %d\n", leftovers, bound);
+  VOLK_LOG("%d, %d\n", leftovers, bound);
 
   for(; leftovers > 0; leftovers -= 8) {
 

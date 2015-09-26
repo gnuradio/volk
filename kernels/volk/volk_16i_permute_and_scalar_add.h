@@ -59,7 +59,7 @@
 #define INCLUDED_volk_16i_permute_and_scalar_add_a_H
 
 #include<inttypes.h>
-#include<stdio.h>
+#include<volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 

@@ -63,7 +63,7 @@
  *   volk_32f_tan_32f(out, in, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("tan(%1.3f) = %1.3f\n", in[ii], out[ii]);
+ *       VOLK_LOG("tan(%1.3f) = %1.3f\n", in[ii], out[ii]);
  *   }
  *
  *   volk_free(in);
@@ -71,7 +71,7 @@
  * \endcode
  */
 
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 #include <inttypes.h>
 

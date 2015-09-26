@@ -61,9 +61,9 @@
  *
  *   volk_32fc_s32fc_multiply_32fc(out, in, scalar, N);
  *
- *   printf(" mag   phase  |   mag   phase\n");
+ *   VOLK_LOG(" mag   phase  |   mag   phase\n");
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("%+1.2f  %+1.2f  |  %+1.2f   %+1.2f\n",
+ *       VOLK_LOG("%+1.2f  %+1.2f  |  %+1.2f   %+1.2f\n",
  *           std::abs(in[ii]), std::arg(in[ii]),
  *           std::abs(out[ii]), std::arg(out[ii]));
  *   }
@@ -77,7 +77,7 @@
 #define INCLUDED_volk_32fc_s32fc_multiply_32fc_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <volk/volk_complex.h>
 #include <float.h>
 
@@ -192,7 +192,7 @@ static inline void volk_32fc_s32fc_multiply_32fc_generic(lv_32fc_t* cVector, con
 #define INCLUDED_volk_32fc_s32fc_multiply_32fc_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <volk/volk_complex.h>
 #include <float.h>
 

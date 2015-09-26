@@ -121,7 +121,7 @@ static inline unsigned int get_avx2_enabled(void) {
 #if defined(__arm__) && defined(__linux__)
     #include <asm/hwcap.h>
     #include <linux/auxvec.h>
-    #include <stdio.h>
+    #include <volk/logging.h>
     #define VOLK_CPU_ARM
 #endif
 

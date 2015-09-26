@@ -59,7 +59,7 @@
     volk_64f_x2_min_64f(out, increasing, decreasing, N);
 
     for(unsigned int ii = 0; ii < N; ++ii){
-        printf("out[%u] = %1.2g\n", ii, out[ii]);
+        VOLK_LOG("out[%u] = %1.2g\n", ii, out[ii]);
     }
 
     volk_free(increasing);
@@ -72,7 +72,7 @@
 #define INCLUDED_volk_64f_x2_min_64f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>

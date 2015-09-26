@@ -54,7 +54,7 @@
 #define INCLUDED_volk_16u_byteswap_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #if LV_HAVE_AVX2
 #include <immintrin.h>
@@ -182,7 +182,7 @@ static inline void volk_16u_byteswap_generic(uint16_t* intsToSwap, unsigned int 
 #define INCLUDED_volk_16u_byteswap_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>

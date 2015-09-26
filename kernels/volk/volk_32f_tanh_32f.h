@@ -57,7 +57,7 @@
  *   volk_32f_tanh_32f(out, in, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %f\n", ii, out[ii]);
+ *       VOLK_LOG("out(%i) = %f\n", ii, out[ii]);
  *   }
  *
  *   volk_free(in);
@@ -69,7 +69,7 @@
 #define INCLUDED_volk_32f_tanh_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 #include <string.h>
 

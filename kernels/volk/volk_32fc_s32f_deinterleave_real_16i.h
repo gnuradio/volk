@@ -62,7 +62,7 @@
  *   volk_32fc_s32f_deinterleave_real_16i(out, in, scale, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out[%u] = %i\n", ii, out[ii]);
+ *       VOLK_LOG("out[%u] = %i\n", ii, out[ii]);
  *   }
  *
  *   volk_free(in);
@@ -75,7 +75,7 @@
 
 #include <volk/volk_common.h>
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>

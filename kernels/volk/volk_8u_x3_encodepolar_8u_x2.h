@@ -74,7 +74,7 @@
 
 #ifndef VOLK_KERNELS_VOLK_VOLK_8U_X3_ENCODEPOLAR_8U_X2_U_H_
 #define VOLK_KERNELS_VOLK_VOLK_8U_X3_ENCODEPOLAR_8U_X2_U_H_
-#include <stdio.h>
+#include <volk/logging.h>
 #include <volk/volk_8u_x2_encodeframepolar_8u.h>
 
 static inline void
