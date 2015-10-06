@@ -199,6 +199,13 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_sse4_1(lv_32fc_t* outVector
         aPtr += 2;
         cPtr += 2;
     }
+    if (i) {
+        tmp1 = _mm_mul_ps(phase_Val, phase_Val);
+        tmp2 = _mm_hadd_ps(tmp1, tmp1);
+        tmp1 = _mm_shuffle_ps(tmp2, tmp2, 0xD8);
+        tmp2 = _mm_sqrt_ps(tmp1);
+        phase_Val = _mm_div_ps(phase_Val, tmp2);
+    }
 
     _mm_storeu_ps((float*)phase_Ptr, phase_Val);
     for(i = 0; i < num_points%2; ++i) {
@@ -296,6 +303,13 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_sse4_1(lv_32fc_t* outVector
 
         aPtr += 2;
         cPtr += 2;
+    }
+    if (i) {
+        tmp1 = _mm_mul_ps(phase_Val, phase_Val);
+        tmp2 = _mm_hadd_ps(tmp1, tmp1);
+        tmp1 = _mm_shuffle_ps(tmp2, tmp2, 0xD8);
+        tmp2 = _mm_sqrt_ps(tmp1);
+        phase_Val = _mm_div_ps(phase_Val, tmp2);
     }
 
     _mm_storeu_ps((float*)phase_Ptr, phase_Val);
@@ -396,6 +410,13 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx(lv_32fc_t* outVector, c
         aPtr += 4;
         cPtr += 4;
     }
+    if (i) {
+        tmp1 = _mm_mul_ps(phase_Val, phase_Val);
+        tmp2 = _mm_hadd_ps(tmp1, tmp1);
+        tmp1 = _mm_shuffle_ps(tmp2, tmp2, 0xD8);
+        tmp2 = _mm_sqrt_ps(tmp1);
+        phase_Val = _mm_div_ps(phase_Val, tmp2);
+    }
 
     _mm256_storeu_ps((float*)phase_Ptr, phase_Val);
     for(i = 0; i < num_points%4; ++i) {
@@ -494,6 +515,13 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx(lv_32fc_t* outVector, c
 
         aPtr += 4;
         cPtr += 4;
+    }
+    if (i) {
+        tmp1 = _mm_mul_ps(phase_Val, phase_Val);
+        tmp2 = _mm_hadd_ps(tmp1, tmp1);
+        tmp1 = _mm_shuffle_ps(tmp2, tmp2, 0xD8);
+        tmp2 = _mm_sqrt_ps(tmp1);
+        phase_Val = _mm_div_ps(phase_Val, tmp2);
     }
 
     _mm256_storeu_ps((float*)phase_Ptr, phase_Val);
