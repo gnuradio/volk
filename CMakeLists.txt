@@ -162,6 +162,7 @@ install(FILES
     ${CMAKE_SOURCE_DIR}/include/volk/volk_common.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
+    ${CMAKE_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
     ${CMAKE_BINARY_DIR}/include/volk/volk.h
     ${CMAKE_BINARY_DIR}/include/volk/volk_cpu.h
     ${CMAKE_BINARY_DIR}/include/volk/volk_config_fixed.h
