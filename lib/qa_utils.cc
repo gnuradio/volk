@@ -231,7 +231,8 @@ bool fcompare(t *in1, t *in2, unsigned int vlen, float tol) {
             {
                 fail=true;
                 if(print_max_errs-- > 0) {
-                    std::cout << "offset " << i << " in1: " << t(((t *)(in1))[i]) << " in2: " << t(((t *)(in2))[i]) << std::endl;
+                    std::cout << "offset " << i << " in1: " << t(((t *)(in1))[i]) << " in2: " << t(((t *)(in2))[i]);
+                    std::cout << " tolerance was: " << tol << std::endl;
                 }
             }
         }
@@ -239,7 +240,8 @@ bool fcompare(t *in1, t *in2, unsigned int vlen, float tol) {
         else if(fabs(((t *)(in1))[i] - ((t *)(in2))[i])/fabs(((t *)in1)[i]) > tol) {
             fail=true;
             if(print_max_errs-- > 0) {
-                std::cout << "offset " << i << " in1: " << t(((t *)(in1))[i]) << " in2: " << t(((t *)(in2))[i]) << std::endl;
+                std::cout << "offset " << i << " in1: " << t(((t *)(in1))[i]) << " in2: " << t(((t *)(in2))[i]);
+                std::cout << " tolerance was: " << tol << std::endl;
             }
         }
     }
@@ -263,7 +265,8 @@ bool ccompare(t *in1, t *in2, unsigned int vlen, float tol) {
             {
                 fail=true;
                 if(print_max_errs-- > 0) {
-                    std::cout << "offset " << i/2 << " in1: " << in1[i] << " + " << in1[i+1] << "j  in2: " << in2[i] << " + " << in2[i+1] << "j" << std::endl;
+                    std::cout << "offset " << i/2 << " in1: " << in1[i] << " + " << in1[i+1] << "j  in2: " << in2[i] << " + " << in2[i+1] << "j";
+                    std::cout << " tolerance was: " << tol << std::endl;
                 }
             }
         }
@@ -271,7 +274,8 @@ bool ccompare(t *in1, t *in2, unsigned int vlen, float tol) {
         else if((err / norm) > tol) {
             fail=true;
             if(print_max_errs-- > 0) {
-                std::cout << "offset " << i/2 << " in1: " << in1[i] << " + " << in1[i+1] << "j  in2: " << in2[i] << " + " << in2[i+1] << "j" << std::endl;
+                std::cout << "offset " << i/2 << " in1: " << in1[i] << " + " << in1[i+1] << "j  in2: " << in2[i] << " + " << in2[i+1] << "j";
+                std::cout << " tolerance was: " << tol << std::endl;
             }
         }
     }
@@ -287,7 +291,8 @@ bool icompare(t *in1, t *in2, unsigned int vlen, unsigned int tol) {
       if(((unsigned int)abs(int(((t *)(in1))[i]) - int(((t *)(in2))[i]))) > tol) {
             fail=true;
             if(print_max_errs-- > 0) {
-                std::cout << "offset " << i << " in1: " << static_cast<int>(t(((t *)(in1))[i])) << " in2: " << static_cast<int>(t(((t *)(in2))[i])) << std::endl;
+                std::cout << "offset " << i << " in1: " << static_cast<int>(t(((t *)(in1))[i])) << " in2: " << static_cast<int>(t(((t *)(in2))[i]));
+                std::cout << " tolerance was: " << tol << std::endl;
             }
         }
     }
