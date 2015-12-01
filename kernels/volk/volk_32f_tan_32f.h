@@ -116,7 +116,7 @@ volk_32f_tan_32f_a_sse4_1(float* bVector, const float* aVector,
   for(;number < quarterPoints; number++){
     aVal = _mm_load_ps(aPtr);
     s = _mm_sub_ps(aVal, _mm_and_ps(_mm_mul_ps(aVal, ftwos), _mm_cmplt_ps(aVal, fzeroes)));
-    q = _mm_cvtps_epi32(_mm_mul_ps(s, m4pi));
+    q = _mm_cvtps_epi32(_mm_floor_ps(_mm_mul_ps(s, m4pi)));
     r = _mm_add_epi32(q, _mm_and_si128(q, ones));
 
     s = _mm_sub_ps(s, _mm_mul_ps(_mm_cvtepi32_ps(r), pio4A));
@@ -201,7 +201,7 @@ volk_32f_tan_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num
   for(;number < quarterPoints; number++){
     aVal = _mm_loadu_ps(aPtr);
     s = _mm_sub_ps(aVal, _mm_and_ps(_mm_mul_ps(aVal, ftwos), _mm_cmplt_ps(aVal, fzeroes)));
-    q = _mm_cvtps_epi32(_mm_mul_ps(s, m4pi));
+    q = _mm_cvtps_epi32(_mm_floor_ps(_mm_mul_ps(s, m4pi)));
     r = _mm_add_epi32(q, _mm_and_si128(q, ones));
 
     s = _mm_sub_ps(s, _mm_mul_ps(_mm_cvtepi32_ps(r), pio4A));
