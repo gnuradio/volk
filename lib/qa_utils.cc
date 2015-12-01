@@ -22,7 +22,7 @@
 #include <volk/volk_malloc.h>
 
 float uniform() {
-  return 2.0f * ((float) rand() / RAND_MAX - 0.5f);	// uniformly (-1, 1)
+  return M_PI*2.0f * ((float) rand() / RAND_MAX - 0.5f);	// uniformly (-1, 1)
 }
 
 template <class t>
