@@ -155,7 +155,7 @@ static void get_signatures_from_name(std::vector<volk_type_t> &inputsig,
             if(side == SIDE_INPUT) inputsig.push_back(type);
             else outputsig.push_back(type);
         } catch (...){
-            if(token[0] == 'x') { //it's a multiplier
+            if(token[0] == 'x' && (token.size() > 1) && (token[1] > '0' || token[1] < '9')) { //it's a multiplier
                 if(side == SIDE_INPUT) assert(inputsig.size() > 0);
                 else assert(outputsig.size() > 0);
                 int multiplier = boost::lexical_cast<int>(token.substr(1, token.size()-1)); //will throw if invalid
