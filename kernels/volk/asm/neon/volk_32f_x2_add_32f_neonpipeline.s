@@ -29,6 +29,7 @@ volk_32f_x2_add_32f_neonpipeline:
 	vld1.32	{d0-d1}, [aVector:128]!	@ aVal
 	vld1.32	{d2-d3}, [bVector:128]!	@ bVal
 	subs number, number, #1
+    beq .flushpipe
 
 .loop1:
 	pld [aVector, #128] @ pre-load hint - this is implementation specific!
@@ -41,6 +42,7 @@ volk_32f_x2_add_32f_neonpipeline:
 	subs number, number, #1
 	bne	.loop1	@ first loop
 
+.flushpipe:
 	@ One more time
 	vadd.f32 cVal, bVal, aVal
 	vst1.32	{d4-d5}, [cVector:128]! @ cVal
@@ -61,8 +63,3 @@ volk_32f_x2_add_32f_neonpipeline:
 .done:
 	ldmfd	sp!, {r7, r8, sl} @ epilogue - restore register states
 	bx	lr
-
-
-
-
-
