@@ -80,14 +80,20 @@ print_llr_tree(const float* llrs, const int frame_size, const int frame_exp)
   }
 }
 
+static inline int
+maximum_frame_size(const int elements)
+{
+  unsigned int frame_size = next_lower_power_of_two(elements);
+  unsigned int frame_exp = log2_of_power_of_2(frame_size);
+  return next_lower_power_of_two(frame_size / frame_exp);
+}
+
 #ifdef LV_HAVE_GENERIC
 static inline void
 volk_32f_8u_polarbutterflypuppet_32f_generic(float* llrs, const float* input, unsigned char* u, const int elements)
 {
-  unsigned int frame_size = next_lower_power_of_two(elements);
+  unsigned int frame_size = maximum_frame_size(elements);
   unsigned int frame_exp = log2_of_power_of_2(frame_size);
-  frame_size = frame_size / frame_exp;
-  frame_exp = log2_of_power_of_2(frame_size);
 
   sanitize_bytes(u, elements);
   generate_error_free_input_vector(llrs + frame_exp * frame_size, u, frame_size);
@@ -106,10 +112,8 @@ volk_32f_8u_polarbutterflypuppet_32f_generic(float* llrs, const float* input, un
 static inline void
 volk_32f_8u_polarbutterflypuppet_32f_u_avx(float* llrs, const float* input, unsigned char* u, const int elements)
 {
-  unsigned int frame_size = next_lower_power_of_two(elements);
+  unsigned int frame_size = maximum_frame_size(elements);
   unsigned int frame_exp = log2_of_power_of_2(frame_size);
-  frame_size = frame_size / frame_exp;
-  frame_exp = log2_of_power_of_2(frame_size);
 
   sanitize_bytes(u, elements);
   generate_error_free_input_vector(llrs + frame_exp * frame_size, u, frame_size);
