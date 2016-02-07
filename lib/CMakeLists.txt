@@ -350,6 +350,8 @@ if(MSVC)
         set(cmake_c_compiler_version "Microsoft Visual Studio 11.0")
     elseif(MSVC12) #Visual Studio 12
         SET(cmake_c_compiler_version "Microsoft Visual Studio 12.0")
+    elseif(MSVC14) #Visual Studio 14
+        SET(cmake_c_compiler_version "Microsoft Visual Studio 14.0")
     endif()
 else()
     execute_process(COMMAND ${CMAKE_C_COMPILER} --version
