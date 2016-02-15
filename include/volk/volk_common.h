@@ -68,7 +68,11 @@
 #include <inttypes.h>
 
 #ifdef LV_HAVE_SSE
+#ifdef _WIN32
+#include <intrin.h>
+#else
 #include <x86intrin.h>
+#endif
 #endif
 
 union bit128{
