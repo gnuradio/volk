@@ -57,7 +57,7 @@ struct VOLK_CPU volk_cpu;
 #elif defined(_MSC_VER) && defined(HAVE_INTRIN_H)
     #include <intrin.h>
     #define cpuid_x86(op, r) __cpuid(((int*)r), op)
-    #define cpuid_x86_count(op, count, regs) __cpuidex(regs, op, count)
+    #define cpuid_x86_count(op, count, regs) __cpuidex((int*)regs, op, count)
 
     #if defined(_XCR_XFEATURE_ENABLED_MASK)
     #define __xgetbv() _xgetbv(_XCR_XFEATURE_ENABLED_MASK)
