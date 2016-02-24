@@ -90,7 +90,7 @@ endif()
 ########################################################################
 execute_process(
     COMMAND ${PYTHON_EXECUTABLE} ${PYTHON_DASH_B}
-    ${CMAKE_SOURCE_DIR}/gen/volk_compile_utils.py
+    ${PROJECT_SOURCE_DIR}/gen/volk_compile_utils.py
     --mode "arch_flags" --compiler "${COMPILER_NAME}"
     OUTPUT_VARIABLE arch_flag_lines OUTPUT_STRIP_TRAILING_WHITESPACE
 )
@@ -278,7 +278,7 @@ message(STATUS "Available architectures: ${available_archs}")
 ########################################################################
 execute_process(
     COMMAND ${PYTHON_EXECUTABLE} ${PYTHON_DASH_B}
-    ${CMAKE_SOURCE_DIR}/gen/volk_compile_utils.py
+    ${PROJECT_SOURCE_DIR}/gen/volk_compile_utils.py
     --mode "machines" --archs "${available_archs}"
     OUTPUT_VARIABLE available_machines OUTPUT_STRIP_TRAILING_WHITESPACE
 )
@@ -310,9 +310,9 @@ message(STATUS "Available machines: ${available_machines}")
 ########################################################################
 
 #dependencies are all python, xml, and header implementation files
-file(GLOB xml_files ${CMAKE_SOURCE_DIR}/gen/*.xml)
-file(GLOB py_files ${CMAKE_SOURCE_DIR}/gen/*.py)
-file(GLOB h_files ${CMAKE_SOURCE_DIR}/kernels/volk/*.h)
+file(GLOB xml_files ${PROJECT_SOURCE_DIR}/gen/*.xml)
+file(GLOB py_files ${PROJECT_SOURCE_DIR}/gen/*.py)
+file(GLOB h_files ${PROJECT_SOURCE_DIR}/kernels/volk/*.h)
 
 macro(gen_template tmpl output)
     list(APPEND volk_gen_sources ${output})
@@ -320,21 +320,21 @@ macro(gen_template tmpl output)
         OUTPUT ${output}
         DEPENDS ${xml_files} ${py_files} ${h_files} ${tmpl}
         COMMAND ${PYTHON_EXECUTABLE} ${PYTHON_DASH_B}
-        ${CMAKE_SOURCE_DIR}/gen/volk_tmpl_utils.py
+        ${PROJECT_SOURCE_DIR}/gen/volk_tmpl_utils.py
         --input ${tmpl} --output ${output} ${ARGN}
     )
 endmacro(gen_template)
 
-make_directory(${CMAKE_BINARY_DIR}/include/volk)
+make_directory(${PROJECT_BINARY_DIR}/include/volk)
 
-gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk.tmpl.h              ${CMAKE_BINARY_DIR}/include/volk/volk.h)
-gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk.tmpl.c              ${CMAKE_BINARY_DIR}/lib/volk.c)
-gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk_typedefs.tmpl.h     ${CMAKE_BINARY_DIR}/include/volk/volk_typedefs.h)
-gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk_cpu.tmpl.h          ${CMAKE_BINARY_DIR}/include/volk/volk_cpu.h)
-gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk_cpu.tmpl.c          ${CMAKE_BINARY_DIR}/lib/volk_cpu.c)
-gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk_config_fixed.tmpl.h ${CMAKE_BINARY_DIR}/include/volk/volk_config_fixed.h)
-gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk_machines.tmpl.h     ${CMAKE_BINARY_DIR}/lib/volk_machines.h)
-gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk_machines.tmpl.c     ${CMAKE_BINARY_DIR}/lib/volk_machines.c)
+gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk.tmpl.h              ${PROJECT_BINARY_DIR}/include/volk/volk.h)
+gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk.tmpl.c              ${PROJECT_BINARY_DIR}/lib/volk.c)
+gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_typedefs.tmpl.h     ${PROJECT_BINARY_DIR}/include/volk/volk_typedefs.h)
+gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_cpu.tmpl.h          ${PROJECT_BINARY_DIR}/include/volk/volk_cpu.h)
+gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_cpu.tmpl.c          ${PROJECT_BINARY_DIR}/lib/volk_cpu.c)
+gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_config_fixed.tmpl.h ${PROJECT_BINARY_DIR}/include/volk/volk_config_fixed.h)
+gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_machines.tmpl.h     ${PROJECT_BINARY_DIR}/lib/volk_machines.h)
+gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_machines.tmpl.c     ${PROJECT_BINARY_DIR}/lib/volk_machines.c)
 
 set(BASE_CFLAGS NONE)
 string(TOUPPER ${CMAKE_BUILD_TYPE} CBTU)
@@ -362,12 +362,12 @@ set(COMPILER_INFO "${CMAKE_C_COMPILER}:::${CMAKE_C_FLAGS_${GRCBTU}} ${CMAKE_C_FL
 foreach(machine_name ${available_machines})
     #generate machine source
     set(machine_source ${CMAKE_CURRENT_BINARY_DIR}/volk_machine_${machine_name}.c)
-    gen_template(${CMAKE_SOURCE_DIR}/tmpl/volk_machine_xxx.tmpl.c ${machine_source} ${machine_name})
+    gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_machine_xxx.tmpl.c ${machine_source} ${machine_name})
 
     #determine machine flags
     execute_process(
         COMMAND ${PYTHON_EXECUTABLE} ${PYTHON_DASH_B}
-        ${CMAKE_SOURCE_DIR}/gen/volk_compile_utils.py
+        ${PROJECT_SOURCE_DIR}/gen/volk_compile_utils.py
         --mode "machine_flags" --machine "${machine_name}" --compiler "${COMPILER_NAME}"
         OUTPUT_VARIABLE ${machine_name}_flags OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -393,9 +393,9 @@ string(REPLACE "\n" " \\n" COMPILER_INFO ${COMPILER_INFO})
 # Set local include directories first
 ########################################################################
 include_directories(
-    ${CMAKE_BINARY_DIR}/include
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/kernels
+    ${PROJECT_BINARY_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/kernels
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -420,8 +420,8 @@ if(${CMAKE_VERSION} VERSION_GREATER "2.8.9")
       # setup architecture specific assembler flags
       set(ARCH_ASM_FLAGS "-mfpu=neon -g")
       # then add the files
-      include_directories(${CMAKE_SOURCE_DIR}/kernels/volk/asm/neon)
-      file(GLOB asm_files ${CMAKE_SOURCE_DIR}/kernels/volk/asm/neon/*.s)
+      include_directories(${PROJECT_SOURCE_DIR}/kernels/volk/asm/neon)
+      file(GLOB asm_files ${PROJECT_SOURCE_DIR}/kernels/volk/asm/neon/*.s)
       foreach(asm_file ${asm_files})
         list(APPEND volk_sources ${asm_file})
         message(STATUS "Adding source file: ${asm_file}")
@@ -453,7 +453,7 @@ if(ORC_FOUND)
     list(APPEND volk_libraries ${ORC_LIBRARIES})
 
     #setup orc functions
-    file(GLOB orc_files ${CMAKE_SOURCE_DIR}/kernels/volk/asm/orc/*.orc)
+    file(GLOB orc_files ${PROJECT_SOURCE_DIR}/kernels/volk/asm/orc/*.orc)
     foreach(orc_file ${orc_files})
 
         #extract the name for the generated c source from the orc file
@@ -511,7 +511,7 @@ PROPERTIES COMPILE_DEFINITIONS "${machine_defs}")
 
 if(MSVC)
     #add compatibility includes for stdint types
-    include_directories(${CMAKE_SOURCE_DIR}/cmake/msvc)
+    include_directories(${PROJECT_SOURCE_DIR}/cmake/msvc)
     add_definitions(-DHAVE_CONFIG_H)
     #compile the sources as C++ due to the lack of complex.h under MSVC
     set_source_files_properties(${volk_sources} PROPERTIES LANGUAGE CXX)

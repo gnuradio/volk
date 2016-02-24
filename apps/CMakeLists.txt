@@ -19,23 +19,23 @@
 # Setup profiler
 ########################################################################
 if(MSVC)
-    include_directories(${CMAKE_SOURCE_DIR}/cmake/msvc)
+    include_directories(${PROJECT_SOURCE_DIR}/cmake/msvc)
 endif(MSVC)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_BINARY_DIR}/include
-    ${CMAKE_SOURCE_DIR}/lib
-    ${CMAKE_BINARY_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
+    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_BINARY_DIR}/lib
     ${Boost_INCLUDE_DIRS}
 )
 
 # MAKE volk_profile
 add_executable(volk_profile
     ${CMAKE_CURRENT_SOURCE_DIR}/volk_profile.cc
-    ${CMAKE_SOURCE_DIR}/lib/qa_utils.cc
+    ${PROJECT_SOURCE_DIR}/lib/qa_utils.cc
 )
 
 
