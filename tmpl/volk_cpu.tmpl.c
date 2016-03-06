@@ -75,13 +75,6 @@ static inline unsigned int cpuid_count_x86_bit(unsigned int level, unsigned int 
 #if defined(VOLK_CPU_x86)
     unsigned int regs[4] = {0};
     cpuid_x86_count(level, count, regs);
-	unsigned int regs[4];
-	cpuid_count(level, count, regs);
-	//__cpuidex(regs, level, count);
-#elif defined(__GNUC__)
-#else
-#error No __cpuid()!
-#endif
 	return regs[reg] >> bit & 0x01;
 #else
     return 0;
