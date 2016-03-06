@@ -44,7 +44,7 @@ message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 
 set(VERSION_INFO_MAJOR_VERSION 1)
 set(VERSION_INFO_MINOR_VERSION 2)
-set(VERSION_INFO_MAINT_VERSION 0)
+set(VERSION_INFO_MAINT_VERSION 1)
 include(VolkVersion) #setup version info
 
 
@@ -162,6 +162,7 @@ install(FILES
     ${CMAKE_SOURCE_DIR}/include/volk/volk_common.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
+    ${CMAKE_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
     ${CMAKE_BINARY_DIR}/include/volk/volk.h
     ${CMAKE_BINARY_DIR}/include/volk/volk_cpu.h
     ${CMAKE_BINARY_DIR}/include/volk/volk_config_fixed.h

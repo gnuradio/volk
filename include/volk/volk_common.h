@@ -68,10 +68,11 @@
 #include <inttypes.h>
 
 #ifdef LV_HAVE_SSE
-#if defined(_MSC_VER)
+#ifdef _WIN32
 #include <intrin.h>
-#else 
+#else
 #include <x86intrin.h>
+#endif
 #endif 
 #endif
 

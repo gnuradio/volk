@@ -99,24 +99,25 @@ macro(check_arch arch_name)
     set(flags ${ARGN})
     set(have_${arch_name} TRUE)
     foreach(flag ${flags})
-        if ((${flag} STREQUAL "/arch:SSE2" OR ${flag} STREQUAL "/arch:SSE" ) AND ${COMPILER_NAME} STREQUAL "MSVC" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-			# SSE/SSE2 is supported in MSVC since VS 2005 but flag not available when compiling 64-bit so do not check
-		else() 
-			include(CheckCXXCompilerFlag)
-			set(have_flag have${flag})
-			execute_process( #make the have_flag have nice alphanum chars (just for looks/not necessary)
-				COMMAND ${PYTHON_EXECUTABLE} -c "import re; print(re.sub('\\W', '_', '${have_flag}'))"
-				OUTPUT_VARIABLE have_flag OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-			if(VOLK_FLAG_CHECK_FLAGS)
-				set(CMAKE_REQUIRED_FLAGS ${VOLK_FLAG_CHECK_FLAGS})
-			endif()
-			CHECK_CXX_COMPILER_FLAG(${flag} ${have_flag})
-			unset(CMAKE_REQUIRED_FLAGS)
-			if (NOT ${have_flag})
-				set(have_${arch_name} FALSE)
-			endif()
-		endif()
+        if (MSVC AND (${flag} STREQUAL "/arch:SSE2" OR ${flag} STREQUAL "/arch:SSE" ))
+            # SSE/SSE2 is supported in MSVC since VS 2005 but flag not available when compiling 64-bit so do not check
+        else()
+            include(CheckCXXCompilerFlag)
+            set(have_flag have${flag})
+            #make the have_flag have nice alphanum chars (just for looks/not necessary)
+            execute_process(
+                COMMAND ${PYTHON_EXECUTABLE} -c "import re; print(re.sub('\\W', '_', '${have_flag}'))"
+                OUTPUT_VARIABLE have_flag OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            if(VOLK_FLAG_CHECK_FLAGS)
+                set(CMAKE_REQUIRED_FLAGS ${VOLK_FLAG_CHECK_FLAGS})
+            endif()
+            CHECK_CXX_COMPILER_FLAG(${flag} ${have_flag})
+            unset(CMAKE_REQUIRED_FLAGS)
+            if (NOT ${have_flag})
+                set(have_${arch_name} FALSE)
+            endif()
+        endif()
     endforeach()
     if (have_${arch_name})
         list(APPEND available_archs ${arch_name})
@@ -349,6 +350,8 @@ if(MSVC)
         set(cmake_c_compiler_version "Microsoft Visual Studio 11.0")
     elseif(MSVC12) #Visual Studio 12
         SET(cmake_c_compiler_version "Microsoft Visual Studio 12.0")
+    elseif(MSVC14) #Visual Studio 14
+        SET(cmake_c_compiler_version "Microsoft Visual Studio 14.0")
     endif()
 else()
     execute_process(COMMAND ${CMAKE_C_COMPILER} --version
