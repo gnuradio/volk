@@ -71,9 +71,18 @@ struct VOLK_CPU volk_cpu;
 
 static inline unsigned int cpuid_count_x86_bit(unsigned int level, unsigned int count, unsigned int reg, unsigned int bit) {
 #if defined(VOLK_CPU_x86)
-    unsigned int regs[4];
+#if defined(_MSC_VER) //&& defined(HAVE_INTRIN_H)
+	#define cpuidex_count(op, cnt, r) __cpuidex(((int*)r), op, cnt)
+	unsigned int regs[4];
+	cpuid_count(level, count, regs);
+	//__cpuidex(regs, level, count);
+#elif defined(__GNUC__)
+	unsigned int regs[4];
     __cpuid_count(level, count, regs[0],  regs[1],  regs[2], regs[3]);
-    return regs[reg] >> bit & 0x01;
+#else
+#error No __cpuid()!
+#endif
+	return regs[reg] >> bit & 0x01;
 #else
     return 0;
 #endif

@@ -68,8 +68,13 @@
 #include <inttypes.h>
 
 #ifdef LV_HAVE_SSE
+#if defined(_MSC_VER)
+#include <intrin.h>
+#else 
 #include <x86intrin.h>
+#endif 
 #endif
+
 
 union bit128{
   uint8_t i8[16];
