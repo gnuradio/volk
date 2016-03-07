@@ -671,7 +671,7 @@ static inline void volk_32f_x2_dot_prod_32f_a_avx2_fma(float * result, const flo
     dotProdVal = _mm256_fmadd_ps(aVal1, bVal1, dotProdVal);
   }
 
-  float dotProductVector[8] __attribute__((aligned(32)));
+  __VOLK_ATTR_ALIGNED(32) float dotProductVector[8];
   _mm256_store_ps(dotProductVector, dotProdVal); // Store the results back into the dot product vector
   _mm256_zeroupper();
 
