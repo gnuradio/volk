@@ -71,11 +71,11 @@ print_llr_tree(const float* llrs, const int frame_size, const int frame_exp)
   int s, e;
   for(s = 0; s < frame_size; s++){
     for(e = 0; e < frame_exp + 1; e++){
-      printf("%+4.2f ", llrs[e * frame_size + s]);
+      VOLK_LOG("%+4.2f ", llrs[e * frame_size + s]);
     }
-    printf("\n");
+    VOLK_LOG("\n");
     if((s + 1) % 8 == 0){
-      printf("\n");
+      VOLK_LOG("\n");
     }
   }
 }

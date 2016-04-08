@@ -49,16 +49,16 @@
  *       0xffffffff, 0x32, 0x64};
  *   uint64_t hamming_distance = 0;
  *
- *   printf("byteswap vector =\n");
+ *   VOLK_LOG("byteswap vector =\n");
  *   for(unsigned int ii=0; ii<N; ++ii){
- *       printf("    %.16lx\n", bitstring[ii]);
+ *       VOLK_LOG("    %.16lx\n", bitstring[ii]);
  *   }
  *
  *   volk_64u_byteswap(bitstring, N);
  *
- *   printf("byteswapped vector =\n");
+ *   VOLK_LOG("byteswapped vector =\n");
  *   for(unsigned int ii=0; ii<N; ++ii){
- *       printf("    %.16lx\n", bitstring[ii]);
+ *       VOLK_LOG("    %.16lx\n", bitstring[ii]);
  *   }
  * \endcode
  */
@@ -67,7 +67,7 @@
 #define INCLUDED_volk_64u_byteswap_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
@@ -297,7 +297,7 @@ static inline void volk_64u_byteswap_neon(uint64_t* intsToSwap, unsigned int num
 #define INCLUDED_volk_64u_byteswap_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 
 #ifdef LV_HAVE_SSE2

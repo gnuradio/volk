@@ -60,7 +60,7 @@
  *   volk_32f_s32f_convert_32i(out, increasing, scale, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out[%u] = %i\n", ii, out[ii]);
+ *       VOLK_LOG("out[%u] = %i\n", ii, out[ii]);
  *   }
  *
  *   volk_free(increasing);
@@ -72,7 +72,7 @@
 #define INCLUDED_volk_32f_s32f_convert_8i_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
@@ -221,7 +221,7 @@ volk_32f_s32f_convert_8i_generic(int8_t* outputVector, const float* inputVector,
 
 #include <volk/volk_common.h>
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>

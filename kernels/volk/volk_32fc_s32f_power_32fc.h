@@ -56,7 +56,7 @@
 #define INCLUDED_volk_32fc_s32f_power_32fc_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 
 //! raise a complex float to a real float power

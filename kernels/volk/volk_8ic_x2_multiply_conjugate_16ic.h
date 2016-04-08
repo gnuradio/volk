@@ -24,7 +24,7 @@
 #define INCLUDED_volk_8ic_x2_multiply_conjugate_16ic_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <volk/volk_complex.h>
 
 #ifdef LV_HAVE_SSE4_1

@@ -57,7 +57,7 @@
 #define INCLUDED_volk_16i_branch_4_state_8_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSSE3
 

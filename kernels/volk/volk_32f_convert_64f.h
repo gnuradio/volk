@@ -54,7 +54,7 @@
  *   volk_32f_convert_64f(out, in, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %g\n", ii, out[ii]);
+ *       VOLK_LOG("out(%i) = %g\n", ii, out[ii]);
  *   }
  *
  *   volk_free(in);
@@ -67,7 +67,7 @@
 #define INCLUDED_volk_32f_convert_64f_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -159,7 +159,7 @@ static inline void volk_32f_convert_64f_generic(double* outputVector, const floa
 #define INCLUDED_volk_32f_convert_64f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>

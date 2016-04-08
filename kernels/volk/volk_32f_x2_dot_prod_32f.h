@@ -60,7 +60,7 @@
  *
  *   volk_32f_x2_dot_prod_32f(out, increasing, ones, N);
  *
- *   printf("out = %1.2f\n", *out);
+ *   VOLK_LOG("out = %1.2f\n", *out);
  *
  *   volk_free(increasing);
  *   volk_free(ones);
@@ -74,7 +74,7 @@
 #define INCLUDED_volk_32f_x2_dot_prod_32f_u_H
 
 #include <volk/volk_common.h>
-#include<stdio.h>
+#include<volk/logging.h>
 
 
 #ifdef LV_HAVE_GENERIC
@@ -364,7 +364,7 @@ static inline void volk_32f_x2_dot_prod_32f_u_avx( float* result, const  float* 
 #define INCLUDED_volk_32f_x2_dot_prod_32f_a_H
 
 #include <volk/volk_common.h>
-#include<stdio.h>
+#include<volk/logging.h>
 
 
 #ifdef LV_HAVE_GENERIC

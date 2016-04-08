@@ -54,7 +54,7 @@
  *   volk_32f_expfast_32f(out, in, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %f\n", ii, out[ii]);
+ *       VOLK_LOG("out(%i) = %f\n", ii, out[ii]);
  *   }
  *
  *   volk_free(in);
@@ -62,7 +62,7 @@
  * \endcode
  */
 
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 #include <inttypes.h>
 

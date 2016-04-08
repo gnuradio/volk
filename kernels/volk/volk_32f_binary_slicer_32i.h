@@ -59,7 +59,7 @@
  *   volk_32f_binary_slicer_32i(out, in, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %i\n", ii, out[ii]);
+ *       VOLK_LOG("out(%i) = %i\n", ii, out[ii]);
  *   }
  *
  *   volk_free(in);

@@ -59,8 +59,8 @@
  *
  *   volk_32f_stddev_and_mean_32f_x2(stddev, mean, rand_numbers, N);
  *
- *   printf("std. dev. = %f\n", *stddev);
- *   printf("mean = %f\n", *mean);
+ *   VOLK_LOG("std. dev. = %f\n", *stddev);
+ *   VOLK_LOG("mean = %f\n", *mean);
  *
  *   volk_free(rand_numbers);
  *   volk_free(mean);
@@ -73,7 +73,7 @@
 
 #include <volk/volk_common.h>
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 
 #ifdef LV_HAVE_SSE4_1

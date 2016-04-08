@@ -21,7 +21,7 @@
  */
 
 #include <volk/volk_malloc.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,8 +50,7 @@ void *volk_malloc(size_t size, size_t alignment)
     return ptr;
   }
   else {
-    fprintf(stderr,
-            "VOLK: Error allocating memory "
+    VOLK_LOG_ERR("VOLK: Error allocating memory "
             "(posix_memalign: error %d: %s)\n", err, strerror(err));
     return NULL;
   }
@@ -70,7 +69,7 @@ void *volk_malloc(size_t size, size_t alignment)
 {
   void *ptr = _aligned_malloc(size, alignment);
   if(ptr == NULL) {
-    fprintf(stderr, "VOLK: Error allocating memory (_aligned_malloc)\n");
+    VOLK_LOG_ERR("VOLK: Error allocating memory (_aligned_malloc)\n");
   }
   return ptr;
 }

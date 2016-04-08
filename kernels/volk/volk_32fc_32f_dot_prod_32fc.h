@@ -64,7 +64,7 @@
 #define INCLUDED_volk_32fc_32f_dot_prod_32fc_a_H
 
 #include <volk/volk_common.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_GENERIC
 

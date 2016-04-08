@@ -53,7 +53,7 @@
  *   volk_64f_convert_32f(out, increasing, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out[%u] = %1.2f\n", ii, out[ii]);
+ *       VOLK_LOG("out[%u] = %1.2f\n", ii, out[ii]);
  *   }
  *
  *   volk_free(increasing);
@@ -65,7 +65,7 @@
 #define INCLUDED_volk_64f_convert_32f_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
@@ -122,7 +122,7 @@ static inline void volk_64f_convert_32f_generic(float* outputVector, const doubl
 #define INCLUDED_volk_64f_convert_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>

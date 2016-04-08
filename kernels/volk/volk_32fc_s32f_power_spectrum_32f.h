@@ -54,7 +54,7 @@
 #define INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 
 #ifdef LV_HAVE_SSE3

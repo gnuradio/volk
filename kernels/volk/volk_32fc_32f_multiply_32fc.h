@@ -56,7 +56,7 @@
 #define INCLUDED_volk_32fc_32f_multiply_32fc_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>

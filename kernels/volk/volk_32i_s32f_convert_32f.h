@@ -65,7 +65,7 @@
 #define INCLUDED_volk_32i_s32f_convert_32f_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
@@ -130,7 +130,7 @@ volk_32i_s32f_convert_32f_generic(float* outputVector, const int32_t* inputVecto
 #define INCLUDED_volk_32i_s32f_convert_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>

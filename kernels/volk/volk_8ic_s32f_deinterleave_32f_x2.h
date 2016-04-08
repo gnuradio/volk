@@ -58,7 +58,7 @@
 
 #include <volk/volk_common.h>
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>

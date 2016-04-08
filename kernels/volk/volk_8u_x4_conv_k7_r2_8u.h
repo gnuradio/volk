@@ -128,7 +128,7 @@ BFLY(int i, int s, unsigned char * syms, unsigned char *Y,
 #include <emmintrin.h>
 #include <xmmintrin.h>
 #include <mmintrin.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 static inline void
 volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y, unsigned char* X,
@@ -391,9 +391,9 @@ volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y, unsigned char* X,
 
   /*int ch;
   for(ch = 0; ch < 64; ch++) {
-    printf("%d,", X[ch]);
+    VOLK_LOG("%d,", X[ch]);
   }
-  printf("\n");*/
+  VOLK_LOG("\n");*/
 
   unsigned int j;
   for(j=0; j < (framebits + excess) % 2; ++j) {
@@ -405,11 +405,11 @@ volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y, unsigned char* X,
 
     renormalize(Y, 210);
 
-    /*printf("\n");
+    /*VOLK_LOG("\n");
     for(ch = 0; ch < 64; ch++) {
-      printf("%d,", Y[ch]);
+      VOLK_LOG("%d,", Y[ch]);
     }
-    printf("\n");*/
+    VOLK_LOG("\n");*/
 
   }
   /*skip*/

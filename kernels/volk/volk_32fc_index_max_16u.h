@@ -60,7 +60,7 @@
  *
  *   volk_32fc_index_max_16u(max, in, N);
  *
- *   printf("index of max value = %u\n",  *max);
+ *   VOLK_LOG("index of max value = %u\n",  *max);
  *
  *   volk_free(in);
  *   volk_free(max);
@@ -72,7 +72,7 @@
 
 #include <volk/volk_common.h>
 #include<inttypes.h>
-#include<stdio.h>
+#include<volk/logging.h>
 #include<volk/volk_complex.h>
 
 #ifdef LV_HAVE_SSE3
@@ -108,7 +108,7 @@ volk_32fc_index_max_16u_a_sse3(unsigned int* target, lv_32fc_t* src0,
   xmm10 = _mm_set_epi32(4, 4, 4, 4);
   xmm3 = _mm_setzero_ps();
 
-  //printf("%f, %f, %f, %f\n", ((float*)&xmm10)[0], ((float*)&xmm10)[1], ((float*)&xmm10)[2], ((float*)&xmm10)[3]);
+  //VOLK_LOG("%f, %f, %f, %f\n", ((float*)&xmm10)[0], ((float*)&xmm10)[1], ((float*)&xmm10)[2], ((float*)&xmm10)[3]);
 
   for(; i < bound; ++i) {
     xmm1 = _mm_load_ps((float*)src0);
@@ -133,8 +133,8 @@ volk_32fc_index_max_16u_a_sse3(unsigned int* target, lv_32fc_t* src0,
 
     xmm8 = _mm_add_epi32(xmm8, xmm10);
 
-    //printf("%f, %f, %f, %f\n", ((float*)&xmm3)[0], ((float*)&xmm3)[1], ((float*)&xmm3)[2], ((float*)&xmm3)[3]);
-    //printf("%u, %u, %u, %u\n", ((uint32_t*)&xmm10)[0], ((uint32_t*)&xmm10)[1], ((uint32_t*)&xmm10)[2], ((uint32_t*)&xmm10)[3]);
+    //VOLK_LOG("%f, %f, %f, %f\n", ((float*)&xmm3)[0], ((float*)&xmm3)[1], ((float*)&xmm3)[2], ((float*)&xmm3)[3]);
+    //VOLK_LOG("%u, %u, %u, %u\n", ((uint32_t*)&xmm10)[0], ((uint32_t*)&xmm10)[1], ((uint32_t*)&xmm10)[2], ((uint32_t*)&xmm10)[3]);
   }
 
 
@@ -163,11 +163,11 @@ volk_32fc_index_max_16u_a_sse3(unsigned int* target, lv_32fc_t* src0,
     xmm9 = _mm_add_epi32(xmm11, xmm12);
 
     xmm8 = _mm_add_epi32(xmm8, xmm10);
-    //printf("egads%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
+    //VOLK_LOG("egads%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
   }
 
   for(i = 0; i < leftovers1; ++i) {
-    //printf("%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
+    //VOLK_LOG("%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
 
     sq_dist = lv_creal(src0[0]) * lv_creal(src0[0]) + lv_cimag(src0[0]) * lv_cimag(src0[0]);
 
@@ -188,8 +188,8 @@ volk_32fc_index_max_16u_a_sse3(unsigned int* target, lv_32fc_t* src0,
     xmm9 = _mm_add_epi32(xmm11, xmm12);
   }
 
-  //printf("%f, %f, %f, %f\n", ((float*)&xmm3)[0], ((float*)&xmm3)[1], ((float*)&xmm3)[2], ((float*)&xmm3)[3]);
-  //printf("%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
+  //VOLK_LOG("%f, %f, %f, %f\n", ((float*)&xmm3)[0], ((float*)&xmm3)[1], ((float*)&xmm3)[2], ((float*)&xmm3)[3]);
+  //VOLK_LOG("%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
 
   _mm_store_ps((float*)&(holderf.f), xmm3);
   _mm_store_si128(&(holderi.int_vec), xmm9);

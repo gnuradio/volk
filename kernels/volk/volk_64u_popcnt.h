@@ -52,7 +52,7 @@
  *
  *   for(unsigned int ii=0; ii<N; ++ii){
  *       volk_64u_popcnt(&hamming_distance, bitstring[ii]);
- *       printf("hamming distance of %lx = %li\n", bitstring[ii], hamming_distance);
+ *       VOLK_LOG("hamming distance of %lx = %li\n", bitstring[ii], hamming_distance);
  *   }
  * \endcode
  */
@@ -60,7 +60,7 @@
 #ifndef INCLUDED_volk_64u_popcnt_a_H
 #define INCLUDED_volk_64u_popcnt_a_H
 
-#include <stdio.h>
+#include <volk/logging.h>
 #include <inttypes.h>
 
 

@@ -25,7 +25,7 @@
 #include <volk/volk_cpu.h>
 #include "volk_rank_archs.h"
 #include <volk/volk.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <string.h>
 #include <assert.h>
 
@@ -53,7 +53,7 @@ struct volk_machine *get_machine(void)
       }
     }
     machine = max_machine;
-    printf("Using Volk machine: %s\n", machine->name);
+    VOLK_LOG("Using Volk machine: %s\n", machine->name);
     __alignment = machine->alignment;
     __alignment_mask = (intptr_t)(__alignment-1);
     return machine;
@@ -68,10 +68,10 @@ void volk_list_machines(void)
   unsigned int i;
   for(i=0; i<n_volk_machines; i++) {
     if(!(volk_machines[i]->caps & (~volk_get_lvarch()))) {
-        printf("%s;", volk_machines[i]->name);
+        VOLK_LOG("%s;", volk_machines[i]->name);
     }
   }
-  printf("\n");
+  VOLK_LOG("\n");
 }
 
 const char* volk_get_machine(void)

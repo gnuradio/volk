@@ -26,7 +26,7 @@
 
 
 #include <volk/volk_complex.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <volk/volk_32fc_s32fc_x2_rotator_32fc.h>
 
 

@@ -59,20 +59,20 @@
  *
  *   volk_32i_x2_and_32i(z, x, y, N);
  *
- *   printf("Karnaugh map for x AND y\n");
- *   printf("y\\x|");
+ *   VOLK_LOG("Karnaugh map for x AND y\n");
+ *   VOLK_LOG("y\\x|");
  *   for(unsigned int ii=0; ii<4; ++ii){
- *       printf(" %.2x ", in_seq[ii]);
+ *       VOLK_LOG(" %.2x ", in_seq[ii]);
  *   }
- *   printf("\n---|---------------\n");
+ *   VOLK_LOG("\n---|---------------\n");
  *   jj = 0;
  *   for(unsigned int ii=0; ii<N; ++ii){
  *       if(((ii+1) % 4) == 1){
- *           printf("%.2x | ", in_seq[jj++]);
+ *           VOLK_LOG("%.2x | ", in_seq[jj++]);
  *       }
- *       printf("%.2x  ", z[ii]);
+ *       VOLK_LOG("%.2x  ", z[ii]);
  *       if(!((ii+1) % 4)){
- *           printf("\n");
+ *           VOLK_LOG("\n");
  *       }
  *   }
  * \endcode
@@ -82,7 +82,7 @@
 #define INCLUDED_volk_32i_x2_and_32i_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>

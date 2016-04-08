@@ -60,7 +60,7 @@
  *   volk_32f_s32f_power_32f(out, increasing, scale, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out[%u] = %f\n", ii, out[ii]);
+ *       VOLK_LOG("out[%u] = %f\n", ii, out[ii]);
  *   }
  *
  *   volk_free(increasing);
@@ -72,7 +72,7 @@
 #define INCLUDED_volk_32f_s32f_power_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 
 #ifdef LV_HAVE_SSE4_1

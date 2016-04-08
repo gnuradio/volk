@@ -71,7 +71,7 @@
 #define INCLUDED_volk_32fc_x2_multiply_32fc_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <volk/volk_complex.h>
 #include <float.h>
 
@@ -216,7 +216,7 @@ volk_32fc_x2_multiply_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 #define INCLUDED_volk_32fc_x2_multiply_32fc_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <volk/volk_complex.h>
 #include <float.h>
 

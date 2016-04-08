@@ -68,7 +68,7 @@ static inline int chainback_viterbi(unsigned char* data,
   d += tailsize * d_decision_t_size ; /* Look past tail */
   int retval;
   int dif = tailsize - (d_k - 1);
-  //printf("break, %d, %d\n", dif, (nbits+dif)%d_framebits);
+  //VOLK_LOG("break, %d, %d\n", dif, (nbits+dif)%d_framebits);
   p_decision_t dec;
   while(nbits-- > d_framebits - (d_k - 1)) {
     int k;
@@ -77,7 +77,7 @@ static inline int chainback_viterbi(unsigned char* data,
 
     endstate = (endstate >> 1) | (k << (d_k-2+d_ADDSHIFT));
     //data[((nbits+dif)%nbits)>>3] = endstate>>d_SUBSHIFT;
-    //printf("%d, %d\n", k, (nbits+dif)%d_framebits);
+    //VOLK_LOG("%d, %d\n", k, (nbits+dif)%d_framebits);
     data[((nbits+dif)%d_framebits)] = k;
 
     retval = endstate;
@@ -94,7 +94,7 @@ static inline int chainback_viterbi(unsigned char* data,
     endstate = (endstate >> 1) | (k << (d_k-2+d_ADDSHIFT));
     data[((nbits+dif)%d_framebits)] = k;
   }
-  //printf("%d, %d, %d, %d, %d, %d, %d, %d\n", data[4095],data[4094],data[4093],data[4092],data[4091],data[4090],data[4089],data[4088]);
+  //VOLK_LOG("%d, %d, %d, %d, %d, %d, %d, %d\n", data[4095],data[4094],data[4093],data[4092],data[4091],data[4090],data[4089],data[4088]);
 
 
   return retval >> d_ADDSHIFT;
@@ -107,7 +107,7 @@ static inline int chainback_viterbi(unsigned char* data,
 #include <emmintrin.h>
 #include <xmmintrin.h>
 #include <mmintrin.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 
 

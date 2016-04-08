@@ -55,7 +55,7 @@
 #define INCLUDED_volk_16i_s32f_convert_32f_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -259,7 +259,7 @@ volk_16i_s32f_convert_32f_neon(float* outputVector, const int16_t* inputVector,
 #define INCLUDED_volk_16i_s32f_convert_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>

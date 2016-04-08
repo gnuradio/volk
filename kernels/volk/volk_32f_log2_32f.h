@@ -78,7 +78,7 @@
  *   volk_32f_log2_32f(out, in, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out(%i) = %f\n", ii, out[ii]);
+ *       VOLK_LOG("out(%i) = %f\n", ii, out[ii]);
  *   }
  *
  *   volk_free(in);
@@ -89,7 +89,7 @@
 #ifndef INCLUDED_volk_32f_log2_32f_a_H
 #define INCLUDED_volk_32f_log2_32f_a_H
 
-#include <stdio.h>
+#include <volk/logging.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <math.h>

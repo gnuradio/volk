@@ -60,7 +60,7 @@
 
 #include <volk/volk_common.h>
 #include <volk/volk_complex.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <string.h>
 
 
@@ -438,7 +438,7 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_avx(lv_32fc_t* result, const lv_
 
 #include <volk/volk_common.h>
 #include <volk/volk_complex.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <string.h>
 
 

@@ -54,7 +54,7 @@
 #define INCLUDED_VOLK_8sc_DEINTERLEAVE_REAL_8s_ALIGNED8_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSSE3
 #include <tmmintrin.h>

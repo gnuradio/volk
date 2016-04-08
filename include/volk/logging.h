@@ -1,6 +1,5 @@
-/* -*- c++ -*- */
 /*
- * Copyright 2014 Free Software Foundation, Inc.
+ * Copyright 2015 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -20,26 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <volk/logging.h>
-#include <math.h>
-#include <inttypes.h>
+#ifndef INCLUDED_VOLK_LOGGING_H
+#define INCLUDED_VOLK_LOGGING_H
 
-#ifndef INCLUDED_volk_32f_null_32f_a_H
-#define INCLUDED_volk_32f_null_32f_a_H
+#include <stdio.h>
 
-#ifdef LV_HAVE_GENERIC
+#define VOLK_LOG(...) fprintf(stderr, __VA_ARGS__)
 
-static inline void
-volk_32f_null_32f_generic(float* bVector, const float* aVector, unsigned int num_points)
-{
-  float* bPtr = bVector;
-  const float* aPtr = aVector;
-  unsigned int number;
+#define VOLK_LOG_ERR(...) fprintf(stderr, __VA_ARGS__)
 
-  for(number = 0; number < num_points; number++){
-    *bPtr++ = *aPtr++;
-  }
-}
-#endif /* LV_HAVE_GENERIC */
-
-#endif /* INCLUDED_volk_32f_null_32f_u_H */
+#endif /* INCLUDED_VOLK_LOGGING_H */

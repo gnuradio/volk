@@ -54,7 +54,7 @@
  *
  *   volk_32f_index_max_16u(out, in, N);
  *
- *   printf("maximum is %1.2f at index %u\n", in[*out], *out);
+ *   VOLK_LOG("maximum is %1.2f at index %u\n", in[*out], *out);
  *
  *   volk_free(in);
  *   volk_free(out);
@@ -67,7 +67,7 @@
 #include <volk/volk_common.h>
 #include <volk/volk_common.h>
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE4_1
 #include<smmintrin.h>

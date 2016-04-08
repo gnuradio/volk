@@ -54,7 +54,7 @@
 #define INCLUDED_volk_8i_convert_16i_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
@@ -122,7 +122,7 @@ volk_8i_convert_16i_generic(int16_t* outputVector, const int8_t* inputVector,
 #define INCLUDED_volk_8i_convert_16i_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>

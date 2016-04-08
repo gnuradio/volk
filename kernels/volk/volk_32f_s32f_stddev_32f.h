@@ -59,7 +59,7 @@
  *
  *   volk_32f_s32f_power_32f(stddev, increasing, mean, N);
  *
- *   printf("std. dev. = %f\n", *stddev);
+ *   VOLK_LOG("std. dev. = %f\n", *stddev);
  *
  *   volk_free(increasing);
  * \endcode
@@ -70,7 +70,7 @@
 
 #include <volk/volk_common.h>
 #include <inttypes.h>
-#include <stdio.h>
+#include <volk/logging.h>
 #include <math.h>
 
 #ifdef LV_HAVE_SSE4_1

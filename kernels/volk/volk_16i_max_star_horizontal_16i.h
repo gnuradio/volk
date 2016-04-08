@@ -56,7 +56,7 @@
 #include <volk/volk_common.h>
 
 #include<inttypes.h>
-#include<stdio.h>
+#include<volk/logging.h>
 
 
 #ifdef LV_HAVE_SSSE3
