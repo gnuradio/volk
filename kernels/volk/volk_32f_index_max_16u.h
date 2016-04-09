@@ -29,7 +29,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigned int num_points)
+ * void volk_32f_index_max_16u(unsigned short* target, const float* src0, unsigned int num_points)
  * \endcode
  *
  * \b Inputs
@@ -44,7 +44,7 @@
  *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *   float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
- *   uint32_t* out = (uint32_t*)volk_malloc(sizeof(uint32_t), alignment);
+ *   uint16_t* out = (uint16_t*)volk_malloc(sizeof(uint16_t), alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
  *       float x = (float)ii;
@@ -73,7 +73,7 @@
 #include<smmintrin.h>
 
 static inline void
-volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigned int num_points)
+volk_32f_index_max_16u_a_sse4_1(unsigned short* target, const float* src0, unsigned int num_points)
 {
   if(num_points > 0){
     unsigned int number = 0;
@@ -123,7 +123,7 @@ volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigne
 	max = src0[number];
       }
     }
-    target[0] = (unsigned int)index;
+    target[0] = (unsigned short)index;
   }
 }
 
@@ -135,7 +135,7 @@ volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigne
 #include<xmmintrin.h>
 
 static inline void
-volk_32f_index_max_16u_a_sse(unsigned int* target, const float* src0, unsigned int num_points)
+volk_32f_index_max_16u_a_sse(unsigned short* target, const float* src0, unsigned int num_points)
 {
   if(num_points > 0){
     unsigned int number = 0;
@@ -186,7 +186,7 @@ volk_32f_index_max_16u_a_sse(unsigned int* target, const float* src0, unsigned i
 	max = src0[number];
       }
     }
-    target[0] = (unsigned int)index;
+    target[0] = (unsigned short)index;
   }
 }
 
@@ -196,11 +196,11 @@ volk_32f_index_max_16u_a_sse(unsigned int* target, const float* src0, unsigned i
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32f_index_max_16u_generic(unsigned int* target, const float* src0, unsigned int num_points)
+volk_32f_index_max_16u_generic(unsigned short* target, const float* src0, unsigned int num_points)
 {
   if(num_points > 0){
     float max = src0[0];
-    unsigned int index = 0;
+    unsigned short index = 0;
 
     unsigned int i = 1;
 

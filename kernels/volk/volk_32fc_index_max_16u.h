@@ -30,7 +30,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_index_max_16u_a_sse3(unsigned int* target, lv_32fc_t* src0, unsigned int num_points)
+ * void volk_32fc_index_max_16u(unsigned short* target, lv_32fc_t* src0, unsigned int num_points)
  * \endcode
  *
  * \b Inputs
@@ -47,7 +47,7 @@
  *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
- *   uint32_t* max = (uint32_t*)volk_malloc(sizeof(uint32_t), alignment);
+ *   uint16_t* max = (uint16_t*)volk_malloc(sizeof(uint16_t), alignment);
  *
  *   for(unsigned int ii = 0; ii < N/2; ++ii){
  *       float real = 2.f * ((float)ii / (float)N) - 1.f;
@@ -80,7 +80,7 @@
 #include<pmmintrin.h>
 
 static inline void
-volk_32fc_index_max_16u_a_sse3(unsigned int* target, lv_32fc_t* src0,
+volk_32fc_index_max_16u_a_sse3(unsigned short* target, lv_32fc_t* src0,
                                unsigned int num_points)
 {
   const unsigned int num_bytes = num_points*8;
@@ -227,14 +227,14 @@ volk_32fc_index_max_16u_a_sse3(unsigned int* target, lv_32fc_t* src0,
 
 #ifdef LV_HAVE_GENERIC
 static inline void
- volk_32fc_index_max_16u_generic(unsigned int* target, lv_32fc_t* src0,
+ volk_32fc_index_max_16u_generic(unsigned short* target, lv_32fc_t* src0,
                                  unsigned int num_points)
 {
   const unsigned int num_bytes = num_points*8;
 
   float sq_dist = 0.0;
   float max = 0.0;
-  unsigned int index = 0;
+  unsigned short index = 0;
 
   unsigned int i = 0;
 
