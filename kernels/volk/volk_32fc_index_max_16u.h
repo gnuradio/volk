@@ -28,6 +28,12 @@
  * Returns Argmax_i mag(x[i]). Finds and returns the index which contains the
  * maximum magnitude for complex points in the given vector.
  *
+ * Note that num_points is a uint32_t, but the return value is
+ * uint16_t. Providing a vector larger than the max of a uint16_t
+ * (65536) would miss anything outside of this boundary. The kernel
+ * will check the length of num_points and cap it to this max value,
+ * anyways.
+ *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_32fc_index_max_16u(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
@@ -71,18 +77,23 @@
 #define INCLUDED_volk_32fc_index_max_16u_a_H
 
 #include <volk/volk_common.h>
-#include<inttypes.h>
-#include<stdio.h>
-#include<volk/volk_complex.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <limits.h>
+#include <volk/volk_complex.h>
 
 #ifdef LV_HAVE_SSE3
-#include<xmmintrin.h>
-#include<pmmintrin.h>
+#include <xmmintrin.h>
+#include <pmmintrin.h>
 
 static inline void
 volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
                                uint32_t num_points)
 {
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+  // Branchless version, if we think it'll make a difference
+  //num_points = USHRT_MAX ^ ((num_points ^ USHRT_MAX) & -(num_points < USHRT_MAX));
+
   const uint32_t num_bytes = num_points*8;
 
   union bit128 holderf;
@@ -230,6 +241,8 @@ static inline void
  volk_32fc_index_max_16u_generic(uint16_t* target, lv_32fc_t* src0,
                                  uint32_t num_points)
 {
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
   const uint32_t num_bytes = num_points*8;
 
   float sq_dist = 0.0;

@@ -74,15 +74,18 @@
 #include <volk/volk_common.h>
 #include <volk/volk_common.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdio.h>
 
 #ifdef LV_HAVE_SSE4_1
-#include<smmintrin.h>
+#include <smmintrin.h>
 
 static inline void
 volk_32f_index_max_16u_a_sse4_1(uint16_t* target, const float* src0,
                                 uint32_t num_points)
 {
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
   uint32_t number = 0;
   const uint32_t quarterPoints = num_points / 4;
 
@@ -138,12 +141,14 @@ volk_32f_index_max_16u_a_sse4_1(uint16_t* target, const float* src0,
 
 #ifdef LV_HAVE_SSE
 
-#include<xmmintrin.h>
+#include <xmmintrin.h>
 
 static inline void
 volk_32f_index_max_16u_a_sse(uint16_t* target, const float* src0,
                              uint32_t num_points)
 {
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
   uint32_t number = 0;
   const uint32_t quarterPoints = num_points / 4;
 
@@ -204,6 +209,8 @@ static inline void
 volk_32f_index_max_16u_generic(uint16_t* target, const float* src0,
                                uint32_t num_points)
 {
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
   float max = src0[0];
   uint16_t index = 0;
 
