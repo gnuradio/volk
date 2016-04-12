@@ -30,7 +30,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_index_max_16u(unsigned short* target, lv_32fc_t* src0, unsigned int num_points)
+ * void volk_32fc_index_max_16u(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
  * \endcode
  *
  * \b Inputs
@@ -45,11 +45,11 @@
  * the unit circle.
  * \code
  *   int N = 10;
- *   unsigned int alignment = volk_get_alignment();
+ *   uint32_t alignment = volk_get_alignment();
  *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *   uint16_t* max = (uint16_t*)volk_malloc(sizeof(uint16_t), alignment);
  *
- *   for(unsigned int ii = 0; ii < N/2; ++ii){
+ *   for(uint32_t ii = 0; ii < N/2; ++ii){
  *       float real = 2.f * ((float)ii / (float)N) - 1.f;
  *       float imag = std::sqrt(1.f - real * real);
  *       in[ii] = lv_cmake(real, imag);
@@ -80,10 +80,10 @@
 #include<pmmintrin.h>
 
 static inline void
-volk_32fc_index_max_16u_a_sse3(unsigned short* target, lv_32fc_t* src0,
-                               unsigned int num_points)
+volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
+                               uint32_t num_points)
 {
-  const unsigned int num_bytes = num_points*8;
+  const uint32_t num_bytes = num_points*8;
 
   union bit128 holderf;
   union bit128 holderi;
@@ -206,11 +206,11 @@ volk_32fc_index_max_16u_a_sse3(unsigned short* target, lv_32fc_t* src0,
   /*
   float placeholder = 0.0;
   uint32_t temp0, temp1;
-  unsigned int g0 = (((float*)&xmm3)[0] > ((float*)&xmm3)[1]);
-  unsigned int l0 = g0 ^ 1;
+  uint32_t g0 = (((float*)&xmm3)[0] > ((float*)&xmm3)[1]);
+  uint32_t l0 = g0 ^ 1;
 
-  unsigned int g1 = (((float*)&xmm3)[1] > ((float*)&xmm3)[2]);
-  unsigned int l1 = g1 ^ 1;
+  uint32_t g1 = (((float*)&xmm3)[1] > ((float*)&xmm3)[2]);
+  uint32_t l1 = g1 ^ 1;
 
   temp0 = g0 * ((uint32_t*)&xmm9)[0] + l0 * ((uint32_t*)&xmm9)[1];
   temp1 = g0 * ((uint32_t*)&xmm9)[2] + l0 * ((uint32_t*)&xmm9)[3];
@@ -227,16 +227,16 @@ volk_32fc_index_max_16u_a_sse3(unsigned short* target, lv_32fc_t* src0,
 
 #ifdef LV_HAVE_GENERIC
 static inline void
- volk_32fc_index_max_16u_generic(unsigned short* target, lv_32fc_t* src0,
-                                 unsigned int num_points)
+ volk_32fc_index_max_16u_generic(uint16_t* target, lv_32fc_t* src0,
+                                 uint32_t num_points)
 {
-  const unsigned int num_bytes = num_points*8;
+  const uint32_t num_bytes = num_points*8;
 
   float sq_dist = 0.0;
   float max = 0.0;
-  unsigned short index = 0;
+  uint16_t index = 0;
 
-  unsigned int i = 0;
+  uint32_t i = 0;
 
   for(; i < num_bytes >> 3; ++i) {
     sq_dist = lv_creal(src0[i]) * lv_creal(src0[i]) + lv_cimag(src0[i]) * lv_cimag(src0[i]);
