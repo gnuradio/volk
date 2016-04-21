@@ -521,10 +521,21 @@ bool run_volk_tests(volk_func_desc_t desc,
                         }
                         break;
                     case 4:
-                        if(both_sigs[j].is_signed) {
-                            fail = icompare((int32_t *) test_data[generic_offset][j], (int32_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
-                        } else {
-                            fail = icompare((uint32_t *) test_data[generic_offset][j], (uint32_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                        if(both_sigs[j].is_complex) {
+                            if(both_sigs[j].is_signed) {
+                                fail = icompare((int16_t *) test_data[generic_offset][j], (int16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            } else {
+                                fail = icompare((uint16_t *) test_data[generic_offset][j], (uint16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            }
+                        }
+                        else {
+                            if (both_sigs[j].is_signed) {
+                                fail = icompare((int32_t *) test_data[generic_offset][j], (int32_t *) test_data[i][j],
+                                                vlen * (both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            } else {
+                                fail = icompare((uint32_t *) test_data[generic_offset][j], (uint32_t *) test_data[i][j],
+                                                vlen * (both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            }
                         }
                         break;
                     case 2:
