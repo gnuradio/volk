@@ -22,7 +22,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
 {
 
     // Some kernels need a lower tolerance
-    volk_test_params_t test_params_inacc = volk_test_params_t(1e-3, test_params.scalar(),
+    volk_test_params_t test_params_inacc = volk_test_params_t(1e-2, test_params.scalar(),
             test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
     volk_test_params_t test_params_int1 = volk_test_params_t(1, test_params.scalar(),
             test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
@@ -46,6 +46,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_16ic_s32f_magnitude_32f,                   test_params))
         (VOLK_INIT_TEST(volk_16ic_convert_32fc,                         test_params))
         (VOLK_INIT_TEST(volk_16ic_x2_multiply_16ic,                     test_params))
+        (VOLK_INIT_TEST(volk_16ic_x2_dot_prod_16ic,                     test_params))
         (VOLK_INIT_TEST(volk_16i_s32f_convert_32f,                      test_params))
         (VOLK_INIT_TEST(volk_16i_convert_8i,                            test_params))
         (VOLK_INIT_TEST(volk_16i_32fc_dot_prod_32fc,                    test_params_inacc))
@@ -61,6 +62,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_32f_atan_32f,                              test_params_inacc))
         (VOLK_INIT_TEST(volk_32f_asin_32f,                              test_params_inacc))
         (VOLK_INIT_TEST(volk_32f_acos_32f,                              test_params_inacc))
+        (VOLK_INIT_PUPP(volk_s32f_sincospuppet_32fc, volk_s32f_sincos_32fc, test_params_inacc))
         (VOLK_INIT_TEST(volk_32fc_s32f_power_32fc,                      test_params))
         (VOLK_INIT_TEST(volk_32f_s32f_calc_spectral_noise_floor_32f,    test_params_inacc))
         (VOLK_INIT_TEST(volk_32fc_s32f_atan2_32f,                       test_params))
