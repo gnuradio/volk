@@ -53,8 +53,8 @@ void load_random_data(void *data, volk_type_t type, unsigned int n) {
                 else ((uint32_t *)data)[i] = (uint32_t) scaled_rand;
             break;
             case 2:
-                if(type.is_signed) ((int16_t *)data)[i] = (int16_t) scaled_rand;
-                else ((uint16_t *)data)[i] = (uint16_t) scaled_rand;
+                if(type.is_signed) ((int16_t *)data)[i] = (int16_t)((int16_t) scaled_rand % 16);
+                else ((uint16_t *)data)[i] = (uint16_t) ((int16_t) scaled_rand % 16);
             break;
             case 1:
                 if(type.is_signed) ((int8_t *)data)[i] = (int8_t) scaled_rand;

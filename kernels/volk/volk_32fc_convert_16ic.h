@@ -11,7 +11,7 @@
  *
  * GNU Radio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See thegit
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -31,7 +31,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_convert_16ic(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points);
+ * void volk_32fc_convert_16ic(lv_16sc_t* outputVector, const lv_32fc_t* inputVector, unsigned int num_points);
  * \endcode
  *
  * \b Inputs

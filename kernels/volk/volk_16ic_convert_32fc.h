@@ -57,6 +57,7 @@ static inline void volk_16ic_convert_32fc_generic(lv_32fc_t* outputVector, const
             outputVector[i] = lv_cmake((float)lv_creal(inputVector[i]), (float)lv_cimag(inputVector[i]));
         }
 }
+
 #endif /* LV_HAVE_GENERIC */
 
 
@@ -82,8 +83,8 @@ static inline void volk_16ic_convert_32fc_a_sse2(lv_32fc_t* outputVector, const 
             *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
             _in++;
         }
-
 }
+
 #endif /* LV_HAVE_SSE2 */
 
 
@@ -109,9 +110,65 @@ static inline void volk_16ic_convert_32fc_u_sse2(lv_32fc_t* outputVector, const 
             *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
             _in++;
         }
-
 }
+
 #endif /* LV_HAVE_SSE2 */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_16ic_convert_32fc_u_axv(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
+{
+    const unsigned int sse_iters = num_points / 4;
+
+    const lv_16sc_t* _in = inputVector;
+    lv_32fc_t* _out = outputVector;
+    __m256 a;
+    for(unsigned int number = 0; number < sse_iters; number++)
+        {
+            a = _mm256_set_ps((float)(lv_cimag(_in[3])), (float)(lv_creal(_in[3])), (float)(lv_cimag(_in[2])), (float)(lv_creal(_in[2])), (float)(lv_cimag(_in[1])), (float)(lv_creal(_in[1])), (float)(lv_cimag(_in[0])), (float)(lv_creal(_in[0]))); // //load (2 byte imag, 2 byte real) x 2 into 128 bits reg
+            _mm256_storeu_ps((float*)_out, a);
+            _in += 4;
+            _out += 4;
+        }
+    _mm256_zeroupper();
+    for (unsigned int i = 0; i < (num_points % 4); ++i)
+        {
+            *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
+            _in++;
+        }
+}
+
+#endif /* LV_HAVE_AVX */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_16ic_convert_32fc_a_axv(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
+{
+    const unsigned int sse_iters = num_points / 4;
+
+    const lv_16sc_t* _in = inputVector;
+    lv_32fc_t* _out = outputVector;
+    __m256 a;
+    for(unsigned int number = 0; number < sse_iters; number++)
+        {
+            a = _mm256_set_ps((float)(lv_cimag(_in[3])), (float)(lv_creal(_in[3])), (float)(lv_cimag(_in[2])), (float)(lv_creal(_in[2])), (float)(lv_cimag(_in[1])), (float)(lv_creal(_in[1])), (float)(lv_cimag(_in[0])), (float)(lv_creal(_in[0]))); // //load (2 byte imag, 2 byte real) x 2 into 128 bits reg
+            _mm256_store_ps((float*)_out, a);
+            _in += 4;
+            _out += 4;
+        }
+    _mm256_zeroupper();
+    for (unsigned int i = 0; i < (num_points % 4); ++i)
+        {
+            *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
+            _in++;
+        }
+}
+
+#endif /* LV_HAVE_AVX */
 
 
 #ifdef LV_HAVE_NEON
