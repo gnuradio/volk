@@ -25,11 +25,18 @@
  *
  * \b Overview
  *
- * Returns Argmax_i x[i]. Finds and returns the index which contains the maximum value in the given vector.
+ * Returns Argmax_i x[i]. Finds and returns the index which contains
+ * the maximum value in the given vector.
+ *
+ * Note that num_points is a uint32_t, but the return value is
+ * uint16_t. Providing a vector larger than the max of a uint16_t
+ * (65536) would miss anything outside of this boundary. The kernel
+ * will check the length of num_points and cap it to this max value,
+ * anyways.
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigned int num_points)
+ * void volk_32f_index_max_16u(uint16_t* target, const float* src0, uint32_t num_points)
  * \endcode
  *
  * \b Inputs
@@ -42,11 +49,11 @@
  * \b Example
  * \code
  *   int N = 10;
- *   unsigned int alignment = volk_get_alignment();
+ *   uint32_t alignment = volk_get_alignment();
  *   float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
- *   uint32_t* out = (uint32_t*)volk_malloc(sizeof(uint32_t), alignment);
+ *   uint16_t* out = (uint16_t*)volk_malloc(sizeof(uint16_t), alignment);
  *
- *   for(unsigned int ii = 0; ii < N; ++ii){
+ *   for(uint32_t ii = 0; ii < N; ++ii){
  *       float x = (float)ii;
  *       // a parabola with a maximum at x=4
  *       in[ii] = -(x-4) * (x-4) + 5;
@@ -67,64 +74,66 @@
 #include <volk/volk_common.h>
 #include <volk/volk_common.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdio.h>
 
 #ifdef LV_HAVE_SSE4_1
-#include<smmintrin.h>
+#include <smmintrin.h>
 
 static inline void
-volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigned int num_points)
+volk_32f_index_max_16u_a_sse4_1(uint16_t* target, const float* src0,
+                                uint32_t num_points)
 {
-  if(num_points > 0){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
 
-    float* inputPtr = (float*)src0;
+  uint32_t number = 0;
+  const uint32_t quarterPoints = num_points / 4;
 
-    __m128 indexIncrementValues = _mm_set1_ps(4);
-    __m128 currentIndexes = _mm_set_ps(-1,-2,-3,-4);
+  float* inputPtr = (float*)src0;
 
-    float max = src0[0];
-    float index = 0;
-    __m128 maxValues = _mm_set1_ps(max);
-    __m128 maxValuesIndex = _mm_setzero_ps();
-    __m128 compareResults;
-    __m128 currentValues;
+  __m128 indexIncrementValues = _mm_set1_ps(4);
+  __m128 currentIndexes = _mm_set_ps(-1,-2,-3,-4);
 
-    __VOLK_ATTR_ALIGNED(16) float maxValuesBuffer[4];
-    __VOLK_ATTR_ALIGNED(16) float maxIndexesBuffer[4];
+  float max = src0[0];
+  float index = 0;
+  __m128 maxValues = _mm_set1_ps(max);
+  __m128 maxValuesIndex = _mm_setzero_ps();
+  __m128 compareResults;
+  __m128 currentValues;
 
-    for(;number < quarterPoints; number++){
+  __VOLK_ATTR_ALIGNED(16) float maxValuesBuffer[4];
+  __VOLK_ATTR_ALIGNED(16) float maxIndexesBuffer[4];
 
-      currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
-      currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
+  for(;number < quarterPoints; number++){
 
-      compareResults = _mm_cmpgt_ps(maxValues, currentValues);
+    currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
+    currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-      maxValuesIndex = _mm_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
-      maxValues      = _mm_blendv_ps(currentValues, maxValues, compareResults);
-    }
+    compareResults = _mm_cmpgt_ps(maxValues, currentValues);
 
-    // Calculate the largest value from the remaining 4 points
-    _mm_store_ps(maxValuesBuffer, maxValues);
-    _mm_store_ps(maxIndexesBuffer, maxValuesIndex);
-
-    for(number = 0; number < 4; number++){
-      if(maxValuesBuffer[number] > max){
-	index = maxIndexesBuffer[number];
-	max = maxValuesBuffer[number];
-      }
-    }
-
-    number = quarterPoints * 4;
-    for(;number < num_points; number++){
-      if(src0[number] > max){
-	index = number;
-	max = src0[number];
-      }
-    }
-    target[0] = (unsigned int)index;
+    maxValuesIndex = _mm_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
+    maxValues      = _mm_blendv_ps(currentValues, maxValues, compareResults);
   }
+
+  // Calculate the largest value from the remaining 4 points
+  _mm_store_ps(maxValuesBuffer, maxValues);
+  _mm_store_ps(maxIndexesBuffer, maxValuesIndex);
+
+  for(number = 0; number < 4; number++){
+    if(maxValuesBuffer[number] > max){
+      index = maxIndexesBuffer[number];
+      max = maxValuesBuffer[number];
+    }
+  }
+
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    if(src0[number] > max){
+      index = number;
+      max = src0[number];
+    }
+  }
+  target[0] = (uint16_t)index;
 }
 
 #endif /*LV_HAVE_SSE4_1*/
@@ -132,62 +141,63 @@ volk_32f_index_max_16u_a_sse4_1(unsigned int* target, const float* src0, unsigne
 
 #ifdef LV_HAVE_SSE
 
-#include<xmmintrin.h>
+#include <xmmintrin.h>
 
 static inline void
-volk_32f_index_max_16u_a_sse(unsigned int* target, const float* src0, unsigned int num_points)
+volk_32f_index_max_16u_a_sse(uint16_t* target, const float* src0,
+                             uint32_t num_points)
 {
-  if(num_points > 0){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
 
-    float* inputPtr = (float*)src0;
+  uint32_t number = 0;
+  const uint32_t quarterPoints = num_points / 4;
 
-    __m128 indexIncrementValues = _mm_set1_ps(4);
-    __m128 currentIndexes = _mm_set_ps(-1,-2,-3,-4);
+  float* inputPtr = (float*)src0;
 
-    float max = src0[0];
-    float index = 0;
-    __m128 maxValues = _mm_set1_ps(max);
-    __m128 maxValuesIndex = _mm_setzero_ps();
-    __m128 compareResults;
-    __m128 currentValues;
+  __m128 indexIncrementValues = _mm_set1_ps(4);
+  __m128 currentIndexes = _mm_set_ps(-1,-2,-3,-4);
 
-    __VOLK_ATTR_ALIGNED(16) float maxValuesBuffer[4];
-    __VOLK_ATTR_ALIGNED(16) float maxIndexesBuffer[4];
+  float max = src0[0];
+  float index = 0;
+  __m128 maxValues = _mm_set1_ps(max);
+  __m128 maxValuesIndex = _mm_setzero_ps();
+  __m128 compareResults;
+  __m128 currentValues;
 
-    for(;number < quarterPoints; number++){
+  __VOLK_ATTR_ALIGNED(16) float maxValuesBuffer[4];
+  __VOLK_ATTR_ALIGNED(16) float maxIndexesBuffer[4];
 
-      currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
-      currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
+  for(;number < quarterPoints; number++){
 
-      compareResults = _mm_cmpgt_ps(maxValues, currentValues);
+    currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
+    currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-      maxValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, maxValuesIndex) , _mm_andnot_ps(compareResults, currentIndexes));
+    compareResults = _mm_cmpgt_ps(maxValues, currentValues);
 
-      maxValues      = _mm_or_ps(_mm_and_ps(compareResults, maxValues) , _mm_andnot_ps(compareResults, currentValues));
-    }
+    maxValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, maxValuesIndex) , _mm_andnot_ps(compareResults, currentIndexes));
 
-    // Calculate the largest value from the remaining 4 points
-    _mm_store_ps(maxValuesBuffer, maxValues);
-    _mm_store_ps(maxIndexesBuffer, maxValuesIndex);
-
-    for(number = 0; number < 4; number++){
-      if(maxValuesBuffer[number] > max){
-	index = maxIndexesBuffer[number];
-	max = maxValuesBuffer[number];
-      }
-    }
-
-    number = quarterPoints * 4;
-    for(;number < num_points; number++){
-      if(src0[number] > max){
-	index = number;
-	max = src0[number];
-      }
-    }
-    target[0] = (unsigned int)index;
+    maxValues      = _mm_or_ps(_mm_and_ps(compareResults, maxValues) , _mm_andnot_ps(compareResults, currentValues));
   }
+
+  // Calculate the largest value from the remaining 4 points
+  _mm_store_ps(maxValuesBuffer, maxValues);
+  _mm_store_ps(maxIndexesBuffer, maxValuesIndex);
+
+  for(number = 0; number < 4; number++){
+    if(maxValuesBuffer[number] > max){
+      index = maxIndexesBuffer[number];
+      max = maxValuesBuffer[number];
+    }
+  }
+
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    if(src0[number] > max){
+      index = number;
+      max = src0[number];
+    }
+  }
+  target[0] = (uint16_t)index;
 }
 
 #endif /*LV_HAVE_SSE*/
@@ -196,22 +206,23 @@ volk_32f_index_max_16u_a_sse(unsigned int* target, const float* src0, unsigned i
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32f_index_max_16u_generic(unsigned int* target, const float* src0, unsigned int num_points)
+volk_32f_index_max_16u_generic(uint16_t* target, const float* src0,
+                               uint32_t num_points)
 {
-  if(num_points > 0){
-    float max = src0[0];
-    unsigned int index = 0;
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
 
-    unsigned int i = 1;
+  float max = src0[0];
+  uint16_t index = 0;
 
-    for(; i < num_points; ++i) {
-      if(src0[i] > max){
-        index = i;
-        max = src0[i];
-      }
+  uint32_t i = 1;
+
+  for(; i < num_points; ++i) {
+    if(src0[i] > max) {
+      index = i;
+      max = src0[i];
     }
-    target[0] = index;
   }
+  target[0] = index;
 }
 
 #endif /*LV_HAVE_GENERIC*/

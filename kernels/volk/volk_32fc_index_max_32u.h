@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2012, 2014 Free Software Foundation, Inc.
+ * Copyright 2016 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -21,22 +21,16 @@
  */
 
 /*!
- * \page volk_32fc_index_max_16u
+ * \page volk_32fc_index_max_32u
  *
  * \b Overview
  *
  * Returns Argmax_i mag(x[i]). Finds and returns the index which contains the
  * maximum magnitude for complex points in the given vector.
  *
- * Note that num_points is a uint32_t, but the return value is
- * uint16_t. Providing a vector larger than the max of a uint16_t
- * (65536) would miss anything outside of this boundary. The kernel
- * will check the length of num_points and cap it to this max value,
- * anyways.
- *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_index_max_16u(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
+ * void volk_32fc_index_max_32u(uint32_t* target, lv_32fc_t* src0, uint32_t num_points)
  * \endcode
  *
  * \b Inputs
@@ -53,7 +47,7 @@
  *   int N = 10;
  *   uint32_t alignment = volk_get_alignment();
  *   lv_32fc_t* in  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
- *   uint16_t* max = (uint16_t*)volk_malloc(sizeof(uint16_t), alignment);
+ *   uint32_t* max = (uint32_t*)volk_malloc(sizeof(uint32_t), alignment);
  *
  *   for(uint32_t ii = 0; ii < N/2; ++ii){
  *       float real = 2.f * ((float)ii / (float)N) - 1.f;
@@ -64,7 +58,7 @@
  *       in[N-ii] = in[N-ii] * in[N-ii] + in[N-ii];
  *   }
  *
- *   volk_32fc_index_max_16u(max, in, N);
+ *   volk_32fc_index_max_32u(max, in, N);
  *
  *   printf("index of max value = %u\n",  *max);
  *
@@ -73,27 +67,22 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_32fc_index_max_16u_a_H
-#define INCLUDED_volk_32fc_index_max_16u_a_H
+#ifndef INCLUDED_volk_32fc_index_max_32u_a_H
+#define INCLUDED_volk_32fc_index_max_32u_a_H
 
 #include <volk/volk_common.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <limits.h>
-#include <volk/volk_complex.h>
+#include<inttypes.h>
+#include<stdio.h>
+#include<volk/volk_complex.h>
 
 #ifdef LV_HAVE_SSE3
-#include <xmmintrin.h>
-#include <pmmintrin.h>
+#include<xmmintrin.h>
+#include<pmmintrin.h>
 
 static inline void
-volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
+volk_32fc_index_max_32u_a_sse3(uint32_t* target, lv_32fc_t* src0,
                                uint32_t num_points)
 {
-  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
-  // Branchless version, if we think it'll make a difference
-  //num_points = USHRT_MAX ^ ((num_points ^ USHRT_MAX) & -(num_points < USHRT_MAX));
-
   const uint32_t num_bytes = num_points*8;
 
   union bit128 holderf;
@@ -238,16 +227,14 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
 
 #ifdef LV_HAVE_GENERIC
 static inline void
- volk_32fc_index_max_16u_generic(uint16_t* target, lv_32fc_t* src0,
+ volk_32fc_index_max_32u_generic(uint32_t* target, lv_32fc_t* src0,
                                  uint32_t num_points)
 {
-  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
-
   const uint32_t num_bytes = num_points*8;
 
   float sq_dist = 0.0;
   float max = 0.0;
-  uint16_t index = 0;
+  uint32_t index = 0;
 
   uint32_t i = 0;
 
@@ -263,4 +250,4 @@ static inline void
 #endif /*LV_HAVE_GENERIC*/
 
 
-#endif /*INCLUDED_volk_32fc_index_max_16u_a_H*/
+#endif /*INCLUDED_volk_32fc_index_max_32u_a_H*/
