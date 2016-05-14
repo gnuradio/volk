@@ -75,6 +75,65 @@
 #include <volk/volk_complex.h>
 #include <float.h>
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
+
+static inline void
+volk_32fc_x2_divide_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* numeratorVector,
+                                            const lv_32fc_t* denumeratorVector, unsigned int num_points)
+{
+    /*
+     * we'll do the "classical"
+     *  a      a b*
+     * --- = -------
+     *  b     |b|^2
+     * */
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  __m256 num0123, num4567, den0123, den4567, norm, result;
+  __m256 tmp0123, tmp4567;
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = numeratorVector;
+  const lv_32fc_t* b = denumeratorVector;
+
+  for(; number < eighthPoints; number++){
+    num0123 = _mm256_loadu_ps((float*) a);    // first quad
+    den0123 = _mm256_loadu_ps((float*) b);    // first quad
+    num0123 = _mm256_complexconjugatemul_ps(num0123, den0123);   // a conj(b)
+    a += 4;
+    b += 4;
+
+    num4567 = _mm256_loadu_ps((float*) a);    // second quad
+    den4567 = _mm256_loadu_ps((float*) b);    // second quad
+    num4567 = _mm256_complexconjugatemul_ps(num4567, den4567);   // a conj(b)
+    a += 4;
+    b += 4;
+
+    norm = _mm256_magnitudesquared_ps(den0123, den4567);
+
+    tmp0123 = _mm256_permute_ps(norm, _MM_SHUFFLE(1,1,0,0));
+    tmp4567 = _mm256_permute_ps(norm, _MM_SHUFFLE(3,3,2,2));
+    den0123 = _mm256_permute2f128_ps(tmp0123, tmp4567, (0<<0)| (2<<4)); // select the lower 128bit from tmp0123, lower from tmp4567
+    den4567 = _mm256_permute2f128_ps(tmp0123, tmp4567, (1<<0)| (3<<4)); // select the upper 128bit from tmp0123, upper from tmp4567
+
+    result = _mm256_div_ps(num0123, den0123);
+    _mm256_storeu_ps((float*) c, result); // Store the results back into the C container
+    c += 4;
+    result = _mm256_div_ps(num4567, den4567);
+    _mm256_storeu_ps((float*) c, result); // Store the results back into the C container
+    c += 4;
+  }
+
+  number *= 8;
+  for(;number < num_points; number++){
+    *c = (*a) / (*b);
+    a++; b++; c++;
+  }
+
+}
+#endif /* LV_HAVE_AVX */
 
 
 #ifdef LV_HAVE_SSE3
@@ -113,9 +172,8 @@ volk_32fc_x2_divide_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* numeratorVe
     b += 2;
 
     norm = _mm_magnitudesquared_ps_sse3(den01, den23);
-
-    den01 = _mm_shuffle_ps(norm, norm, _MM_SHUFFLE(1,1,0,0));
-    den23 = _mm_shuffle_ps(norm, norm, _MM_SHUFFLE(3,3,2,2));
+    den01 = _mm_unpacklo_ps(norm,norm);
+    den23 = _mm_unpackhi_ps(norm,norm);
 
     result = _mm_div_ps(num01, den01);
     _mm_storeu_ps((float*) c, result); // Store the results back into the C container
@@ -154,6 +212,8 @@ volk_32fc_x2_divide_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 
 
 #endif /* INCLUDED_volk_32fc_x2_divide_32fc_u_H */
+
+
 #ifndef INCLUDED_volk_32fc_x2_divide_32fc_a_H
 #define INCLUDED_volk_32fc_x2_divide_32fc_a_H
 
@@ -162,6 +222,66 @@ volk_32fc_x2_divide_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 #include <volk/volk_complex.h>
 #include <float.h>
 
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
+
+static inline void
+volk_32fc_x2_divide_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* numeratorVector,
+                                            const lv_32fc_t* denumeratorVector, unsigned int num_points)
+{
+    /*
+     * we'll do the "classical"
+     *  a      a b*
+     * --- = -------
+     *  b     |b|^2
+     * */
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  __m256 num0123, num4567, den0123, den4567, norm, result;
+  __m256 tmp0123, tmp4567;
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = numeratorVector;
+  const lv_32fc_t* b = denumeratorVector;
+
+  for(; number < eighthPoints; number++){
+    num0123 = _mm256_load_ps((float*) a);    // first quad
+    den0123 = _mm256_load_ps((float*) b);    // first quad
+    num0123 = _mm256_complexconjugatemul_ps(num0123, den0123);   // a conj(b)
+    a += 4;
+    b += 4;
+
+    num4567 = _mm256_load_ps((float*) a);    // second quad
+    den4567 = _mm256_load_ps((float*) b);    // second quad
+    num4567 = _mm256_complexconjugatemul_ps(num4567, den4567);   // a conj(b)
+    a += 4;
+    b += 4;
+
+    norm = _mm256_magnitudesquared_ps(den0123, den4567);
+
+    tmp0123 = _mm256_permute_ps(norm, _MM_SHUFFLE(1,1,0,0));
+    tmp4567 = _mm256_permute_ps(norm, _MM_SHUFFLE(3,3,2,2));
+    den0123 = _mm256_permute2f128_ps(tmp0123, tmp4567, (0<<0)| (2<<4)); // select the lower 128bit from tmp0123, lower from tmp4567
+    den4567 = _mm256_permute2f128_ps(tmp0123, tmp4567, (1<<0)| (3<<4)); // select the upper 128bit from tmp0123, upper from tmp4567
+
+    result = _mm256_div_ps(num0123, den0123);
+    _mm256_store_ps((float*) c, result); // Store the results back into the C container
+    c += 4;
+    result = _mm256_div_ps(num4567, den4567);
+    _mm256_store_ps((float*) c, result); // Store the results back into the C container
+    c += 4;
+  }
+
+  number *= 8;
+  for(;number < num_points; number++){
+    *c = (*a) / (*b);
+    a++; b++; c++;
+  }
+
+}
+#endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
@@ -200,8 +320,8 @@ volk_32fc_x2_divide_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* numeratorVe
 
     norm = _mm_magnitudesquared_ps_sse3(den01, den23);
 
-    den01 = _mm_shuffle_ps(norm, norm, _MM_SHUFFLE(1,1,0,0));
-    den23 = _mm_shuffle_ps(norm, norm, _MM_SHUFFLE(3,3,2,2));
+    den01 = _mm_unpacklo_ps(norm,norm); // select the lower floats twice
+    den23 = _mm_unpackhi_ps(norm,norm); // select the upper floats twice
 
     result = _mm_div_ps(num01, den01);
     _mm_store_ps((float*) c, result); // Store the results back into the C container
