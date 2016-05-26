@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2013 Free Software Foundation, Inc.
+ * Copyright 2013, 2016 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -45,6 +45,8 @@ main(int argc, char **argv)
     ("all-machines", "print VOLK machines built into library")
     ("avail-machines", "print VOLK machines the current platform can use")
     ("machine", "print the VOLK machine that will be used")
+    ("alignment", "print the alignment that will be used")
+    ("malloc", "print malloc implementation that will be used")
     ("version,v", "print VOLK version")
     ;
 
@@ -86,6 +88,23 @@ main(int argc, char **argv)
 
   if(vm.count("machine")) {
     std::cout << volk_get_machine() << std::endl;
+  }
+
+  if(vm.count("alignment")) {
+    std::cout << "Alignment in bytes: " << volk_get_alignment() << std::endl;
+  }
+
+  // You don't want to change the volk_malloc code, so just copy the if/else
+  // structure from there and give an explanation for the implementations
+  if(vm.count("malloc")) {
+    std::cout << "Used malloc implementation: ";
+#if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || HAVE_POSIX_MEMALIGN
+    std::cout << "posix_memalign" << std::endl;
+#elif _MSC_VER >= 1400
+    std::cout << "aligned_malloc" << std::endl;
+#else
+    std::cout << "No standard handler available, using own implementation." << std::endl;
+#endif
   }
 
   return 0;
