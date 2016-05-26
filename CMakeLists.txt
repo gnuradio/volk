@@ -215,6 +215,11 @@ endif()
 ########################################################################
 
 configure_file(
+  ${CMAKE_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/Modules/VolkConfig.cmake
+@ONLY)
+
+configure_file(
   ${CMAKE_SOURCE_DIR}/cmake/Modules/VolkConfigVersion.cmake.in
   ${CMAKE_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake
 @ONLY)
@@ -230,7 +235,7 @@ endif(NOT CMAKE_MODULES_DIR)
 
 install(
     FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/Modules/VolkConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake
     DESTINATION ${CMAKE_MODULES_DIR}/volk
     COMPONENT "volk_devel"
