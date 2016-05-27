@@ -53,7 +53,8 @@
 
 static inline void volk_16ic_x2_multiply_16ic_generic(lv_16sc_t* result, const lv_16sc_t* in_a, const lv_16sc_t* in_b, unsigned int num_points)
 {
-    for (unsigned int n = 0; n < num_points; n++)
+    unsigned int n;
+    for (n = 0; n < num_points; n++)
         {
             result[n] = in_a[n] * in_b[n];
         }
@@ -76,7 +77,9 @@ static inline void volk_16ic_x2_multiply_16ic_a_sse2(lv_16sc_t* out, const lv_16
     const lv_16sc_t* _in_a = in_a;
     const lv_16sc_t* _in_b = in_b;
     lv_16sc_t* _out = out;
-    for(unsigned int number = 0; number < sse_iters; number++)
+    unsigned int number;
+
+    for(number = 0; number < sse_iters; number++)
         {
             a = _mm_load_si128((__m128i*)_in_a); //load (2 byte imag, 2 byte real) x 4 into 128 bits reg
             b = _mm_load_si128((__m128i*)_in_b);
@@ -104,7 +107,7 @@ static inline void volk_16ic_x2_multiply_16ic_a_sse2(lv_16sc_t* out, const lv_16
             _out += 4;
         }
 
-    for (unsigned int i = sse_iters * 4; i < num_points; ++i)
+    for (number = sse_iters * 4; number < num_points; ++number)
         {
             *_out++ = (*_in_a++) * (*_in_b++);
         }
@@ -126,7 +129,9 @@ static inline void volk_16ic_x2_multiply_16ic_u_sse2(lv_16sc_t* out, const lv_16
     const lv_16sc_t* _in_a = in_a;
     const lv_16sc_t* _in_b = in_b;
     lv_16sc_t* _out = out;
-    for(unsigned int number = 0; number < sse_iters; number++)
+    unsigned int number;
+
+    for(number = 0; number < sse_iters; number++)
         {
             a = _mm_loadu_si128((__m128i*)_in_a); //load (2 byte imag, 2 byte real) x 4 into 128 bits reg
             b = _mm_loadu_si128((__m128i*)_in_b);
@@ -154,7 +159,7 @@ static inline void volk_16ic_x2_multiply_16ic_u_sse2(lv_16sc_t* out, const lv_16
             _out += 4;
         }
 
-    for (unsigned int i = sse_iters * 4; i < num_points; ++i)
+    for (number = sse_iters * 4; number < num_points; ++number)
         {
             *_out++ = (*_in_a++) * (*_in_b++);
         }
