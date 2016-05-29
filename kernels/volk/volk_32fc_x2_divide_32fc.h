@@ -75,6 +75,62 @@
 #include <volk/volk_complex.h>
 #include <float.h>
 
+#ifdef LV_HAVE_SSE3
+#include <pmmintrin.h>
+#include <volk/volk_sse3_intrinsics.h>
+
+static inline void
+volk_32fc_x2_divide_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* numeratorVector,
+                                            const lv_32fc_t* denumeratorVector, unsigned int num_points)
+{
+    /*
+     * we'll do the "classical"
+     *  a      a b*
+     * --- = -------
+     *  b     |b|^2
+     * */
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
+
+  __m128 num01, num23, den01, den23, norm, result;
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = numeratorVector;
+  const lv_32fc_t* b = denumeratorVector;
+
+  for(; number < quarterPoints; number++){
+    num01 = _mm_loadu_ps((float*) a);    // first pair
+    den01 = _mm_loadu_ps((float*) b);    // first pair
+    num01 = _mm_complexconjugatemul_ps(num01, den01);   // a conj(b)
+    a += 2;
+    b += 2;
+
+    num23 = _mm_loadu_ps((float*) a);    // second pair
+    den23 = _mm_loadu_ps((float*) b);    // second pair
+    num23 = _mm_complexconjugatemul_ps(num23, den23);   // a conj(b)
+    a += 2;
+    b += 2;
+
+    norm = _mm_magnitudesquared_ps_sse3(den01, den23);
+    den01 = _mm_unpacklo_ps(norm,norm);
+    den23 = _mm_unpackhi_ps(norm,norm);
+
+    result = _mm_div_ps(num01, den01);
+    _mm_storeu_ps((float*) c, result); // Store the results back into the C container
+    c += 2;
+    result = _mm_div_ps(num23, den23);
+    _mm_storeu_ps((float*) c, result); // Store the results back into the C container
+    c += 2;
+  }
+
+  number *= 4;
+  for(;number < num_points; number++){
+    *c = (*a) / (*b);
+    a++; b++; c++;
+  }
+}
+#endif /* LV_HAVE_SSE3 */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
@@ -154,6 +210,61 @@ volk_32fc_x2_divide_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 #include <volk/volk_complex.h>
 #include <float.h>
 
+#ifdef LV_HAVE_SSE3
+#include <pmmintrin.h>
+#include <volk/volk_sse3_intrinsics.h>
+
+static inline void
+volk_32fc_x2_divide_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* numeratorVector,
+                                            const lv_32fc_t* denumeratorVector, unsigned int num_points)
+{
+    /*
+     * we'll do the "classical"
+     *  a      a b*
+     * --- = -------
+     *  b     |b|^2
+     * */
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
+
+  __m128 num01, num23, den01, den23, norm, result;
+  lv_32fc_t* c = cVector;
+  const lv_32fc_t* a = numeratorVector;
+  const lv_32fc_t* b = denumeratorVector;
+
+  for(; number < quarterPoints; number++){
+    num01 = _mm_load_ps((float*) a);    // first pair
+    den01 = _mm_load_ps((float*) b);    // first pair
+    num01 = _mm_complexconjugatemul_ps(num01, den01);   // a conj(b)
+    a += 2;
+    b += 2;
+
+    num23 = _mm_load_ps((float*) a);    // second pair
+    den23 = _mm_load_ps((float*) b);    // second pair
+    num23 = _mm_complexconjugatemul_ps(num23, den23);   // a conj(b)
+    a += 2;
+    b += 2;
+
+    norm = _mm_magnitudesquared_ps_sse3(den01, den23);
+
+    den01 = _mm_unpacklo_ps(norm,norm); // select the lower floats twice
+    den23 = _mm_unpackhi_ps(norm,norm); // select the upper floats twice
+
+    result = _mm_div_ps(num01, den01);
+    _mm_store_ps((float*) c, result); // Store the results back into the C container
+    c += 2;
+    result = _mm_div_ps(num23, den23);
+    _mm_store_ps((float*) c, result); // Store the results back into the C container
+    c += 2;
+  }
+
+  number *= 4;
+  for(;number < num_points; number++){
+    *c = (*a) / (*b);
+    a++; b++; c++;
+  }
+}
+#endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
