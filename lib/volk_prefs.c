@@ -6,14 +6,26 @@
 void volk_get_config_path(char *path)
 {
     if (!path) return;
+
     const char *suffix = "/.volk/volk_config";
+    const char *suffix2 = "/volk/volk_config"; //non-hidden
     char *home = NULL;
+
+    //allows config redirection via env variable
+    home = getenv("VOLK_CONFIGPATH");
+    if(home!=NULL){
+        strncpy(path,home,512);
+        strcat(path,suffix2);
+        return;
+    }
+
     if (home == NULL) home = getenv("HOME");
     if (home == NULL) home = getenv("APPDATA");
     if (home == NULL){
         path[0] = 0;
         return;
     }
+
     strncpy(path, home, 512);
     strcat(path, suffix);
 }
