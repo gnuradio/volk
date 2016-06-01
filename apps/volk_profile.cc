@@ -212,6 +212,12 @@ void read_results(std::vector<volk_test_results_t> *results)
 {
     char path[1024];
     volk_get_config_path(path);
+
+    read_results(results, std::string(path));
+}
+
+void read_results(std::vector<volk_test_results_t> *results, std::string path)
+{
     const fs::path config_path(path);
 
     if(fs::exists(config_path)) {
@@ -264,6 +270,11 @@ void write_results(const std::vector<volk_test_results_t> *results, bool update_
     char path[1024];
     volk_get_config_path(path);
 
+    write_results( results, update_result, std::string(path));
+}
+
+void write_results(const std::vector<volk_test_results_t> *results, bool update_result, const std::string path)
+{
     const fs::path config_path(path);
 
     // Until we can update the config on a kernel by kernel basis
