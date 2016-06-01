@@ -67,3 +67,19 @@ install(
     DESTINATION bin
     COMPONENT "volk"
 )
+
+# Launch volk_profile if requested to do so
+if(ENABLE_PROFILING)
+   if(DEFINED VOLK_CONFIGPATH)
+        set( VOLK_CONFIG_ARG "-p${VOLK_CONFIGPATH}" )
+        set( VOLK_CONFIG "${VOLK_CONFIGPATH}/volk_config" )
+   endif()
+
+   add_custom_command(OUTPUT ${VOLK_CONFIG}
+        COMMAND volk_profile "${VOLK_CONFIG_ARG}"
+        DEPENDS volk_profile
+        COMMENT "Launching profiler, this may take a few minutes..."
+    )
+    add_custom_target(volk-profile-run ALL DEPENDS ${VOLK_CONFIG})
+
+endif()
