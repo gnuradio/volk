@@ -53,8 +53,8 @@ void load_random_data(void *data, volk_type_t type, unsigned int n) {
                 else ((uint32_t *)data)[i] = (uint32_t) scaled_rand;
             break;
             case 2:
-                if(type.is_signed) ((int16_t *)data)[i] = (int16_t) scaled_rand;
-                else ((uint16_t *)data)[i] = (uint16_t) scaled_rand;
+                if(type.is_signed) ((int16_t *)data)[i] = (int16_t)((int16_t) scaled_rand % 8);
+                else ((uint16_t *)data)[i] = (uint16_t) ((int16_t) scaled_rand % 8);
             break;
             case 1:
                 if(type.is_signed) ((int8_t *)data)[i] = (int8_t) scaled_rand;
@@ -521,10 +521,21 @@ bool run_volk_tests(volk_func_desc_t desc,
                         }
                         break;
                     case 4:
-                        if(both_sigs[j].is_signed) {
-                            fail = icompare((int32_t *) test_data[generic_offset][j], (int32_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
-                        } else {
-                            fail = icompare((uint32_t *) test_data[generic_offset][j], (uint32_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                        if(both_sigs[j].is_complex) {
+                            if(both_sigs[j].is_signed) {
+                                fail = icompare((int16_t *) test_data[generic_offset][j], (int16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            } else {
+                                fail = icompare((uint16_t *) test_data[generic_offset][j], (uint16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            }
+                        }
+                        else {
+                            if (both_sigs[j].is_signed) {
+                                fail = icompare((int32_t *) test_data[generic_offset][j], (int32_t *) test_data[i][j],
+                                                vlen * (both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            } else {
+                                fail = icompare((uint32_t *) test_data[generic_offset][j], (uint32_t *) test_data[i][j],
+                                                vlen * (both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            }
                         }
                         break;
                     case 2:
