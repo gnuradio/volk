@@ -102,7 +102,7 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
 
   union bit128 xmm5, xmm4;
   __m128 xmm1, xmm2, xmm3;
-  __m128i xmm8, xmm11, xmm12, xmmfive, xmmfour, xmm9, holder0, holder1, xmm10;
+  __m128i currentIndex, xmm11, xmm12, xmmfive, xmmfour, xmm9, holder0, holder1, indexIncrementer;
 
   xmm5.int_vec = xmmfive = _mm_setzero_si128();
   xmm4.int_vec = xmmfour = _mm_setzero_si128();
@@ -114,12 +114,12 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
   int leftovers1 = (num_bytes >> 3) & 1;
   int i = 0;
 
-  xmm8 = _mm_set_epi32(3, 2, 1, 0);//remember the crazy reverse order!
-  xmm9 = xmm8 = _mm_setzero_si128();
-  xmm10 = _mm_set_epi32(4, 4, 4, 4);
+  currentIndex = _mm_set_epi32(3, 2, 1, 0);//remember the crazy reverse order!
+  xmm9 = _mm_setzero_si128();
+  indexIncrementer = _mm_set_epi32(4, 4, 4, 4);
   xmm3 = _mm_setzero_ps();
 
-  //printf("%f, %f, %f, %f\n", ((float*)&xmm10)[0], ((float*)&xmm10)[1], ((float*)&xmm10)[2], ((float*)&xmm10)[3]);
+  //printf("%f, %f, %f, %f\n", ((float*)&indexIncrementer)[0], ((float*)&indexIncrementer)[1], ((float*)&indexIncrementer)[2], ((float*)&indexIncrementer)[3]);
 
   for(; i < bound; ++i) {
     xmm1 = _mm_load_ps((float*)src0);
@@ -137,23 +137,23 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
     xmm4.float_vec = _mm_cmplt_ps(xmm1, xmm3);
     xmm5.float_vec = _mm_cmpeq_ps(xmm1, xmm3);
 
-    xmm11 = _mm_and_si128(xmm8, xmm5.int_vec);
+    xmm11 = _mm_and_si128(currentIndex, xmm5.int_vec);
     xmm12 = _mm_and_si128(xmm9, xmm4.int_vec);
 
     xmm9 = _mm_add_epi32(xmm11,  xmm12);
 
-    xmm8 = _mm_add_epi32(xmm8, xmm10);
+    currentIndex = _mm_add_epi32(currentIndex, indexIncrementer);
 
     //printf("%f, %f, %f, %f\n", ((float*)&xmm3)[0], ((float*)&xmm3)[1], ((float*)&xmm3)[2], ((float*)&xmm3)[3]);
-    //printf("%u, %u, %u, %u\n", ((uint32_t*)&xmm10)[0], ((uint32_t*)&xmm10)[1], ((uint32_t*)&xmm10)[2], ((uint32_t*)&xmm10)[3]);
+    //printf("%u, %u, %u, %u\n", ((uint32_t*)&indexIncrementer)[0], ((uint32_t*)&indexIncrementer)[1], ((uint32_t*)&indexIncrementer)[2], ((uint32_t*)&indexIncrementer)[3]);
   }
 
 
   for(i = 0; i < leftovers0; ++i) {
     xmm2 = _mm_load_ps((float*)src0);
 
-    xmm1 = _mm_movelh_ps(bit128_p(&xmm8)->float_vec, bit128_p(&xmm8)->float_vec);
-    xmm8 = bit128_p(&xmm1)->int_vec;
+    xmm1 = _mm_movelh_ps(bit128_p(&currentIndex)->float_vec, bit128_p(&currentIndex)->float_vec);
+    currentIndex = bit128_p(&xmm1)->int_vec;
 
     xmm2 = _mm_mul_ps(xmm2, xmm2);
 
@@ -163,17 +163,17 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm_max_ps(xmm1, xmm3);
 
-    xmm10 = _mm_set_epi32(2, 2, 2, 2);//load1_ps((float*)&init[2]);
+    indexIncrementer = _mm_set_epi32(2, 2, 2, 2);//load1_ps((float*)&init[2]);
 
     xmm4.float_vec = _mm_cmplt_ps(xmm1, xmm3);
     xmm5.float_vec = _mm_cmpeq_ps(xmm1, xmm3);
 
-    xmm11 = _mm_and_si128(xmm8, xmm5.int_vec);
+    xmm11 = _mm_and_si128(currentIndex, xmm5.int_vec);
     xmm12 = _mm_and_si128(xmm9, xmm4.int_vec);
 
     xmm9 = _mm_add_epi32(xmm11, xmm12);
 
-    xmm8 = _mm_add_epi32(xmm8, xmm10);
+    currentIndex = _mm_add_epi32(currentIndex, indexIncrementer);
     //printf("egads%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
   }
 
@@ -191,9 +191,9 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
     xmm4.float_vec = _mm_cmplt_ps(xmm1, xmm3);
     xmm5.float_vec = _mm_cmpeq_ps(xmm1, xmm3);
 
-    xmm8 = _mm_shuffle_epi32(xmm8, 0x00);
+    currentIndex = _mm_shuffle_epi32(currentIndex, 0x00);
 
-    xmm11 = _mm_and_si128(xmm8, xmm4.int_vec);
+    xmm11 = _mm_and_si128(currentIndex, xmm4.int_vec);
     xmm12 = _mm_and_si128(xmm9, xmm5.int_vec);
 
     xmm9 = _mm_add_epi32(xmm11, xmm12);
@@ -213,25 +213,6 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
   sq_dist = (holderf.f[2] > sq_dist) ? holderf.f[2] : sq_dist;
   target[0] = (holderf.f[3] > sq_dist) ? holderi.i[3] : target[0];
   sq_dist = (holderf.f[3] > sq_dist) ? holderf.f[3] : sq_dist;
-
-  /*
-  float placeholder = 0.0;
-  uint32_t temp0, temp1;
-  uint32_t g0 = (((float*)&xmm3)[0] > ((float*)&xmm3)[1]);
-  uint32_t l0 = g0 ^ 1;
-
-  uint32_t g1 = (((float*)&xmm3)[1] > ((float*)&xmm3)[2]);
-  uint32_t l1 = g1 ^ 1;
-
-  temp0 = g0 * ((uint32_t*)&xmm9)[0] + l0 * ((uint32_t*)&xmm9)[1];
-  temp1 = g0 * ((uint32_t*)&xmm9)[2] + l0 * ((uint32_t*)&xmm9)[3];
-  sq_dist = g0 * ((float*)&xmm3)[0] + l0 * ((float*)&xmm3)[1];
-  placeholder = g0 * ((float*)&xmm3)[2] + l0 * ((float*)&xmm3)[3];
-
-  g0 = (sq_dist > placeholder);
-  l0 = g0 ^ 1;
-  target[0] = g0 * temp0 + l0 * temp1;
-  */
 }
 
 #endif /*LV_HAVE_SSE3*/

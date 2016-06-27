@@ -70,9 +70,8 @@
 #ifndef INCLUDED_volk_32fc_index_max_32u_a_H
 #define INCLUDED_volk_32fc_index_max_32u_a_H
 
-#include <volk/volk_common.h>
+#include<volk/volk_common.h>
 #include<inttypes.h>
-#include<stdio.h>
 #include<volk/volk_complex.h>
 
 #ifdef LV_HAVE_SSE3
@@ -91,7 +90,10 @@ volk_32fc_index_max_32u_a_sse3(uint32_t* target, lv_32fc_t* src0,
 
   union bit128 xmm5, xmm4;
   __m128 xmm1, xmm2, xmm3;
-  __m128i xmm8, xmm11, xmm12, xmmfive, xmmfour, xmm9, holder0, holder1, xmm10;
+  __m128i xmm11, xmm12, xmmfive, xmmfour, xmm9, holder0, holder1;
+
+  // formerly xmm8, xmm10
+  __m128i currentIndexes, indexCounter;
 
   xmm5.int_vec = xmmfive = _mm_setzero_si128();
   xmm4.int_vec = xmmfour = _mm_setzero_si128();
@@ -103,12 +105,10 @@ volk_32fc_index_max_32u_a_sse3(uint32_t* target, lv_32fc_t* src0,
   int leftovers1 = (num_bytes >> 3) & 1;
   int i = 0;
 
-  xmm8 = _mm_set_epi32(3, 2, 1, 0);//remember the crazy reverse order!
-  xmm9 = xmm8 = _mm_setzero_si128();
-  xmm10 = _mm_set_epi32(4, 4, 4, 4);
+  currentIndexes = _mm_set_epi32(3, 2, 1, 0);//remember the crazy reverse order!
+  xmm9 = _mm_setzero_si128();
+  indexCounter = _mm_set_epi32(4, 4, 4, 4);
   xmm3 = _mm_setzero_ps();
-
-  //printf("%f, %f, %f, %f\n", ((float*)&xmm10)[0], ((float*)&xmm10)[1], ((float*)&xmm10)[2], ((float*)&xmm10)[3]);
 
   for(; i < bound; ++i) {
     xmm1 = _mm_load_ps((float*)src0);
@@ -126,23 +126,21 @@ volk_32fc_index_max_32u_a_sse3(uint32_t* target, lv_32fc_t* src0,
     xmm4.float_vec = _mm_cmplt_ps(xmm1, xmm3);
     xmm5.float_vec = _mm_cmpeq_ps(xmm1, xmm3);
 
-    xmm11 = _mm_and_si128(xmm8, xmm5.int_vec);
+    xmm11 = _mm_and_si128(currentIndexes, xmm5.int_vec);
     xmm12 = _mm_and_si128(xmm9, xmm4.int_vec);
 
     xmm9 = _mm_add_epi32(xmm11,  xmm12);
 
-    xmm8 = _mm_add_epi32(xmm8, xmm10);
-
-    //printf("%f, %f, %f, %f\n", ((float*)&xmm3)[0], ((float*)&xmm3)[1], ((float*)&xmm3)[2], ((float*)&xmm3)[3]);
-    //printf("%u, %u, %u, %u\n", ((uint32_t*)&xmm10)[0], ((uint32_t*)&xmm10)[1], ((uint32_t*)&xmm10)[2], ((uint32_t*)&xmm10)[3]);
+    // increment index we are looking at
+    currentIndexes = _mm_add_epi32(currentIndexes, indexCounter);
   }
 
 
   for(i = 0; i < leftovers0; ++i) {
     xmm2 = _mm_load_ps((float*)src0);
 
-    xmm1 = _mm_movelh_ps(bit128_p(&xmm8)->float_vec, bit128_p(&xmm8)->float_vec);
-    xmm8 = bit128_p(&xmm1)->int_vec;
+    xmm1 = _mm_movelh_ps(bit128_p(&currentIndexes)->float_vec, bit128_p(&currentIndexes)->float_vec);
+    currentIndexes = bit128_p(&xmm1)->int_vec;
 
     xmm2 = _mm_mul_ps(xmm2, xmm2);
 
@@ -152,23 +150,21 @@ volk_32fc_index_max_32u_a_sse3(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm_max_ps(xmm1, xmm3);
 
-    xmm10 = _mm_set_epi32(2, 2, 2, 2);//load1_ps((float*)&init[2]);
+    indexCounter = _mm_set_epi32(2, 2, 2, 2);//load1_ps((float*)&init[2]);
 
     xmm4.float_vec = _mm_cmplt_ps(xmm1, xmm3);
     xmm5.float_vec = _mm_cmpeq_ps(xmm1, xmm3);
 
-    xmm11 = _mm_and_si128(xmm8, xmm5.int_vec);
+    xmm11 = _mm_and_si128(currentIndexes, xmm5.int_vec);
     xmm12 = _mm_and_si128(xmm9, xmm4.int_vec);
 
     xmm9 = _mm_add_epi32(xmm11, xmm12);
 
-    xmm8 = _mm_add_epi32(xmm8, xmm10);
-    //printf("egads%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
+    // increment index we are looking at
+    currentIndexes = _mm_add_epi32(currentIndexes, indexCounter);
   }
 
   for(i = 0; i < leftovers1; ++i) {
-    //printf("%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
-
     sq_dist = lv_creal(src0[0]) * lv_creal(src0[0]) + lv_cimag(src0[0]) * lv_cimag(src0[0]);
 
     xmm2 = _mm_load1_ps(&sq_dist);
@@ -180,16 +176,13 @@ volk_32fc_index_max_32u_a_sse3(uint32_t* target, lv_32fc_t* src0,
     xmm4.float_vec = _mm_cmplt_ps(xmm1, xmm3);
     xmm5.float_vec = _mm_cmpeq_ps(xmm1, xmm3);
 
-    xmm8 = _mm_shuffle_epi32(xmm8, 0x00);
+    currentIndexes = _mm_shuffle_epi32(currentIndexes, 0x00);
 
-    xmm11 = _mm_and_si128(xmm8, xmm4.int_vec);
+    xmm11 = _mm_and_si128(currentIndexes, xmm4.int_vec);
     xmm12 = _mm_and_si128(xmm9, xmm5.int_vec);
 
     xmm9 = _mm_add_epi32(xmm11, xmm12);
   }
-
-  //printf("%f, %f, %f, %f\n", ((float*)&xmm3)[0], ((float*)&xmm3)[1], ((float*)&xmm3)[2], ((float*)&xmm3)[3]);
-  //printf("%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
 
   _mm_store_ps((float*)&(holderf.f), xmm3);
   _mm_store_si128(&(holderi.int_vec), xmm9);
