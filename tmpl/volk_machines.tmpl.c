@@ -24,11 +24,11 @@
 #include "volk_machines.h"
 
 struct volk_machine *volk_machines[] = {
-#for $machine in $machines
-#ifdef LV_MACHINE_$(machine.name.upper())
-&volk_machine_$(machine.name),
+%for machine in machines:
+#ifdef LV_MACHINE_${machine.name.upper()}
+&volk_machine_${machine.name},
 #endif
-#end for
+%endfor
 };
 
 unsigned int n_volk_machines = sizeof(volk_machines)/sizeof(*volk_machines);
