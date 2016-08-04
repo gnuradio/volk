@@ -22,8 +22,8 @@
 #ifndef INCLUDED_VOLK_CONFIG_FIXED_H
 #define INCLUDED_VOLK_CONFIG_FIXED_H
 
-#for $i, $arch in enumerate($archs)
-#define LV_$(arch.name.upper()) $i
-#end for
+%for i, arch in enumerate(archs):
+#define LV_${arch.name.upper()} ${i}
+%endfor
 
 #endif /*INCLUDED_VOLK_CONFIG_FIXED*/
