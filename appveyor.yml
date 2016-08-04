@@ -1,0 +1,55 @@
+clone_depth: 1
+
+os: Visual Studio 2013
+
+install:
+    - echo "Installing Boost libraries..."
+    - nuget install boost_system-vc120
+    - nuget install boost_filesystem-vc120
+    - nuget install boost_chrono-vc120
+    - nuget install boost_program_options-vc120
+    - nuget install boost_unit_test_framework-vc120
+
+    - echo "Installing Cheetah templates..."
+    - appveyor DownloadFile https://pypi.python.org/packages/source/C/Cheetah/Cheetah-2.4.4.tar.gz
+    - 7z x Cheetah-2.4.4.tar.gz
+    - 7z x -y Cheetah-2.4.4.tar
+    - cd Cheetah-2.4.4
+    - c:\Python27\python.exe setup.py build
+    - c:\Python27\python.exe setup.py install
+
+build_script:
+    - cd c:\projects\volk
+
+    # Without this directory in the %PATH%, compiler tests fail because of missing DLLs
+    - set PATH=%PATH%;C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin
+
+    - cmake -G "Visual Studio 12 Win64" \
+        -DBoost_CHRONO_LIBRARY_RELEASE:FILEPATH=c:/projects/volk/boost_chrono-vc120.1.59.0.0/lib/native/address-model-64/lib/boost_chrono-vc120-mt-1_59.lib \
+        -DBoost_FILESYSTEM_LIBRARY_RELEASE:FILEPATH=c:/projects/volk/boost_filesystem-vc120.1.59.0.0/lib/native/address-model-64/lib/boost_filesystem-vc120-mt-1_59.lib \
+        -DBoost_PROGRAM_OPTIONS_LIBRARY_RELEASE:FILEPATH=c:/projects/volk/boost_program_options-vc120.1.59.0.0/lib/native/address-model-64/lib/boost_program_options-vc120-mt-1_59.lib \
+        -DBoost_SYSTEM_LIBRARY_RELEASE:FILEPATH=c:/projects/volk/boost_system-vc120.1.59.0.0/lib/native/address-model-64/lib/boost_system-vc120-mt-1_59.lib \
+        -DBoost_UNIT_TEST_FRAMEWORK_LIBRARY_RELEASE:FILEPATH=c:/projects/volk/boost_unit_test_framework-vc120.1.59.0.0/lib/native/address-model-64/lib/boost_unit_test_framework-vc120-mt-1_59.lib \
+        -DBoost_INCLUDE_DIR:PATH=c:/projects/volk/boost.1.59.0.0/lib/native/include \
+        -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=OFF \
+        .
+
+    - cmake --build . --config Release --target INSTALL
+
+    # Create an archive
+    - cd "c:\Program Files"
+    - 7z a "c:\libvolk-x64.zip" volk
+
+    # Create the deps archive
+    - mkdir dlls
+    - copy c:\projects\volk\boost_chrono-vc120.1.59.0.0\lib\native\address-model-64\lib\boost_chrono-vc120-mt-1_59.dll dlls\boost_chrono-vc120-mt-1_59.dll
+    - copy c:\projects\volk\boost_filesystem-vc120.1.59.0.0\lib\native\address-model-64\lib\boost_filesystem-vc120-mt-1_59.dll dlls\boost_filesystem-vc120-mt-1_59.dll
+    - copy c:\projects\volk\boost_program_options-vc120.1.59.0.0\lib\native\address-model-64\lib\boost_program_options-vc120-mt-1_59.dll dlls\boost_program_options-vc120-mt-1_59.dll
+    - copy c:\projects\volk\boost_system-vc120.1.59.0.0\lib\native\address-model-64\lib\boost_system-vc120-mt-1_59.dll dlls\boost_system-vc120-mt-1_59.dll
+    - copy c:\projects\volk\boost_unit_test_framework-vc120.1.59.0.0\lib\native\address-model-64\lib\boost_unit_test_framework-vc120-mt-1_59.dll dlls\boost_unit_test_framework-vc120-mt-1_59.dll
+    - cd dlls
+    - 7z a "c:\libvolk-x64-deps.zip" *
+
+    # Push it!
+    - appveyor PushArtifact c:\libvolk-x64.zip
+    - appveyor PushArtifact c:\libvolk-x64-deps.zip
