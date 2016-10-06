@@ -27,33 +27,33 @@
 #include <stdlib.h>
 #include <volk/constants.h>
 
-char*
+const char*
 volk_prefix()
 {
   const char *prefix = getenv("VOLK_PREFIX");
-  if (prefix != NULL) return (char *)prefix;
+  if (prefix != NULL) return prefix;
   return "@prefix@";
 }
 
-char*
+const char*
 volk_version()
 {
   return "@VERSION@";
 }
 
-char*
+const char*
 volk_c_compiler()
 {
   return "@cmake_c_compiler_version@";
 }
 
-char*
+const char*
 volk_compiler_flags()
 {
   return "@COMPILER_INFO@";
 }
 
-char*
+const char*
 volk_available_machines()
 {
   return "@available_machines@";
