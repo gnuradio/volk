@@ -151,15 +151,15 @@ static int has_neon(void){
 #endif
 }
 
-#for $arch in $archs
-static int i_can_has_$arch.name (void) {
-    #for $check, $params in $arch.checks
-    if ($(check)($(', '.join($params))) == 0) return 0;
-    #end for
+%for arch in archs:
+static int i_can_has_${arch.name} (void) {
+    %for check, params in arch.checks:
+    if (${check}(<% joined_params = ', '.join(params)%>${joined_params}) == 0) return 0;
+    %endfor
     return 1;
 }
 
-#end for
+%endfor
 
 #if defined(HAVE_FENV_H)
     #if defined(FE_TONEAREST)
@@ -186,17 +186,17 @@ static int i_can_has_$arch.name (void) {
 #endif
 
 void volk_cpu_init() {
-    #for $arch in $archs
-    volk_cpu.has_$arch.name = &i_can_has_$arch.name;
-    #end for
+    %for arch in archs:
+    volk_cpu.has_${arch.name} = &i_can_has_${arch.name};
+    %endfor
     set_float_rounding();
 }
 
 unsigned int volk_get_lvarch() {
     unsigned int retval = 0;
     volk_cpu_init();
-    #for $arch in $archs
-    retval += volk_cpu.has_$(arch.name)() << LV_$(arch.name.upper());
-    #end for
+    %for arch in archs:
+    retval += volk_cpu.has_${arch.name}() << LV_${arch.name.upper()};
+    %endfor
     return retval;
 }
