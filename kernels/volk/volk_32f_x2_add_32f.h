@@ -191,8 +191,8 @@ volk_32f_x2_add_32f_u_neon(float* cVector, const float* aVector,
     // Load in to NEON registers
     aVal = vld1q_f32(aPtr);
     bVal = vld1q_f32(bPtr);
-    __builtin_prefetch(aPtr+4);
-    __builtin_prefetch(bPtr+4);
+    __VOLK_PREFETCH(aPtr+4);
+    __VOLK_PREFETCH(bPtr+4);
 
     // vector add
     cVal = vaddq_f32(aVal, bVal);

@@ -198,7 +198,7 @@ static inline void volk_16ic_convert_32fc_neon(lv_32fc_t* outputVector, const lv
     for(number = 0; number < sse_iters; number++)
         {
             a16x4 = vld1_s16((const int16_t*)_in);
-            __builtin_prefetch(_in + 4);
+            __VOLK_PREFETCH(_in + 4);
             a32x4 = vmovl_s16(a16x4);
             f32x4 = vcvtq_f32_s32(a32x4);
             vst1q_f32((float32_t*)_out, f32x4);

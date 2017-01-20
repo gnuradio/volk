@@ -219,8 +219,8 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_neon(lv_32fc_t* result, 
     for(number = 0; number < quarter_points; ++number) {
         a_val = vld2q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
         b_val = vld2q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
-        __builtin_prefetch(a_ptr+8);
-        __builtin_prefetch(b_ptr+8);
+        __VOLK_PREFETCH(a_ptr+8);
+        __VOLK_PREFETCH(b_ptr+8);
 
         // do the first multiply
         tmp_imag.val[1] = vmulq_f32(a_val.val[1], b_val.val[0]);

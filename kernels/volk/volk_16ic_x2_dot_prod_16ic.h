@@ -96,9 +96,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_sse2(lv_16sc_t* out, const lv_16
                 {
                     // a[127:0]=[a3.i,a3.r,a2.i,a2.r,a1.i,a1.r,a0.i,a0.r]
                     a = _mm_load_si128((__m128i*)_in_a); //load (2 byte imag, 2 byte real) x 4 into 128 bits reg
-                    __builtin_prefetch(_in_a + 8);
+                    __VOLK_PREFETCH(_in_a + 8);
                     b = _mm_load_si128((__m128i*)_in_b);
-                    __builtin_prefetch(_in_b + 8);
+                    __VOLK_PREFETCH(_in_b + 8);
                     c = _mm_mullo_epi16(a, b); // a3.i*b3.i, a3.r*b3.r, ....
 
                     c_sr = _mm_srli_si128(c, 2); // Shift a right by imm8 bytes while shifting in zeros, and store the results in dst.
@@ -173,9 +173,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_sse2(lv_16sc_t* out, const lv_16
                 {
                     // a[127:0]=[a3.i,a3.r,a2.i,a2.r,a1.i,a1.r,a0.i,a0.r]
                     a = _mm_loadu_si128((__m128i*)_in_a); //load (2 byte imag, 2 byte real) x 4 into 128 bits reg
-                    __builtin_prefetch(_in_a + 8);
+                    __VOLK_PREFETCH(_in_a + 8);
                     b = _mm_loadu_si128((__m128i*)_in_b);
-                    __builtin_prefetch(_in_b + 8);
+                    __VOLK_PREFETCH(_in_b + 8);
                     c = _mm_mullo_epi16(a, b); // a3.i*b3.i, a3.r*b3.r, ....
 
                     c_sr = _mm_srli_si128(c, 2); // Shift a right by imm8 bytes while shifting in zeros, and store the results in dst.
@@ -248,9 +248,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_axv2(lv_16sc_t* out, const lv_16
             for(number = 0; number < avx_iters; number++)
                 {
                     a = _mm256_loadu_si256((__m256i*)_in_a);
-                    __builtin_prefetch(_in_a + 16);
+                    __VOLK_PREFETCH(_in_a + 16);
                     b = _mm256_loadu_si256((__m256i*)_in_b);
-                    __builtin_prefetch(_in_b + 16);
+                    __VOLK_PREFETCH(_in_b + 16);
                     c = _mm256_mullo_epi16(a, b);
 
                     c_sr = _mm256_srli_si256(c, 2); // Shift a right by imm8 bytes while shifting in zeros, and store the results in dst.
@@ -324,9 +324,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_axv2(lv_16sc_t* out, const lv_16
             for(number = 0; number < avx_iters; number++)
                 {
                     a = _mm256_load_si256((__m256i*)_in_a);
-                    __builtin_prefetch(_in_a + 16);
+                    __VOLK_PREFETCH(_in_a + 16);
                     b = _mm256_load_si256((__m256i*)_in_b);
-                    __builtin_prefetch(_in_b + 16);
+                    __VOLK_PREFETCH(_in_b + 16);
                     c = _mm256_mullo_epi16(a, b);
 
                     c_sr = _mm256_srli_si256(c, 2); // Shift a right by imm8 bytes while shifting in zeros, and store the results in dst.
@@ -399,8 +399,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon(lv_16sc_t* out, const lv_16sc
                 {
                     a_val = vld2_s16((int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
                     b_val = vld2_s16((int16_t*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
-                    __builtin_prefetch(a_ptr + 8);
-                    __builtin_prefetch(b_ptr + 8);
+                    __VOLK_PREFETCH(a_ptr + 8);
+                    __VOLK_PREFETCH(b_ptr + 8);
 
                     // multiply the real*real and imag*imag to get real result
                     // a0r*b0r|a1r*b1r|a2r*b2r|a3r*b3r
@@ -465,8 +465,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_vma(lv_16sc_t* out, const lv_
         {
             a_val = vld2_s16((int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
             b_val = vld2_s16((int16_t*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
-            __builtin_prefetch(a_ptr + 8);
-            __builtin_prefetch(b_ptr + 8);
+            __VOLK_PREFETCH(a_ptr + 8);
+            __VOLK_PREFETCH(b_ptr + 8);
 
             tmp.val[0] = vmul_s16(a_val.val[0], b_val.val[0]);
             tmp.val[1] = vmul_s16(a_val.val[1], b_val.val[0]);
@@ -519,8 +519,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_optvma(lv_16sc_t* out, const 
         {
             a_val = vld2_s16((int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
             b_val = vld2_s16((int16_t*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
-            __builtin_prefetch(a_ptr + 8);
-            __builtin_prefetch(b_ptr + 8);
+            __VOLK_PREFETCH(a_ptr + 8);
+            __VOLK_PREFETCH(b_ptr + 8);
 
             // use 2 accumulators to remove inter-instruction data dependencies
             accumulator1.val[0] = vmla_s16(accumulator1.val[0], a_val.val[0], b_val.val[0]);
