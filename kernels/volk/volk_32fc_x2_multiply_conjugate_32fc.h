@@ -262,8 +262,8 @@ volk_32fc_x2_multiply_conjugate_32fc_neon(lv_32fc_t* cVector, const lv_32fc_t* a
     a_val = vld2q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
     b_val = vld2q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
     b_val.val[1] = vnegq_f32(b_val.val[1]);
-    __builtin_prefetch(a_ptr+4);
-    __builtin_prefetch(b_ptr+4);
+    __VOLK_PREFETCH(a_ptr+4);
+    __VOLK_PREFETCH(b_ptr+4);
 
     // multiply the real*real and imag*imag to get real result
     // a0r*b0r|a1r*b1r|a2r*b2r|a3r*b3r

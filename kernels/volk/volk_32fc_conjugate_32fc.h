@@ -248,7 +248,7 @@ volk_32fc_conjugate_32fc_a_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector, un
   const lv_32fc_t* a = aVector;
 
   for(number=0; number < quarterPoints; number++){
-    __builtin_prefetch(a+4);
+    __VOLK_PREFETCH(a+4);
     x = vld2q_f32((float*)a); // Load the complex data as ar,br,cr,dr; ai,bi,ci,di
 
     // xor the imaginary lane
