@@ -48,7 +48,6 @@ set(VERSION_INFO_MINOR_VERSION 3)
 set(VERSION_INFO_MAINT_VERSION 0git)
 include(VolkVersion) #setup version info
 
-
 ########################################################################
 # Environment setup
 ########################################################################
@@ -61,6 +60,14 @@ IF(NOT DEFINED CROSSCOMPILE_MULTILIB)
 ENDIF()
 SET(CROSSCOMPILE_MULTILIB ${CROSSCOMPILE_MULTILIB} CACHE STRING "Define \"true\" if you have and want to use multiple C development libs installed for cross compile")
 
+if(MSVC)
+    add_definitions(-D_USE_MATH_DEFINES) #enables math constants on all supported versions of MSVC
+    add_compile_options(/W1) #reduce warnings
+    add_compile_options(/wo4309)
+    add_compile_options(/wd4752)
+    add_compile_options(/wo4273)
+    add_compile_options(/wo4838)
+endif(MSVC)
 
 ########################################################################
 # Dependencies setup
