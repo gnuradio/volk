@@ -98,6 +98,9 @@ class volk_modtool:
             os.makedirs(os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'kernels/volk_' + self.my_dict['name']))
 
         current_kernel_names = self.get_current_kernels()
+        need_ifdef_updates = ["constant.h", "volk_complex.h", "volk_malloc.h", "volk_prefs.h",
+                              "volk_common.h", "volk_cpu.tmpl.h", "volk_config_fixed.tmpl.h",
+                              "volk_typedefs.h", "volk.tmpl.h"]
         for root, dirnames, filenames in os.walk(self.my_dict['base']):
             for name in filenames:
                 t_table = map(lambda a: re.search(a, name), current_kernel_names)
@@ -107,10 +110,7 @@ class volk_modtool:
                     instring = open(infile, 'r').read()
                     outstring = re.sub(self.volk, 'volk_' + self.my_dict['name'], instring)
                     # Update the header ifdef guards only where needed
-                    if((name == "constants.h") or
-                       (name == "volk_complex.h") or
-                       (name == "volk_malloc.h") or
-                       (name == "volk_prefs.h")):
+                    if name in need_ifdef_updates:
                         outstring = re.sub(self.volk_included, 'INCLUDED_VOLK_' + self.my_dict['name'].upper(), outstring)
                     newname = re.sub(self.volk, 'volk_' + self.my_dict['name'], name)
                     relpath = os.path.relpath(infile, self.my_dict['base'])
