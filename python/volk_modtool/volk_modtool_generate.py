@@ -113,6 +113,10 @@ class volk_modtool:
                     if name in need_ifdef_updates:
                         outstring = re.sub(self.volk_included, 'INCLUDED_VOLK_' + self.my_dict['name'].upper(), outstring)
                     newname = re.sub(self.volk, 'volk_' + self.my_dict['name'], name)
+                    if name == 'VolkConfig.cmake.in':
+                        outstring = re.sub("VOLK", 'VOLK_' + self.my_dict['name'].upper(), outstring)
+                        newname = "Volk%sConfig.cmake.in" % self.my_dict['name']
+
                     relpath = os.path.relpath(infile, self.my_dict['base'])
                     newrelpath = re.sub(self.volk, 'volk_' + self.my_dict['name'], relpath)
                     dest = os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], os.path.dirname(newrelpath), newname)
