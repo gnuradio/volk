@@ -75,7 +75,7 @@ static inline unsigned int cpuid_count_x86_bit(unsigned int level, unsigned int 
 #if defined(VOLK_CPU_x86)
     unsigned int regs[4] = {0};
     cpuid_x86_count(level, count, regs);
-    return regs[reg] >> bit & 0x01;
+	return regs[reg] >> bit & 0x01;
 #else
     return 0;
 #endif

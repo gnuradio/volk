@@ -76,7 +76,9 @@
 #else
 #include <x86intrin.h>
 #endif
-#endif
+#endif 
+
+
 
 union bit128{
   uint8_t i8[16];
