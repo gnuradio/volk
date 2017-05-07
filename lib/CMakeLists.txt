@@ -619,7 +619,7 @@ if(ENABLE_TESTING)
     )
 
     include(VolkAddTest)
-    VOLK_ADD_TEST(test_all
+    VOLK_ADD_TEST(volk_test_all
         SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
                        ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
         TARGET_DEPS volk
