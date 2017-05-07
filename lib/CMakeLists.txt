@@ -399,16 +399,6 @@ MESSAGE(STATUS "Compiler Version: ${cmake_c_compiler_version}")
 string(REPLACE "\n" " \\n" cmake_c_compiler_version ${cmake_c_compiler_version})
 string(REPLACE "\n" " \\n" COMPILER_INFO ${COMPILER_INFO})
 
-########################################################################
-# Set local include directories first
-########################################################################
-include_directories(
-    ${PROJECT_BINARY_DIR}/include
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/kernels
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
 
 ########################################################################
 # Handle ASM support
@@ -528,13 +518,28 @@ if(MSVC)
 endif()
 
 #Use object library for faster overall build in newer versions of cmake
-if(CMAKE_VERSION VERSION_GREATER "2.8.7")
+if(CMAKE_VERSION VERSION_GREATER "2.8.11")
     #Create a volk object library (requires cmake >= 2.8.8)
     add_library(volk_obj OBJECT ${volk_sources})
+    # a better cmake-fu user may make this more repeatable
+    target_include_directories(volk_obj
+        PUBLIC ${PROJECT_BINARY_DIR}/include
+        PUBLIC ${PROJECT_SOURCE_DIR}/include
+        PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+        PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 
     #Add dynamic library
     add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
     target_link_libraries(volk ${volk_libraries})
+    target_include_directories(volk
+        PUBLIC ${PROJECT_BINARY_DIR}/include
+        PUBLIC ${PROJECT_SOURCE_DIR}/include
+        PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+        PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 
     #Configure target properties
     set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
@@ -551,6 +556,13 @@ if(CMAKE_VERSION VERSION_GREATER "2.8.7")
     #Configure static library
     if(ENABLE_STATIC_LIBS)
         add_library(volk_static STATIC $<TARGET_OBJECTS:volk_obj>)
+        target_include_directories(volk_static
+            PUBLIC ${PROJECT_BINARY_DIR}/include
+            PUBLIC ${PROJECT_SOURCE_DIR}/include
+            PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+            PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+        )
 
         set_target_properties(volk_static PROPERTIES OUTPUT_NAME volk)
 
@@ -558,12 +570,18 @@ if(CMAKE_VERSION VERSION_GREATER "2.8.7")
             ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"
         )
     endif(ENABLE_STATIC_LIBS)
-
 #Older cmake versions (slower to build when building dynamic/static libs)
 else()
     #create the volk runtime library
     add_library(volk SHARED ${volk_sources})
     target_link_libraries(volk ${volk_libraries})
+    include_directories(volk
+        PUBLIC ${PROJECT_BINARY_DIR}/include
+        PUBLIC ${PROJECT_SOURCE_DIR}/include
+        PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+        PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+    )
     set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
     set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
 
@@ -586,7 +604,7 @@ else()
         )
     endif(ENABLE_STATIC_LIBS)
 
-endif(CMAKE_VERSION VERSION_GREATER "2.8.7")
+endif(CMAKE_VERSION VERSION_GREATER "2.8.11")
 ########################################################################
 # Build the QA test application
 ########################################################################
