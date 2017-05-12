@@ -65,7 +65,6 @@
 
 #ifdef LV_HAVE_GENERIC
 
-
 static inline void volk_32fc_x2_conjugate_dot_prod_32fc_generic(lv_32fc_t* result, const lv_32fc_t* input, const lv_32fc_t* taps, unsigned int num_points) {
 
   const unsigned int num_bytes = num_points*8;
@@ -76,53 +75,109 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_generic(lv_32fc_t* resul
   unsigned int n_2_ccomplex_blocks = num_bytes >> 4;
   unsigned int isodd = (num_bytes >> 3) &1;
 
-
-
   float sum0[2] = {0,0};
   float sum1[2] = {0,0};
   unsigned int i = 0;
 
-
   for(i = 0; i < n_2_ccomplex_blocks; ++i) {
-
     sum0[0] += in[0] * tp[0] + in[1] * tp[1];
     sum0[1] += (-in[0] * tp[1]) + in[1] * tp[0];
     sum1[0] += in[2] * tp[2] + in[3] * tp[3];
     sum1[1] += (-in[2] * tp[3]) + in[3] * tp[2];
 
-
     in += 4;
     tp += 4;
-
   }
-
 
   res[0] = sum0[0] + sum1[0];
   res[1] = sum0[1] + sum1[1];
 
-
-
   for(i = 0; i < isodd; ++i) {
-
-
     *result += input[(num_bytes >> 3) - 1] * lv_conj(taps[(num_bytes >> 3) - 1]);
-
   }
-  /*
-  for(i = 0; i < num_bytes >> 3; ++i) {
-    *result += input[i] * conjf(taps[i]);
-  }
-  */
 }
 
 #endif /*LV_HAVE_GENERIC*/
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include "volk/volk_avx_intrinsics.h"
+static inline void
+volk_32fc_x2_conjugate_dot_prod_32fc_u_avx(lv_32fc_t* result, const lv_32fc_t* input, const lv_32fc_t* taps, unsigned int num_points) {
+
+  int quarter_points = num_points / 4;
+  __m256 avec, bvec, resultvec, sumvec;
+  sumvec = _mm256_set1_ps(0.f);
+  const float *a_p = (const float*) input;
+  const float *b_p = (const float*) taps;
+
+  for (int qpoint = 0; qpoint < quarter_points; ++qpoint) {
+    avec = _mm256_loadu_ps(a_p);
+    bvec = _mm256_loadu_ps(b_p);
+    resultvec = _mm256_complexconjugatemul_ps(avec, bvec);
+    sumvec = _mm256_add_ps(sumvec, resultvec);
+
+    a_p += 8;
+    b_p += 8;
+  }
+
+  __VOLK_ATTR_ALIGNED(32) lv_32fc_t tmp_result[4];
+  _mm256_store_ps((float*)tmp_result, sumvec);
+  *result = tmp_result[0] + tmp_result[1];
+  *result += tmp_result[2] + tmp_result[3];
+
+  for (int point=quarter_points*4; point < num_points; ++point) {
+    float a_r = *a_p++;
+    float a_i = *a_p++;
+    float b_r = *a_p++;
+    float b_i = *b_p++;
+    *result += lv_cmake(a_r*b_r + a_i*b_i, a_r*-b_i + a_i*b_r);
+  }
+}
+#endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include "volk/volk_avx_intrinsics.h"
+static inline void
+volk_32fc_x2_conjugate_dot_prod_32fc_a_avx(lv_32fc_t* result, const lv_32fc_t* input, const lv_32fc_t* taps, unsigned int num_points) {
+
+  int quarter_points = num_points / 4;
+  __m256 avec, bvec, resultvec, sumvec;
+  sumvec = _mm256_set1_ps(0.f);
+  const float *a_p = (const float*) input;
+  const float *b_p = (const float*) taps;
+
+  for (int qpoint = 0; qpoint < quarter_points; ++qpoint) {
+    avec = _mm256_load_ps(a_p);
+    bvec = _mm256_load_ps(b_p);
+    resultvec = _mm256_complexconjugatemul_ps(avec, bvec);
+    sumvec = _mm256_add_ps(sumvec, resultvec);
+
+    a_p += 8;
+    b_p += 8;
+  }
+
+  __VOLK_ATTR_ALIGNED(32) lv_32fc_t tmp_result[4];
+  _mm256_store_ps((float*)tmp_result, sumvec);
+  *result = tmp_result[0] + tmp_result[1];
+  *result += tmp_result[2] + tmp_result[3];
+
+  for (int point=quarter_points*4; point < num_points; ++point) {
+    float a_r = *a_p++;
+    float a_i = *a_p++;
+    float b_r = *a_p++;
+    float b_i = *b_p++;
+    *result += lv_cmake(a_r*b_r + a_i*b_i, a_r*-b_i + a_i*b_r);
+  }
+}
+#endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_SSE3
 
 #include <xmmintrin.h>
 #include <pmmintrin.h>
 #include <mmintrin.h>
-
 
 static inline void volk_32fc_x2_conjugate_dot_prod_32fc_u_sse3(lv_32fc_t* result, const lv_32fc_t* input, const lv_32fc_t* taps, unsigned int num_points) {
 
@@ -273,44 +328,26 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_generic(lv_32fc_t* res
   unsigned int n_2_ccomplex_blocks = num_bytes >> 4;
   unsigned int isodd = (num_bytes >> 3) &1;
 
-
-
   float sum0[2] = {0,0};
   float sum1[2] = {0,0};
   unsigned int i = 0;
 
-
   for(i = 0; i < n_2_ccomplex_blocks; ++i) {
-
-
     sum0[0] += in[0] * tp[0] + in[1] * tp[1];
     sum0[1] += (-in[0] * tp[1]) + in[1] * tp[0];
     sum1[0] += in[2] * tp[2] + in[3] * tp[3];
     sum1[1] += (-in[2] * tp[3]) + in[3] * tp[2];
 
-
     in += 4;
     tp += 4;
-
   }
-
 
   res[0] = sum0[0] + sum1[0];
   res[1] = sum0[1] + sum1[1];
 
-
-
   for(i = 0; i < isodd; ++i) {
-
-
     *result += input[(num_bytes >> 3) - 1] * lv_conj(taps[(num_bytes >> 3) - 1]);
-
   }
-  /*
-  for(i = 0; i < num_bytes >> 3; ++i) {
-    *result += input[i] * conjf(taps[i]);
-  }
-  */
 }
 
 #endif /*LV_HAVE_GENERIC*/
@@ -318,15 +355,11 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_generic(lv_32fc_t* res
 
 #if LV_HAVE_SSE && LV_HAVE_64
 
-
 static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse(lv_32fc_t* result, const lv_32fc_t* input, const lv_32fc_t* taps, unsigned int num_points) {
 
   const unsigned int num_bytes = num_points*8;
 
   __VOLK_ATTR_ALIGNED(16) static const uint32_t conjugator[4]= {0x00000000, 0x80000000, 0x00000000, 0x80000000};
-
-
-
 
   asm volatile
     (
@@ -446,18 +479,11 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse(lv_32fc_t* result,
      :"rax", "r8", "r9", "r10"
      );
 
-
   int getem = num_bytes % 16;
 
-
   for(; getem > 0; getem -= 8) {
-
-
     *result += (input[(num_bytes >> 3) - 1] * lv_conj(taps[(num_bytes >> 3) - 1]));
-
   }
-
-  return;
 }
 #endif
 
@@ -470,7 +496,6 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse_32(lv_32fc_t* resu
 
   int bound = num_bytes >> 4;
   int leftovers = num_bytes % 16;
-
 
   asm volatile
     (
@@ -577,29 +602,11 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse_32(lv_32fc_t* resu
      : [eax] "r" (input), [edx] "r" (taps), [ecx] "r" (num_bytes), [out] "r" (result), [conjugator] "r" (conjugator)
      );
 
-
-
-
-  printf("%d, %d\n", leftovers, bound);
-
   for(; leftovers > 0; leftovers -= 8) {
-
-
     *result += (input[(bound << 1)] * lv_conj(taps[(bound << 1)]));
-
   }
-
-  return;
-
-
-
-
-
-
 }
-
 #endif /*LV_HAVE_SSE*/
-
 
 
 #endif /*INCLUDED_volk_32fc_x2_conjugate_dot_prod_32fc_a_H*/
