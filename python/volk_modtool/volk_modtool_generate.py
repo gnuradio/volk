@@ -60,10 +60,10 @@ class volk_modtool:
         else:
             name = self.get_basename(base)
         if name == '':
-            hdr_files = glob.glob(os.path.join(base, "kernels/volk/*.h"))
+            hdr_files = sorted(glob.glob(os.path.join(base, "kernels/volk/*.h")))
             begins = re.compile("(?<=volk_).*")
         else:
-            hdr_files = glob.glob(os.path.join(base, "kernels/volk_" + name + "/*.h"))
+            hdr_files = sorted(glob.glob(os.path.join(base, "kernels/volk_" + name + "/*.h")))
             begins = re.compile("(?<=volk_" + name + "_).*")
 
         datatypes = []
@@ -158,7 +158,7 @@ class volk_modtool:
         open(dest, 'w+').write(outstring)
 
         # copy orc proto-kernels if they exist
-        for orcfile in glob.glob(inpath + '/kernels/volk/asm/orc/' + top + name + '*.orc'):
+        for orcfile in sorted(glob.glob(inpath + '/kernels/volk/asm/orc/' + top + name + '*.orc')):
             if os.path.isfile(orcfile):
                 instring = open(orcfile, 'r').read()
                 outstring = re.sub(oldvolk, 'volk_' + self.my_dict['name'], instring)
