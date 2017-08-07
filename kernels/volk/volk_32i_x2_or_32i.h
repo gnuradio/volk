@@ -84,6 +84,43 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32i_x2_or_32i_a_avx2(int32_t* cVector, const int32_t* aVector,
+                          const int32_t* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eigthPoints = num_points / 8;
+
+  float* cPtr = (float*)cVector;
+  const float* aPtr = (float*)aVector;
+  const float* bPtr = (float*)bVector;
+
+  __m256 aVal, bVal, cVal;
+  for(;number < eigthPoints; number++){
+
+    aVal = _mm256_load_ps(aPtr);
+    bVal = _mm256_load_ps(bPtr);
+
+    cVal = _mm256_or_ps(aVal, bVal);
+
+    _mm256_store_ps(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 8;
+    bPtr += 8;
+    cPtr += 8;
+  }
+
+  number = eigthPoints * 8;
+  for(;number < num_points; number++){
+    cVector[number] = aVector[number] | bVector[number];
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
