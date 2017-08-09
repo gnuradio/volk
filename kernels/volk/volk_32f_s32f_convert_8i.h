@@ -74,6 +74,73 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32f_s32f_convert_8i_u_avx2(int8_t* outputVector, const float* inputVector,
+                                const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+
+  const unsigned int thirtysecondPoints = num_points / 32;
+
+  const float* inputVectorPtr = (const float*)inputVector;
+  int8_t* outputVectorPtr = outputVector;
+
+  float min_val = -128;
+  float max_val = 127;
+  float r;
+
+  __m256 vScalar = _mm256_set1_ps(scalar);
+  __m256 inputVal1, inputVal2, inputVal3, inputVal4;
+  __m256i intInputVal1, intInputVal2, intInputVal3, intInputVal4;
+  __m256 vmin_val = _mm256_set1_ps(min_val);
+  __m256 vmax_val = _mm256_set1_ps(max_val);
+  __m256i intInputVal;
+
+  for(;number < thirtysecondPoints; number++){
+    inputVal1 = _mm256_loadu_ps(inputVectorPtr); inputVectorPtr += 8;
+    inputVal2 = _mm256_loadu_ps(inputVectorPtr); inputVectorPtr += 8;
+    inputVal3 = _mm256_loadu_ps(inputVectorPtr); inputVectorPtr += 8;
+    inputVal4 = _mm256_loadu_ps(inputVectorPtr); inputVectorPtr += 8;
+
+    inputVal1 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
+    inputVal2 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal2, vScalar), vmax_val), vmin_val);
+    inputVal3 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal3, vScalar), vmax_val), vmin_val);
+    inputVal4 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal4, vScalar), vmax_val), vmin_val);
+
+    intInputVal1 = _mm256_cvtps_epi32(inputVal1);
+    intInputVal2 = _mm256_cvtps_epi32(inputVal2);
+    intInputVal3 = _mm256_cvtps_epi32(inputVal3);
+    intInputVal4 = _mm256_cvtps_epi32(inputVal4);
+
+    intInputVal1 = _mm256_packs_epi32(intInputVal1, intInputVal2);
+    intInputVal1 = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
+    intInputVal3 = _mm256_packs_epi32(intInputVal3, intInputVal4);
+    intInputVal3 = _mm256_permute4x64_epi64(intInputVal3, 0b11011000);
+
+    intInputVal1 = _mm256_packs_epi16(intInputVal1, intInputVal3);
+    intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
+
+    _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal);
+    outputVectorPtr += 32;
+  }
+
+  number = thirtysecondPoints * 32;
+  for(; number < num_points; number++){
+    r = inputVector[number] * scalar;
+    if(r > max_val)
+      r = max_val;
+    else if(r < min_val)
+      r = min_val;
+    outputVector[number] = (int16_t)(r);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 */
+
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
@@ -222,6 +289,73 @@ volk_32f_s32f_convert_8i_generic(int8_t* outputVector, const float* inputVector,
 #include <volk/volk_common.h>
 #include <inttypes.h>
 #include <stdio.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32f_s32f_convert_8i_a_avx2(int8_t* outputVector, const float* inputVector,
+                                const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+
+  const unsigned int thirtysecondPoints = num_points / 32;
+
+  const float* inputVectorPtr = (const float*)inputVector;
+  int8_t* outputVectorPtr = outputVector;
+
+  float min_val = -128;
+  float max_val = 127;
+  float r;
+
+  __m256 vScalar = _mm256_set1_ps(scalar);
+  __m256 inputVal1, inputVal2, inputVal3, inputVal4;
+  __m256i intInputVal1, intInputVal2, intInputVal3, intInputVal4;
+  __m256 vmin_val = _mm256_set1_ps(min_val);
+  __m256 vmax_val = _mm256_set1_ps(max_val);
+  __m256i intInputVal;
+
+  for(;number < thirtysecondPoints; number++){
+    inputVal1 = _mm256_load_ps(inputVectorPtr); inputVectorPtr += 8;
+    inputVal2 = _mm256_load_ps(inputVectorPtr); inputVectorPtr += 8;
+    inputVal3 = _mm256_load_ps(inputVectorPtr); inputVectorPtr += 8;
+    inputVal4 = _mm256_load_ps(inputVectorPtr); inputVectorPtr += 8;
+
+    inputVal1 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
+    inputVal2 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal2, vScalar), vmax_val), vmin_val);
+    inputVal3 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal3, vScalar), vmax_val), vmin_val);
+    inputVal4 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal4, vScalar), vmax_val), vmin_val);
+
+    intInputVal1 = _mm256_cvtps_epi32(inputVal1);
+    intInputVal2 = _mm256_cvtps_epi32(inputVal2);
+    intInputVal3 = _mm256_cvtps_epi32(inputVal3);
+    intInputVal4 = _mm256_cvtps_epi32(inputVal4);
+
+    intInputVal1 = _mm256_packs_epi32(intInputVal1, intInputVal2);
+    intInputVal1 = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
+    intInputVal3 = _mm256_packs_epi32(intInputVal3, intInputVal4);
+    intInputVal3 = _mm256_permute4x64_epi64(intInputVal3, 0b11011000);
+
+    intInputVal1 = _mm256_packs_epi16(intInputVal1, intInputVal3);
+    intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
+
+    _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal);
+    outputVectorPtr += 32;
+  }
+
+  number = thirtysecondPoints * 32;
+  for(; number < num_points; number++){
+    r = inputVector[number] * scalar;
+    if(r > max_val)
+      r = max_val;
+    else if(r < min_val)
+      r = min_val;
+    outputVector[number] = (int16_t)(r);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 */
+
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
