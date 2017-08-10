@@ -30,8 +30,11 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
             test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
 
     std::vector<volk_test_case_t> test_cases = boost::assign::list_of
+        (VOLK_INIT_TEST(volk_32f_x2_dot_prod_16i,                       test_params))
         (VOLK_INIT_TEST(volk_16i_32fc_dot_prod_32fc,                    test_params_inacc))
         (VOLK_INIT_TEST(volk_32fc_32f_dot_prod_32fc,                    test_params_inacc))
+        (VOLK_INIT_TEST(volk_16ic_x2_dot_prod_16ic,                     test_params))
+        (VOLK_INIT_TEST(volk_32f_x2_dot_prod_32f,                       test_params_inacc))
         (VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt,     test_params))
         (VOLK_INIT_TEST(volk_32f_s32f_convert_16i,                      test_params))
         (VOLK_INIT_TEST(volk_32i_x2_and_32i,                            test_params))
@@ -53,7 +56,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_16ic_s32f_magnitude_32f,                   test_params))
         (VOLK_INIT_TEST(volk_16ic_convert_32fc,                         test_params))
         (VOLK_INIT_TEST(volk_16ic_x2_multiply_16ic,                     test_params))
-        (VOLK_INIT_TEST(volk_16ic_x2_dot_prod_16ic,                     test_params))
+
         (VOLK_INIT_TEST(volk_16i_s32f_convert_32f,                      test_params))
         (VOLK_INIT_TEST(volk_16i_convert_8i,                            test_params))
 
@@ -101,7 +104,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_32fc_x2_square_dist_32f,                   test_params))
         (VOLK_INIT_TEST(volk_32fc_x2_s32f_square_dist_scalar_mult_32f,  test_params))
         (VOLK_INIT_TEST(volk_32f_x2_divide_32f,                         test_params))
-        (VOLK_INIT_TEST(volk_32f_x2_dot_prod_32f,                       test_params_inacc))
+
         (VOLK_INIT_TEST(volk_32f_x2_s32f_interleave_16ic, volk_test_params_t(1, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
         (VOLK_INIT_TEST(volk_32f_x2_interleave_32fc,                    test_params))
         (VOLK_INIT_TEST(volk_32f_x2_max_32f,                            test_params))
@@ -117,7 +120,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_32i_x2_and_32i,                            test_params))
         (VOLK_INIT_TEST(volk_32i_s32f_convert_32f,                      test_params))
         (VOLK_INIT_TEST(volk_32i_x2_or_32i,                             test_params))
-        (VOLK_INIT_TEST(volk_32f_x2_dot_prod_16i,                       test_params))
+
         (VOLK_INIT_TEST(volk_64f_convert_32f,                           test_params))
         (VOLK_INIT_TEST(volk_64f_x2_max_64f,                            test_params))
         (VOLK_INIT_TEST(volk_64f_x2_min_64f,                            test_params))
