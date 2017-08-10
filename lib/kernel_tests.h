@@ -30,6 +30,8 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
             test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
 
     std::vector<volk_test_case_t> test_cases = boost::assign::list_of
+        (VOLK_INIT_TEST(volk_16i_32fc_dot_prod_32fc,                    test_params_inacc))
+        (VOLK_INIT_TEST(volk_32fc_32f_dot_prod_32fc,                    test_params_inacc))
         (VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt,     test_params))
         (VOLK_INIT_TEST(volk_32f_s32f_convert_16i,                      test_params))
         (VOLK_INIT_TEST(volk_32i_x2_and_32i,                            test_params))
@@ -54,7 +56,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_16ic_x2_dot_prod_16ic,                     test_params))
         (VOLK_INIT_TEST(volk_16i_s32f_convert_32f,                      test_params))
         (VOLK_INIT_TEST(volk_16i_convert_8i,                            test_params))
-        (VOLK_INIT_TEST(volk_16i_32fc_dot_prod_32fc,                    test_params_inacc))
+
         (VOLK_INIT_TEST(volk_32f_accumulator_s32f,                      test_params_inacc))
         (VOLK_INIT_TEST(volk_32f_x2_add_32f,                            test_params))
         (VOLK_INIT_TEST(volk_32f_index_max_16u,                         test_params))
@@ -80,7 +82,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_32fc_deinterleave_real_32f,                test_params))
         (VOLK_INIT_TEST(volk_32fc_deinterleave_real_64f,                test_params))
         (VOLK_INIT_TEST(volk_32fc_x2_dot_prod_32fc,                     test_params_inacc))
-        (VOLK_INIT_TEST(volk_32fc_32f_dot_prod_32fc,                    test_params_inacc))
+
         (VOLK_INIT_TEST(volk_32fc_index_max_16u,      volk_test_params_t(3, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
         (VOLK_INIT_TEST(volk_32fc_index_max_32u,      volk_test_params_t(3, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
         (VOLK_INIT_TEST(volk_32fc_s32f_magnitude_16i,                   test_params_int1))
