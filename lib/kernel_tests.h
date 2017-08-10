@@ -31,9 +31,13 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
 
     std::vector<volk_test_case_t> test_cases = boost::assign::list_of
         (VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt,     test_params))
+        (VOLK_INIT_TEST(volk_32i_s32f_convert_32f,                      test_params))
+        (VOLK_INIT_TEST(volk_16i_convert_8i,                            test_params))
+        (VOLK_INIT_TEST(volk_8i_convert_16i,                            test_params))
         (VOLK_INIT_TEST(volk_32f_s32f_convert_16i,                      test_params))
         (VOLK_INIT_TEST(volk_32i_x2_and_32i,                            test_params))
         (VOLK_INIT_TEST(volk_32i_x2_or_32i,                             test_params))
+        (VOLK_INIT_TEST(volk_8i_convert_16i,                            test_params))
 
         (VOLK_INIT_PUPP(volk_16u_byteswappuppet_16u, volk_16u_byteswap, test_params))
         (VOLK_INIT_PUPP(volk_32u_byteswappuppet_32u, volk_32u_byteswap, test_params))
