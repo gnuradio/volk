@@ -226,65 +226,76 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_sse( lv_32fc_t* result, const  
 static inline void volk_16i_32fc_dot_prod_32fc_u_avx2( lv_32fc_t* result, const  short* input, const  lv_32fc_t* taps, unsigned int num_points) {
 
   unsigned int number = 0;
-  const unsigned int sixteenthPoints = num_points / 8;
+  const unsigned int sixteenthPoints = num_points / 16;
 
   float res[2];
   float *realpt = &res[0], *imagpt = &res[1];
   const short* aPtr = input;
   const float* bPtr = (float*)taps;
 
-  __m64  m0, m1;
-  __m128 f0, f1, f2, f3;
-  __m128 a0Val, a1Val, a2Val, a3Val;
-  __m128 b0Val, b1Val, b2Val, b3Val;
+  __m128i  m0, m1;
+  __m256i f0, f1;
+  __m256  g0, g1, h0, h1, h2, h3;
+  __m256 a0Val, a1Val, a2Val, a3Val;
+  __m256 b0Val, b1Val, b2Val, b3Val;
 
-  __m128 dotProdVal0 = _mm_setzero_ps();
-  __m128 dotProdVal1 = _mm_setzero_ps();
-  __m128 dotProdVal2 = _mm_setzero_ps();
-  __m128 dotProdVal3 = _mm_setzero_ps();
+  __m256 dotProdVal0 = _mm256_setzero_ps();
+  __m256 dotProdVal1 = _mm256_setzero_ps();
+  __m256 dotProdVal2 = _mm256_setzero_ps();
+  __m256 dotProdVal3 = _mm256_setzero_ps();
 
   for(;number < sixteenthPoints; number++){
 
-    m0 = _mm_set_pi16(*(aPtr+3), *(aPtr+2), *(aPtr+1), *(aPtr+0));
-    m1 = _mm_set_pi16(*(aPtr+7), *(aPtr+6), *(aPtr+5), *(aPtr+4));
-    f0 = _mm_cvtpi16_ps(m0);
-    f1 = _mm_cvtpi16_ps(m0);
-    f2 = _mm_cvtpi16_ps(m1);
-    f3 = _mm_cvtpi16_ps(m1);
+    m0 = _mm_loadu_si128((__m128i const*) aPtr);
+    m1 = _mm_loadu_si128((__m128i const*)(aPtr+8));
 
-    a0Val = _mm_unpacklo_ps(f0, f1);
-    a1Val = _mm_unpackhi_ps(f0, f1);
-    a2Val = _mm_unpacklo_ps(f2, f3);
-    a3Val = _mm_unpackhi_ps(f2, f3);
+    f0 = _mm256_cvtepi16_epi32(m0);
+    g0 = _mm256_cvtepi32_ps(f0);
+    f1 = _mm256_cvtepi16_epi32(m1);
+    g1 = _mm256_cvtepi32_ps(f1);
 
-    b0Val = _mm_loadu_ps(bPtr);
-    b1Val = _mm_loadu_ps(bPtr+4);
-    b2Val = _mm_loadu_ps(bPtr+8);
-    b3Val = _mm_loadu_ps(bPtr+12);
+    h0 = _mm256_unpacklo_ps(g0, g0);
+    h1 = _mm256_unpackhi_ps(g0, g0);
+    h2 = _mm256_unpacklo_ps(g1, g1);
+    h3 = _mm256_unpackhi_ps(g1, g1);
 
-    dotProdVal0 = _mm_fmadd_ps(a0Val,b0Val,dotProdVal0);
-    dotProdVal1 = _mm_fmadd_ps(a1Val,b1Val,dotProdVal1);
-    dotProdVal2 = _mm_fmadd_ps(a2Val,b2Val,dotProdVal2);
-    dotProdVal3 = _mm_fmadd_ps(a3Val,b3Val,dotProdVal3);
+    a0Val = _mm256_permute2f128_ps(h0, h1, 0x20);
+    a1Val = _mm256_permute2f128_ps(h0, h1, 0x31);
+    a2Val = _mm256_permute2f128_ps(h2, h3, 0x20);
+    a3Val = _mm256_permute2f128_ps(h2, h3, 0x31);
 
-    aPtr += 8;
-    bPtr += 16;
+    b0Val = _mm256_loadu_ps(bPtr);
+    b1Val = _mm256_loadu_ps(bPtr+8);
+    b2Val = _mm256_loadu_ps(bPtr+16);
+    b3Val = _mm256_loadu_ps(bPtr+24);
+
+    dotProdVal0 = _mm256_fmadd_ps(a0Val,b0Val,dotProdVal0);
+    dotProdVal1 = _mm256_fmadd_ps(a1Val,b1Val,dotProdVal1);
+    dotProdVal2 = _mm256_fmadd_ps(a2Val,b2Val,dotProdVal2);
+    dotProdVal3 = _mm256_fmadd_ps(a3Val,b3Val,dotProdVal3);
+
+    aPtr += 16;
+    bPtr += 32;
   }
 
-  dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal1);
-  dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal2);
-  dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal3);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal1);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal2);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal3);
 
-  __VOLK_ATTR_ALIGNED(16) float dotProductVector[4];
+  __VOLK_ATTR_ALIGNED(32) float dotProductVector[8];
 
-  _mm_store_ps(dotProductVector,dotProdVal0); // Store the results back into the dot product vector
+  _mm256_store_ps(dotProductVector,dotProdVal0); // Store the results back into the dot product vector
 
   *realpt = dotProductVector[0];
   *imagpt = dotProductVector[1];
   *realpt += dotProductVector[2];
   *imagpt += dotProductVector[3];
+  *realpt += dotProductVector[4];
+  *imagpt += dotProductVector[5];
+  *realpt += dotProductVector[6];
+  *imagpt += dotProductVector[7];
 
-  number = sixteenthPoints*8;
+  number = sixteenthPoints*16;
   for(;number < num_points; number++){
     *realpt += ((*aPtr)   * (*bPtr++));
     *imagpt += ((*aPtr++) * (*bPtr++));
@@ -382,65 +393,76 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_sse( lv_32fc_t* result, const  
 static inline void volk_16i_32fc_dot_prod_32fc_a_avx2( lv_32fc_t* result, const  short* input, const  lv_32fc_t* taps, unsigned int num_points) {
 
   unsigned int number = 0;
-  const unsigned int sixteenthPoints = num_points / 8;
+  const unsigned int sixteenthPoints = num_points / 16;
 
   float res[2];
   float *realpt = &res[0], *imagpt = &res[1];
   const short* aPtr = input;
   const float* bPtr = (float*)taps;
 
-  __m64  m0, m1;
-  __m128 f0, f1, f2, f3;
-  __m128 a0Val, a1Val, a2Val, a3Val;
-  __m128 b0Val, b1Val, b2Val, b3Val;
+  __m128i  m0, m1;
+  __m256i f0, f1;
+  __m256  g0, g1, h0, h1, h2, h3;
+  __m256 a0Val, a1Val, a2Val, a3Val;
+  __m256 b0Val, b1Val, b2Val, b3Val;
 
-  __m128 dotProdVal0 = _mm_setzero_ps();
-  __m128 dotProdVal1 = _mm_setzero_ps();
-  __m128 dotProdVal2 = _mm_setzero_ps();
-  __m128 dotProdVal3 = _mm_setzero_ps();
+  __m256 dotProdVal0 = _mm256_setzero_ps();
+  __m256 dotProdVal1 = _mm256_setzero_ps();
+  __m256 dotProdVal2 = _mm256_setzero_ps();
+  __m256 dotProdVal3 = _mm256_setzero_ps();
 
   for(;number < sixteenthPoints; number++){
 
-    m0 = _mm_set_pi16(*(aPtr+3), *(aPtr+2), *(aPtr+1), *(aPtr+0));
-    m1 = _mm_set_pi16(*(aPtr+7), *(aPtr+6), *(aPtr+5), *(aPtr+4));
-    f0 = _mm_cvtpi16_ps(m0);
-    f1 = _mm_cvtpi16_ps(m0);
-    f2 = _mm_cvtpi16_ps(m1);
-    f3 = _mm_cvtpi16_ps(m1);
+    m0 = _mm_load_si128((__m128i const*) aPtr);
+    m1 = _mm_load_si128((__m128i const*)(aPtr+8));
 
-    a0Val = _mm_unpacklo_ps(f0, f1);
-    a1Val = _mm_unpackhi_ps(f0, f1);
-    a2Val = _mm_unpacklo_ps(f2, f3);
-    a3Val = _mm_unpackhi_ps(f2, f3);
+    f0 = _mm256_cvtepi16_epi32(m0);
+    g0 = _mm256_cvtepi32_ps(f0);
+    f1 = _mm256_cvtepi16_epi32(m1);
+    g1 = _mm256_cvtepi32_ps(f1);
 
-    b0Val = _mm_load_ps(bPtr);
-    b1Val = _mm_load_ps(bPtr+4);
-    b2Val = _mm_load_ps(bPtr+8);
-    b3Val = _mm_load_ps(bPtr+12);
+    h0 = _mm256_unpacklo_ps(g0, g0);
+    h1 = _mm256_unpackhi_ps(g0, g0);
+    h2 = _mm256_unpacklo_ps(g1, g1);
+    h3 = _mm256_unpackhi_ps(g1, g1);
 
-    dotProdVal0 = _mm_fmadd_ps(a0Val,b0Val,dotProdVal0);
-    dotProdVal1 = _mm_fmadd_ps(a1Val,b1Val,dotProdVal1);
-    dotProdVal2 = _mm_fmadd_ps(a2Val,b2Val,dotProdVal2);
-    dotProdVal3 = _mm_fmadd_ps(a3Val,b3Val,dotProdVal3);
+    a0Val = _mm256_permute2f128_ps(h0, h1, 0x20);
+    a1Val = _mm256_permute2f128_ps(h0, h1, 0x31);
+    a2Val = _mm256_permute2f128_ps(h2, h3, 0x20);
+    a3Val = _mm256_permute2f128_ps(h2, h3, 0x31);
 
-    aPtr += 8;
-    bPtr += 16;
+    b0Val = _mm256_load_ps(bPtr);
+    b1Val = _mm256_load_ps(bPtr+8);
+    b2Val = _mm256_load_ps(bPtr+16);
+    b3Val = _mm256_load_ps(bPtr+24);
+
+    dotProdVal0 = _mm256_fmadd_ps(a0Val,b0Val,dotProdVal0);
+    dotProdVal1 = _mm256_fmadd_ps(a1Val,b1Val,dotProdVal1);
+    dotProdVal2 = _mm256_fmadd_ps(a2Val,b2Val,dotProdVal2);
+    dotProdVal3 = _mm256_fmadd_ps(a3Val,b3Val,dotProdVal3);
+
+    aPtr += 16;
+    bPtr += 32;
   }
 
-  dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal1);
-  dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal2);
-  dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal3);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal1);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal2);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal3);
 
-  __VOLK_ATTR_ALIGNED(16) float dotProductVector[4];
+  __VOLK_ATTR_ALIGNED(32) float dotProductVector[8];
 
-  _mm_store_ps(dotProductVector,dotProdVal0); // Store the results back into the dot product vector
+  _mm256_store_ps(dotProductVector,dotProdVal0); // Store the results back into the dot product vector
 
   *realpt = dotProductVector[0];
   *imagpt = dotProductVector[1];
   *realpt += dotProductVector[2];
   *imagpt += dotProductVector[3];
+  *realpt += dotProductVector[4];
+  *imagpt += dotProductVector[5];
+  *realpt += dotProductVector[6];
+  *imagpt += dotProductVector[7];
 
-  number = sixteenthPoints*8;
+  number = sixteenthPoints*16;
   for(;number < num_points; number++){
     *realpt += ((*aPtr)   * (*bPtr++));
     *imagpt += ((*aPtr++) * (*bPtr++));
@@ -448,6 +470,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2( lv_32fc_t* result, const 
 
   *result = *(lv_32fc_t*)(&res[0]);
 }
+
 
 #endif /*LV_HAVE_AVX2*/
 
