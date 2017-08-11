@@ -67,68 +67,16 @@ volk_16ic_deinterleave_16i_x2_a_avx2(int16_t* iBuffer, int16_t* qBuffer, const l
   int16_t* iBufferPtr = iBuffer;
   int16_t* qBufferPtr = qBuffer;
 
-  //__m256i iMoveMask = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,13, 12, 9, 8, 5, 4, 1, 0,0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,13, 12, 9, 8, 5, 4, 1, 0);
-
-    //__m128i imoveMaskL = _mm_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,13, 12, 9, 8, 5, 4, 1, 0);
-    //__m128i imoveMaskH = _mm_set_epi8(13, 12, 9, 8, 5, 4, 1, 0,0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
-  //__m256i qMoveMask = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 14, 11, 10, 7, 6, 3, 2, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 14, 11, 10, 7, 6, 3, 2);
-   // __m128i qmoveMaskL = _mm_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,15, 14, 11, 10, 7, 6, 3, 2);
-    //__m128i qmoveMaskH = _mm_set_epi8(15, 14, 11, 10, 7, 6, 3, 2,0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
-
   __m256i MoveMask = _mm256_set_epi8(15,14,11,10,7,6,3,2,13,12,9,8,5,4,1,0, 15,14,11,10,7,6,3,2,13,12,9,8,5,4,1,0);
 
   __m256i iMove2, iMove1;
   __m256i complexVal1, complexVal2, iOutputVal, qOutputVal;
-  //__m128i complexVal1H,complexVal1L,complexVal2H,complexVal2L;
-  //__m128i icomplexVal1H,icomplexVal1L,icomplexVal2H,icomplexVal2L;
-  //__m128i qcomplexVal1H,qcomplexVal1L,qcomplexVal2H,qcomplexVal2L,outputVal1,outputVal2;
 
   unsigned int sixteenthPoints = num_points / 16;
 
   for(number = 0; number < sixteenthPoints; number++){
     complexVal1 = _mm256_load_si256((__m256i*)complexVectorPtr);  complexVectorPtr += 32;
     complexVal2 = _mm256_load_si256((__m256i*)complexVectorPtr);  complexVectorPtr += 32;
-/*
-    iMove2 = _mm256_shuffle_epi8(complexVal2, iMoveMask);
-    iMove2 = _mm256_permute4x64_epi64(iMove2,0x85);
-    qMove2 = _mm256_shuffle_epi8(complexVal2, qMoveMask);
-    qMove2 = _mm256_permute4x64_epi64(qMove2,0x85);
-    iMove1 = _mm256_shuffle_epi8(complexVal1, iMoveMask);
-    iMove1 = _mm256_permute4x64_epi64(iMove1,0x58);
-    qMove1 = _mm256_shuffle_epi8(complexVal1, qMoveMask);
-    qMove1 = _mm256_permute4x64_epi64(qMove1,0x58); 
-    iOutputVal = _mm256_or_si256( iMove1, iMove2);
-    qOutputVal = _mm256_or_si256( qMove1, qMove2);*/
-/*    
-    complexVal1H = _mm256_extractf128_si256(complexVal1, 1);
-    complexVal1L = _mm256_extractf128_si256(complexVal1, 0);
-    complexVal2H = _mm256_extractf128_si256(complexVal2, 1);
-    complexVal2L = _mm256_extractf128_si256(complexVal2, 0);
-
-    icomplexVal1H = _mm_shuffle_epi8(complexVal1H, imoveMaskH);
-    icomplexVal1L = _mm_shuffle_epi8(complexVal1L, imoveMaskL);
-    outputVal1 = _mm_or_si128(icomplexVal1H, icomplexVal1L);
-
-    icomplexVal2H = _mm_shuffle_epi8(complexVal2H, imoveMaskH);
-    icomplexVal2L = _mm_shuffle_epi8(complexVal2L, imoveMaskL);
-    outputVal2 = _mm_or_si128(icomplexVal2H, icomplexVal2L);
-
-    __m256i dummy = _mm256_setzero_si256();
-    iOutputVal = _mm256_insertf128_si256(dummy, outputVal1, 0);
-    iOutputVal = _mm256_insertf128_si256(iOutputVal, outputVal2, 1);
-
-    qcomplexVal1H = _mm_shuffle_epi8(complexVal1H, qmoveMaskH);
-    qcomplexVal1L = _mm_shuffle_epi8(complexVal1L, qmoveMaskL);
-    outputVal1 = _mm_or_si128(qcomplexVal1H, qcomplexVal1L);
-
-    qcomplexVal2H = _mm_shuffle_epi8(complexVal2H, qmoveMaskH);
-    qcomplexVal2L = _mm_shuffle_epi8(complexVal2L, qmoveMaskL);
-    outputVal2 = _mm_or_si128(qcomplexVal2H, qcomplexVal2L);
-
-    dummy = _mm256_setzero_si256();
-    qOutputVal = _mm256_insertf128_si256(dummy, outputVal1, 0);
-    qOutputVal = _mm256_insertf128_si256(qOutputVal, outputVal2, 1);
-   */ 
 
     iMove2 = _mm256_shuffle_epi8(complexVal2, MoveMask);
     iMove1 = _mm256_shuffle_epi8(complexVal1, MoveMask);
