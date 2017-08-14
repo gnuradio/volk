@@ -74,6 +74,45 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_64f_x2_max_64f_a_avx(double* cVector, const double* aVector,
+                           const double* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
+
+  double* cPtr = cVector;
+  const double* aPtr = aVector;
+  const double* bPtr=  bVector;
+
+  __m256d aVal, bVal, cVal;
+  for(;number < quarterPoints; number++){
+
+    aVal = _mm256_load_pd(aPtr);
+    bVal = _mm256_load_pd(bPtr);
+
+    cVal = _mm256_max_pd(aVal, bVal);
+
+    _mm256_store_pd(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 4;
+    bPtr += 4;
+    cPtr += 4;
+  }
+
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    const double a = *aPtr++;
+    const double b = *bPtr++;
+    *cPtr++ = ( a > b ? a : b);
+  }
+}
+#endif /* LV_HAVE_AVX */
+
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
@@ -134,3 +173,51 @@ volk_64f_x2_max_64f_generic(double* cVector, const double* aVector,
 
 
 #endif /* INCLUDED_volk_64f_x2_max_64f_a_H */
+
+
+#ifndef INCLUDED_volk_64f_x2_max_64f_u_H
+#define INCLUDED_volk_64f_x2_max_64f_u_H
+
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_64f_x2_max_64f_u_avx(double* cVector, const double* aVector,
+                           const double* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int quarterPoints = num_points / 4;
+
+  double* cPtr = cVector;
+  const double* aPtr = aVector;
+  const double* bPtr=  bVector;
+
+  __m256d aVal, bVal, cVal;
+  for(;number < quarterPoints; number++){
+
+    aVal = _mm256_loadu_pd(aPtr);
+    bVal = _mm256_loadu_pd(bPtr);
+
+    cVal = _mm256_max_pd(aVal, bVal);
+
+    _mm256_storeu_pd(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 4;
+    bPtr += 4;
+    cPtr += 4;
+  }
+
+  number = quarterPoints * 4;
+  for(;number < num_points; number++){
+    const double a = *aPtr++;
+    const double b = *bPtr++;
+    *cPtr++ = ( a > b ? a : b);
+  }
+}
+#endif /* LV_HAVE_AVX */
+
+
+#endif /* INCLUDED_volk_64f_x2_max_64f_u_H */
