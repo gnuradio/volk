@@ -201,7 +201,7 @@ volk_32fc_deinterleave_real_32f_neon(float* iBuffer, const lv_32fc_t* complexVec
 
 
 #ifndef INCLUDED_volk_32fc_deinterleave_real_32f_u_H
-#define INCLUDED_volk_32fc_deinterleave_real_32f_au_H
+#define INCLUDED_volk_32fc_deinterleave_real_32f_u_H
 
 #include <inttypes.h>
 #include <stdio.h>
