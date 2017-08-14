@@ -1,6 +1,6 @@
-@ static inline void volk_32f_s32f_multiply_32f_neonasm(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
-	.global	volk_32f_s32f_multiply_32f_neonasm
-volk_32f_s32f_multiply_32f_neonasm:
+@ static inline void volk_32f_s32f_multiply_32f_a_neonasm(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
+	.global	volk_32f_s32f_multiply_32f_a_neonasm
+volk_32f_s32f_multiply_32f_a_neonasm:
 	@ r0 - cVector: pointer to output array
 	@ r1 - aVector: pointer to input array 1
 	@ r2 - bVector: pointer to input array 2

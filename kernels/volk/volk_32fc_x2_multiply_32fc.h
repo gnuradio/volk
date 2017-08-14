@@ -449,7 +449,7 @@ volk_32fc_x2_multiply_32fc_neon_opttests(lv_32fc_t* cVector, const lv_32fc_t* aV
 #ifdef LV_HAVE_NEON
 
 extern void
-volk_32fc_x2_multiply_32fc_neonasm(lv_32fc_t* cVector, const lv_32fc_t* aVector,
+volk_32fc_x2_multiply_32fc_a_neonasm(lv_32fc_t* cVector, const lv_32fc_t* aVector,
                                    const lv_32fc_t* bVector, unsigned int num_points);
 #endif /* LV_HAVE_NEON */
 

@@ -190,7 +190,7 @@ volk_16i_max_star_horizontal_16i_neon(int16_t* target, int16_t* src0, unsigned i
 #endif /* LV_HAVE_NEON */
 
 #ifdef LV_HAVE_NEON
-extern void volk_16i_max_star_horizontal_16i_neonasm(int16_t* target, int16_t* src0, unsigned int num_points);
+extern void volk_16i_max_star_horizontal_16i_a_neonasm(int16_t* target, int16_t* src0, unsigned int num_points);
 #endif /* LV_HAVE_NEON */
 
 #ifdef LV_HAVE_GENERIC

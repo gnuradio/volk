@@ -1,6 +1,6 @@
-@ static inline void volk_32fc_32f_dot_prod_32fc_unrollasm ( lv_32fc_t* result, const  lv_32fc_t* input, const  float* taps, unsigned int num_points)
-.global	volk_32fc_32f_dot_prod_32fc_unrollasm
-volk_32fc_32f_dot_prod_32fc_unrollasm:
+@ static inline void volk_32fc_32f_dot_prod_32fc_a_unrollasm ( lv_32fc_t* result, const  lv_32fc_t* input, const  float* taps, unsigned int num_points)
+.global	volk_32fc_32f_dot_prod_32fc_a_unrollasm
+volk_32fc_32f_dot_prod_32fc_a_unrollasm:
 	@ r0 - result: pointer to output array (32fc)
 	@ r1 - input: pointer to input array 1 (32fc)
 	@ r2 - taps: pointer to input array 2 (32f)
@@ -15,7 +15,7 @@ volk_32fc_32f_dot_prod_32fc_unrollasm:
     veor.32 q3, q5, q5
     veor.32 q4, q5, q5
     veor.32 q5, q5, q5
-    beq     .smallvector 
+    beq     .smallvector
     vld2.32 {d20-d23}, [r1]!
     vld1.32 {d24-d25}, [r2]!
     mov     r5, #1
@@ -45,7 +45,7 @@ volk_32fc_32f_dot_prod_32fc_unrollasm:
 
 
 
-    bne     .mainloop 
+    bne     .mainloop
 
     vmul.f32        q0, q12, q10 @ real mult
     vmul.f32        q1, q12, q11 @ imag mult
@@ -68,7 +68,7 @@ volk_32fc_32f_dot_prod_32fc_unrollasm:
 
     vstr    s14, [r13]
     vstr    s15, [r13, #4]
-    bls     .D1 
+    bls     .D1
     rsb     r12, r8, r3
     lsr     r4, r12, #2
     cmp     r4, #0
@@ -76,7 +76,7 @@ volk_32fc_32f_dot_prod_32fc_unrollasm:
     lsl     r5, r4, #2
     movhi   r6, #0
     movls   r6, #1
-    bls     .L1 
+    bls     .L1
     vmov.i32        q10, #0 @ 0x00000000
     mov     r9, r1
     mov     r7, r2
@@ -89,7 +89,7 @@ volk_32fc_32f_dot_prod_32fc_unrollasm:
     vld1.32 {d24-d25}, [r7]!
     vmla.f32        q11, q12, q8
     vmla.f32        q10, q12, q9
-    bhi     .smallloop 
+    bhi     .smallloop
     vmov.i32        q9, #0  @ 0x00000000
     cmp     r12, r5
     vadd.f32        d20, d20, d21
@@ -106,8 +106,8 @@ volk_32fc_32f_dot_prod_32fc_unrollasm:
     vadd.f32        s15, s13, s15
     vmov    s13, r12
     vadd.f32        s14, s13, s14
-    beq     .finishreduction 
-    .L1: 
+    beq     .finishreduction
+    .L1:
     add     r12, r8, #1
     vldr    s13, [r2]
     cmp     r3, r12
@@ -115,7 +115,7 @@ volk_32fc_32f_dot_prod_32fc_unrollasm:
     vldr    s12, [r1, #4]
     vmla.f32        s14, s13, s11
     vmla.f32        s15, s13, s12
-    bls     .finishreduction 
+    bls     .finishreduction
     add     r8, r8, #2
     vldr    s13, [r2, #4]
     cmp     r3, r8
@@ -123,7 +123,7 @@ volk_32fc_32f_dot_prod_32fc_unrollasm:
     vldr    s12, [r1, #12]
     vmla.f32        s14, s13, s11
     vmla.f32        s15, s13, s12
-    bls     .finishreduction 
+    bls     .finishreduction
     vldr    s13, [r2, #8]
     vldr    s11, [r1, #16]
     vldr    s12, [r1, #20]
