@@ -130,6 +130,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_32f_binary_slicer_32i,                     test_params))
         (VOLK_INIT_TEST(volk_32f_binary_slicer_8i,                      test_params))
         (VOLK_INIT_TEST(volk_32f_tanh_32f,                              test_params_inacc))
+        (VOLK_INIT_TEST(volk_32f_s32f_mod_rangepuppet_32f,              test_params))
         (VOLK_INIT_PUPP(volk_8u_x3_encodepolarpuppet_8u, volk_8u_x3_encodepolar_8u_x2, test_params))
         (VOLK_INIT_PUPP(volk_32f_8u_polarbutterflypuppet_32f, volk_32f_8u_polarbutterfly_32f, test_params))
         // no one uses these, so don't test them
