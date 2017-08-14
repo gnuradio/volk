@@ -174,7 +174,9 @@ install(FILES
     ${CMAKE_SOURCE_DIR}/include/volk/volk_prefs.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_complex.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_common.h
+    ${CMAKE_SOURCE_DIR}/include/volk/saturation_arithmetic.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
+    ${CMAKE_SOURCE_DIR}/include/volk/volk_sse_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
     ${CMAKE_BINARY_DIR}/include/volk/volk.h
