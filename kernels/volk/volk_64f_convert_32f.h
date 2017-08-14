@@ -67,6 +67,41 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_64f_convert_32f_u_avx(float* outputVector, const double* inputVector, unsigned int num_points){
+  unsigned int number = 0;
+
+  const unsigned int oneEightPoints = num_points / 8;
+
+  const double* inputVectorPtr = (const double*)inputVector;
+  float* outputVectorPtr = outputVector;
+  __m128 ret1, ret2;
+  __m256d inputVal1, inputVal2;
+
+  for(;number < oneEightPoints; number++){
+    inputVal1 = _mm256_loadu_pd(inputVectorPtr); inputVectorPtr += 4;
+    inputVal2 = _mm256_loadu_pd(inputVectorPtr); inputVectorPtr += 4;
+
+    ret1 = _mm256_cvtpd_ps(inputVal1);
+    ret2 = _mm256_cvtpd_ps(inputVal2);
+
+    _mm_storeu_ps(outputVectorPtr, ret1);
+    outputVectorPtr += 4;
+
+    _mm_storeu_ps(outputVectorPtr, ret2);
+    outputVectorPtr += 4;
+  }
+
+  number = oneEightPoints * 8;
+  for(; number < num_points; number++){
+    outputVector[number] = (float)(inputVector[number]);
+  }
+}
+#endif /* LV_HAVE_AVX */
+
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
@@ -123,6 +158,41 @@ static inline void volk_64f_convert_32f_generic(float* outputVector, const doubl
 
 #include <inttypes.h>
 #include <stdio.h>
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_64f_convert_32f_a_avx(float* outputVector, const double* inputVector, unsigned int num_points){
+  unsigned int number = 0;
+
+  const unsigned int oneEightPoints = num_points / 8;
+
+  const double* inputVectorPtr = (const double*)inputVector;
+  float* outputVectorPtr = outputVector;
+  __m128 ret1, ret2;
+  __m256d inputVal1, inputVal2;
+
+  for(;number < oneEightPoints; number++){
+    inputVal1 = _mm256_load_pd(inputVectorPtr); inputVectorPtr += 4;
+    inputVal2 = _mm256_load_pd(inputVectorPtr); inputVectorPtr += 4;
+
+    ret1 = _mm256_cvtpd_ps(inputVal1);
+    ret2 = _mm256_cvtpd_ps(inputVal2);
+
+    _mm_store_ps(outputVectorPtr, ret1);
+    outputVectorPtr += 4;
+
+    _mm_store_ps(outputVectorPtr, ret2);
+    outputVectorPtr += 4;
+  }
+
+  number = oneEightPoints * 8;
+  for(; number < num_points; number++){
+    outputVector[number] = (float)(inputVector[number]);
+  }
+}
+#endif /* LV_HAVE_AVX */
+
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
