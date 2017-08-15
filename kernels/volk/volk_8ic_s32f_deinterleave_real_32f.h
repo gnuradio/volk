@@ -84,7 +84,7 @@ volk_8ic_s32f_deinterleave_real_32f_a_avx2(float* iBuffer, const lv_8sc_t* compl
     complexVal = _mm256_load_si256((__m256i*)complexVectorPtr); complexVectorPtr += 32;
     complexVal = _mm256_shuffle_epi8(complexVal, moveMask);
 
-    hcomplexVal = _mm256_extractf128_si256(complexVal,0);
+    hcomplexVal = _mm256_extracti128_si256(complexVal,0);
     iIntVal = _mm256_cvtepi8_epi32(hcomplexVal);
     iFloatValue = _mm256_cvtepi32_ps(iIntVal);
 
@@ -94,7 +94,7 @@ volk_8ic_s32f_deinterleave_real_32f_a_avx2(float* iBuffer, const lv_8sc_t* compl
 
     iBufferPtr += 8;
 
-    hcomplexVal = _mm256_extractf128_si256(complexVal,1);
+    hcomplexVal = _mm256_extracti128_si256(complexVal,1);
     iIntVal = _mm256_cvtepi8_epi32(hcomplexVal);
     iFloatValue = _mm256_cvtepi32_ps(iIntVal);
 
@@ -265,7 +265,7 @@ volk_8ic_s32f_deinterleave_real_32f_u_avx2(float* iBuffer, const lv_8sc_t* compl
     complexVal = _mm256_loadu_si256((__m256i*)complexVectorPtr); complexVectorPtr += 32;
     complexVal = _mm256_shuffle_epi8(complexVal, moveMask);
 
-    hcomplexVal = _mm256_extractf128_si256(complexVal,0);
+    hcomplexVal = _mm256_extracti128_si256(complexVal,0);
     iIntVal = _mm256_cvtepi8_epi32(hcomplexVal);
     iFloatValue = _mm256_cvtepi32_ps(iIntVal);
 
@@ -275,7 +275,7 @@ volk_8ic_s32f_deinterleave_real_32f_u_avx2(float* iBuffer, const lv_8sc_t* compl
 
     iBufferPtr += 8;
 
-    hcomplexVal = _mm256_extractf128_si256(complexVal,1);
+    hcomplexVal = _mm256_extracti128_si256(complexVal,1);
     iIntVal = _mm256_cvtepi8_epi32(hcomplexVal);
     iFloatValue = _mm256_cvtepi32_ps(iIntVal);
 
