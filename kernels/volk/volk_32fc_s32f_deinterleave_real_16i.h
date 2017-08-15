@@ -77,6 +77,61 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32fc_s32f_deinterleave_real_16i_a_avx2(int16_t* iBuffer, const lv_32fc_t* complexVector,
+                                           const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  const float* complexVectorPtr = (float*)complexVector;
+  int16_t* iBufferPtr = iBuffer;
+
+  __m256 vScalar = _mm256_set1_ps(scalar);
+
+  __m256 cplxValue1, cplxValue2, iValue;
+
+  __VOLK_ATTR_ALIGNED(32) float floatBuffer[8];
+
+  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+
+  for(;number < eighthPoints; number++){
+    cplxValue1 = _mm256_load_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    cplxValue2 = _mm256_load_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    // Arrange in i1i2i3i4 format
+    iValue = _mm256_shuffle_ps(cplxValue1, cplxValue2, _MM_SHUFFLE(2,0,2,0));
+    iValue = _mm256_permutevar8x32_ps(iValue,idx);
+
+    iValue = _mm256_mul_ps(iValue, vScalar);
+
+    _mm256_store_ps(floatBuffer, iValue);
+    *iBufferPtr++ = (int16_t)(floatBuffer[0]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[1]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[2]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[3]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[4]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[5]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[6]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[7]);
+  }
+
+  number = eighthPoints * 8;
+  iBufferPtr = &iBuffer[number];
+  for(; number < num_points; number++){
+    *iBufferPtr++ = (int16_t)(*complexVectorPtr++ * scalar);
+    complexVectorPtr++;
+  }
+}
+
+#endif /* LV_HAVE_AVX2 */
+
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
@@ -144,3 +199,67 @@ volk_32fc_s32f_deinterleave_real_16i_generic(int16_t* iBuffer, const lv_32fc_t* 
 #endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32fc_s32f_deinterleave_real_16i_a_H */
+
+#ifndef INCLUDED_volk_32fc_s32f_deinterleave_real_16i_u_H
+#define INCLUDED_volk_32fc_s32f_deinterleave_real_16i_u_H
+
+#include <volk/volk_common.h>
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32fc_s32f_deinterleave_real_16i_u_avx2(int16_t* iBuffer, const lv_32fc_t* complexVector,
+                                           const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  const float* complexVectorPtr = (float*)complexVector;
+  int16_t* iBufferPtr = iBuffer;
+
+  __m256 vScalar = _mm256_set1_ps(scalar);
+
+  __m256 cplxValue1, cplxValue2, iValue;
+
+  __VOLK_ATTR_ALIGNED(32) float floatBuffer[8];
+
+  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+
+  for(;number < eighthPoints; number++){
+    cplxValue1 = _mm256_loadu_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    cplxValue2 = _mm256_load_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    // Arrange in i1i2i3i4 format
+    iValue = _mm256_shuffle_ps(cplxValue1, cplxValue2, _MM_SHUFFLE(2,0,2,0));
+    iValue = _mm256_permutevar8x32_ps(iValue,idx);
+
+    iValue = _mm256_mul_ps(iValue, vScalar);
+
+    _mm256_storeu_ps(floatBuffer, iValue);
+    *iBufferPtr++ = (int16_t)(floatBuffer[0]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[1]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[2]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[3]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[4]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[5]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[6]);
+    *iBufferPtr++ = (int16_t)(floatBuffer[7]);
+  }
+
+  number = eighthPoints * 8;
+  iBufferPtr = &iBuffer[number];
+  for(; number < num_points; number++){
+    *iBufferPtr++ = (int16_t)(*complexVectorPtr++ * scalar);
+    complexVectorPtr++;
+  }
+}
+
+#endif /* LV_HAVE_AVX2 */
+
+#endif /* INCLUDED_volk_32fc_s32f_deinterleave_real_16i_u_H */
