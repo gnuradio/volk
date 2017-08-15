@@ -8,6 +8,7 @@
 #include <stdint.h>                                 // for uint16_t, uint64_t
 #include <sys/time.h>                               // for CLOCKS_PER_SEC
 #include <sys/types.h>                              // for int16_t, int32_t
+#include <chrono>
 #include <cmath>                                    // for sqrt, fabs, abs
 #include <cstring>                                  // for memcpy, memset
 #include <ctime>                                    // for clock
@@ -15,10 +16,14 @@
 #include <iostream>                                 // for cout, cerr
 #include <limits>                                   // for numeric_limits
 #include <map>                                      // for map, map<>::mappe...
+#include <random>
 #include <vector>                                   // for vector, _Bit_refe...
 
 float uniform() {
-  return 2.0f * ((float) rand() / RAND_MAX - 0.5f);	// uniformly (-1, 1)
+    std::random_device r;
+    std::default_random_engine e1(r());
+    std::uniform_real_distribution<float> uniform_dist(-1.0, 1.0);
+    return uniform_dist(e1);    // uniformly (-1, 1)
 }
 
 template <class t>
@@ -29,6 +34,8 @@ void random_floats (t *buf, unsigned n)
 }
 
 void load_random_data(void *data, volk_type_t type, unsigned int n) {
+    std::random_device r;
+    std::default_random_engine e2(r());
     if(type.is_complex) n *= 2;
     if(type.is_float) {
         if(type.size == 8) random_floats<double>((double *)data, n);
@@ -36,8 +43,9 @@ void load_random_data(void *data, volk_type_t type, unsigned int n) {
     } else {
         float int_max = float(uint64_t(2) << (type.size*8));
         if(type.is_signed) int_max /= 2.0;
+        std::uniform_real_distribution<float> uniform_dist(-int_max, int_max);
         for(unsigned int i=0; i<n; i++) {
-            float scaled_rand = (((float) (rand() - (RAND_MAX/2))) / static_cast<float>((RAND_MAX/2))) * int_max;
+            float scaled_rand = uniform_dist(e2);
             //man i really don't know how to do this in a more clever way, you have to cast down at some point
             switch(type.size) {
             case 8:
@@ -115,7 +123,7 @@ volk_type_t volk_type_from_string(std::string name) {
     }
     //will throw if malformed
     int size = volk_lexical_cast<int>(name.substr(0, last_size_pos+1));
-    
+
     assert(((size % 8) == 0) && (size <= 64) && (size != 0));
     type.size = size/8; //in bytes
 
@@ -465,10 +473,10 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     //now run the test
     vlen = vlen - vlen_twiddle;
-    clock_t start, end;
+    std::chrono::time_point<std::chrono::system_clock> start, end;
     std::vector<double> profile_times;
     for(size_t i = 0; i < arch_list.size(); i++) {
-        start = clock();
+        start = std::chrono::system_clock::now();
 
         switch(both_sigs.size()) {
             case 1:
@@ -512,9 +520,10 @@ bool run_volk_tests(volk_func_desc_t desc,
                 break;
         }
 
-        end = clock();
-        double arch_time = 1000.0 * (double)(end-start)/(double)CLOCKS_PER_SEC;
-        std::cout << arch_list[i] << " completed in " << arch_time << "ms" << std::endl;
+        end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        double arch_time = 1000.0 * elapsed_seconds.count();
+        std::cout << arch_list[i] << " completed in " << arch_time << " ms" << std::endl;
         volk_test_time_t result;
         result.name = arch_list[i];
         result.time = arch_time;
