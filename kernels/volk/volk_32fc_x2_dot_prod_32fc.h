@@ -109,7 +109,7 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_sse_64(lv_32fc_t* result, const 
   const unsigned int num_bytes = num_points*8;
   unsigned int isodd = num_points & 1;
 
-  asm
+  __VOLK_ASM
     (
      "#  ccomplex_dotprod_generic (float* result, const float *input,\n\t"
      "#                         const float *taps, unsigned num_bytes)\n\t"
@@ -488,7 +488,7 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_sse_64(lv_32fc_t* result, const 
   const unsigned int num_bytes = num_points*8;
   unsigned int isodd = num_points & 1;
 
-  asm
+  __VOLK_ASM
     (
      "#  ccomplex_dotprod_generic (float* result, const float *input,\n\t"
      "#                         const float *taps, unsigned num_bytes)\n\t"
@@ -622,7 +622,7 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_sse_32(lv_32fc_t* result, const 
   const unsigned int num_bytes = num_points*8;
   unsigned int isodd = num_points & 1;
 
-  asm volatile
+  __VOLK_ASM __VOLK_VOLATILE
     (
      "	#pushl	%%ebp\n\t"
      "	#movl	%%esp, %%ebp\n\t"

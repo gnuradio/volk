@@ -121,7 +121,7 @@ volk_16i_x5_add_quad_16i_x4_a_sse2(short* target0, short* target1, short* target
     p_target2 += 1;
     p_target3 += 1;
   }
-  /*asm volatile
+  /*__VOLK_ASM __VOLK_VOLATILE
     (
     ".%=volk_16i_x5_add_quad_16i_x4_a_sse2_L1:\n\t"
     "cmp $0, %[bound]\n\t"
