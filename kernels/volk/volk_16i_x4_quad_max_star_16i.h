@@ -132,7 +132,7 @@ volk_16i_x4_quad_max_star_16i_a_sse2(short* target, short* src0, short* src1,
   }
 
 
-  /*asm volatile
+  /*__VOLK_ASM __VOLK_VOLATILE
     (
     "volk_16i_x4_quad_max_star_16i_a_sse2_L1:\n\t"
     "cmp $0, %[bound]\n\t"
