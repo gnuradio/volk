@@ -90,9 +90,9 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_32f_s32f_convert_32i,    volk_test_params_t(1, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
         (VOLK_INIT_TEST(volk_32i_x2_and_32i,                            test_params))
         (VOLK_INIT_TEST(volk_32i_x2_or_32i,                             test_params))
-
         (VOLK_INIT_TEST(volk_8ic_s32f_deinterleave_32f_x2,              test_params))
         (VOLK_INIT_TEST(volk_32fc_s32fc_multiply_32fc,                  test_params))
+
         (VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt,     test_params))
         (VOLK_INIT_PUPP(volk_32fc_s32fc_rotatorpuppet_32fc, volk_32fc_s32fc_x2_rotator_32fc, test_params))
         (VOLK_INIT_PUPP(volk_32u_popcntpuppet_32u, volk_32u_popcnt_32u,  test_params))
