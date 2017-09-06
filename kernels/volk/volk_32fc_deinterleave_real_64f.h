@@ -74,6 +74,45 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32fc_deinterleave_real_64f_a_avx2(double* iBuffer, const lv_32fc_t* complexVector,
+                                       unsigned int num_points)
+{
+  unsigned int number = 0;
+
+  const float* complexVectorPtr = (float*)complexVector;
+  double* iBufferPtr = iBuffer;
+
+  const unsigned int quarterPoints = num_points / 4;
+  __m256 cplxValue;
+  __m128 fVal;
+  __m256d dVal;
+  __m256i idx = _mm256_set_epi32(0,0,0,0,6,4,2,0);
+  for(;number < quarterPoints; number++){
+
+    cplxValue = _mm256_load_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    // Arrange in i1i2i1i2 format
+    cplxValue = _mm256_permutevar8x32_ps(cplxValue, idx);
+    fVal = _mm256_extractf128_ps(cplxValue, 0);
+    dVal = _mm256_cvtps_pd(fVal);
+    _mm256_store_pd(iBufferPtr, dVal);
+
+    iBufferPtr += 4;
+  }
+
+  number = quarterPoints * 4;
+  for(; number < num_points; number++){
+    *iBufferPtr++ = (double)*complexVectorPtr++;
+    complexVectorPtr++;
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
@@ -128,3 +167,53 @@ volk_32fc_deinterleave_real_64f_generic(double* iBuffer, const lv_32fc_t* comple
 #endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32fc_deinterleave_real_64f_a_H */
+
+
+#ifndef INCLUDED_volk_32fc_deinterleave_real_64f_u_H
+#define INCLUDED_volk_32fc_deinterleave_real_64f_u_H
+
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32fc_deinterleave_real_64f_u_avx2(double* iBuffer, const lv_32fc_t* complexVector,
+                                       unsigned int num_points)
+{
+  unsigned int number = 0;
+
+  const float* complexVectorPtr = (float*)complexVector;
+  double* iBufferPtr = iBuffer;
+
+  const unsigned int quarterPoints = num_points / 4;
+  __m256 cplxValue;
+  __m128 fVal;
+  __m256d dVal;
+  __m256i idx = _mm256_set_epi32(0,0,0,0,6,4,2,0);
+  for(;number < quarterPoints; number++){
+
+    cplxValue = _mm256_loadu_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    // Arrange in i1i2i1i2 format
+    cplxValue = _mm256_permutevar8x32_ps(cplxValue, idx);
+    fVal = _mm256_extractf128_ps(cplxValue, 0);
+    dVal = _mm256_cvtps_pd(fVal);
+    _mm256_storeu_pd(iBufferPtr, dVal);
+
+    iBufferPtr += 4;
+  }
+
+  number = quarterPoints * 4;
+  for(; number < num_points; number++){
+    *iBufferPtr++ = (double)*complexVectorPtr++;
+    complexVectorPtr++;
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+#endif /* INCLUDED_volk_32fc_deinterleave_real_64f_u_H */
+
+
