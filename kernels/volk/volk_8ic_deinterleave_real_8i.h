@@ -56,6 +56,47 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_8ic_deinterleave_real_8i_a_avx2(int8_t* iBuffer, const lv_8sc_t* complexVector,
+                                    unsigned int num_points)
+{
+  unsigned int number = 0;
+  const int8_t* complexVectorPtr = (int8_t*)complexVector;
+  int8_t* iBufferPtr = iBuffer;
+  __m256i moveMask1 = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
+  __m256i moveMask2 = _mm256_set_epi8(14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+  __m256i complexVal1, complexVal2, outputVal;
+
+  unsigned int thirtysecondPoints = num_points / 32;
+
+  for(number = 0; number < thirtysecondPoints; number++){
+
+    complexVal1 = _mm256_load_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 32;
+    complexVal2 = _mm256_load_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 32;
+
+    complexVal1 = _mm256_shuffle_epi8(complexVal1, moveMask1);
+    complexVal2 = _mm256_shuffle_epi8(complexVal2, moveMask2);
+    outputVal = _mm256_or_si256(complexVal1, complexVal2);
+    outputVal = _mm256_permute4x64_epi64(outputVal, 0xd8);
+
+    _mm256_store_si256((__m256i*)iBufferPtr, outputVal);
+    iBufferPtr += 32;
+  }
+
+  number = thirtysecondPoints * 32;
+  for(; number < num_points; number++){
+    *iBufferPtr++ = *complexVectorPtr++;
+    complexVectorPtr++;
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+
 #ifdef LV_HAVE_SSSE3
 #include <tmmintrin.h>
 
@@ -195,3 +236,51 @@ volk_8ic_deinterleave_real_8i_neon(int8_t* iBuffer, const lv_8sc_t* complexVecto
 
 
 #endif /* INCLUDED_VOLK_8sc_DEINTERLEAVE_REAL_8s_ALIGNED8_H */
+
+#ifndef INCLUDED_VOLK_8sc_DEINTERLEAVE_REAL_8s_UNALIGNED8_H
+#define INCLUDED_VOLK_8sc_DEINTERLEAVE_REAL_8s_UNALIGNED8_H
+
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_8ic_deinterleave_real_8i_u_avx2(int8_t* iBuffer, const lv_8sc_t* complexVector,
+                                    unsigned int num_points)
+{
+  unsigned int number = 0;
+  const int8_t* complexVectorPtr = (int8_t*)complexVector;
+  int8_t* iBufferPtr = iBuffer;
+  __m256i moveMask1 = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
+  __m256i moveMask2 = _mm256_set_epi8(14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+  __m256i complexVal1, complexVal2, outputVal;
+
+  unsigned int thirtysecondPoints = num_points / 32;
+
+  for(number = 0; number < thirtysecondPoints; number++){
+
+    complexVal1 = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 32;
+    complexVal2 = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 32;
+
+    complexVal1 = _mm256_shuffle_epi8(complexVal1, moveMask1);
+    complexVal2 = _mm256_shuffle_epi8(complexVal2, moveMask2);
+    outputVal = _mm256_or_si256(complexVal1, complexVal2);
+    outputVal = _mm256_permute4x64_epi64(outputVal, 0xd8);
+
+    _mm256_storeu_si256((__m256i*)iBufferPtr, outputVal);
+    iBufferPtr += 32;
+  }
+
+  number = thirtysecondPoints * 32;
+  for(; number < num_points; number++){
+    *iBufferPtr++ = *complexVectorPtr++;
+    complexVectorPtr++;
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+#endif /* INCLUDED_VOLK_8sc_DEINTERLEAVE_REAL_8s_UNALIGNED8_H */
