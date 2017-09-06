@@ -60,6 +60,66 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_16ic_s32f_magnitude_32f_a_avx2(float* magnitudeVector, const lv_16sc_t* complexVector,
+                                    const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+  float* magnitudeVectorPtr = magnitudeVector;
+
+  __m256 invScalar = _mm256_set1_ps(1.0/scalar);
+
+  __m256 cplxValue1, cplxValue2, result;
+  __m256i int1, int2;
+  __m128i short1, short2;
+  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+
+  for(;number < eighthPoints; number++){
+    
+    int1 = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 16;
+    short1 = _mm256_extracti128_si256(int1,0);
+    short2 = _mm256_extracti128_si256(int1,1);
+
+    int1 = _mm256_cvtepi16_epi32(short1);
+    int2 = _mm256_cvtepi16_epi32(short2);
+    cplxValue1 = _mm256_cvtepi32_ps(int1);
+    cplxValue2 = _mm256_cvtepi32_ps(int2);
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, invScalar);
+    cplxValue2 = _mm256_mul_ps(cplxValue2, invScalar);
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, cplxValue1); // Square the values
+    cplxValue2 = _mm256_mul_ps(cplxValue2, cplxValue2); // Square the Values
+
+    result = _mm256_hadd_ps(cplxValue1, cplxValue2); // Add the I2 and Q2 values
+    result = _mm256_permutevar8x32_ps(result, idx);
+
+    result = _mm256_sqrt_ps(result); // Square root the values
+
+    _mm256_store_ps(magnitudeVectorPtr, result);
+
+    magnitudeVectorPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  magnitudeVectorPtr = &magnitudeVector[number];
+  complexVectorPtr = (const int16_t*)&complexVector[number];
+  for(; number < num_points; number++){
+    float val1Real = (float)(*complexVectorPtr++) / scalar;
+    float val1Imag = (float)(*complexVectorPtr++) / scalar;
+    *magnitudeVectorPtr++ = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag));
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
 
@@ -223,3 +283,73 @@ volk_16ic_s32f_magnitude_32f_u_orc(float* magnitudeVector, const lv_16sc_t* comp
 
 
 #endif /* INCLUDED_volk_16ic_s32f_magnitude_32f_a_H */
+
+#ifndef INCLUDED_volk_16ic_s32f_magnitude_32f_u_H
+#define INCLUDED_volk_16ic_s32f_magnitude_32f_u_H
+
+#include <volk/volk_common.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <math.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_16ic_s32f_magnitude_32f_u_avx2(float* magnitudeVector, const lv_16sc_t* complexVector,
+                                    const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+  float* magnitudeVectorPtr = magnitudeVector;
+
+  __m256 invScalar = _mm256_set1_ps(1.0/scalar);
+
+  __m256 cplxValue1, cplxValue2, result;
+  __m256i int1, int2;
+  __m128i short1, short2;
+  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+
+  for(;number < eighthPoints; number++){
+    
+    int1 = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 16;
+    short1 = _mm256_extracti128_si256(int1,0);
+    short2 = _mm256_extracti128_si256(int1,1);
+
+    int1 = _mm256_cvtepi16_epi32(short1);
+    int2 = _mm256_cvtepi16_epi32(short2);
+    cplxValue1 = _mm256_cvtepi32_ps(int1);
+    cplxValue2 = _mm256_cvtepi32_ps(int2);
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, invScalar);
+    cplxValue2 = _mm256_mul_ps(cplxValue2, invScalar);
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, cplxValue1); // Square the values
+    cplxValue2 = _mm256_mul_ps(cplxValue2, cplxValue2); // Square the Values
+
+    result = _mm256_hadd_ps(cplxValue1, cplxValue2); // Add the I2 and Q2 values
+    result = _mm256_permutevar8x32_ps(result, idx);
+
+    result = _mm256_sqrt_ps(result); // Square root the values
+
+    _mm256_storeu_ps(magnitudeVectorPtr, result);
+
+    magnitudeVectorPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  magnitudeVectorPtr = &magnitudeVector[number];
+  complexVectorPtr = (const int16_t*)&complexVector[number];
+  for(; number < num_points; number++){
+    float val1Real = (float)(*complexVectorPtr++) / scalar;
+    float val1Imag = (float)(*complexVectorPtr++) / scalar;
+    *magnitudeVectorPtr++ = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag));
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+#endif /* INCLUDED_volk_16ic_s32f_magnitude_32f_u_H */
+
