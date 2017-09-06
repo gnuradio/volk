@@ -30,6 +30,8 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
             test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
 
     std::vector<volk_test_case_t> test_cases = boost::assign::list_of
+        (VOLK_INIT_TEST(volk_16ic_deinterleave_real_8i,                 test_params))
+        (VOLK_INIT_TEST(volk_16ic_deinterleave_real_16i,                test_params))
         (VOLK_INIT_TEST(volk_16ic_s32f_deinterleave_real_32f,           test_params))
         (VOLK_INIT_TEST(volk_16ic_s32f_deinterleave_32f_x2,             test_params))
         (VOLK_INIT_TEST(volk_32fc_deinterleave_real_64f,                test_params))
@@ -100,8 +102,6 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_PUPP(volk_32u_popcntpuppet_32u, volk_32u_popcnt_32u,  test_params))
         (VOLK_INIT_PUPP(volk_8u_conv_k7_r2puppet_8u, volk_8u_x4_conv_k7_r2_8u, volk_test_params_t(0, test_params.scalar(), test_params.vlen(), test_params.iter()/10, test_params.benchmark_mode(), test_params.kernel_regex())))
         (VOLK_INIT_PUPP(volk_32f_x2_fm_detectpuppet_32f, volk_32f_s32f_32f_fm_detect_32f, test_params))
-        (VOLK_INIT_TEST(volk_16ic_deinterleave_real_8i,                 test_params))
-        (VOLK_INIT_TEST(volk_16ic_deinterleave_real_16i,                test_params))
         (VOLK_INIT_TEST(volk_16ic_magnitude_16i,                        test_params_int1))
         (VOLK_INIT_TEST(volk_16ic_s32f_magnitude_32f,                   test_params))
         (VOLK_INIT_TEST(volk_16ic_convert_32fc,                         test_params))
