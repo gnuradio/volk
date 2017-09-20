@@ -114,7 +114,6 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
   xmm0 = _mm_permute_ps(xmm0, 0b01000100);
   xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
   xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 1);
-  xmm1 = _mm256_permutevar8x32_ps(xmm1, idx);
   xmm3 = _mm256_load_ps((float*)&points[4]);
 
   for(; i < bound; ++i) {
@@ -345,7 +344,6 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* s
   xmm0 = _mm_permute_ps(xmm0, 0b01000100);
   xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
   xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 1);
-  xmm1 = _mm256_permutevar8x32_ps(xmm1, idx);
   xmm3 = _mm256_loadu_ps((float*)&points[4]);
 
   for(; i < bound; ++i) {
