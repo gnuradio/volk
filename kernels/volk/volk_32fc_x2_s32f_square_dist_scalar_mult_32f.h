@@ -323,7 +323,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* s
                                                      float scalar, unsigned int num_points)
 {
   const unsigned int num_bytes = num_points*8;
-  __m128 xmm0, xmm9, xmm10, xmm11;
+  __m128 xmm0, xmm9;
   __m256 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8;
 
   lv_32fc_t diff;
@@ -339,7 +339,6 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* s
   xmm1 = _mm256_setzero_ps();
   xmm2 = _mm256_loadu_ps((float*)&points[0]);
   xmm8 = _mm256_set1_ps(scalar);
-  xmm11 = _mm256_extractf128_ps(xmm8,1);
   xmm0 = _mm_loadu_ps((float*)src0);
   xmm0 = _mm_permute_ps(xmm0, 0b01000100);
   xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
