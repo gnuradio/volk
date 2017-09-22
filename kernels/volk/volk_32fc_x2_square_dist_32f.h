@@ -82,6 +82,100 @@
 #include<stdio.h>
 #include<volk/volk_complex.h>
 
+#ifdef LV_HAVE_AVX2
+#include<immintrin.h>
+
+static inline void
+volk_32fc_x2_square_dist_32f_a_avx2(float* target, lv_32fc_t* src0, lv_32fc_t* points,
+                                    unsigned int num_points)
+{
+  const unsigned int num_bytes = num_points*8;
+  __m128 xmm0, xmm9, xmm10;
+  __m256 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+
+  lv_32fc_t diff;
+  float sq_dist;
+  int bound = num_bytes >> 6;
+  int leftovers0 = (num_bytes >> 5) & 1;
+  int leftovers1 = (num_bytes >> 4) & 1;
+  int leftovers2 = (num_bytes >> 3) & 1;
+  int i = 0;
+
+  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+  xmm1 = _mm256_setzero_ps();
+  xmm2 = _mm256_load_ps((float*)&points[0]);
+  xmm0 = _mm_load_ps((float*)src0);
+  xmm0 = _mm_permute_ps(xmm0, 0b01000100);
+  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
+  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 1);
+  xmm3 = _mm256_load_ps((float*)&points[4]);
+
+  for(; i < bound; ++i) {
+    xmm4 = _mm256_sub_ps(xmm1, xmm2);
+    xmm5 = _mm256_sub_ps(xmm1, xmm3);
+    points += 8;
+    xmm6 = _mm256_mul_ps(xmm4, xmm4);
+    xmm7 = _mm256_mul_ps(xmm5, xmm5);
+
+    xmm2 = _mm256_load_ps((float*)&points[0]);
+
+    xmm4 = _mm256_hadd_ps(xmm6, xmm7);
+    xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
+
+    xmm3 = _mm256_load_ps((float*)&points[4]);
+
+    _mm256_store_ps(target, xmm4);
+
+    target += 8;
+  }
+
+  for(i = 0; i < leftovers0; ++i) {
+
+    xmm2 = _mm256_load_ps((float*)&points[0]);
+
+    xmm4 = _mm256_sub_ps(xmm1, xmm2);
+
+    points += 4;
+
+    xmm6 = _mm256_mul_ps(xmm4, xmm4);
+
+    xmm4 = _mm256_hadd_ps(xmm6, xmm6);
+    xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
+
+    xmm9 = _mm256_extractf128_ps(xmm4, 1);
+    _mm_store_ps(target,xmm9);
+
+    target += 4;
+  }
+
+  for(i = 0; i < leftovers1; ++i) {
+    xmm9 = _mm_load_ps((float*)&points[0]);
+
+    xmm10 = _mm_sub_ps(xmm0, xmm9);
+
+    points += 2;
+
+    xmm9 = _mm_mul_ps(xmm10, xmm10);
+
+    xmm10 = _mm_hadd_ps(xmm9, xmm9);
+
+    _mm_storeh_pi((__m64*)target, xmm10);
+
+    target += 2;
+  }
+
+  for(i = 0; i < leftovers2; ++i) {
+
+    diff = src0[0] - points[0];
+
+    sq_dist = lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff);
+
+    target[0] = sq_dist;
+  }
+}
+
+#endif /*LV_HAVE_AVX2*/
+
 #ifdef LV_HAVE_SSE3
 #include<xmmintrin.h>
 #include<pmmintrin.h>
@@ -225,3 +319,91 @@ volk_32fc_x2_square_dist_32f_generic(float* target, lv_32fc_t* src0, lv_32fc_t* 
 
 
 #endif /*INCLUDED_volk_32fc_x2_square_dist_32f_a_H*/
+
+#ifndef INCLUDED_volk_32fc_x2_square_dist_32f_u_H
+#define INCLUDED_volk_32fc_x2_square_dist_32f_u_H
+
+#include<inttypes.h>
+#include<stdio.h>
+#include<volk/volk_complex.h>
+
+#ifdef LV_HAVE_AVX2
+#include<immintrin.h>
+
+static inline void
+volk_32fc_x2_square_dist_32f_u_avx2(float* target, lv_32fc_t* src0, lv_32fc_t* points,
+                                    unsigned int num_points)
+{
+  const unsigned int num_bytes = num_points*8;
+  __m128 xmm0, xmm9;
+  __m256 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+
+  lv_32fc_t diff;
+  float sq_dist;
+  int bound = num_bytes >> 6;
+  int leftovers0 = (num_bytes >> 5) & 1;
+  int leftovers1 = (num_bytes >> 3) & 0b11;
+  int i = 0;
+
+  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+  xmm1 = _mm256_setzero_ps();
+  xmm2 = _mm256_loadu_ps((float*)&points[0]);
+  xmm0 = _mm_loadu_ps((float*)src0);
+  xmm0 = _mm_permute_ps(xmm0, 0b01000100);
+  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
+  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 1);
+  xmm3 = _mm256_loadu_ps((float*)&points[4]);
+
+  for(; i < bound; ++i) {
+    xmm4 = _mm256_sub_ps(xmm1, xmm2);
+    xmm5 = _mm256_sub_ps(xmm1, xmm3);
+    points += 8;
+    xmm6 = _mm256_mul_ps(xmm4, xmm4);
+    xmm7 = _mm256_mul_ps(xmm5, xmm5);
+
+    xmm2 = _mm256_loadu_ps((float*)&points[0]);
+
+    xmm4 = _mm256_hadd_ps(xmm6, xmm7);
+    xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
+
+    xmm3 = _mm256_loadu_ps((float*)&points[4]);
+
+    _mm256_storeu_ps(target, xmm4);
+
+    target += 8;
+  }
+
+  for(i = 0; i < leftovers0; ++i) {
+
+    xmm2 = _mm256_loadu_ps((float*)&points[0]);
+
+    xmm4 = _mm256_sub_ps(xmm1, xmm2);
+
+    points += 4;
+
+    xmm6 = _mm256_mul_ps(xmm4, xmm4);
+
+    xmm4 = _mm256_hadd_ps(xmm6, xmm6);
+    xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
+
+    xmm9 = _mm256_extractf128_ps(xmm4, 1);
+    _mm_storeu_ps(target,xmm9);
+
+    target += 4;
+  }
+
+  for(i = 0; i < leftovers1; ++i) {
+
+    diff = src0[0] - points[0];
+    points += 1;
+
+    sq_dist = lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff);
+
+    target[0] = sq_dist;
+    target += 1;
+  }
+}
+
+#endif /*LV_HAVE_AVX2*/
+
+#endif /*INCLUDED_volk_32fc_x2_square_dist_32f_u_H*/
