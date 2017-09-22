@@ -59,6 +59,69 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_16ic_magnitude_16i_a_avx2(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+  int16_t* magnitudeVectorPtr = magnitudeVector;
+
+  __m256 vScalar = _mm256_set1_ps(32768.0);
+  __m256 invScalar = _mm256_set1_ps(1.0/32768.0);
+  __m256i int1, int2;
+  __m128i short1, short2;
+  __m256 cplxValue1, cplxValue2, result;
+  __m256i idx = _mm256_set_epi32(0,0,0,0,5,1,4,0);
+
+  for(;number < eighthPoints; number++){
+
+    int1 = _mm256_load_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 16;
+    short1 = _mm256_extracti128_si256(int1,0);
+    short2 = _mm256_extracti128_si256(int1,1);
+
+    int1 = _mm256_cvtepi16_epi32(short1);
+    int2 = _mm256_cvtepi16_epi32(short2);
+    cplxValue1 = _mm256_cvtepi32_ps(int1);
+    cplxValue2 = _mm256_cvtepi32_ps(int2);
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, invScalar);
+    cplxValue2 = _mm256_mul_ps(cplxValue2, invScalar);
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, cplxValue1); // Square the values
+    cplxValue2 = _mm256_mul_ps(cplxValue2, cplxValue2); // Square the Values
+
+    result = _mm256_hadd_ps(cplxValue1, cplxValue2); // Add the I2 and Q2 values
+
+    result = _mm256_sqrt_ps(result); // Square root the values
+
+    result = _mm256_mul_ps(result, vScalar); // Scale the results
+
+    int1 = _mm256_cvtps_epi32(result);
+    int1 = _mm256_packs_epi32(int1, int1);
+    int1 = _mm256_permutevar8x32_epi32(int1, idx); //permute to compensate for shuffling in hadd and packs
+    short1 = _mm256_extracti128_si256(int1, 0);
+    _mm_store_si128((__m128i*)magnitudeVectorPtr,short1);
+    magnitudeVectorPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  magnitudeVectorPtr = &magnitudeVector[number];
+  complexVectorPtr = (const int16_t*)&complexVector[number];
+  for(; number < num_points; number++){
+    const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
+    const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
+    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
+    *magnitudeVectorPtr++ = (int16_t)(val1Result);
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
 
@@ -231,3 +294,77 @@ volk_16ic_magnitude_16i_u_orc(int16_t* magnitudeVector, const lv_16sc_t* complex
 
 
 #endif /* INCLUDED_volk_16ic_magnitude_16i_a_H */
+
+
+#ifndef INCLUDED_volk_16ic_magnitude_16i_u_H
+#define INCLUDED_volk_16ic_magnitude_16i_u_H
+
+#include <volk/volk_common.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <math.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_16ic_magnitude_16i_u_avx2(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+  int16_t* magnitudeVectorPtr = magnitudeVector;
+
+  __m256 vScalar = _mm256_set1_ps(32768.0);
+  __m256 invScalar = _mm256_set1_ps(1.0/32768.0);
+  __m256i int1, int2;
+  __m128i short1, short2;
+  __m256 cplxValue1, cplxValue2, result;
+  __m256i idx = _mm256_set_epi32(0,0,0,0,5,1,4,0);
+
+  for(;number < eighthPoints; number++){
+
+    int1 = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 16;
+    short1 = _mm256_extracti128_si256(int1,0);
+    short2 = _mm256_extracti128_si256(int1,1);
+
+    int1 = _mm256_cvtepi16_epi32(short1);
+    int2 = _mm256_cvtepi16_epi32(short2);
+    cplxValue1 = _mm256_cvtepi32_ps(int1);
+    cplxValue2 = _mm256_cvtepi32_ps(int2);
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, invScalar);
+    cplxValue2 = _mm256_mul_ps(cplxValue2, invScalar);
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, cplxValue1); // Square the values
+    cplxValue2 = _mm256_mul_ps(cplxValue2, cplxValue2); // Square the Values
+
+    result = _mm256_hadd_ps(cplxValue1, cplxValue2); // Add the I2 and Q2 values
+
+    result = _mm256_sqrt_ps(result); // Square root the values
+
+    result = _mm256_mul_ps(result, vScalar); // Scale the results
+
+    int1 = _mm256_cvtps_epi32(result);
+    int1 = _mm256_packs_epi32(int1, int1);
+    int1 = _mm256_permutevar8x32_epi32(int1, idx); //permute to compensate for shuffling in hadd and packs
+    short1 = _mm256_extracti128_si256(int1, 0);
+    _mm_storeu_si128((__m128i*)magnitudeVectorPtr,short1);
+    magnitudeVectorPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  magnitudeVectorPtr = &magnitudeVector[number];
+  complexVectorPtr = (const int16_t*)&complexVector[number];
+  for(; number < num_points; number++){
+    const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
+    const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
+    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
+    *magnitudeVectorPtr++ = (int16_t)(val1Result);
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+#endif /* INCLUDED_volk_16ic_magnitude_16i_u_H */
