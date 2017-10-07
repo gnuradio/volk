@@ -1,10 +1,11 @@
-#include <boost/lexical_cast.hpp>
-
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <map>
 #include <list>
+#include <cassert>
+#include <cstring>
+#include <limits>
 
 #include <volk/volk.h>
 
@@ -66,6 +67,22 @@ static std::vector<std::string> get_arch_list(volk_func_desc_t desc) {
     return archlist;
 }
 
+template <typename T>
+T volk_lexical_cast(const std::string& str)
+{
+    for (unsigned int c_index = 0; c_index < str.size(); ++c_index) {
+        if (str.at(c_index) < '0' || str.at(c_index) > '9') {
+            throw "not all numbers!";
+        }
+    }
+    T var;
+    std::istringstream iss;
+    iss.str(str);
+    iss >> var;
+    // deal with any error bits that may have been set on the stream
+    return var;
+}
+
 volk_type_t volk_type_from_string(std::string name) {
     volk_type_t type;
     type.is_float = false;
@@ -91,7 +108,8 @@ volk_type_t volk_type_from_string(std::string name) {
         throw std::string("no size spec in type ").append(name);
     }
     //will throw if malformed
-    int size = boost::lexical_cast<int>(name.substr(0, last_size_pos+1));
+    int size = volk_lexical_cast<int>(name.substr(0, last_size_pos+1));
+    std::cout << "size is " << size << std::endl;
 
     assert(((size % 8) == 0) && (size <= 64) && (size != 0));
     type.size = size/8; //in bytes
@@ -162,7 +180,7 @@ static void get_signatures_from_name(std::vector<volk_type_t> &inputsig,
             if(token[0] == 'x' && (token.size() > 1) && (token[1] > '0' || token[1] < '9')) { //it's a multiplier
                 if(side == SIDE_INPUT) assert(inputsig.size() > 0);
                 else assert(outputsig.size() > 0);
-                int multiplier = boost::lexical_cast<int>(token.substr(1, token.size()-1)); //will throw if invalid
+                int multiplier = volk_lexical_cast<int>(token.substr(1, token.size()-1)); //will throw if invalid
                 for(int i=1; i<multiplier; i++) {
                     if(side == SIDE_INPUT) inputsig.push_back(inputsig.back());
                     else outputsig.push_back(outputsig.back());
@@ -377,7 +395,7 @@ bool run_volk_tests(volk_func_desc_t desc,
     try {
         get_signatures_from_name(inputsig, outputsig, name);
     }
-    catch (boost::bad_lexical_cast& error) {
+    catch (std::exception &error) {
         std::cerr << "Error: unable to get function signature from kernel name" << std::endl;
         std::cerr << "  - " << name << std::endl;
         return false;
