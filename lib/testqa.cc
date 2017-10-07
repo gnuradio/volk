@@ -53,6 +53,7 @@ int main()
     for(unsigned int ii = 0; ii < test_cases.size(); ++ii) {
         bool qa_result = false;
         volk_test_case_t test_case = test_cases[ii];
+        std::cout << "TESTING A NEW KERNEL" << std::endl;
         try {
             qa_result = run_volk_tests(test_case.desc(), test_case.kernel_ptr(), test_case.name(),
                 test_case.test_parameters(), &results, test_case.puppet_master_name());

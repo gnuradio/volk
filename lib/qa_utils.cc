@@ -1,7 +1,4 @@
-#include "qa_utils.h"
-
 #include <boost/foreach.hpp>
-#include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/type_traits.hpp>
@@ -17,9 +14,8 @@
 #include <limits>
 
 #include <volk/volk.h>
-#include <volk/volk_cpu.h>
-#include <volk/volk_common.h>
-#include <volk/volk_malloc.h>
+
+#include "qa_utils.h"
 
 float uniform() {
   return 2.0f * ((float) rand() / RAND_MAX - 0.5f);	// uniformly (-1, 1)
@@ -129,14 +125,28 @@ volk_type_t volk_type_from_string(std::string name) {
     return type;
 }
 
+std::vector<std::string> split_signature(const std::string &protokernel_signature) {
+    std::vector<std::string> signature_tokens;
+    std::string token;
+    for (unsigned int loc = 0; loc < protokernel_signature.size(); ++loc) {
+        if (protokernel_signature.at(loc) == '_') {
+            // this is a break
+            signature_tokens.push_back(token);
+            token = "";
+        } else {
+            token.push_back(protokernel_signature.at(loc));
+        }
+    }
+    // Get the last one to the end of the string
+    signature_tokens.push_back(token);
+    return signature_tokens;
+}
+
 static void get_signatures_from_name(std::vector<volk_type_t> &inputsig,
                                    std::vector<volk_type_t> &outputsig,
                                    std::string name) {
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char> > tok(name, sep);
-    std::vector<std::string> toked;
-    tok.assign(name);
-    toked.assign(tok.begin(), tok.end());
+
+    std::vector<std::string> toked = split_signature(name);
 
     assert(toked[0] == "volk");
     toked.erase(toked.begin());
