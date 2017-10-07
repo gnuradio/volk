@@ -24,10 +24,11 @@
 #include <config.h>
 #endif
 
-#include <volk/constants.h>
-#include "volk/volk.h"
 #include <boost/program_options.hpp>
 #include <iostream>
+
+#include <volk/constants.h>
+#include "volk/volk.h"
 
 namespace po = boost::program_options;
 

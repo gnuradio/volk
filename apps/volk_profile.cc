@@ -20,12 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "qa_utils.h"
-#include "kernel_tests.h"
-#include "volk_profile.h"
 
-#include <volk/volk.h>
-#include <volk/volk_prefs.h>
 
 #include <ciso646>
 #include <vector>
@@ -34,8 +29,13 @@
 #include <boost/xpressive/xpressive.hpp>
 #include <iostream>
 #include <fstream>
-#include <sys/stat.h>
-#include <sys/types.h>
+
+#include <volk/volk.h>
+#include <volk/volk_prefs.h>
+
+#include "qa_utils.h"
+#include "kernel_tests.h"
+#include "volk_profile.h"
 
 namespace fs = boost::filesystem;
 

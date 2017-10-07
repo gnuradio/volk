@@ -1,17 +1,10 @@
-#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/typeof/typeof.hpp>
-#include <boost/type_traits.hpp>
 
 #include <iostream>
-#include <cstring>
 #include <fstream>
 #include <vector>
 #include <map>
 #include <list>
-#include <ctime>
-#include <cmath>
-#include <limits>
 
 #include <volk/volk.h>
 
@@ -157,7 +150,8 @@ static void get_signatures_from_name(std::vector<volk_type_t> &inputsig,
     enum { SIDE_INPUT, SIDE_NAME, SIDE_OUTPUT } side = SIDE_INPUT;
     std::string fn_name;
     volk_type_t type;
-    BOOST_FOREACH(std::string token, toked) {
+    for (unsigned int token_index = 0; token_index < toked.size(); ++token_index) {
+        std::string token = toked[token_index];
         try {
             type = volk_type_from_string(token);
             if(side == SIDE_NAME) side = SIDE_OUTPUT; //if this is the first one after the name...
@@ -399,7 +393,8 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
     std::vector<void *> inbuffs;
-    BOOST_FOREACH(volk_type_t sig, inputsig) {
+    for (unsigned int inputsig_index = 0; inputsig_index < inputsig.size(); ++ inputsig_index) {
+        volk_type_t sig = inputsig[inputsig_index];
         if(!sig.is_scalar) //we don't make buffers for scalars
           inbuffs.push_back(mem_pool.get_new(vlen*sig.size*(sig.is_complex ? 2 : 1)));
     }

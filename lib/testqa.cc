@@ -20,8 +20,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "qa_utils.h"
-#include "kernel_tests.h"
 
 #include <volk/volk.h>
 
@@ -29,6 +27,9 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
+
+#include "qa_utils.h"
+#include "kernel_tests.h"
 
 void print_qa_xml(std::vector<volk_test_results_t> results, unsigned int nfails);
 
@@ -53,7 +54,6 @@ int main()
     for(unsigned int ii = 0; ii < test_cases.size(); ++ii) {
         bool qa_result = false;
         volk_test_case_t test_case = test_cases[ii];
-        std::cout << "TESTING A NEW KERNEL" << std::endl;
         try {
             qa_result = run_volk_tests(test_case.desc(), test_case.kernel_ptr(), test_case.name(),
                 test_case.test_parameters(), &results, test_case.puppet_master_name());
