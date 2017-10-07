@@ -109,8 +109,7 @@ volk_type_t volk_type_from_string(std::string name) {
     }
     //will throw if malformed
     int size = volk_lexical_cast<int>(name.substr(0, last_size_pos+1));
-    std::cout << "size is " << size << std::endl;
-
+    
     assert(((size % 8) == 0) && (size <= 64) && (size != 0));
     type.size = size/8; //in bytes
 
