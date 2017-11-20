@@ -62,7 +62,7 @@
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li cVector: The output vector.
+ * \li bVector: The output vector.
  *
  * \b Example
  * \code
