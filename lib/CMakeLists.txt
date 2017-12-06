@@ -306,6 +306,9 @@ if(NOT CROSSCOMPILE_MULTILIB AND CPU_IS_x86)
     #MSVC 64 bit does not have MMX, overrule it
     if (${SIZEOF_CPU} EQUAL 64 AND MSVC)
         OVERRULE_ARCH(mmx "No MMX for Win64")
+	if (MSVC_VERSION GREATER 1700)
+            OVERRULE_ARCH(sse "No SSE for Win64 Visual Studio 2013")
+        endif()
     endif()
 
 endif()
