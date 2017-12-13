@@ -214,3 +214,66 @@ volk_32f_x2_s32f_interleave_16ic_generic(lv_16sc_t* complexVector, const float* 
 
 
 #endif /* INCLUDED_volk_32f_x2_s32f_interleave_16ic_a_H */
+
+#ifndef INCLUDED_volk_32f_x2_s32f_interleave_16ic_u_H
+#define INCLUDED_volk_32f_x2_s32f_interleave_16ic_u_H
+
+#include <volk/volk_common.h>
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32f_x2_s32f_interleave_16ic_u_avx2(lv_16sc_t* complexVector, const float* iBuffer,
+                                        const float* qBuffer, const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const float* iBufferPtr = iBuffer;
+  const float* qBufferPtr = qBuffer;
+
+  __m256 vScalar = _mm256_set1_ps(scalar);
+
+  const unsigned int eighthPoints = num_points / 8;
+
+  __m256 iValue, qValue, cplxValue1, cplxValue2;
+  __m256i intValue1, intValue2;
+
+  int16_t* complexVectorPtr = (int16_t*)complexVector;
+
+  for(;number < eighthPoints; number++){
+    iValue = _mm256_loadu_ps(iBufferPtr);
+    qValue = _mm256_loadu_ps(qBufferPtr);
+
+    // Interleaves the lower two values in the i and q variables into one buffer
+    cplxValue1 = _mm256_unpacklo_ps(iValue, qValue);
+    cplxValue1 = _mm256_mul_ps(cplxValue1, vScalar);
+
+    // Interleaves the upper two values in the i and q variables into one buffer
+    cplxValue2 = _mm256_unpackhi_ps(iValue, qValue);
+    cplxValue2 = _mm256_mul_ps(cplxValue2, vScalar);
+
+    intValue1 = _mm256_cvtps_epi32(cplxValue1);
+    intValue2 = _mm256_cvtps_epi32(cplxValue2);
+
+    intValue1 = _mm256_packs_epi32(intValue1, intValue2);
+
+    _mm256_storeu_si256((__m256i*)complexVectorPtr, intValue1);
+    complexVectorPtr += 16;
+
+    iBufferPtr += 8;
+    qBufferPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  complexVectorPtr = (int16_t*)(&complexVector[number]);
+  for(; number < num_points; number++){
+    *complexVectorPtr++ = (int16_t)(*iBufferPtr++ * scalar);
+    *complexVectorPtr++ = (int16_t)(*qBufferPtr++ * scalar);
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+
+#endif /* INCLUDED_volk_32f_x2_s32f_interleave_16ic_u_H */
