@@ -1,19 +1,19 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2015 Free Software Foundation, Inc.
- * 
+ *
  * This file is part of GNU Radio
- * 
+ *
  * GNU Radio is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * GNU Radio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with GNU Radio; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -83,6 +83,20 @@ volk_8u_x3_encodepolarpuppet_8u_u_ssse3(unsigned char* frame, unsigned char* fro
 }
 #endif /* LV_HAVE_SSSE3 */
 
+#ifdef LV_HAVE_AVX2
+static inline void
+volk_8u_x3_encodepolarpuppet_8u_u_avx2(unsigned char* frame, unsigned char* frozen_bit_mask,
+    const unsigned char* frozen_bits, const unsigned char* info_bits,
+    unsigned int frame_size)
+{
+  frame_size = next_lower_power_of_two(frame_size);
+  unsigned char* temp = (unsigned char*) volk_malloc(sizeof(unsigned char) * frame_size, volk_get_alignment());
+  adjust_frozen_mask(frozen_bit_mask, frame_size);
+  volk_8u_x3_encodepolar_8u_x2_u_avx2(frame, temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+  volk_free(temp);
+}
+#endif /* LV_HAVE_AVX2 */
+
 #endif /* VOLK_KERNELS_VOLK_VOLK_8U_X3_ENCODEPOLARPUPPET_8U_H_ */
 
 #ifndef VOLK_KERNELS_VOLK_VOLK_8U_X3_ENCODEPOLARPUPPET_8U_A_H_
@@ -101,5 +115,20 @@ volk_8u_x3_encodepolarpuppet_8u_a_ssse3(unsigned char* frame, unsigned char* fro
   volk_free(temp);
 }
 #endif /* LV_HAVE_SSSE3 */
+
+#ifdef LV_HAVE_AVX2
+static inline void
+volk_8u_x3_encodepolarpuppet_8u_a_avx2(unsigned char* frame, unsigned char* frozen_bit_mask,
+    const unsigned char* frozen_bits, const unsigned char* info_bits,
+    unsigned int frame_size)
+{
+  frame_size = next_lower_power_of_two(frame_size);
+  unsigned char* temp = (unsigned char*) volk_malloc(sizeof(unsigned char) * frame_size, volk_get_alignment());
+  adjust_frozen_mask(frozen_bit_mask, frame_size);
+  volk_8u_x3_encodepolar_8u_x2_a_avx2(frame, temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+  volk_free(temp);
+}
+#endif /* LV_HAVE_AVX2 */
+
 
 #endif /* VOLK_KERNELS_VOLK_VOLK_8U_X3_ENCODEPOLARPUPPET_8U_A_H_ */
