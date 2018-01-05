@@ -59,6 +59,57 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_8ic_s32f_deinterleave_real_32f_a_avx2(float* iBuffer, const lv_8sc_t* complexVector,
+                                             const float scalar, unsigned int num_points)
+{
+  float* iBufferPtr = iBuffer;
+
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
+  __m256 iFloatValue;
+
+  const float iScalar= 1.0 / scalar;
+  __m256 invScalar = _mm256_set1_ps(iScalar);
+  __m256i complexVal, iIntVal;
+  int8_t* complexVectorPtr = (int8_t*)complexVector;
+
+  __m256i moveMask = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                                     14, 12, 10, 8, 6, 4, 2, 0,
+                                     0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                                     14, 12, 10, 8, 6, 4, 2, 0);
+  for(;number < sixteenthPoints; number++){
+    complexVal = _mm256_load_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 32;
+    complexVal = _mm256_shuffle_epi8(complexVal, moveMask);
+
+    iIntVal = _mm256_cvtepi8_epi32(_mm256_castsi256_si128(complexVal));
+    iFloatValue = _mm256_cvtepi32_ps(iIntVal);
+    iFloatValue = _mm256_mul_ps(iFloatValue, invScalar);
+    _mm256_store_ps(iBufferPtr, iFloatValue);
+    iBufferPtr += 8;
+
+    complexVal = _mm256_permute4x64_epi64(complexVal, 0b11000110);
+    iIntVal = _mm256_cvtepi8_epi32(_mm256_castsi256_si128(complexVal));
+    iFloatValue = _mm256_cvtepi32_ps(iIntVal);
+    iFloatValue = _mm256_mul_ps(iFloatValue, invScalar);
+    _mm256_store_ps(iBufferPtr, iFloatValue);
+    iBufferPtr += 8;
+  }
+
+  number = sixteenthPoints * 16;
+  for(; number < num_points; number++){
+    *iBufferPtr++ = (float)(*complexVectorPtr++) * iScalar;
+    complexVectorPtr++;
+  }
+
+}
+#endif /* LV_HAVE_AVX2 */
+
+
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
