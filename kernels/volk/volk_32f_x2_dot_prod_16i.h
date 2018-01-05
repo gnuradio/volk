@@ -82,6 +82,154 @@ static inline void volk_32f_x2_dot_prod_16i_generic(int16_t* result, const float
 #endif /*LV_HAVE_GENERIC*/
 
 
+#ifdef LV_HAVE_AVX
+
+static inline void volk_32f_x2_dot_prod_16i_a_avx(int16_t* result, const  float* input, const  float* taps, unsigned int num_points) {
+
+  unsigned int number = 0;
+  const unsigned int thirtySecondPoints = num_points / 32;
+
+  float dotProduct = 0;
+  const float* aPtr = input;
+  const float* bPtr = taps;
+
+  __m256 a0Val, a1Val, a2Val, a3Val;
+  __m256 b0Val, b1Val, b2Val, b3Val;
+  __m256 c0Val, c1Val, c2Val, c3Val;
+
+  __m256 dotProdVal0 = _mm256_setzero_ps();
+  __m256 dotProdVal1 = _mm256_setzero_ps();
+  __m256 dotProdVal2 = _mm256_setzero_ps();
+  __m256 dotProdVal3 = _mm256_setzero_ps();
+
+  for(;number < thirtySecondPoints; number++){
+
+    a0Val = _mm256_load_ps(aPtr);
+    a1Val = _mm256_load_ps(aPtr+8);
+    a2Val = _mm256_load_ps(aPtr+16);
+    a3Val = _mm256_load_ps(aPtr+24);
+
+    b0Val = _mm256_load_ps(bPtr);
+    b1Val = _mm256_load_ps(bPtr+8);
+    b2Val = _mm256_load_ps(bPtr+16);
+    b3Val = _mm256_load_ps(bPtr+24);
+
+    c0Val = _mm256_mul_ps(a0Val, b0Val);
+    c1Val = _mm256_mul_ps(a1Val, b1Val);
+    c2Val = _mm256_mul_ps(a2Val, b2Val);
+    c3Val = _mm256_mul_ps(a3Val, b3Val);
+
+    dotProdVal0 = _mm256_add_ps(c0Val, dotProdVal0);
+    dotProdVal1 = _mm256_add_ps(c1Val, dotProdVal1);
+    dotProdVal2 = _mm256_add_ps(c2Val, dotProdVal2);
+    dotProdVal3 = _mm256_add_ps(c3Val, dotProdVal3);
+
+    aPtr += 32;
+    bPtr += 32;
+  }
+
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal1);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal2);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal3);
+
+  __VOLK_ATTR_ALIGNED(32) float dotProductVector[8];
+
+  _mm256_store_ps(dotProductVector,dotProdVal0); // Store the results back into the dot product vector
+
+  dotProduct = dotProductVector[0];
+  dotProduct += dotProductVector[1];
+  dotProduct += dotProductVector[2];
+  dotProduct += dotProductVector[3];
+  dotProduct += dotProductVector[4];
+  dotProduct += dotProductVector[5];
+  dotProduct += dotProductVector[6];
+  dotProduct += dotProductVector[7];
+
+  number = thirtySecondPoints*32;
+  for(;number < num_points; number++){
+    dotProduct += ((*aPtr++) * (*bPtr++));
+  }
+
+  *result = (short)dotProduct;
+}
+
+#endif /*LV_HAVE_AVX*/
+
+
+#ifdef LV_HAVE_AVX
+
+static inline void volk_32f_x2_dot_prod_16i_u_avx(int16_t* result, const  float* input, const  float* taps, unsigned int num_points) {
+
+  unsigned int number = 0;
+  const unsigned int thirtySecondPoints = num_points / 32;
+
+  float dotProduct = 0;
+  const float* aPtr = input;
+  const float* bPtr = taps;
+
+  __m256 a0Val, a1Val, a2Val, a3Val;
+  __m256 b0Val, b1Val, b2Val, b3Val;
+  __m256 c0Val, c1Val, c2Val, c3Val;
+
+  __m256 dotProdVal0 = _mm256_setzero_ps();
+  __m256 dotProdVal1 = _mm256_setzero_ps();
+  __m256 dotProdVal2 = _mm256_setzero_ps();
+  __m256 dotProdVal3 = _mm256_setzero_ps();
+
+  for(;number < thirtySecondPoints; number++){
+
+    a0Val = _mm256_loadu_ps(aPtr);
+    a1Val = _mm256_loadu_ps(aPtr+8);
+    a2Val = _mm256_loadu_ps(aPtr+16);
+    a3Val = _mm256_loadu_ps(aPtr+24);
+
+    b0Val = _mm256_loadu_ps(bPtr);
+    b1Val = _mm256_loadu_ps(bPtr+8);
+    b2Val = _mm256_loadu_ps(bPtr+16);
+    b3Val = _mm256_loadu_ps(bPtr+24);
+
+    c0Val = _mm256_mul_ps(a0Val, b0Val);
+    c1Val = _mm256_mul_ps(a1Val, b1Val);
+    c2Val = _mm256_mul_ps(a2Val, b2Val);
+    c3Val = _mm256_mul_ps(a3Val, b3Val);
+
+    dotProdVal0 = _mm256_add_ps(c0Val, dotProdVal0);
+    dotProdVal1 = _mm256_add_ps(c1Val, dotProdVal1);
+    dotProdVal2 = _mm256_add_ps(c2Val, dotProdVal2);
+    dotProdVal3 = _mm256_add_ps(c3Val, dotProdVal3);
+
+    aPtr += 32;
+    bPtr += 32;
+  }
+
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal1);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal2);
+  dotProdVal0 = _mm256_add_ps(dotProdVal0, dotProdVal3);
+
+  __VOLK_ATTR_ALIGNED(32) float dotProductVector[8];
+
+  _mm256_storeu_ps(dotProductVector,dotProdVal0); // Store the results back into the dot product vector
+
+  dotProduct = dotProductVector[0];
+  dotProduct += dotProductVector[1];
+  dotProduct += dotProductVector[2];
+  dotProduct += dotProductVector[3];
+  dotProduct += dotProductVector[4];
+  dotProduct += dotProductVector[5];
+  dotProduct += dotProductVector[6];
+  dotProduct += dotProductVector[7];
+
+  number = thirtySecondPoints*32;
+  for(;number < num_points; number++){
+    dotProduct += ((*aPtr++) * (*bPtr++));
+  }
+
+  *result = (short)dotProduct;
+}
+
+#endif /*LV_HAVE_AVX*/
+
+
 #ifdef LV_HAVE_SSE
 
 static inline void volk_32f_x2_dot_prod_16i_a_sse(int16_t* result, const  float* input, const  float* taps, unsigned int num_points) {
