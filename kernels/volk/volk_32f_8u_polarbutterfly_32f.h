@@ -1,19 +1,19 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2015 Free Software Foundation, Inc.
- * 
+ *
  * This file is part of GNU Radio
- * 
+ *
  * GNU Radio is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * GNU Radio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with GNU Radio; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -342,5 +342,147 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
 }
 
 #endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+/*
+ * https://software.intel.com/sites/landingpage/IntrinsicsGuide/#
+ * lists '__m256 _mm256_loadu2_m128 (float const* hiaddr, float const* loaddr)'.
+ * But GCC 4.8.4 doesn't know about it. Or headers are missing or something. Anyway, it doesn't compile :(
+ * This is what I want: llr0 = _mm256_loadu2_m128(src_llr_ptr, src_llr_ptr + 8);
+ * also useful but missing: _mm256_set_m128(hi, lo)
+ */
+
+static inline void
+volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
+    const int frame_size, const int frame_exp,
+    const int stage, const int u_num, const int row)
+{
+  if(row % 2){ // for odd rows just do the only necessary calculation and return.
+    const float* next_llrs = llrs + frame_size + row;
+    *(llrs + row) = llr_even(*(next_llrs - 1), *next_llrs, u[u_num - 1]);
+    return;
+  }
+
+  const int max_stage_depth = calculate_max_stage_depth_for_row(frame_exp, row);
+  if(max_stage_depth < 3){ // vectorized version needs larger vectors.
+    volk_32f_8u_polarbutterfly_32f_generic(llrs, u, frame_size, frame_exp, stage, u_num, row);
+    return;
+  }
+
+  int loop_stage = max_stage_depth;
+  int stage_size = 0x01 << loop_stage;
+
+  float* src_llr_ptr;
+  float* dst_llr_ptr;
+
+  __m256 src0, src1, dst;
+  __m256 part0, part1;
+  __m256 llr0, llr1;
+
+  if(row){ // not necessary for ZERO row. == first bit to be decoded.
+    // first do bit combination for all stages
+    // effectively encode some decoded bits again.
+    unsigned char* u_target = u + frame_size;
+    unsigned char* u_temp = u + 2* frame_size;
+    memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
+
+    if(stage_size > 15){
+      _mm256_zeroupper();
+      volk_8u_x2_encodeframepolar_8u_u_avx2(u_target, u_temp, stage_size);
+    }
+    else{
+      volk_8u_x2_encodeframepolar_8u_generic(u_target, u_temp, stage_size);
+    }
+
+    src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
+    dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
+
+    const __m128i zeros = _mm_set1_epi8(0x00);
+    const __m128i sign_extract = _mm_set1_epi8(0x80);
+    const __m256i shuffle_mask = _mm256_setr_epi8(0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x01, 0xff, 0xff, 0xff, 0x02, 0xff, 0xff, 0xff, 0x03,
+                                                 0xff, 0xff, 0xff, 0x04, 0xff, 0xff, 0xff, 0x05, 0xff, 0xff, 0xff, 0x06, 0xff, 0xff, 0xff, 0x07);
+    __m128i fbits;
+    __m256i sign_bits;
+    __m256 sign_mask;
+
+    int p;
+    for(p = 0; p < stage_size; p += 8){
+      _mm256_zeroupper();
+      fbits = _mm_loadu_si128((__m128i*) u_target);
+      u_target += 8;
+
+      // prepare sign mask for correct +-
+      fbits = _mm_cmpgt_epi8(fbits, zeros);
+      fbits = _mm_and_si128(fbits, sign_extract);
+      sign_bits = _mm256_insertf128_si256(sign_bits,fbits,0);
+      sign_bits = _mm256_insertf128_si256(sign_bits,fbits,1);
+      sign_bits = _mm256_shuffle_epi8(sign_bits, shuffle_mask);
+
+      src0 = _mm256_loadu_ps(src_llr_ptr);
+      src1 = _mm256_loadu_ps(src_llr_ptr + 8);
+      src_llr_ptr += 16;
+
+      sign_mask = _mm256_castsi256_ps(sign_bits);
+
+      // deinterleave values
+      part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
+      part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
+      llr0 = _mm256_shuffle_ps(part0, part1, 0x88);
+      llr1 = _mm256_shuffle_ps(part0, part1, 0xdd);
+
+      // calculate result
+      llr0 = _mm256_xor_ps(llr0, sign_mask);
+      dst = _mm256_add_ps(llr0, llr1);
+
+      _mm256_storeu_ps(dst_llr_ptr, dst);
+      dst_llr_ptr += 8;
+    }
+
+    --loop_stage;
+    stage_size >>= 1;
+  }
+
+  const int min_stage = stage > 2 ? stage : 2;
+  const __m256 sign_mask = _mm256_set1_ps(-0.0);
+  const __m256 abs_mask = _mm256_andnot_ps(sign_mask, _mm256_castsi256_ps(_mm256_set1_epi8(0xff)));
+  __m256 sign;
+
+  int el;
+  while(min_stage < loop_stage){
+    dst_llr_ptr = llrs + loop_stage * frame_size + row;
+    src_llr_ptr = dst_llr_ptr + frame_size;
+    for(el = 0; el < stage_size; el += 8){
+      src0 = _mm256_loadu_ps(src_llr_ptr);
+      src_llr_ptr += 8;
+      src1 = _mm256_loadu_ps(src_llr_ptr);
+      src_llr_ptr += 8;
+
+      // deinterleave values
+      part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
+      part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
+      llr0 = _mm256_shuffle_ps(part0, part1, 0x88);
+      llr1 = _mm256_shuffle_ps(part0, part1, 0xdd);
+
+      // calculate result
+      sign = _mm256_xor_ps(_mm256_and_ps(llr0, sign_mask), _mm256_and_ps(llr1, sign_mask));
+      dst = _mm256_min_ps(_mm256_and_ps(llr0, abs_mask), _mm256_and_ps(llr1, abs_mask));
+      dst = _mm256_or_ps(dst, sign);
+
+      _mm256_storeu_ps(dst_llr_ptr, dst);
+      dst_llr_ptr += 8;
+    }
+
+    --loop_stage;
+    stage_size >>= 1;
+
+  }
+
+  // for stages < 3 vectors are too small!.
+  llr_odd_stages(llrs, stage, loop_stage + 1,frame_size, row);
+}
+
+#endif /* LV_HAVE_AVX2 */
 
 #endif /* VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_ */
