@@ -32,6 +32,12 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     std::vector<volk_test_case_t> test_cases = boost::assign::list_of
         (VOLK_INIT_PUPP(volk_8u_conv_k7_r2puppet_8u, volk_8u_x4_conv_k7_r2_8u, volk_test_params_t(0, test_params.scalar(), test_params.vlen(), test_params.iter()/10, test_params.benchmark_mode(), test_params.kernel_regex())))
         (VOLK_INIT_PUPP(volk_32f_x2_fm_detectpuppet_32f, volk_32f_s32f_32f_fm_detect_32f, test_params))
+        (VOLK_INIT_TEST(volk_32fc_index_max_16u,      volk_test_params_t(3, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
+        (VOLK_INIT_TEST(volk_32fc_index_max_32u,      volk_test_params_t(3, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
+        (VOLK_INIT_PUPP(volk_8u_x3_encodepolarpuppet_8u, volk_8u_x3_encodepolar_8u_x2, test_params))
+        (VOLK_INIT_PUPP(volk_32f_8u_polarbutterflypuppet_32f, volk_32f_8u_polarbutterfly_32f, test_params))
+        (VOLK_INIT_TEST(volk_32f_index_max_16u,                         test_params))
+        (VOLK_INIT_TEST(volk_32f_index_max_32u,                         test_params))
         (VOLK_INIT_TEST(volk_32f_expfast_32f,        volk_test_params_t(1e-1, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
         (VOLK_INIT_TEST(volk_32f_x3_sum_of_poly_32f,                    test_params_inacc))
         (VOLK_INIT_TEST(volk_32f_log2_32f,           volk_test_params_t(3, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
@@ -134,13 +140,6 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_32fc_s32f_power_spectrum_32f,              test_params))
         (VOLK_INIT_TEST(volk_32fc_s32f_atan2_32f,                       test_params))
 
-        // These need AVX2 intrinsics still
-        (VOLK_INIT_TEST(volk_32f_index_max_16u,                         test_params))
-        (VOLK_INIT_TEST(volk_32f_index_max_32u,                         test_params))
-        (VOLK_INIT_TEST(volk_32fc_index_max_16u,      volk_test_params_t(3, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
-        (VOLK_INIT_TEST(volk_32fc_index_max_32u,      volk_test_params_t(3, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
-        (VOLK_INIT_PUPP(volk_8u_x3_encodepolarpuppet_8u, volk_8u_x3_encodepolar_8u_x2, test_params))
-        (VOLK_INIT_PUPP(volk_32f_8u_polarbutterflypuppet_32f, volk_32f_8u_polarbutterfly_32f, test_params))
         // no one uses these, so don't test them
         //VOLK_PROFILE(volk_16i_x5_add_quad_16i_x4, 1e-4, 2046, 10000, &results, benchmark_mode, kernel_regex);
         //VOLK_PROFILE(volk_16i_branch_4_state_8, 1e-4, 2046, 10000, &results, benchmark_mode, kernel_regex);

@@ -69,7 +69,7 @@ volk_8ic_deinterleave_real_16i_a_avx2(int16_t* iBuffer, const lv_8sc_t* complexV
   int16_t* iBufferPtr = iBuffer;
   __m256i moveMask = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
   __m256i complexVal, outputVal;
-  __m128i outputVal1, outputVal0;
+  __m128i outputVal0;
 
   unsigned int sixteenthPoints = num_points / 16;
 
@@ -218,7 +218,7 @@ volk_8ic_deinterleave_real_16i_u_avx2(int16_t* iBuffer, const lv_8sc_t* complexV
   int16_t* iBufferPtr = iBuffer;
   __m256i moveMask = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
   __m256i complexVal, outputVal;
-  __m128i outputVal1, outputVal0;
+  __m128i outputVal0;
 
   unsigned int sixteenthPoints = num_points / 16;
 
@@ -246,4 +246,3 @@ volk_8ic_deinterleave_real_16i_u_avx2(int16_t* iBuffer, const lv_8sc_t* complexV
 }
 #endif /* LV_HAVE_AVX2 */
 #endif /* INCLUDED_volk_8ic_deinterleave_real_16i_u_H */
-
