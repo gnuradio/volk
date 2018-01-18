@@ -105,6 +105,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_avx2( lv_32fc_t* result, const 
 
   __m256 a0Val, a1Val, a2Val, a3Val;
   __m256 b0Val, b1Val, b2Val, b3Val;
+  __m256 c0Val, c1Val, c2Val, c3Val;
   __m256 x0Val, x1Val, x0loVal, x0hiVal, x1loVal, x1hiVal;
 
   __m256 dotProdVal0 = _mm256_setzero_ps();
@@ -174,7 +175,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_avx2( lv_32fc_t* result, const 
 
 #endif /*LV_HAVE_AVX2*/
 
-#ifdef LV_HAVE_AVX2 && LV_HAVE_FMA
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
 
 #include <immintrin.h>
 
@@ -436,6 +437,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_avx2( lv_32fc_t* result, const 
 
   __m256 a0Val, a1Val, a2Val, a3Val;
   __m256 b0Val, b1Val, b2Val, b3Val;
+  __m256 c0Val, c1Val, c2Val, c3Val;
   __m256 x0Val, x1Val, x0loVal, x0hiVal, x1loVal, x1hiVal;
 
   __m256 dotProdVal0 = _mm256_setzero_ps();
@@ -505,7 +507,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_avx2( lv_32fc_t* result, const 
 
 #endif /*LV_HAVE_AVX2*/
 
-#ifdef LV_HAVE_AVX2 && LV_HAVE_FMA
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
 
 #include <immintrin.h>
 
