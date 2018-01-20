@@ -308,9 +308,9 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2_fma( lv_32fc_t* result, co
 #endif /*LV_HAVE_AVX2 && lV_HAVE_FMA*/
 
 
-#ifdef LV_HAVE_AVX
+#ifdef LV_HAVE_AVX2
 
-static inline void volk_16i_32fc_dot_prod_32fc_u_avx( lv_32fc_t* result, const  short* input, const  lv_32fc_t* taps, unsigned int num_points) {
+static inline void volk_16i_32fc_dot_prod_32fc_u_avx2( lv_32fc_t* result, const  short* input, const  lv_32fc_t* taps, unsigned int num_points) {
 
   unsigned int number = 0;
   const unsigned int sixteenthPoints = num_points / 16;
@@ -397,7 +397,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx( lv_32fc_t* result, const  
   *result = *(lv_32fc_t*)(&res[0]);
 }
 
-#endif /*LV_HAVE_AVX*/
+#endif /*LV_HAVE_AVX2*/
 
 
 #if LV_HAVE_SSE && LV_HAVE_MMX
@@ -481,9 +481,9 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_sse( lv_32fc_t* result, const  
 
 #endif /*LV_HAVE_SSE && LV_HAVE_MMX*/
 
-#if LV_HAVE_AVX
+#ifdef LV_HAVE_AVX2
 
-static inline void volk_16i_32fc_dot_prod_32fc_a_avx( lv_32fc_t* result, const  short* input, const  lv_32fc_t* taps, unsigned int num_points) {
+static inline void volk_16i_32fc_dot_prod_32fc_a_avx2( lv_32fc_t* result, const  short* input, const  lv_32fc_t* taps, unsigned int num_points) {
 
   unsigned int number = 0;
   const unsigned int sixteenthPoints = num_points / 16;
@@ -571,7 +571,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx( lv_32fc_t* result, const  
 }
 
 
-#endif /*LV_HAVE_AVX*/
+#endif /*LV_HAVE_AVX2*/
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 
