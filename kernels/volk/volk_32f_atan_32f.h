@@ -81,7 +81,7 @@
 #include <immintrin.h>
 
 static inline void
-volk_32f_atan_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_points)
+volk_32f_atan_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int num_points)
 {
   float* bPtr = bVector;
   const float* aPtr = aVector;
@@ -270,7 +270,7 @@ volk_32f_atan_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
 #include <immintrin.h>
 
 static inline void
-volk_32f_atan_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_points)
+volk_32f_atan_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int num_points)
 {
   float* bPtr = bVector;
   const float* aPtr = aVector;

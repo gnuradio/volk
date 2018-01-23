@@ -181,12 +181,12 @@ volk_32f_acos_32f_a_avx(float* bVector, const float* aVector, unsigned int num_p
     x = _mm256_div_ps(fones, x);
     y = fzeroes;
     for(j = ACOS_TERMS - 1; j >=0 ; j--)
-      y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)),, _mm256_set1_ps(pow(-1,j)/(2*j+1)));
+      y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
     condition = _mm256_cmp_ps(z, fones,14);
 
-    y = _mm256_add_ps(y, _mm256_and_ps(_mm_sub_ps(pio2, _mm_mul_ps(y, ftwos)), condition));
+    y = _mm256_add_ps(y, _mm256_and_ps(_mm256_sub_ps(pio2, _mm256_mul_ps(y, ftwos)), condition));
     arccosine = y;
     condition = _mm256_cmp_ps(aVal, fzeroes,1);
     arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
@@ -380,12 +380,12 @@ volk_32f_acos_32f_u_avx(float* bVector, const float* aVector, unsigned int num_p
     x = _mm256_div_ps(fones, x);
     y = fzeroes;
     for(j = ACOS_TERMS - 1; j >=0 ; j--)
-      y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)),, _mm256_set1_ps(pow(-1,j)/(2*j+1)));
+      y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
     condition = _mm256_cmp_ps(z, fones,14);
 
-    y = _mm256_add_ps(y, _mm256_and_ps(_mm_sub_ps(pio2, _mm_mul_ps(y, ftwos)), condition));
+    y = _mm256_add_ps(y, _mm256_and_ps(_mm256_sub_ps(pio2, _mm256_mul_ps(y, ftwos)), condition));
     arccosine = y;
     condition = _mm256_cmp_ps(aVal, fzeroes,1);
     arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
