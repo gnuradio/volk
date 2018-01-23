@@ -115,10 +115,9 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
   int i = 0;
 
   xmm8 = _mm_set_epi32(3, 2, 1, 0);//remember the crazy reverse order!
-  xmm9 = xmm8 = _mm_setzero_si128();
+  xmm9 = _mm_setzero_si128();
   xmm10 = _mm_set_epi32(4, 4, 4, 4);
   xmm3 = _mm_setzero_ps();
-
   //printf("%f, %f, %f, %f\n", ((float*)&xmm10)[0], ((float*)&xmm10)[1], ((float*)&xmm10)[2], ((float*)&xmm10)[3]);
 
   for(; i < bound; ++i) {
