@@ -152,7 +152,7 @@ volk_32f_tan_32f_a_sse4_1(float* bVector, const float* aVector,
 
   number = quarterPoints * 4;
   for(;number < num_points; number++){
-    *bPtr++ = tan(*aPtr++);
+    *bPtr++ = tanf(*aPtr++);
   }
 }
 
@@ -237,7 +237,7 @@ volk_32f_tan_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num
 
   number = quarterPoints * 4;
   for(;number < num_points; number++){
-    *bPtr++ = tan(*aPtr++);
+    *bPtr++ = tanf(*aPtr++);
   }
 }
 
@@ -255,7 +255,7 @@ volk_32f_tan_32f_generic(float* bVector, const float* aVector,
   unsigned int number = 0;
 
   for(; number < num_points; number++){
-    *bPtr++ = tan(*aPtr++);
+    *bPtr++ = tanf(*aPtr++);
   }
 }
 #endif /* LV_HAVE_GENERIC */

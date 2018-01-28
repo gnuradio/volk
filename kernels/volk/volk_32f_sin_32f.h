@@ -146,7 +146,7 @@ volk_32f_sin_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num
 
   number = quarterPoints * 4;
   for(;number < num_points; number++) {
-    *bPtr++ = sin(*aPtr++);
+    *bPtr++ = sinf(*aPtr++);
   }
 }
 
@@ -226,7 +226,7 @@ volk_32f_sin_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num
 
   number = quarterPoints * 4;
   for(;number < num_points; number++){
-    *bPtr++ = sin(*aPtr++);
+    *bPtr++ = sinf(*aPtr++);
   }
 }
 
@@ -243,7 +243,7 @@ volk_32f_sin_32f_generic(float* bVector, const float* aVector, unsigned int num_
   unsigned int number = 0;
 
   for(number = 0; number < num_points; number++) {
-    *bPtr++ = sin(*aPtr++);
+    *bPtr++ = sinf(*aPtr++);
   }
 
 }
