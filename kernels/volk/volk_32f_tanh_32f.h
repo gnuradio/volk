@@ -83,7 +83,7 @@ volk_32f_tanh_32f_generic(float* cVector, const float* aVector,
   float* cPtr = cVector;
   const float* aPtr = aVector;
   for(; number < num_points; number++) {
-    *cPtr++ = tanh(*aPtr++);
+    *cPtr++ = tanhf(*aPtr++);
   }
 }
 
