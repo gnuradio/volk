@@ -225,11 +225,11 @@ volk_32f_tanh_32f_a_avx(float* cVector, const float* aVector,
 }
 #endif /* LV_HAVE_AVX */
 
-#ifdef LV_HAVE_AVX2
+#if LV_HAVE_AVX && LV_HAVE_FMA
 #include <immintrin.h>
 
 static inline void
-volk_32f_tanh_32f_a_avx2(float* cVector, const float* aVector,
+volk_32f_tanh_32f_a_avx_fma(float* cVector, const float* aVector,
                         unsigned int num_points)
 {
   unsigned int number = 0;
@@ -276,7 +276,7 @@ volk_32f_tanh_32f_a_avx2(float* cVector, const float* aVector,
     }
   }
 }
-#endif /* LV_HAVE_AVX2 */
+#endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 
 #endif /* INCLUDED_volk_32f_tanh_32f_a_H */
 
@@ -397,11 +397,11 @@ volk_32f_tanh_32f_u_avx(float* cVector, const float* aVector,
 }
 #endif /* LV_HAVE_AVX */
 
-#ifdef LV_HAVE_AVX2
+#if LV_HAVE_AVX && LV_HAVE_FMA
 #include <immintrin.h>
 
 static inline void
-volk_32f_tanh_32f_u_avx2(float* cVector, const float* aVector,
+volk_32f_tanh_32f_u_avx_fma(float* cVector, const float* aVector,
                         unsigned int num_points)
 {
   unsigned int number = 0;
@@ -448,6 +448,6 @@ volk_32f_tanh_32f_u_avx2(float* cVector, const float* aVector,
     }
   }
 }
-#endif /* LV_HAVE_AVX2 */
+#endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 
 #endif /* INCLUDED_volk_32f_tanh_32f_u_H */
