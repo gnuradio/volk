@@ -53,7 +53,8 @@ install(
 )
 
 # MAKE volk-config-info
-add_executable(volk-config-info volk-config-info.cc)
+add_executable(volk-config-info volk-config-info.cc         ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc
+        )
 
 if(ENABLE_STATIC_LIBS)
     target_link_libraries(volk-config-info volk_static ${Boost_LIBRARIES})
