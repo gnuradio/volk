@@ -127,7 +127,7 @@ volk_32fc_x2_conjugate_dot_prod_32fc_u_avx(lv_32fc_t* result, const lv_32fc_t* i
   *result = tmp_result[0] + tmp_result[1];
   *result += tmp_result[2] + tmp_result[3];
 
-  int point
+  int point;
   for (point=quarter_points*4; point < num_points; ++point) {
     float a_r = *a_p++;
     float a_i = *a_p++;
@@ -166,7 +166,7 @@ volk_32fc_x2_conjugate_dot_prod_32fc_a_avx(lv_32fc_t* result, const lv_32fc_t* i
   *result = tmp_result[0] + tmp_result[1];
   *result += tmp_result[2] + tmp_result[3];
 
-  int point
+  int point;
   for (point=quarter_points*4; point < num_points; ++point) {
     float a_r = *a_p++;
     float a_i = *a_p++;
