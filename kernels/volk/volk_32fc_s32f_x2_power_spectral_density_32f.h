@@ -35,7 +35,7 @@
  * \b Inputs
  * \li complexFFTInput The complex data output from the FFT point.
  * \li normalizationFactor: This value is divided against all the input values before the power is calculated.
- * \li rbw: The resolution bandwith of the fft spectrum
+ * \li rbw: The resolution bandwidth of the fft spectrum
  * \li num_points: The number of fft data points.
  *
  * \b Outputs
