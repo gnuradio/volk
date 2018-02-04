@@ -10,13 +10,21 @@
 
 typedef enum
 {
-  CALLBACK,
+  VOID_CALLBACK,
+    INT_CALLBACK,
+    BOOL_CALLBACK,
+    STRING_CALLBACK,
+    FLOAT_CALLBACK,
   STRING,
 } VOLK_OPTYPE;
 
 class option_t {
   public:
   option_t(std::string longform, std::string shortform, std::string msg, void (*callback)());
+    option_t(std::string longform, std::string shortform, std::string msg, void (*callback)(int));
+    option_t(std::string longform, std::string shortform, std::string msg, void (*callback)(float));
+    option_t(std::string longform, std::string shortform, std::string msg, void (*callback)(bool));
+    option_t(std::string longform, std::string shortform, std::string msg, void (*callback)(std::string));
   option_t(std::string longform, std::string shortform, std::string msg, std::string printval);
 
   std::string longform;
