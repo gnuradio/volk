@@ -35,6 +35,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+
 namespace fs = boost::filesystem;
 
 volk_test_params_t test_params(1e-6f, 327.f, 131071, 1987, false, "");
@@ -151,11 +152,12 @@ void read_results(std::vector<volk_test_results_t> *results)
 
 void read_results(std::vector<volk_test_results_t> *results, std::string path)
 {
-    const fs::path config_path(path);
+    struct stat buffer;
+    bool config_status = (stat (path.c_str(), &buffer) == 0);
 
-    if(fs::exists(config_path)) {
+    if( config_status ) {
         // a config exists and we are reading results from it
-        std::ifstream config(config_path.string().c_str());
+        std::ifstream config(path.c_str());
         char config_line[256];
         while(config.getline(config_line, 255)) {
             // tokenize the input line by kernel_name unaligned aligned
@@ -207,10 +209,13 @@ void write_results(const std::vector<volk_test_results_t> *results, bool update_
 
 void write_results(const std::vector<volk_test_results_t> *results, bool update_result, const std::string path)
 {
-    const fs::path config_path(path);
+//    struct stat buffer;
+//    bool config_status = (stat (path.c_str(), &buffer) == 0);
 
-    // Until we can update the config on a kernel by kernel basis
-    // do not overwrite volk_config when using a regex.
+    /*
+     * These
+     */
+    const fs::path config_path(path);
     if (not fs::exists(config_path.branch_path()))
     {
         std::cout << "Creating " << config_path.branch_path() << "..." << std::endl;
@@ -219,17 +224,17 @@ void write_results(const std::vector<volk_test_results_t> *results, bool update_
 
     std::ofstream config;
     if(update_result) {
-        std::cout << "Updating " << config_path << "..." << std::endl;
-        config.open(config_path.string().c_str(), std::ofstream::app);
+        std::cout << "Updating " << path << "..." << std::endl;
+        config.open(path.c_str(), std::ofstream::app);
         if (!config.is_open()) { //either we don't have write access or we don't have the dir yet
-            std::cout << "Error opening file " << config_path << std::endl;
+            std::cout << "Error opening file " << path << std::endl;
         }
     }
     else {
-        std::cout << "Writing " << config_path << "..." << std::endl;
-        config.open(config_path.string().c_str());
+        std::cout << "Writing " << path << "..." << std::endl;
+        config.open(path.c_str());
         if (!config.is_open()) { //either we don't have write access or we don't have the dir yet
-            std::cout << "Error opening file " << config_path << std::endl;
+            std::cout << "Error opening file " << path << std::endl;
         }
 
         config << "\
