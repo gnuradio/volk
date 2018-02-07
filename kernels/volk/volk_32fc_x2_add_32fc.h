@@ -250,18 +250,18 @@ volk_32fc_x2_add_32fc_u_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector,
   lv_32fc_t* cPtr = cVector;
   const lv_32fc_t* aPtr = aVector;
   const lv_32fc_t* bPtr=  bVector;
-  lv_32fc_t32x4_t aVal, bVal, cVal;
-  for(number=0; number < quarterPoints; number++){
+  float32x4_t aVal, bVal, cVal;
+  for(number=0; number < halfPoints; number++){
     // Load in to NEON registers
-    aVal = vld1q_f32(aPtr);
-    bVal = vld1q_f32(bPtr);
+    aVal = vld1q_f32((const float32_t*)(aPtr));
+    bVal = vld1q_f32((const float32_t*)(bPtr));
     __VOLK_PREFETCH(aPtr+2);
     __VOLK_PREFETCH(bPtr+2);
 
     // vector add
     cVal = vaddq_f32(aVal, bVal);
     // Store the results back into the C container
-    vst1q_f32(cPtr,cVal);
+    vst1q_f32((float*)(cPtr),cVal);
 
     aPtr += 2; // q uses quadwords, 4 lv_32fc_ts per vadd
     bPtr += 2;
