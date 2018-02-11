@@ -68,6 +68,10 @@
  * \endcode
  */
 
+//#ifndef LV_HAVE_AVX
+//#define LV_HAVE_AVX
+//#endif
+
 #ifndef VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_
 #define VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_
 #include <math.h>
@@ -238,8 +242,6 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
   float* dst_llr_ptr;
 
   __m256 src0, src1, dst;
-  __m256 part0, part1;
-  __m256 llr0, llr1;
 
   if(row){ // not necessary for ZERO row. == first bit to be decoded.
     // first do bit combination for all stages
@@ -260,7 +262,6 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
     dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
 
     __m128i fbits;
-    __m256 sign_mask;
 
     int p;
     for(p = 0; p < stage_size; p += 8){
@@ -272,18 +273,7 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
       src1 = _mm256_loadu_ps(src_llr_ptr + 8);
       src_llr_ptr += 16;
 
-      // prepare sign mask for correct +-
-      sign_mask = _mm256_polar_sign_mask(fbits);
-
-      // deinterleave values
-      part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
-      part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
-      llr0 = _mm256_shuffle_ps(part0, part1, 0x88);
-      llr1 = _mm256_shuffle_ps(part0, part1, 0xdd);
-
-      // calculate result
-      llr0 = _mm256_xor_ps(llr0, sign_mask);
-      dst = _mm256_add_ps(llr0, llr1);
+      dst = _mm256_polar_fsign_add_llrs(src0, src1, fbits);
 
       _mm256_storeu_ps(dst_llr_ptr, dst);
       dst_llr_ptr += 8;
@@ -294,9 +284,11 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
   }
 
   const int min_stage = stage > 2 ? stage : 2;
-  const __m256 sign_mask = _mm256_set1_ps(-0.0);
-  const __m256 abs_mask = _mm256_andnot_ps(sign_mask, _mm256_castsi256_ps(_mm256_set1_epi8(0xff)));
-  __m256 sign;
+  const __m256 dummy_sign_mask = _mm256_set1_ps(-0.0);
+  const __m256 dummy_abs_mask = _mm256_andnot_ps(dummy_sign_mask, _mm256_castsi256_ps(_mm256_set1_epi8(0xff)));
+  //  __m256 part0, part1;
+  //  __m256 llr0, llr1;
+  //  __m256 sign;
 
   int el;
   while(min_stage < loop_stage){
@@ -308,7 +300,7 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
       src1 = _mm256_loadu_ps(src_llr_ptr);
       src_llr_ptr += 8;
 
-      dst = _mm256_polar_stage_llrs(src0, src1);
+      dst = _mm256_polar_minsum_llrs(src0, src1);
 
 //      // deinterleave values
 //      part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
