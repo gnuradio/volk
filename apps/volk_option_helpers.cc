@@ -91,7 +91,7 @@ void option_list::parse(int argc, char **argv) {
                             bool int_val = (bool) std::stoi(argv[++arg_number]);
                             ((void (*)(bool)) this_option->callback)(int_val);
                         } catch (std::exception &exc) {
-                            std::cout << "A bool option can only receive 0 or 1" << std::endl;
+                            std::cout << "option: '" << argv[arg_number - 1] << "' -> A bool option MUST receive '0' or '1'" << std::endl;
                             throw std::exception();
                         };
                         break;

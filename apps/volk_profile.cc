@@ -68,6 +68,10 @@ int main(int argc, char *argv[]) {
     profile_options.add((option_t("path", "p", "Specify the volk_config path", set_volk_config)));
     profile_options.parse(argc, argv);
 
+    if(dry_run) {
+        std::cout << "Warning: this IS a dry-run. Config will not be written!" << std::endl;
+    }
+
     // Adding program options
     std::ofstream json_file;
     std::string config_file;
