@@ -68,4 +68,39 @@ _mm256_magnitude_ps(__m256 cplxValue1, __m256 cplxValue2){
   return _mm256_sqrt_ps(_mm256_magnitudesquared_ps(cplxValue1, cplxValue2));
 }
 
+static inline __m256
+_mm256_polar_sign_mask(__m128i fbits){
+  __m256 sign_mask_dummy = _mm256_setzero_ps();
+  const __m128i zeros = _mm_set1_epi8(0x00);
+  const __m128i sign_extract = _mm_set1_epi8(0x80);
+  const __m128i shuffle_mask0 = _mm_setr_epi8(0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x01, 0xff, 0xff, 0xff, 0x02, 0xff, 0xff, 0xff, 0x03);
+  const __m128i shuffle_mask1 = _mm_setr_epi8(0xff, 0xff, 0xff, 0x04, 0xff, 0xff, 0xff, 0x05, 0xff, 0xff, 0xff, 0x06, 0xff, 0xff, 0xff, 0x07);
+
+  fbits = _mm_cmpgt_epi8(fbits, zeros);
+  fbits = _mm_and_si128(fbits, sign_extract);
+  __m128i sign_bits0 = _mm_shuffle_epi8(fbits, shuffle_mask0);
+  __m128i sign_bits1 = _mm_shuffle_epi8(fbits, shuffle_mask1);
+
+  __m256 sign_mask = _mm256_insertf128_ps(sign_mask_dummy, _mm_castsi128_ps(sign_bits0), 0x0);
+  return _mm256_insertf128_ps(sign_mask, _mm_castsi128_ps(sign_bits1), 0x1);
+}
+
+static inline __m256
+_mm256_polar_stage_llrs(__m256 src0, __m256 src1){
+    const __m256 sign_mask = _mm256_set1_ps(-0.0);
+    const __m256 abs_mask = _mm256_andnot_ps(sign_mask, _mm256_castsi256_ps(_mm256_set1_epi8(0xff)));
+    // deinterleave values
+    __m256 part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
+    __m256 part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
+    __m256 llr0 = _mm256_shuffle_ps(part0, part1, 0x88);
+    __m256 llr1 = _mm256_shuffle_ps(part0, part1, 0xdd);
+
+    // calculate result
+    __m256 sign = _mm256_xor_ps(_mm256_and_ps(llr0, sign_mask), _mm256_and_ps(llr1, sign_mask));
+    __m256 dst = _mm256_min_ps(_mm256_and_ps(llr0, abs_mask), _mm256_and_ps(llr1, abs_mask));
+    return _mm256_or_ps(dst, sign);
+}
+
+
+
 #endif /* INCLUDE_VOLK_VOLK_AVX_INTRINSICS_H_ */
