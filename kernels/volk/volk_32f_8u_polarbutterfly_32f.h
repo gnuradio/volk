@@ -156,9 +156,10 @@ calculate_max_stage_depth_for_row(const int frame_exp, const int row)
 
 static inline void
 volk_32f_8u_polarbutterfly_32f_generic(float* llrs, unsigned char* u,
-    const int frame_size, const int frame_exp,
+    const int frame_size_dummy, const int frame_exp,
     const int stage, const int u_num, const int row)
 {
+  const int frame_size = 0x01 << frame_exp;
   const int next_stage = stage + 1;
 
   const int half_stage_size = 0x01 << stage;
@@ -202,6 +203,7 @@ volk_32f_8u_polarbutterfly_32f_generic(float* llrs, unsigned char* u,
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
 
 /*
  * https://software.intel.com/sites/landingpage/IntrinsicsGuide/#
@@ -213,9 +215,10 @@ volk_32f_8u_polarbutterfly_32f_generic(float* llrs, unsigned char* u,
 
 static inline void
 volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
-    const int frame_size, const int frame_exp,
+    const int frame_size_dummy, const int frame_exp,
     const int stage, const int u_num, const int row)
 {
+  const int frame_size = 0x01 << frame_exp;
   if(row % 2){ // for odd rows just do the only necessary calculation and return.
     const float* next_llrs = llrs + frame_size + row;
     *(llrs + row) = llr_even(*(next_llrs - 1), *next_llrs, u[u_num - 1]);
@@ -256,12 +259,7 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
     src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
     dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
 
-    const __m128i zeros = _mm_set1_epi8(0x00);
-    const __m128i sign_extract = _mm_set1_epi8(0x80);
-    const __m128i shuffle_mask0 = _mm_setr_epi8(0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x01, 0xff, 0xff, 0xff, 0x02, 0xff, 0xff, 0xff, 0x03);
-    const __m128i shuffle_mask1 = _mm_setr_epi8(0xff, 0xff, 0xff, 0x04, 0xff, 0xff, 0xff, 0x05, 0xff, 0xff, 0xff, 0x06, 0xff, 0xff, 0xff, 0x07);
-    __m128i fbits, sign_bits0, sign_bits1;
-
+    __m128i fbits;
     __m256 sign_mask;
 
     int p;
@@ -270,19 +268,12 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
       fbits = _mm_loadu_si128((__m128i*) u_target);
       u_target += 8;
 
-      // prepare sign mask for correct +-
-      fbits = _mm_cmpgt_epi8(fbits, zeros);
-      fbits = _mm_and_si128(fbits, sign_extract);
-      sign_bits0 = _mm_shuffle_epi8(fbits, shuffle_mask0);
-      sign_bits1 = _mm_shuffle_epi8(fbits, shuffle_mask1);
-
-
       src0 = _mm256_loadu_ps(src_llr_ptr);
       src1 = _mm256_loadu_ps(src_llr_ptr + 8);
       src_llr_ptr += 16;
 
-      sign_mask = _mm256_insertf128_ps(sign_mask, _mm_castsi128_ps(sign_bits0), 0x0);
-      sign_mask = _mm256_insertf128_ps(sign_mask, _mm_castsi128_ps(sign_bits1), 0x1);
+      // prepare sign mask for correct +-
+      sign_mask = _mm256_polar_sign_mask(fbits);
 
       // deinterleave values
       part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
@@ -317,16 +308,18 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
       src1 = _mm256_loadu_ps(src_llr_ptr);
       src_llr_ptr += 8;
 
-      // deinterleave values
-      part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
-      part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
-      llr0 = _mm256_shuffle_ps(part0, part1, 0x88);
-      llr1 = _mm256_shuffle_ps(part0, part1, 0xdd);
+      dst = _mm256_polar_stage_llrs(src0, src1);
 
-      // calculate result
-      sign = _mm256_xor_ps(_mm256_and_ps(llr0, sign_mask), _mm256_and_ps(llr1, sign_mask));
-      dst = _mm256_min_ps(_mm256_and_ps(llr0, abs_mask), _mm256_and_ps(llr1, abs_mask));
-      dst = _mm256_or_ps(dst, sign);
+//      // deinterleave values
+//      part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
+//      part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
+//      llr0 = _mm256_shuffle_ps(part0, part1, 0x88);
+//      llr1 = _mm256_shuffle_ps(part0, part1, 0xdd);
+
+//      // calculate result
+//      sign = _mm256_xor_ps(_mm256_and_ps(llr0, sign_mask), _mm256_and_ps(llr1, sign_mask));
+//      dst = _mm256_min_ps(_mm256_and_ps(llr0, abs_mask), _mm256_and_ps(llr1, abs_mask));
+//      dst = _mm256_or_ps(dst, sign);
 
       _mm256_storeu_ps(dst_llr_ptr, dst);
       dst_llr_ptr += 8;

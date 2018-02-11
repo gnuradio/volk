@@ -100,7 +100,7 @@ volk_32f_8u_polarbutterflypuppet_32f_generic(float* llrs, const float* input, un
 
   unsigned int u_num = 0;
   for(; u_num < frame_size; u_num++){
-    volk_32f_8u_polarbutterfly_32f_generic(llrs, u, frame_size, frame_exp, 0, u_num, u_num);
+    volk_32f_8u_polarbutterfly_32f_generic(llrs, u, elements, frame_exp, 0, u_num, u_num);
     u[u_num] = llrs[u_num] > 0 ? 0 : 1;
   }
 
@@ -120,7 +120,7 @@ volk_32f_8u_polarbutterflypuppet_32f_u_avx(float* llrs, const float* input, unsi
 
   unsigned int u_num = 0;
   for(; u_num < frame_size; u_num++){
-    volk_32f_8u_polarbutterfly_32f_u_avx(llrs, u, frame_size, frame_exp, 0, u_num, u_num);
+    volk_32f_8u_polarbutterfly_32f_u_avx(llrs, u, elements, frame_exp, 0, u_num, u_num);
     u[u_num] = llrs[u_num] > 0 ? 0 : 1;
   }
 
