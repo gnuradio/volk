@@ -68,11 +68,8 @@ int main(int argc, char *argv[]) {
     profile_options.add((option_t("path", "p", "Specify the volk_config path", set_volk_config)));
     profile_options.parse(argc, argv);
     
-    for (int arg_number = 0; arg_number < argc; ++arg_number) {
-        if (std::string("--help") == std::string(argv[arg_number]) ||
-            std::string("-h") == std::string(argv[arg_number])) {
-            return 0;
-        }
+    if (profile_options.present("help")) {
+        return 0;
     }
 
     if(dry_run) {

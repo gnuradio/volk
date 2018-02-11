@@ -52,8 +52,9 @@ option_t::option_t(std::string longform, std::string shortform, std::string msg,
 
 option_list::option_list(std::string program_name) :
         program_name(program_name) {
-    { internal_list = std::vector<option_t>(); }
+    internal_list = std::vector<option_t>();
 }
+
 
 void option_list::add(option_t opt) { internal_list.push_back(opt); }
 
@@ -62,15 +63,22 @@ void option_list::parse(int argc, char **argv) {
         for (std::vector<option_t>::iterator this_option = internal_list.begin();
              this_option != internal_list.end();
              this_option++) {
+            int int_val = INT_MIN;
             if (this_option->longform == std::string(argv[arg_number]) ||
                 this_option->shortform == std::string(argv[arg_number])) {
+
+                if (present_options.count(this_option->longform) == 0) {
+                    present_options.insert(std::pair<std::string, int>(this_option->longform, 1));
+                } else {
+                    present_options[this_option->longform] += 1;
+                }
                 switch (this_option->option_type) {
                     case VOID_CALLBACK:
                         this_option->callback();
                         break;
                     case INT_CALLBACK:
                         try {
-                            int int_val = std::stoi(argv[++arg_number]);
+                            int_val = atoi(argv[++arg_number]);
                             ((void (*)(int)) this_option->callback)(int_val);
                         } catch (std::exception &exc) {
                             std::cout << "An int option can only receive a number" << std::endl;
@@ -79,8 +87,8 @@ void option_list::parse(int argc, char **argv) {
                         break;
                     case FLOAT_CALLBACK:
                         try {
-                            int int_val = std::stof(argv[++arg_number]);
-                            ((void (*)(float)) this_option->callback)(int_val);
+                            double double_val = atof(argv[++arg_number]);
+                            ((void (*)(float)) this_option->callback)(double_val);
                         } catch (std::exception &exc) {
                             std::cout << "A float option can only receive a number" << std::endl;
                             throw std::exception();
@@ -88,12 +96,33 @@ void option_list::parse(int argc, char **argv) {
                         break;
                     case BOOL_CALLBACK:
                         try {
-                            bool int_val = (bool) std::stoi(argv[++arg_number]);
-                            ((void (*)(bool)) this_option->callback)(int_val);
-                        } catch (std::exception &exc) {
-                            std::cout << "option: '" << argv[arg_number - 1] << "' -> A bool option MUST receive '0' or '1'" << std::endl;
-                            throw std::exception();
+                            if (arg_number == (argc - 1)) { // this is the last arg
+                                int_val = 1;
+                            } else { // sneak a look at the next arg since it's present
+                                char *next_arg = argv[arg_number + 1];
+                                if ((strncmp(next_arg, "-", 1) == 0) || (strncmp(next_arg, "--", 2) == 0)) {
+                                    // the next arg is actually an arg, the bool is just present, set to true
+                                    int_val = 1;
+                                } else if (strncmp(next_arg, "true", 4) == 0) {
+                                    int_val = 1;
+                                } else if (strncmp(next_arg, "false", 5) == 0) {
+                                    int_val = 0;
+                                } else {
+                                    // we got a number or a string.
+                                    // convert it to a number and depend on the catch to report an error condition
+                                    int_val = (bool) atoi(argv[++arg_number]);
+                                }
+                            }
+                        } catch (std::exception &e) {
+                            int_val = INT_MIN;
                         };
+                        if (int_val == INT_MIN) {
+                            std::cout << "option: '" << argv[arg_number - 1] << "' -> received an unknown value. Boolean "
+                                    "options should receive one of '0', '1', 'true', 'false'." << std::endl;
+                            throw std::exception();
+                        } else if (int_val) {
+                            ((void (*)(bool)) this_option->callback)(int_val);
+                        }
                         break;
                     case STRING_CALLBACK:
                         try {
@@ -110,8 +139,17 @@ void option_list::parse(int argc, char **argv) {
         }
         if (std::string("--help") == std::string(argv[arg_number]) ||
             std::string("-h") == std::string(argv[arg_number])) {
+            present_options.insert(std::pair<std::string, int>("--help", 1));
             help();
         }
+    }
+}
+
+bool option_list::present(std::string option_name) {
+    if (present_options.count("--" + option_name)) {
+        return true;
+    } else {
+        return false;
     }
 }
 

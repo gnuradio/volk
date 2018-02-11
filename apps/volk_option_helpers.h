@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 typedef enum
 {
@@ -40,6 +41,7 @@ class option_list
 {
   public:
   option_list(std::string program_name);
+  bool present(std::string option_name);
 
   void add(option_t opt);
 
@@ -49,6 +51,7 @@ class option_list
   private:
   std::string program_name;
   std::vector<option_t> internal_list;
+  std::map<std::string, int> present_options;
 };
 
 
