@@ -14,6 +14,8 @@
 #include <cstring>
 #include <map>
 #include <string>
+#include <cstring>
+#include <limits.h>
 #include <vector>
 
 typedef enum {
