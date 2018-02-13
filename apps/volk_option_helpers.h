@@ -6,6 +6,8 @@
 #define VOLK_VOLK_OPTION_HELPERS_H
 
 #include <string>
+#include <cstring>
+#include <limits.h>
 #include <vector>
 #include <map>
 
