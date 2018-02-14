@@ -68,7 +68,6 @@
  * \endcode
  */
 
-
 #ifndef VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_
 #define VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_
 #include <math.h>
@@ -207,14 +206,6 @@ volk_32f_8u_polarbutterfly_32f_generic(float* llrs, unsigned char* u,
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
 
-/*
- * https://software.intel.com/sites/landingpage/IntrinsicsGuide/#
- * lists '__m256 _mm256_loadu2_m128 (float const* hiaddr, float const* loaddr)'.
- * But GCC 4.8.4 doesn't know about it. Or headers are missing or something. Anyway, it doesn't compile :(
- * This is what I want: llr0 = _mm256_loadu2_m128(src_llr_ptr, src_llr_ptr + 8);
- * also useful but missing: _mm256_set_m128(hi, lo)
- */
-
 static inline void
 volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
     const int frame_exp,
@@ -282,11 +273,8 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
   }
 
   const int min_stage = stage > 2 ? stage : 2;
-  const __m256 dummy_sign_mask = _mm256_set1_ps(-0.0);
-  const __m256 dummy_abs_mask = _mm256_andnot_ps(dummy_sign_mask, _mm256_castsi256_ps(_mm256_set1_epi8(0xff)));
-  //  __m256 part0, part1;
-  //  __m256 llr0, llr1;
-  //  __m256 sign;
+
+  _mm256_zeroall(); // Important to clear cache!
 
   int el;
   while(min_stage < loop_stage){
@@ -299,17 +287,6 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
       src_llr_ptr += 8;
 
       dst = _mm256_polar_minsum_llrs(src0, src1);
-
-//      // deinterleave values
-//      part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
-//      part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
-//      llr0 = _mm256_shuffle_ps(part0, part1, 0x88);
-//      llr1 = _mm256_shuffle_ps(part0, part1, 0xdd);
-
-//      // calculate result
-//      sign = _mm256_xor_ps(_mm256_and_ps(llr0, sign_mask), _mm256_and_ps(llr1, sign_mask));
-//      dst = _mm256_min_ps(_mm256_and_ps(llr0, abs_mask), _mm256_and_ps(llr1, abs_mask));
-//      dst = _mm256_or_ps(dst, sign);
 
       _mm256_storeu_ps(dst_llr_ptr, dst);
       dst_llr_ptr += 8;
