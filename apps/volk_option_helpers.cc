@@ -4,7 +4,11 @@
 
 #include "volk_option_helpers.h"
 
-#include <iostream>
+#include <exception>  // for exception
+#include <iostream>   // for operator<<, endl, basic_ostream, cout, ostream
+#include <utility>    // for pair
+#include <limits.h>   // IWYU pragma: keep
+#include <cstring>    // IWYU pragma: keep
 
 /*
  * Option type

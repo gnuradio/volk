@@ -1,25 +1,25 @@
 #include "qa_utils.h"
 
-#include <boost/foreach.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/typeof/typeof.hpp>
-#include <boost/type_traits.hpp>
-
-#include <iostream>
-#include <cstring>
-#include <fstream>
-#include <vector>
-#include <map>
-#include <list>
-#include <ctime>
-#include <cmath>
-#include <limits>
-
-#include <volk/volk.h>
-#include <volk/volk_cpu.h>
-#include <volk/volk_common.h>
-#include <volk/volk_malloc.h>
+#include <assert.h>                                 // for assert
+#include <boost/foreach.hpp>                        // for auto_any_base
+#include <boost/lexical_cast.hpp>                   // for lexical_cast
+#include <boost/lexical_cast/bad_lexical_cast.hpp>  // for bad_lexical_cast
+#include <boost/token_functions.hpp>                // for char_separator
+#include <boost/token_iterator.hpp>                 // for token_iterator
+#include <boost/tokenizer.hpp>                      // for tokenizer
+#include <stdint.h>                                 // for uint16_t, uint64_t
+#include <sys/time.h>                               // for CLOCKS_PER_SEC
+#include <sys/types.h>                              // for int16_t, int32_t
+#include <volk/volk.h>                              // for volk_func_desc_t
+#include <volk/volk_malloc.h>                       // for volk_free, volk_m...
+#include <cmath>                                    // for sqrt, fabs, abs
+#include <cstring>                                  // for memcpy, memset
+#include <ctime>                                    // for clock
+#include <fstream>                                  // for operator<<, basic...
+#include <iostream>                                 // for cout, cerr
+#include <limits>                                   // for numeric_limits
+#include <map>                                      // for map, map<>::mappe...
+#include <vector>                                   // for vector, _Bit_refe...
 
 float uniform() {
   return 2.0f * ((float) rand() / RAND_MAX - 0.5f);	// uniformly (-1, 1)

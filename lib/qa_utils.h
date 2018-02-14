@@ -1,14 +1,14 @@
 #ifndef VOLK_QA_UTILS_H
 #define VOLK_QA_UTILS_H
 
-#include <cstdlib>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <map>
-#include <volk/volk.h>
-#include <volk/volk_common.h>
+#include <stdbool.h>            // for bool, false
+#include <volk/volk.h>          // for volk_func_desc_t
+#include <cstdlib>              // for NULL
+#include <map>                  // for map
+#include <string>               // for string, basic_string
+#include <vector>               // for vector
+
+#include "volk/volk_complex.h"  // for lv_32fc_t
 
 /************************************************
  * VOLK QA type definitions                     *
