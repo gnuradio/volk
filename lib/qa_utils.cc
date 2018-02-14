@@ -3,7 +3,6 @@
 #include <assert.h>                                 // for assert
 #include <boost/foreach.hpp>                        // for auto_any_base
 #include <boost/lexical_cast.hpp>                   // for lexical_cast
-#include <boost/lexical_cast/bad_lexical_cast.hpp>  // for bad_lexical_cast
 #include <boost/token_functions.hpp>                // for char_separator
 #include <boost/token_iterator.hpp>                 // for token_iterator
 #include <boost/tokenizer.hpp>                      // for tokenizer

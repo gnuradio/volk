@@ -9,6 +9,7 @@
 #include <utility>    // for pair
 #include <limits.h>   // IWYU pragma: keep
 #include <cstring>    // IWYU pragma: keep
+#include <cstdlib>      // IWYU pragma: keep
 
 /*
  * Option type
