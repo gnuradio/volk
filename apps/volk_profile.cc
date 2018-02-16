@@ -295,7 +295,7 @@ void write_results(const std::vector<volk_test_results_t> *results, bool update_
 
     // Until we can update the config on a kernel by kernel basis
     // do not overwrite volk_config when using a regex.
-    if (not fs::exists(config_path.branch_path()))
+    if (!fs::exists(config_path.branch_path()))
     {
         std::cout << "Creating " << config_path.branch_path() << "..." << std::endl;
         fs::create_directories(config_path.branch_path());
