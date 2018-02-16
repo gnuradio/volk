@@ -145,6 +145,61 @@ volk_32f_x2_divide_32f_a_avx(float* cVector, const float* aVector,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_32f_x2_divide_32f_neon(float* cVector, const float* aVector,
+			    const float* bVector, unsigned int num_points)
+{
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+  const float* bPtr = bVector;
+
+  float32x4x4_t aVal, bVal, bInv, cVal;
+
+  const unsigned int eighthPoints = num_points / 16;
+  unsigned int number = 0;
+  for(; number < eighthPoints; number++){
+    aVal = vld4q_f32(aPtr);
+    aPtr += 16;
+    bVal = vld4q_f32(bPtr);
+    bPtr += 16;
+
+    __VOLK_PREFETCH(aPtr+16);
+    __VOLK_PREFETCH(bPtr+16);
+
+    bInv.val[0] = vrecpeq_f32(bVal.val[0]);
+    bInv.val[0] = vmulq_f32(bInv.val[0], vrecpsq_f32(bInv.val[0], bVal.val[0]));
+    bInv.val[0] = vmulq_f32(bInv.val[0], vrecpsq_f32(bInv.val[0], bVal.val[0]));
+    cVal.val[0] = vmulq_f32(aVal.val[0], bInv.val[0]);
+
+    bInv.val[1] = vrecpeq_f32(bVal.val[1]);
+    bInv.val[1] = vmulq_f32(bInv.val[1], vrecpsq_f32(bInv.val[1], bVal.val[1]));
+    bInv.val[1] = vmulq_f32(bInv.val[1], vrecpsq_f32(bInv.val[1], bVal.val[1]));
+    cVal.val[1] = vmulq_f32(aVal.val[1], bInv.val[1]);
+
+    bInv.val[2] = vrecpeq_f32(bVal.val[2]);
+    bInv.val[2] = vmulq_f32(bInv.val[2], vrecpsq_f32(bInv.val[2], bVal.val[2]));
+    bInv.val[2] = vmulq_f32(bInv.val[2], vrecpsq_f32(bInv.val[2], bVal.val[2]));
+    cVal.val[2] = vmulq_f32(aVal.val[2], bInv.val[2]);
+
+    bInv.val[3] = vrecpeq_f32(bVal.val[3]);
+    bInv.val[3] = vmulq_f32(bInv.val[3], vrecpsq_f32(bInv.val[3], bVal.val[3]));
+    bInv.val[3] = vmulq_f32(bInv.val[3], vrecpsq_f32(bInv.val[3], bVal.val[3]));
+    cVal.val[3] = vmulq_f32(aVal.val[3], bInv.val[3]);
+
+    vst4q_f32(cPtr, cVal);
+    cPtr += 16;
+  }
+
+  for(number = eighthPoints * 16; number < num_points; number++){
+    *cPtr++ = (*aPtr++) / (*bPtr++);
+  }
+}
+
+#endif /* LV_HAVE_NEON */
+
 
 #ifdef LV_HAVE_GENERIC
 
