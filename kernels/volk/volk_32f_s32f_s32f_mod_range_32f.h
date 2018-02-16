@@ -307,7 +307,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector, c
     excess = _mm_div_ps(excess, distance);
     // round down – for some reason
     rounddown = _mm_cvttps_epi32(excess);
-    excess = _mm_cvtepi32_ps(excess);
+    excess = _mm_cvtepi32_ps(rounddown);
     // plus 1
     adj = _mm_set_ps1(1.0f);
     excess = _mm_add_ps(excess, adj);
@@ -364,7 +364,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector, c
     excess = _mm_div_ps(excess, distance);
     // round down
     rounddown = _mm_cvttps_epi32(excess);
-    excess = _mm_cvtepi32_ps(excess);
+    excess = _mm_cvtepi32_ps(rounddown);
     // plus 1
     adj = _mm_set_ps1(1.0f);
     excess = _mm_add_ps(excess, adj);
