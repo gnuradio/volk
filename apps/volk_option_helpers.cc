@@ -4,6 +4,9 @@
 
 #include "volk_option_helpers.h"
 
+#include <limits.h>
+#include <string.h>
+
 #include <iostream>
 
 /*
