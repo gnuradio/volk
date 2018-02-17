@@ -19,12 +19,12 @@
 */
 
 /*!
- * \page volk_32u_revert_32u
+ * \page volk_32u_reverse_32u
  *
  * \b bit reversal of the input 32 bit word
 
  * <b>Dispatcher Prototype</b>
- * \code volk_32u_revert_32u(uint32_t *outputVector, uint32_t *inputVector; unsigned int num_points);
+ * \code volk_32u_reverse_32u(uint32_t *outputVector, uint32_t *inputVector; unsigned int num_points);
  * \endcode
  *
  * \b Inputs
@@ -36,7 +36,7 @@
  *
  * \endcode
  */
-#ifndef INCLUDED_VOLK_32u_REVERT_32u_U_H
+#ifndef INCLUDED_VOLK_32u_REVERSE_32u_U_H
 struct dword_split {
   int b00: 1;
   int b01: 1;
@@ -107,7 +107,7 @@ static const unsigned char BitReverseTable256[] = {
   0xEF, 0x1F, 0x9F, 0x5F, 0xDF, 0x3F, 0xBF, 0x7F, 0xFF
 };
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32u_revert_32u_dword_shuffle(uint32_t* out, const uint32_t* in,
+static inline void volk_32u_reverse_32u_dword_shuffle(uint32_t* out, const uint32_t* in,
                            unsigned int num_points)
 {
   const struct dword_split *in_ptr = (const struct dword_split*)in;
@@ -152,7 +152,7 @@ static inline void volk_32u_revert_32u_dword_shuffle(uint32_t* out, const uint32
 #endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32u_revert_32u_byte_shuffle(uint32_t* out, const uint32_t* in,
+static inline void volk_32u_reverse_32u_byte_shuffle(uint32_t* out, const uint32_t* in,
                            unsigned int num_points)
 {
   const uint32_t *in_ptr = in;
@@ -205,7 +205,7 @@ static inline void volk_32u_revert_32u_byte_shuffle(uint32_t* out, const uint32_
 //Idea from "Bit Twiddling Hacks", which dedicates this method to public domain
 //http://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32u_revert_32u_lut(uint32_t* out, const uint32_t* in,
+static inline void volk_32u_reverse_32u_lut(uint32_t* out, const uint32_t* in,
                            unsigned int num_points)
 {
   const uint32_t *in_ptr = in;
@@ -225,7 +225,7 @@ static inline void volk_32u_revert_32u_lut(uint32_t* out, const uint32_t* in,
 //Single-Byte code from "Bit Twiddling Hacks", which dedicates this method to public domain
 //http://graphics.stanford.edu/~seander/bithacks.html#ReverseByteWith64Bits
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32u_revert_32u_2001magic(uint32_t* out, const uint32_t* in,
+static inline void volk_32u_reverse_32u_2001magic(uint32_t* out, const uint32_t* in,
                                            unsigned int num_points)
 {
   const uint32_t *in_ptr = in;
@@ -247,7 +247,7 @@ static inline void volk_32u_revert_32u_2001magic(uint32_t* out, const uint32_t* 
 
 #ifdef LV_HAVE_GENERIC
 // Current gr-pager implementation
-static inline void volk_32u_revert_32u_1972magic(uint32_t* out, const uint32_t* in,
+static inline void volk_32u_reverse_32u_1972magic(uint32_t* out, const uint32_t* in,
                                                  unsigned int num_points)
 {
   const uint32_t *in_ptr = in;
@@ -269,7 +269,7 @@ static inline void volk_32u_revert_32u_1972magic(uint32_t* out, const uint32_t* 
 
 //After lengthy thought and quite a bit of whiteboarding:
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32u_revert_32u_bintree_permute_top_down(uint32_t* out, const uint32_t* in,
+static inline void volk_32u_reverse_32u_bintree_permute_top_down(uint32_t* out, const uint32_t* in,
                                                  unsigned int num_points)
 {
   const uint32_t *in_ptr = in;
@@ -305,7 +305,7 @@ static inline void volk_32u_revert_32u_bintree_permute_top_down(uint32_t* out, c
 }
 #endif /* LV_HAVE_GENERIC */
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32u_revert_32u_bintree_permute_bottom_up(uint32_t* out, const uint32_t* in,
+static inline void volk_32u_reverse_32u_bintree_permute_bottom_up(uint32_t* out, const uint32_t* in,
                                                  unsigned int num_points)
 {
   //same stuff as top_down, inverted order (permutation matrices don't care, you know!)
@@ -325,5 +325,5 @@ static inline void volk_32u_revert_32u_bintree_permute_bottom_up(uint32_t* out, 
   }
 }
 #endif /* LV_HAVE_GENERIC */
-#endif /* INCLUDED_volk_32u_revert_32u_u_H */
+#endif /* INCLUDED_volk_32u_reverse_32u_u_H */
 
