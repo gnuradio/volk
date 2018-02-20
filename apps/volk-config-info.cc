@@ -24,7 +24,6 @@
 #include <config.h>
 #endif
 
-#include <features.h>             // for _POSIX_C_SOURCE, _XOPEN_SOURCE
 #include <volk/constants.h>       // for volk_available_machines, volk_c_com...
 #include <iostream>               // for operator<<, endl, cout, ostream
 #include <string>                 // for string
