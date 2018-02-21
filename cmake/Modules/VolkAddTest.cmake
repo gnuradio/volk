@@ -138,7 +138,7 @@ function(VOLK_ADD_TEST test_name)
     string(REPLACE ";" " " VOLK_TEST_ARGS "${VOLK_TEST_ARGS}")
 
     #finally: append the test name to execute
-    file(APPEND ${sh_file} ${test_name} " " ${VOLK_TEST_ARGS} "\n")
+    file(APPEND ${sh_file} "${CMAKE_CROSSCOMPILING_EMULATOR} ${test_name} ${VOLK_TEST_ARGS}\n")
 
     #make the shell file executable
     execute_process(COMMAND chmod +x ${sh_file})

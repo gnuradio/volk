@@ -112,7 +112,8 @@ static inline void volk_32u_reverse_32u_dword_shuffle(uint32_t* out, const uint3
 {
   const struct dword_split *in_ptr = (const struct dword_split*)in;
   struct dword_split * out_ptr = (struct dword_split*)out;
-  for(unsigned int number = 0; number < num_points; ++number){
+  unsigned int number = 0;
+  for(; number < num_points; ++number){
     out_ptr->b00 = in_ptr->b31;
     out_ptr->b01 = in_ptr->b30;
     out_ptr->b02 = in_ptr->b29;
@@ -157,7 +158,8 @@ static inline void volk_32u_reverse_32u_byte_shuffle(uint32_t* out, const uint32
 {
   const uint32_t *in_ptr = in;
   uint32_t *out_ptr = out;
-  for(unsigned int number = 0; number < num_points; ++number){
+  unsigned int number = 0;
+  for(; number < num_points; ++number){
     const struct char_split *in8 = (const struct char_split*)in_ptr;
     struct char_split *out8 = (struct char_split*)out_ptr;
 
@@ -210,7 +212,8 @@ static inline void volk_32u_reverse_32u_lut(uint32_t* out, const uint32_t* in,
 {
   const uint32_t *in_ptr = in;
   uint32_t *out_ptr = out;
-  for(unsigned int number = 0; number < num_points; ++number){
+  unsigned int number = 0;
+  for(; number < num_points; ++number){
     *out_ptr =
       (BitReverseTable256[*in_ptr & 0xff]         << 24) |
       (BitReverseTable256[(*in_ptr >>  8) & 0xff] << 16) |
@@ -232,7 +235,8 @@ static inline void volk_32u_reverse_32u_2001magic(uint32_t* out, const uint32_t*
   uint32_t *out_ptr = out;
   const uint8_t *in8;
   uint8_t *out8;
-  for(unsigned int number = 0; number < num_points; ++number){
+  unsigned int number = 0;
+  for(; number < num_points; ++number){
     in8 = (const uint8_t*)in_ptr;
     out8 = (uint8_t*)out_ptr;
     out8[3] = ((in8[0] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32;
@@ -254,7 +258,8 @@ static inline void volk_32u_reverse_32u_1972magic(uint32_t* out, const uint32_t*
   uint32_t *out_ptr = out;
   const uint8_t *in8;
   uint8_t *out8;
-  for(unsigned int number = 0; number < num_points; ++number){
+  unsigned int number = 0;
+  for(; number < num_points; ++number){
     in8 = (const uint8_t*)in_ptr;
     out8 = (uint8_t*)out_ptr;
     out8[3] =  (in8[0] * 0x0202020202ULL & 0x010884422010ULL) % 1023;
@@ -274,7 +279,8 @@ static inline void volk_32u_reverse_32u_bintree_permute_top_down(uint32_t* out, 
 {
   const uint32_t *in_ptr = in;
   uint32_t *out_ptr = out;
-  for(unsigned int number = 0; number < num_points; ++number){
+  unsigned int number = 0;
+  for(; number < num_points; ++number){
     uint32_t tmp = *in_ptr;
     /* permute uint16:
        The idea is to simply shift the lower 16 bit up, and the upper 16 bit down.
@@ -311,7 +317,8 @@ static inline void volk_32u_reverse_32u_bintree_permute_bottom_up(uint32_t* out,
   //same stuff as top_down, inverted order (permutation matrices don't care, you know!)
   const uint32_t *in_ptr = in;
   uint32_t *out_ptr = out;
-  for(unsigned int number = 0; number < num_points; ++number){
+  unsigned int number = 0;
+  for(; number < num_points; ++number){
     uint32_t tmp = *in_ptr;
     tmp = ((tmp & (0x55555555)) << 1) | ((tmp >> 1) & (0x55555555));
     tmp = ((tmp & (0x33333333)) << 2) | ((tmp >> 2) & (0x33333333));
