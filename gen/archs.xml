@@ -226,4 +226,16 @@
     <alignment>32</alignment>
 </arch>
 
+<arch name="avx512f">
+  <check name="cpuid_x86_bit">
+      <param>2</param>
+      <param>0x00000001</param>
+      <param>16</param>
+  </check>
+  <flag compiler="gnu">-mavx512f</flag>
+  <flag compiler="clang">-mavx512f</flag>
+  <flag compiler="msvc">/arch:AVX512F</flag>
+  <alignment>64</alignment>
+</arch>
+
 </grammar>
