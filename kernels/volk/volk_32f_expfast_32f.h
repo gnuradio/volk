@@ -75,12 +75,12 @@
 #ifndef INCLUDED_volk_32f_expfast_32f_a_H
 #define INCLUDED_volk_32f_expfast_32f_a_H
 
-#ifdef LV_HAVE_AVX2
+#if LV_HAVE_AVX && LV_HAVE_FMA
 
 #include <immintrin.h>
 
 static inline void
- volk_32f_expfast_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_points)
+ volk_32f_expfast_32f_a_avx_fma(float* bVector, const float* aVector, unsigned int num_points)
 {
   float* bPtr = bVector;
   const float* aPtr = aVector;
@@ -109,7 +109,7 @@ static inline void
   }
 }
 
-#endif /* LV_HAVE_AVX2 for aligned */
+#endif /* LV_HAVE_AVX && LV_HAVE_FMA for aligned */
 
 #ifdef LV_HAVE_AVX
 
@@ -187,11 +187,11 @@ volk_32f_expfast_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int
 #ifndef INCLUDED_volk_32f_expfast_32f_u_H
 #define INCLUDED_volk_32f_expfast_32f_u_H
 
-#ifdef LV_HAVE_AVX2
+#if LV_HAVE_AVX && LV_HAVE_FMA
 #include <immintrin.h>
 
 static inline void
-volk_32f_expfast_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_points)
+volk_32f_expfast_32f_u_avx_fma(float* bVector, const float* aVector, unsigned int num_points)
 {
   float* bPtr = bVector;
   const float* aPtr = aVector;
@@ -220,7 +220,7 @@ volk_32f_expfast_32f_u_avx2(float* bVector, const float* aVector, unsigned int n
   }
 }
 
-#endif /* LV_HAVE_AVX2 for unaligned */
+#endif /* LV_HAVE_AVX && LV_HAVE_FMA for unaligned */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
