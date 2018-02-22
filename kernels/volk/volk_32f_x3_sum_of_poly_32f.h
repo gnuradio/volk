@@ -180,11 +180,11 @@ volk_32f_x3_sum_of_poly_32f_a_sse3(float* target, float* src0, float* center_poi
 
 #endif /*LV_HAVE_SSE3*/
 
-#ifdef LV_HAVE_AVX2
+#if LV_HAVE_AVX && LV_HAVE_FMA
 #include<immintrin.h>
 
 static inline void
-volk_32f_x3_sum_of_poly_32f_a_avx2(float* target, float* src0, float* center_point_array,
+volk_32f_x3_sum_of_poly_32f_a_avx2_fma(float* target, float* src0, float* center_point_array,
                                   float* cutoff, unsigned int num_points)
 {
   const unsigned int eighth_points = num_points / 8;
@@ -248,7 +248,7 @@ volk_32f_x3_sum_of_poly_32f_a_avx2(float* target, float* src0, float* center_poi
 
   *target += ((float)(num_points)) * center_point_array[4];
 }
-#endif // LV_HAVE_AVX2
+#endif // LV_HAVE_AVX && LV_HAVE_FMA
 
 #ifdef LV_HAVE_AVX
 #include<immintrin.h>
@@ -520,11 +520,11 @@ volk_32f_x3_sum_of_poly_32f_neonvert(float* __restrict target, float* __restrict
 #define MAX(X,Y) ((X) > (Y)?(X):(Y))
 #endif
 
-#ifdef LV_HAVE_AVX2
+#if LV_HAVE_AVX && LV_HAVE_FMA
 #include<immintrin.h>
 
 static inline void
-volk_32f_x3_sum_of_poly_32f_u_avx2(float* target, float* src0, float* center_point_array,
+volk_32f_x3_sum_of_poly_32f_u_avx_fma(float* target, float* src0, float* center_point_array,
                                   float* cutoff, unsigned int num_points)
 {
   const unsigned int eighth_points = num_points / 8;
@@ -588,7 +588,7 @@ volk_32f_x3_sum_of_poly_32f_u_avx2(float* target, float* src0, float* center_poi
 
   *target += ((float)(num_points)) * center_point_array[4];
 }
-#endif // LV_HAVE_AVX2
+#endif // LV_HAVE_AVX && LV_HAVE_FMA
 
 #ifdef LV_HAVE_AVX
 #include<immintrin.h>
