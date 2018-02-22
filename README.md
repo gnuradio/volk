@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/hcab14/volk.svg?branch=master)](https://travis-ci.org/hcab14/volk)
+[![Build Status](https://travis-ci.org/gnuradio/volk.svg?branch=master)](https://travis-ci.org/gnuradio/volk)
 >
 > Copyright 2015 Free Software Foundation, Inc.
 >
