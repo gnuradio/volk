@@ -49,4 +49,4 @@ matrix:
 
 script:
   - eval "${MATRIX_EVAL}"
-  - mkdir build && cd build && BOOST_ROOT=$BOOST_ROOT cmake ${CMAKE_ARG} ../ && make && make test && cd ..
+  - mkdir build && cd build && BOOST_ROOT=$BOOST_ROOT cmake ${CMAKE_ARG} ../ && make && ctest -V && cd ..
