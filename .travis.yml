@@ -25,7 +25,10 @@ matrix:
     # Job 4 ... gcc-6
     - env: MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-6]}}
-    # Job 5 ... ARM cross compile (gcc-4.8)
+    # Job 5 ... gcc-7
+    - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-7]}}
+    # Job 6 ... ARM cross compile (gcc-4.8)
     - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8 && BOOST_ROOT=$TRAVIS_BUILD_DIR/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm-linux-gnueabihf.cmake"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-arm-linux-gnueabihf, qemu-user]}}
       before_script:
