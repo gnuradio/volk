@@ -85,4 +85,25 @@ static inline void volk_32fc_s32fc_rotatorpuppet_32fc_u_avx(lv_32fc_t* outVector
 
 #endif /* LV_HAVE_AVX */
 
+#if LV_HAVE_AVX && LV_HAVE_FMA
+#include <immintrin.h>
+
+static inline void volk_32fc_s32fc_rotatorpuppet_32fc_a_avx_fma(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
+    lv_32fc_t phase[1] = {lv_cmake(.3, .95393)};
+    volk_32fc_s32fc_x2_rotator_32fc_a_avx_fma(outVector, inVector, phase_inc, phase, num_points);
+}
+
+#endif /* LV_HAVE_AVX && LV_HAVE_FMA*/
+
+
+#if LV_HAVE_AVX && LV_HAVE_FMA
+#include <immintrin.h>
+
+static inline void volk_32fc_s32fc_rotatorpuppet_32fc_u_avx_fma(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
+    lv_32fc_t phase[1] = {lv_cmake(.3, .95393)};
+    volk_32fc_s32fc_x2_rotator_32fc_u_avx_fma(outVector, inVector, phase_inc, phase, num_points);
+}
+
+#endif /* LV_HAVE_AVX && LV_HAVE_FMA*/
+
 #endif /* INCLUDED_volk_32fc_s32fc_rotatorpuppet_32fc_a_H */
