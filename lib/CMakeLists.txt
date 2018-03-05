@@ -201,7 +201,7 @@ if(CPU_IS_x86)
         file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps
           ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps.c)
     else(CMAKE_SIZEOF_VOID_P EQUAL 4)
-	    # 64-bit compilations won't need this command so don't overrule AVX 
+	    # 64-bit compilations won't need this command so don't overrule AVX
 	    set(HAVE_AVX_CVTPI32_PS 0)
     endif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 
@@ -619,10 +619,15 @@ if(ENABLE_TESTING)
     )
 
     include(VolkAddTest)
-    VOLK_ADD_TEST(volk_test_all
+    VOLK_GEN_TEST("volk_test_all"
         SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
-                       ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
         TARGET_DEPS volk
-    )
+      )
+    foreach(kernel ${h_files})
+      get_filename_component(kernel ${kernel} NAME)
+      string(REPLACE ".h" "" kernel ${kernel})
+      VOLK_ADD_TEST(${kernel} "volk_test_all")
+    endforeach()
 
 endif(ENABLE_TESTING)
