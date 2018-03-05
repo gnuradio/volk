@@ -64,6 +64,8 @@ int main(int argc, char* argv[])
                 }
             }
         }
+        std::cerr << "Did not run a test for kernel: " << std::string(argv[1]) << " !" << std::endl;
+        return 0;
 
     }else{
         std::vector<std::string> qa_failures;
