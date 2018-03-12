@@ -332,5 +332,36 @@ static inline void volk_32u_reverse_32u_bintree_permute_bottom_up(uint32_t* out,
   }
 }
 #endif /* LV_HAVE_GENERIC */
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+#define DO_RBIT                                          \
+    asm("rbit %1,%0" : "=r" (*out_ptr) : "r" (*in_ptr)); \
+    in_ptr++;                                            \
+    out_ptr++;
+
+static inline void volk_32u_reverse_32u_arm(uint32_t* out, const uint32_t* in,
+                                            unsigned int num_points)
+{
+
+    const uint32_t *in_ptr = in;
+    uint32_t *out_ptr = out;
+    const unsigned int eighthPoints = num_points/8;
+    unsigned int number = 0;
+    for(; number < eighthPoints; ++number){
+        __VOLK_PREFETCH(in_ptr+8);
+        DO_RBIT; DO_RBIT; DO_RBIT; DO_RBIT;
+        DO_RBIT; DO_RBIT; DO_RBIT; DO_RBIT;
+    }
+    number = eighthPoints*8;
+    for(; number < num_points; ++number){
+        DO_RBIT;
+    }
+}
+#undef DO_RBIT
+#endif /* LV_HAVE_NEON */
+
+
 #endif /* INCLUDED_volk_32u_reverse_32u_u_H */
 
