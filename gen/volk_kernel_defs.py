@@ -25,6 +25,7 @@ import os
 import re
 import sys
 import glob
+import io
 
 ########################################################################
 # Strip comments from a c/cpp file.
@@ -164,7 +165,8 @@ class kernel_class:
     def __init__(self, kernel_file):
         self.name = os.path.splitext(os.path.basename(kernel_file))[0]
         self.pname = self.name.replace('volk_', 'p_')
-        code = open(kernel_file, 'r').read()
+        # io.open for python2 compat with `encoding=`
+        code = io.open(kernel_file, 'rt', encoding='utf-8').read()
         code = comment_remover(code)
         sections = split_into_nested_ifdef_sections(code)
         self._impls = list()
