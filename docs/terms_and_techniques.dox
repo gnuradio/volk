@@ -42,7 +42,7 @@ Add new kernels to the list in lib/kernel_tests.h. This adds the kernel to
 VOLK's QA tool as well as the volk profiler. Many kernels are able to
 share test parameters, but new kernels might need new ones.
 
-If the VOLK kernel does not 'fit' the the standard set of function parameters
+If the VOLK kernel does not 'fit' the standard set of function parameters
 expected by the volk_profile structure, you need to create a VOLK puppet
 function to help the profiler call the kernel. This is essentially due to the
 function run_volk_tests which has a limited number of function prototypes that
