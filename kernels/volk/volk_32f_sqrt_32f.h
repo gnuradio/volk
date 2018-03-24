@@ -102,6 +102,39 @@ volk_32f_sqrt_32f_a_sse(float* cVector, const float* aVector, unsigned int num_p
 #endif /* LV_HAVE_SSE */
 
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_sqrt_32f_a_avx(float* cVector, const float* aVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eigthPoints = num_points / 8;
+
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+
+  __m256 aVal, cVal;
+  for(;number < eigthPoints; number++) {
+    aVal = _mm256_load_ps(aPtr);
+
+    cVal = _mm256_sqrt_ps(aVal);
+
+    _mm256_store_ps(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 8;
+    cPtr += 8;
+  }
+
+  number = eigthPoints * 8;
+  for(;number < num_points; number++) {
+    *cPtr++ = sqrtf(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX */
+
+
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
