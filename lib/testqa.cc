@@ -32,7 +32,6 @@
 #include "kernel_tests.h"       // for init_test_list
 #include "qa_utils.h"           // for volk_test_case_t, volk_test_results_t
 #include "volk/volk_complex.h"  // for lv_32fc_t
-#include "kernel_tests.h"
 
 void print_qa_xml(std::vector<volk_test_results_t> results, unsigned int nfails);
 
