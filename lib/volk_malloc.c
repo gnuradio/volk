@@ -20,10 +20,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <volk/volk_malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <volk/volk_malloc.h>
 
 /*
  * For #defines used to determine support for allocation functions,
