@@ -45,7 +45,10 @@ struct volk_machine *get_machine(void)
     unsigned int i;
     struct volk_machine *max_machine = NULL;
     for(i=0; i<n_volk_machines; i++) {
-      if(!(volk_machines[i]->caps & (~volk_get_lvarch()))) {
+      if(!(volk_machines[i]->caps & (~volk_get_lvarch())) || 
+        (!(volk_machines[i]->caps & (~volk_get_lvarch()) & 4194303)
+        && (volk_get_lvarch() >> 22))) //top 2 bits of avx512 don't pass this, workaround for now (lvarch[24:23]=10 for avx512 knl and 00 for non avx512, but avx512cd caps is 11 and avx512f caps is 01)
+        { 
         if(volk_machines[i]->caps > max_score) {
           max_score = volk_machines[i]->caps;
           max_machine = volk_machines[i];
