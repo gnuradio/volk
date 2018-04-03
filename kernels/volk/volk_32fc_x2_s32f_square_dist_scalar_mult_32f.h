@@ -97,12 +97,9 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(
 
   for (; i < avx_work_size; i += work_size) {
     lv_32fc_t src = *src0;
-    __m256 source = _mm256_setr_ps(
-            lv_creal(src), lv_cimag(src),
-            lv_creal(src), lv_cimag(src),
-            lv_creal(src), lv_cimag(src),
-            lv_creal(src), lv_cimag(src)
-    );
+    float src_real = lv_creal(src);
+    float src_imag = lv_cimag(src);
+    __m256 source = _mm256_setr_ps(src_real, src_imag, src_real, src_imag, src_real, src_imag, src_real, src_imag);
     __m256 points_low = _mm256_load_ps((const float *) points);
     __m256 points_high = _mm256_load_ps((const float *) (points + work_size / 2));
     __m256 difference_low = _mm256_sub_ps(source, points_low);
