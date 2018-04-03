@@ -77,6 +77,135 @@
 #ifndef INCLUDED_volk_32f_acos_32f_a_H
 #define INCLUDED_volk_32f_acos_32f_a_H
 
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+
+static inline void
+volk_32f_acos_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  unsigned int eighthPoints = num_points / 8;
+  int i, j;
+
+  __m256 aVal, d, pi, pio2, x, y, z, arccosine;
+  __m256 fzeroes, fones, ftwos, ffours, condition;
+
+  pi = _mm256_set1_ps(3.14159265358979323846);
+  pio2 = _mm256_set1_ps(3.14159265358979323846/2);
+  fzeroes = _mm256_setzero_ps();
+  fones = _mm256_set1_ps(1.0);
+  ftwos = _mm256_set1_ps(2.0);
+  ffours = _mm256_set1_ps(4.0);
+
+  for(;number < eighthPoints; number++){
+    aVal = _mm256_load_ps(aPtr);
+    d = aVal;
+    aVal = _mm256_div_ps(_mm256_sqrt_ps(_mm256_mul_ps(_mm256_add_ps(fones, aVal), _mm256_sub_ps(fones, aVal))), aVal);
+    z = aVal;
+    condition = _mm256_cmp_ps(z, fzeroes,1);
+    z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
+    x = z;
+    condition = _mm256_cmp_ps(z, fones,1);
+    x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+
+    for(i = 0; i < 2; i++)
+      x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_fmadd_ps(x, x,fones)));
+    x = _mm256_div_ps(fones, x);
+    y = fzeroes;
+    for(j = ACOS_TERMS - 1; j >=0 ; j--)
+      y = _mm256_fmadd_ps(y, _mm256_mul_ps(x, x), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
+
+    y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
+    condition = _mm256_cmp_ps(z, fones,14);
+
+    y = _mm256_add_ps(y, _mm256_and_ps(_mm256_fnmadd_ps(y, ftwos, pio2), condition));
+    arccosine = y;
+    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
+    condition = _mm256_cmp_ps(d, fzeroes,1);
+    arccosine = _mm256_add_ps(arccosine, _mm256_and_ps(pi, condition));
+
+    _mm256_store_ps(bPtr, arccosine);
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = acos(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for aligned */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_acos_32f_a_avx(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  unsigned int eighthPoints = num_points / 8;
+  int i, j;
+
+  __m256 aVal, d, pi, pio2, x, y, z, arccosine;
+  __m256 fzeroes, fones, ftwos, ffours, condition;
+
+  pi = _mm256_set1_ps(3.14159265358979323846);
+  pio2 = _mm256_set1_ps(3.14159265358979323846/2);
+  fzeroes = _mm256_setzero_ps();
+  fones = _mm256_set1_ps(1.0);
+  ftwos = _mm256_set1_ps(2.0);
+  ffours = _mm256_set1_ps(4.0);
+
+  for(;number < eighthPoints; number++){
+    aVal = _mm256_load_ps(aPtr);
+    d = aVal;
+    aVal = _mm256_div_ps(_mm256_sqrt_ps(_mm256_mul_ps(_mm256_add_ps(fones, aVal), _mm256_sub_ps(fones, aVal))), aVal);
+    z = aVal;
+    condition = _mm256_cmp_ps(z, fzeroes,1);
+    z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
+    x = z;
+    condition = _mm256_cmp_ps(z, fones,1);
+    x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+
+    for(i = 0; i < 2; i++)
+      x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_add_ps(fones, _mm256_mul_ps(x, x))));
+    x = _mm256_div_ps(fones, x);
+    y = fzeroes;
+    for(j = ACOS_TERMS - 1; j >=0 ; j--)
+      y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
+
+    y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
+    condition = _mm256_cmp_ps(z, fones,14);
+
+    y = _mm256_add_ps(y, _mm256_and_ps(_mm256_sub_ps(pio2, _mm256_mul_ps(y, ftwos)), condition));
+    arccosine = y;
+    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
+    condition = _mm256_cmp_ps(d, fzeroes,1);
+    arccosine = _mm256_add_ps(arccosine, _mm256_and_ps(pi, condition));
+
+    _mm256_store_ps(bPtr, arccosine);
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = acos(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 for aligned */
+
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
@@ -146,6 +275,135 @@ volk_32f_acos_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
 
 #ifndef INCLUDED_volk_32f_acos_32f_u_H
 #define INCLUDED_volk_32f_acos_32f_u_H
+
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+
+static inline void
+volk_32f_acos_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  unsigned int eighthPoints = num_points / 8;
+  int i, j;
+
+  __m256 aVal, d, pi, pio2, x, y, z, arccosine;
+  __m256 fzeroes, fones, ftwos, ffours, condition;
+
+  pi = _mm256_set1_ps(3.14159265358979323846);
+  pio2 = _mm256_set1_ps(3.14159265358979323846/2);
+  fzeroes = _mm256_setzero_ps();
+  fones = _mm256_set1_ps(1.0);
+  ftwos = _mm256_set1_ps(2.0);
+  ffours = _mm256_set1_ps(4.0);
+
+  for(;number < eighthPoints; number++){
+    aVal = _mm256_loadu_ps(aPtr);
+    d = aVal;
+    aVal = _mm256_div_ps(_mm256_sqrt_ps(_mm256_mul_ps(_mm256_add_ps(fones, aVal), _mm256_sub_ps(fones, aVal))), aVal);
+    z = aVal;
+    condition = _mm256_cmp_ps(z, fzeroes,1);
+    z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
+    x = z;
+    condition = _mm256_cmp_ps(z, fones,1);
+    x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+
+    for(i = 0; i < 2; i++)
+      x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_fmadd_ps(x, x,fones)));
+    x = _mm256_div_ps(fones, x);
+    y = fzeroes;
+    for(j = ACOS_TERMS - 1; j >=0 ; j--)
+      y = _mm256_fmadd_ps(y, _mm256_mul_ps(x, x), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
+
+    y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
+    condition = _mm256_cmp_ps(z, fones,14);
+
+    y = _mm256_add_ps(y, _mm256_and_ps(_mm256_fnmadd_ps(y, ftwos, pio2), condition));
+    arccosine = y;
+    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
+    condition = _mm256_cmp_ps(d, fzeroes,1);
+    arccosine = _mm256_add_ps(arccosine, _mm256_and_ps(pi, condition));
+
+    _mm256_storeu_ps(bPtr, arccosine);
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = acos(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for unaligned */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_acos_32f_u_avx(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  unsigned int eighthPoints = num_points / 8;
+  int i, j;
+
+  __m256 aVal, d, pi, pio2, x, y, z, arccosine;
+  __m256 fzeroes, fones, ftwos, ffours, condition;
+
+  pi = _mm256_set1_ps(3.14159265358979323846);
+  pio2 = _mm256_set1_ps(3.14159265358979323846/2);
+  fzeroes = _mm256_setzero_ps();
+  fones = _mm256_set1_ps(1.0);
+  ftwos = _mm256_set1_ps(2.0);
+  ffours = _mm256_set1_ps(4.0);
+
+  for(;number < eighthPoints; number++){
+    aVal = _mm256_loadu_ps(aPtr);
+    d = aVal;
+    aVal = _mm256_div_ps(_mm256_sqrt_ps(_mm256_mul_ps(_mm256_add_ps(fones, aVal), _mm256_sub_ps(fones, aVal))), aVal);
+    z = aVal;
+    condition = _mm256_cmp_ps(z, fzeroes,1);
+    z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
+    x = z;
+    condition = _mm256_cmp_ps(z, fones,1);
+    x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+
+    for(i = 0; i < 2; i++)
+      x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_add_ps(fones, _mm256_mul_ps(x, x))));
+    x = _mm256_div_ps(fones, x);
+    y = fzeroes;
+    for(j = ACOS_TERMS - 1; j >=0 ; j--)
+      y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
+
+    y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
+    condition = _mm256_cmp_ps(z, fones,14);
+
+    y = _mm256_add_ps(y, _mm256_and_ps(_mm256_sub_ps(pio2, _mm256_mul_ps(y, ftwos)), condition));
+    arccosine = y;
+    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
+    condition = _mm256_cmp_ps(d, fzeroes,1);
+    arccosine = _mm256_add_ps(arccosine, _mm256_and_ps(pi, condition));
+
+    _mm256_storeu_ps(bPtr, arccosine);
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = acos(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 for unaligned */
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>

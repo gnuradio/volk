@@ -59,6 +59,74 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_32f_s32f_32f_fm_detect_32f_a_avx(float* outputVector, const float* inputVector, const float bound, float* saveValue, unsigned int num_points){
+  if (num_points < 1) {
+    return;
+  }
+  unsigned int number = 1;
+  unsigned int j = 0;
+  // num_points-1 keeps Fedora 7's gcc from crashing...
+  // num_points won't work.  :(
+  const unsigned int eighthPoints = (num_points-1) / 8;
+
+  float* outPtr = outputVector;
+  const float* inPtr = inputVector;
+  __m256 upperBound = _mm256_set1_ps(bound);
+  __m256 lowerBound = _mm256_set1_ps(-bound);
+  __m256 next3old1;
+  __m256 next4;
+  __m256 boundAdjust;
+  __m256 posBoundAdjust = _mm256_set1_ps(-2*bound); // Subtract when we're above.
+  __m256 negBoundAdjust = _mm256_set1_ps(2*bound); // Add when we're below.
+  // Do the first 8 by hand since we're going in from the saveValue:
+  *outPtr = *inPtr - *saveValue;
+  if (*outPtr >  bound) *outPtr -= 2*bound;
+  if (*outPtr < -bound) *outPtr += 2*bound;
+  inPtr++;
+  outPtr++;
+  for (j = 1; j < ( (8 < num_points) ? 8 : num_points); j++) {
+    *outPtr = *(inPtr) - *(inPtr-1);
+    if (*outPtr >  bound) *outPtr -= 2*bound;
+    if (*outPtr < -bound) *outPtr += 2*bound;
+    inPtr++;
+    outPtr++;
+  }
+
+  for (; number < eighthPoints; number++) {
+    // Load data
+    next3old1 = _mm256_loadu_ps((float*) (inPtr-1));
+    next4 = _mm256_load_ps(inPtr);
+    inPtr += 8;
+    // Subtract and store:
+    next3old1 = _mm256_sub_ps(next4, next3old1);
+    // Bound:
+    boundAdjust = _mm256_cmp_ps(next3old1, upperBound, 14);
+    boundAdjust = _mm256_and_ps(boundAdjust, posBoundAdjust);
+    next4 = _mm256_cmp_ps(next3old1, lowerBound, 1);
+    next4 = _mm256_and_ps(next4, negBoundAdjust);
+    boundAdjust = _mm256_or_ps(next4, boundAdjust);
+    // Make sure we're in the bounding interval:
+    next3old1 = _mm256_add_ps(next3old1, boundAdjust);
+    _mm256_store_ps(outPtr,next3old1); // Store the results back into the output
+    outPtr += 8;
+  }
+
+  for (number = (8 > (eighthPoints*8) ? 8 : (8 * eighthPoints)); number < num_points; number++) {
+    *outPtr = *(inPtr) - *(inPtr-1);
+    if (*outPtr >  bound) *outPtr -= 2*bound;
+    if (*outPtr < -bound) *outPtr += 2*bound;
+    inPtr++;
+    outPtr++;
+  }
+
+  *saveValue = inputVector[num_points-1];
+}
+#endif /* LV_HAVE_AVX */
+
+
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
@@ -159,3 +227,80 @@ static inline void volk_32f_s32f_32f_fm_detect_32f_generic(float* outputVector, 
 
 
 #endif /* INCLUDED_volk_32f_s32f_32f_fm_detect_32f_a_H */
+
+
+#ifndef INCLUDED_volk_32f_s32f_32f_fm_detect_32f_u_H
+#define INCLUDED_volk_32f_s32f_32f_fm_detect_32f_u_H
+
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_32f_s32f_32f_fm_detect_32f_u_avx(float* outputVector, const float* inputVector, const float bound, float* saveValue, unsigned int num_points){
+  if (num_points < 1) {
+    return;
+  }
+  unsigned int number = 1;
+  unsigned int j = 0;
+  // num_points-1 keeps Fedora 7's gcc from crashing...
+  // num_points won't work.  :(
+  const unsigned int eighthPoints = (num_points-1) / 8;
+
+  float* outPtr = outputVector;
+  const float* inPtr = inputVector;
+  __m256 upperBound = _mm256_set1_ps(bound);
+  __m256 lowerBound = _mm256_set1_ps(-bound);
+  __m256 next3old1;
+  __m256 next4;
+  __m256 boundAdjust;
+  __m256 posBoundAdjust = _mm256_set1_ps(-2*bound); // Subtract when we're above.
+  __m256 negBoundAdjust = _mm256_set1_ps(2*bound); // Add when we're below.
+  // Do the first 8 by hand since we're going in from the saveValue:
+  *outPtr = *inPtr - *saveValue;
+  if (*outPtr >  bound) *outPtr -= 2*bound;
+  if (*outPtr < -bound) *outPtr += 2*bound;
+  inPtr++;
+  outPtr++;
+  for (j = 1; j < ( (8 < num_points) ? 8 : num_points); j++) {
+    *outPtr = *(inPtr) - *(inPtr-1);
+    if (*outPtr >  bound) *outPtr -= 2*bound;
+    if (*outPtr < -bound) *outPtr += 2*bound;
+    inPtr++;
+    outPtr++;
+  }
+
+  for (; number < eighthPoints; number++) {
+    // Load data
+    next3old1 = _mm256_loadu_ps((float*) (inPtr-1));
+    next4 = _mm256_loadu_ps(inPtr);
+    inPtr += 8;
+    // Subtract and store:
+    next3old1 = _mm256_sub_ps(next4, next3old1);
+    // Bound:
+    boundAdjust = _mm256_cmp_ps(next3old1, upperBound, 14);
+    boundAdjust = _mm256_and_ps(boundAdjust, posBoundAdjust);
+    next4 = _mm256_cmp_ps(next3old1, lowerBound, 1);
+    next4 = _mm256_and_ps(next4, negBoundAdjust);
+    boundAdjust = _mm256_or_ps(next4, boundAdjust);
+    // Make sure we're in the bounding interval:
+    next3old1 = _mm256_add_ps(next3old1, boundAdjust);
+    _mm256_storeu_ps(outPtr,next3old1); // Store the results back into the output
+    outPtr += 8;
+  }
+
+  for (number = (8 > (eighthPoints*8) ? 8 : (8 * eighthPoints)); number < num_points; number++) {
+    *outPtr = *(inPtr) - *(inPtr-1);
+    if (*outPtr >  bound) *outPtr -= 2*bound;
+    if (*outPtr < -bound) *outPtr += 2*bound;
+    inPtr++;
+    outPtr++;
+  }
+
+  *saveValue = inputVector[num_points-1];
+}
+#endif /* LV_HAVE_AVX */
+
+
+#endif /* INCLUDED_volk_32f_s32f_32f_fm_detect_32f_u_H */

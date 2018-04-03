@@ -73,6 +73,62 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32f_s32f_convert_16i_u_avx2(int16_t* outputVector, const float* inputVector,
+                                 const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+
+  const unsigned int sixteenthPoints = num_points / 16;
+
+  const float* inputVectorPtr = (const float*)inputVector;
+  int16_t* outputVectorPtr = outputVector;
+
+  float min_val = -32768;
+  float max_val = 32767;
+  float r;
+
+  __m256 vScalar = _mm256_set1_ps(scalar);
+  __m256 inputVal1, inputVal2;
+  __m256i intInputVal1, intInputVal2;
+  __m256 ret1, ret2;
+  __m256 vmin_val = _mm256_set1_ps(min_val);
+  __m256 vmax_val = _mm256_set1_ps(max_val);
+
+  for(;number < sixteenthPoints; number++){
+    inputVal1 = _mm256_loadu_ps(inputVectorPtr); inputVectorPtr += 8;
+    inputVal2 = _mm256_loadu_ps(inputVectorPtr); inputVectorPtr += 8;
+
+    // Scale and clip
+    ret1 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
+    ret2 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal2, vScalar), vmax_val), vmin_val);
+
+    intInputVal1 = _mm256_cvtps_epi32(ret1);
+    intInputVal2 = _mm256_cvtps_epi32(ret2);
+
+    intInputVal1 = _mm256_packs_epi32(intInputVal1, intInputVal2);
+    intInputVal1 = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
+
+    _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal1);
+    outputVectorPtr += 16;
+  }
+
+  number = sixteenthPoints * 16;
+  for(; number < num_points; number++){
+    r = inputVector[number] * scalar;
+    if(r > max_val)
+      r = max_val;
+    else if(r < min_val)
+      r = min_val;
+    outputVector[number] = (int16_t)rintf(r);
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -268,6 +324,62 @@ volk_32f_s32f_convert_16i_generic(int16_t* outputVector, const float* inputVecto
 #include <inttypes.h>
 #include <stdio.h>
 #include <math.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32f_s32f_convert_16i_a_avx2(int16_t* outputVector, const float* inputVector,
+                                 const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+
+  const unsigned int sixteenthPoints = num_points / 16;
+
+  const float* inputVectorPtr = (const float*)inputVector;
+  int16_t* outputVectorPtr = outputVector;
+
+  float min_val = -32768;
+  float max_val = 32767;
+  float r;
+
+  __m256 vScalar = _mm256_set1_ps(scalar);
+  __m256 inputVal1, inputVal2;
+  __m256i intInputVal1, intInputVal2;
+  __m256 ret1, ret2;
+  __m256 vmin_val = _mm256_set1_ps(min_val);
+  __m256 vmax_val = _mm256_set1_ps(max_val);
+
+  for(;number < sixteenthPoints; number++){
+    inputVal1 = _mm256_load_ps(inputVectorPtr); inputVectorPtr += 8;
+    inputVal2 = _mm256_load_ps(inputVectorPtr); inputVectorPtr += 8;
+
+    // Scale and clip
+    ret1 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
+    ret2 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal2, vScalar), vmax_val), vmin_val);
+
+    intInputVal1 = _mm256_cvtps_epi32(ret1);
+    intInputVal2 = _mm256_cvtps_epi32(ret2);
+
+    intInputVal1 = _mm256_packs_epi32(intInputVal1, intInputVal2);
+    intInputVal1 = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
+
+    _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal1);
+    outputVectorPtr += 16;
+  }
+
+  number = sixteenthPoints * 16;
+  for(; number < num_points; number++){
+    r = inputVector[number] * scalar;
+    if(r > max_val)
+      r = max_val;
+    else if(r < min_val)
+      r = min_val;
+    outputVector[number] = (int16_t)rintf(r);
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
