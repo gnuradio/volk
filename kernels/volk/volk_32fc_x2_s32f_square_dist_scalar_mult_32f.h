@@ -132,9 +132,11 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(
     points += work_size;
   }
   for (; i < num_points; ++i) {
-    lv_32fc_t diff = src0[0] - points[i];
+    lv_32fc_t diff = src0[0] - *points;
 
-    target[i] = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
+    *target = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
+    ++target;
+    ++points;
   }
 }
 
