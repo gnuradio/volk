@@ -84,6 +84,65 @@
 #include<volk/volk_complex.h>
 #include <string.h>
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(
+        float *target, lv_32fc_t *src0, lv_32fc_t *points,
+        float scalar, unsigned int num_points) {
+  static const unsigned int work_size = 8;
+  unsigned int avx_work_size = num_points / work_size * work_size;
+  int i = 0;
+
+  for (; i < avx_work_size; i += work_size) {
+    lv_32fc_t src = *src0;
+    __m256 source = _mm256_setr_ps(
+            lv_creal(src), lv_cimag(src),
+            lv_creal(src), lv_cimag(src),
+            lv_creal(src), lv_cimag(src),
+            lv_creal(src), lv_cimag(src)
+    );
+    __m256 points_low = _mm256_load_ps((const float *) points);
+    __m256 points_high = _mm256_load_ps((const float *) (points + work_size / 2));
+    __m256 difference_low = _mm256_sub_ps(source, points_low);
+    __m256 difference_high = _mm256_sub_ps(source, points_high);
+
+    difference_low = _mm256_mul_ps(difference_low, difference_low);
+    difference_high = _mm256_mul_ps(difference_high, difference_high);
+
+    __m256 magnitudes_squared = _mm256_hadd_ps(difference_low, difference_high);
+    __m128 lower_magnitudes_squared_bottom = _mm256_extractf128_ps(magnitudes_squared, 0);
+    __m128 upper_magnitudes_squared_top = _mm256_extractf128_ps(magnitudes_squared, 1);
+    __m256 lower_magnitudes_squared = _mm256_castps128_ps256(lower_magnitudes_squared_bottom);
+
+    lower_magnitudes_squared = _mm256_insertf128_ps(
+            lower_magnitudes_squared, _mm_permute_ps(lower_magnitudes_squared_bottom, 0x4E), 1
+    );
+
+    __m256 upper_magnitudes_squared = _mm256_castps128_ps256(upper_magnitudes_squared_top);
+
+    upper_magnitudes_squared = _mm256_insertf128_ps(upper_magnitudes_squared, upper_magnitudes_squared_top, 1);
+    upper_magnitudes_squared_top = _mm_permute_ps(upper_magnitudes_squared_top, 0x4E);
+    upper_magnitudes_squared = _mm256_insertf128_ps(upper_magnitudes_squared, upper_magnitudes_squared_top, 0);
+
+    __m256 ordered_magnitudes_squared = _mm256_blend_ps(lower_magnitudes_squared, upper_magnitudes_squared, 0xCC);
+    __m256 scalars = _mm256_set1_ps(scalar);
+    __m256 output = _mm256_mul_ps(ordered_magnitudes_squared, scalars);
+
+    _mm256_store_ps(target, output);
+    target += work_size;
+    points += work_size;
+  }
+  for (; i < num_points; ++i) {
+    lv_32fc_t diff = src0[0] - points[i];
+
+    target[i] = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
+  }
+}
+
+#endif /* LV_HAVE_AVX */
+
 #ifdef LV_HAVE_SSE3
 #include<xmmintrin.h>
 #include<pmmintrin.h>
@@ -183,13 +242,11 @@ static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target, lv_32fc_t* src0, lv_32fc_t* points,
                                                       float scalar, unsigned int num_points)
 {
-  const unsigned int num_bytes = num_points*8;
-
   lv_32fc_t diff;
   float sq_dist;
   unsigned int i = 0;
 
-  for(; i < num_bytes >> 3; ++i) {
+  for(; i < num_points; ++i) {
     diff = src0[0] - points[i];
 
     sq_dist = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
