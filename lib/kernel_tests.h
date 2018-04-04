@@ -30,6 +30,10 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
             test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
 
     std::vector<volk_test_case_t> test_cases = boost::assign::list_of
+        (VOLK_INIT_TEST(volk_32f_x2_add_32f,                            test_params))
+        (VOLK_INIT_TEST(volk_32f_x2_subtract_32f,                       test_params))
+
+        //Need AVX512
         (VOLK_INIT_TEST(volk_32f_tanh_32f,                              test_params_inacc))
         (VOLK_INIT_TEST(volk_32f_x2_pow_32f,         volk_test_params_t(1e-2, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
         (VOLK_INIT_TEST(volk_32f_x3_sum_of_poly_32f,                    test_params_inacc))
@@ -94,9 +98,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_64f_convert_32f,                           test_params))
         (VOLK_INIT_TEST(volk_64f_x2_max_64f,                            test_params))
         (VOLK_INIT_TEST(volk_64f_x2_min_64f,                            test_params))
-        (VOLK_INIT_TEST(volk_32f_x2_add_32f,                            test_params))
         (VOLK_INIT_TEST(volk_32f_x2_divide_32f,                         test_params))
-        (VOLK_INIT_TEST(volk_32f_x2_subtract_32f,                       test_params))
         (VOLK_INIT_TEST(volk_16ic_deinterleave_16i_x2,                  test_params))
         (VOLK_INIT_TEST(volk_32fc_deinterleave_real_32f,                test_params))
         (VOLK_INIT_TEST(volk_8ic_x2_s32f_multiply_conjugate_32fc,       test_params))
