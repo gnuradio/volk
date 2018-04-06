@@ -84,6 +84,42 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void
+volk_32i_x2_or_32i_a_avx512f(int32_t* cVector, const int32_t* aVector,
+                          const int32_t* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
+
+  int32_t* cPtr = (int32_t*)cVector;
+  const int32_t* aPtr = (int32_t*)aVector;
+  const int32_t* bPtr = (int32_t*)bVector;
+
+  __m512i aVal, bVal, cVal;
+  for(;number < sixteenthPoints; number++){
+
+    aVal = _mm512_load_si512(aPtr);
+    bVal = _mm512_load_si512(bPtr);
+
+    cVal = _mm512_or_si512(aVal, bVal);
+
+    _mm512_store_si512(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 16;
+    bPtr += 16;
+    cPtr += 16;
+  }
+
+  number = sixteenthPoints * 16;
+  for(;number < num_points; number++){
+    cVector[number] = aVector[number] | bVector[number];
+  }
+}
+#endif /* LV_HAVE_AVX512F */
+
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 
@@ -229,6 +265,42 @@ volk_32i_x2_or_32i_u_orc(int32_t* cVector, const int32_t* aVector,
 
 #include <inttypes.h>
 #include <stdio.h>
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void
+volk_32i_x2_or_32i_u_avx512f(int32_t* cVector, const int32_t* aVector,
+                          const int32_t* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
+
+  int32_t* cPtr = (int32_t*)cVector;
+  const int32_t* aPtr = (int32_t*)aVector;
+  const int32_t* bPtr = (int32_t*)bVector;
+
+  __m512i aVal, bVal, cVal;
+  for(;number < sixteenthPoints; number++){
+
+    aVal = _mm512_loadu_si512(aPtr);
+    bVal = _mm512_loadu_si512(bPtr);
+
+    cVal = _mm512_or_si512(aVal, bVal);
+
+    _mm512_storeu_si512(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 16;
+    bPtr += 16;
+    cPtr += 16;
+  }
+
+  number = sixteenthPoints * 16;
+  for(;number < num_points; number++){
+    cVector[number] = aVector[number] | bVector[number];
+  }
+}
+#endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
