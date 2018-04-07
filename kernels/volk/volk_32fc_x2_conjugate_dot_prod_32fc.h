@@ -111,7 +111,8 @@ volk_32fc_x2_conjugate_dot_prod_32fc_u_avx(lv_32fc_t* result, const lv_32fc_t* i
   const float *a_p = (const float*) input;
   const float *b_p = (const float*) taps;
 
-  for (int qpoint = 0; qpoint < quarter_points; ++qpoint) {
+  int qpoint = 0;
+  for (qpoint = 0; qpoint < quarter_points; ++qpoint) {
     avec = _mm256_loadu_ps(a_p);
     bvec = _mm256_loadu_ps(b_p);
     resultvec = _mm256_complexconjugatemul_ps(avec, bvec);
@@ -126,7 +127,8 @@ volk_32fc_x2_conjugate_dot_prod_32fc_u_avx(lv_32fc_t* result, const lv_32fc_t* i
   *result = tmp_result[0] + tmp_result[1];
   *result += tmp_result[2] + tmp_result[3];
 
-  for (int point=quarter_points*4; point < num_points; ++point) {
+  int point = 0;
+  for (point=quarter_points*4; point < num_points; ++point) {
     float a_r = *a_p++;
     float a_i = *a_p++;
     float b_r = *b_p++;
@@ -135,7 +137,6 @@ volk_32fc_x2_conjugate_dot_prod_32fc_u_avx(lv_32fc_t* result, const lv_32fc_t* i
   }
 }
 #endif /* LV_HAVE_AVX */
-
 
 #ifdef LV_HAVE_SSE3
 

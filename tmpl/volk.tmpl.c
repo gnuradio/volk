@@ -45,7 +45,8 @@ struct volk_machine *get_machine(void)
     unsigned int i;
     struct volk_machine *max_machine = NULL;
     for(i=0; i<n_volk_machines; i++) {
-      if(!(volk_machines[i]->caps & (~volk_get_lvarch()))) {
+      if(!(volk_machines[i]->caps & (~volk_get_lvarch()))) 
+        { 
         if(volk_machines[i]->caps > max_score) {
           max_score = volk_machines[i]->caps;
           max_machine = volk_machines[i];
