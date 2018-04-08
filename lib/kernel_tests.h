@@ -37,8 +37,6 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
         (VOLK_INIT_TEST(volk_32f_x2_subtract_32f,                       test_params))
         (VOLK_INIT_TEST(volk_32f_x2_multiply_32f,                     test_params))
         (VOLK_INIT_TEST(volk_32f_x2_divide_32f,                       test_params))
-
-	//Need AVX512
         (VOLK_INIT_TEST(volk_32f_tanh_32f,                              test_params_inacc))
         (VOLK_INIT_TEST(volk_32f_x2_pow_32f,         volk_test_params_t(1e-2, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
         (VOLK_INIT_TEST(volk_32f_x3_sum_of_poly_32f,                    test_params_inacc))
