@@ -230,7 +230,7 @@
     <!-- check for AVX512F -->
     <check name="cpuid_x86_bit">
         <param>1</param>
-        <param>0x00000001</param>
+        <param>0x00000007</param>
         <param>16</param>
     </check>
     <!-- check to make sure that xgetbv is enabled in OS -->
@@ -248,16 +248,10 @@
 </arch>
 
 <arch name="avx512cd">
-    <!-- check for AVX512F -->
-    <check name="cpuid_x86_bit">
-        <param>1</param>
-        <param>0x00000001</param>
-        <param>16</param>
-    </check>
     <!-- check for AVX512CD -->
     <check name="cpuid_x86_bit">
-        <param>2</param>
-        <param>0x00000001</param>
+        <param>1</param>
+        <param>0x00000007</param>
         <param>28</param>
     </check>
     <!-- check to make sure that xgetbv is enabled in OS -->
