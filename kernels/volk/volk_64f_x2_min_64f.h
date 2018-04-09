@@ -78,7 +78,7 @@
 #include <immintrin.h>
 
 static inline void
-volk_64f_x2_min_64f_a_avx(double* cVector, const double* aVector,
+volk_64f_x2_min_64f_a_avx512f(double* cVector, const double* aVector,
                            const double* bVector, unsigned int num_points)
 {
   unsigned int number = 0;
@@ -112,6 +112,9 @@ volk_64f_x2_min_64f_a_avx(double* cVector, const double* aVector,
 }
 #endif /* LV_HAVE_AVX512F */
 
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
 
 static inline void
 volk_64f_x2_min_64f_a_avx(double* cVector, const double* aVector,
@@ -220,7 +223,7 @@ volk_64f_x2_min_64f_generic(double* cVector, const double* aVector,
 #include <immintrin.h>
 
 static inline void
-volk_64f_x2_min_64f_u_avx(double* cVector, const double* aVector,
+volk_64f_x2_min_64f_u_avx512f(double* cVector, const double* aVector,
                            const double* bVector, unsigned int num_points)
 {
   unsigned int number = 0;

@@ -30,6 +30,9 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
             test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
 
     std::vector<volk_test_case_t> test_cases = boost::assign::list_of
+	(VOLK_INIT_TEST(volk_64f_convert_32f,                           test_params))
+        (VOLK_INIT_TEST(volk_64f_x2_max_64f,                            test_params))
+        (VOLK_INIT_TEST(volk_64f_x2_min_64f,                            test_params))
         (VOLK_INIT_TEST(volk_32i_x2_or_32i,                             test_params))
         (VOLK_INIT_TEST(volk_32i_x2_and_32i,                            test_params))
         (VOLK_INIT_TEST(volk_32i_s32f_convert_32f,                      test_params))

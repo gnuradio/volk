@@ -84,13 +84,13 @@ static inline void volk_64f_convert_32f_u_avx512f(float* outputVector, const dou
     inputVal1 = _mm512_loadu_pd(inputVectorPtr); inputVectorPtr += 8;
     inputVal2 = _mm512_loadu_pd(inputVectorPtr); inputVectorPtr += 8;
 
-    ret1 = _mm256_cvtpd_ps(inputVal1);
-    ret2 = _mm256_cvtpd_ps(inputVal2);
+    ret1 = _mm512_cvtpd_ps(inputVal1);
+    ret2 = _mm512_cvtpd_ps(inputVal2);
 
-    _mm_storeu_ps(outputVectorPtr, ret1);
+    _mm256_storeu_ps(outputVectorPtr, ret1);
     outputVectorPtr += 8;
 
-    _mm_storeu_ps(outputVectorPtr, ret2);
+    _mm256_storeu_ps(outputVectorPtr, ret2);
     outputVectorPtr += 8;
   }
 
@@ -211,13 +211,13 @@ static inline void volk_64f_convert_32f_a_avx512f(float* outputVector, const dou
     inputVal1 = _mm512_load_pd(inputVectorPtr); inputVectorPtr += 8;
     inputVal2 = _mm512_load_pd(inputVectorPtr); inputVectorPtr += 8;
 
-    ret1 = _mm256_cvtpd_ps(inputVal1);
-    ret2 = _mm256_cvtpd_ps(inputVal2);
+    ret1 = _mm512_cvtpd_ps(inputVal1);
+    ret2 = _mm512_cvtpd_ps(inputVal2);
 
-    _mm_store_ps(outputVectorPtr, ret1);
+    _mm256_store_ps(outputVectorPtr, ret1);
     outputVectorPtr += 8;
 
-    _mm_store_ps(outputVectorPtr, ret2);
+    _mm256_store_ps(outputVectorPtr, ret2);
     outputVectorPtr += 8;
   }
 
