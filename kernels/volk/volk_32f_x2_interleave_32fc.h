@@ -76,6 +76,50 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_x2_interleave_32fc_a_avx(lv_32fc_t* complexVector, const float* iBuffer,
+                                  const float* qBuffer, unsigned int num_points)
+{
+  unsigned int number = 0;
+  float* complexVectorPtr = (float*)complexVector;
+  const float* iBufferPtr = iBuffer;
+  const float* qBufferPtr = qBuffer;
+
+  const uint64_t eightPoints = num_points / 8;
+
+  __m256 iValue, qValue, cplxValue1, cplxValue2;
+  __m128 temporary1, temporary2;
+  for(;number < eightPoints; number++){
+    iValue = _mm256_load_ps(iBufferPtr);
+    qValue = _mm256_load_ps(qBufferPtr);
+
+    cplxValue1 = _mm256_unpacklo_ps(iValue, qValue);
+    cplxValue2 = _mm256_unpackhi_ps(iValue, qValue);
+    temporary1 = _mm256_extractf128_ps(cplxValue1, 1);
+    temporary2 = _mm256_extractf128_ps(cplxValue2, 0);
+    cplxValue1 = _mm256_insertf128_ps(cplxValue1, temporary2, 1);
+    cplxValue2 = _mm256_insertf128_ps(cplxValue2, temporary1, 0);
+
+    _mm256_store_ps(complexVectorPtr, cplxValue1);
+    _mm256_store_ps(complexVectorPtr + 8, cplxValue2);
+    complexVectorPtr += 16;
+
+    iBufferPtr += 8;
+    qBufferPtr += 8;
+  }
+
+  number = eightPoints * 8;
+  for(; number < num_points; number++){
+    *complexVectorPtr++ = *iBufferPtr++;
+    *complexVectorPtr++ = *qBufferPtr++;
+  }
+}
+
+#endif /* LV_HAV_AVX */
+
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
