@@ -164,7 +164,7 @@ class kernel_class:
     def __init__(self, kernel_file):
         self.name = os.path.splitext(os.path.basename(kernel_file))[0]
         self.pname = self.name.replace('volk_', 'p_')
-        code = open(kernel_file, 'r').read()
+        code = open(kernel_file, 'r').read().decode("utf-8")
         code = comment_remover(code)
         sections = split_into_nested_ifdef_sections(code)
         self._impls = list()
