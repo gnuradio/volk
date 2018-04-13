@@ -20,5 +20,5 @@
 # Boston, MA 02110-1301, USA.
 #
 
-from cfg import volk_modtool_config
-from volk_modtool_generate import volk_modtool
+from .cfg import volk_modtool_config
+from .volk_modtool_generate import volk_modtool
