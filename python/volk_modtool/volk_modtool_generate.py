@@ -24,7 +24,6 @@ from __future__ import print_function
 import os
 import re
 import glob
-from sets import Set
 
 
 class volk_modtool(object):
@@ -182,7 +181,7 @@ class volk_modtool(object):
 
         inpath = os.path.abspath(base)
         kernel = re.compile(name)
-        search_kernels = Set([kernel])
+        search_kernels = set([kernel])
         profile = re.compile(r'^\s*VOLK_PROFILE')
         puppet = re.compile(r'^\s*VOLK_PUPPET')
         src_dest = os.path.join(inpath, 'apps/', top[:-1] + '_profile.cc')
@@ -249,7 +248,7 @@ class volk_modtool(object):
         self.convert_kernel(oldvolk, name, base, inpath, top)
 
         kernel = re.compile(name)
-        search_kernels = Set([kernel])
+        search_kernels = set([kernel])
 
         profile = re.compile(r'^\s*VOLK_PROFILE')
         puppet = re.compile(r'^\s*VOLK_PUPPET')
