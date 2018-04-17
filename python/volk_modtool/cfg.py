@@ -24,7 +24,6 @@ from __future__ import print_function
 
 import sys
 import os
-import exceptions
 import re
 
 from six.moves import configparser, input
@@ -48,11 +47,11 @@ class volk_modtool_config(object):
             try:
                val = eval(self.key_val_sub(i, stuff, section))
                if val == False:
-                   raise exceptions.ValueError
+                   raise ValueError
             except ValueError:
-                raise exceptions.ValueError('Verification function returns False... key:%s, val:%s'%(stuff[i][0], stuff[i][1]))
+                raise ValueError('Verification function returns False... key:%s, val:%s'%(stuff[i][0], stuff[i][1]))
             except:
-                raise exceptions.IOError('bad configuration... key:%s, val:%s'%(stuff[i][0], stuff[i][1]))
+                raise IOError('bad configuration... key:%s, val:%s'%(stuff[i][0], stuff[i][1]))
 
 
     def __init__(self, cfg=None):
