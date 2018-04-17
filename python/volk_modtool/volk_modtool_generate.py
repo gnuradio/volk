@@ -24,7 +24,6 @@ from __future__ import print_function
 import os
 import re
 import glob
-import exceptions
 from sets import Set
 
 
@@ -94,7 +93,7 @@ class volk_modtool(object):
     def make_module_skeleton(self):
         dest = os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'])
         if os.path.exists(dest):
-            raise exceptions.IOError("Destination %s already exits!" % dest)
+            raise IOError("Destination %s already exits!" % dest)
 
         if not os.path.exists(os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'kernels/volk_' + self.my_dict['name'])):
             os.makedirs(os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'kernels/volk_' + self.my_dict['name']))
@@ -179,7 +178,7 @@ class volk_modtool(object):
         base = os.path.join(self.my_dict['destination'], top[:-1])
 
         if not name in self.get_current_kernels():
-            raise exceptions.IOError("Requested kernel %s is not in module %s" % (name, base))
+            raise IOError("Requested kernel %s is not in module %s" % (name, base))
 
         inpath = os.path.abspath(base)
         kernel = re.compile(name)
@@ -238,7 +237,7 @@ class volk_modtool(object):
         else:
             basename = self.get_basename(base)
         if not name in self.get_current_kernels(base):
-            raise exceptions.IOError("Requested kernel %s is not in module %s" % (name, base))
+            raise IOError("Requested kernel %s is not in module %s" % (name, base))
 
         inpath = os.path.abspath(base)
         if len(basename) > 0:
