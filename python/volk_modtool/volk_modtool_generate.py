@@ -28,7 +28,7 @@ import exceptions
 from sets import Set
 
 
-class volk_modtool:
+class volk_modtool(object):
     def __init__(self, cfg):
         self.volk = re.compile('volk')
         self.remove_after_underscore = re.compile("_.*")
@@ -105,7 +105,7 @@ class volk_modtool:
                               "volk_typedefs.h", "volk.tmpl.h"]
         for root, dirnames, filenames in os.walk(self.my_dict['base']):
             for name in filenames:
-                t_table = map(lambda a: re.search(a, name), current_kernel_names)
+                t_table = [re.search(a, name) for a in current_kernel_names]
                 t_table = set(t_table)
                 if (t_table == set([None])) or (name == "volk_32f_null_32f.h"):
                     infile = os.path.join(root, name)

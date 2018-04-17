@@ -20,6 +20,7 @@
 # Boston, MA 02110-1301, USA.
 #
 
+from __future__ import print_function
 from volk_modtool import volk_modtool, volk_modtool_config
 from optparse import OptionParser, OptionGroup
 
@@ -59,12 +60,12 @@ if __name__ == '__main__':
         parser.print_help()
 
     elif options.moo:
-        print "         (__)    "
-        print "         (oo)    "
-        print "   /------\/     "
-        print "  / |    ||      "
-        print " *  /\---/\      "
-        print "    ~~   ~~      "
+        print("         (__)    ")
+        print("         (oo)    ")
+        print("   /------\/     ")
+        print("  / |    ||      ")
+        print(" *  /\---/\      ")
+        print("    ~~   ~~      ")
 
     else:
         my_cfg = volk_modtool_config(options.config_file);
@@ -112,12 +113,12 @@ if __name__ == '__main__':
                 base = options.base_path;
             kernelset = my_modtool.get_current_kernels(base);
             for i in kernelset:
-                print i;
+                print(i);
 
         if options.list:
             kernelset = my_modtool.get_current_kernels();
             for i in kernelset:
-                print i;
+                print(i);
 
         if options.kernels:
             dest = my_cfg.cfg.get(my_cfg.config_name, 'destination');
@@ -125,4 +126,4 @@ if __name__ == '__main__':
             base = os.path.join(dest, 'volk_' + name);
             kernelset = my_modtool.get_current_kernels(base);
             for i in kernelset:
-                print i;
+                print(i);
