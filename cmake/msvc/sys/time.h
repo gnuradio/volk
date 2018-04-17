@@ -5,6 +5,11 @@
 #ifndef _MSC_SYS_TIME_H_
 #define _MSC_SYS_TIME_H_
 
+// prevent windows.h from clobbering min and max functions with macros
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
 //http://social.msdn.microsoft.com/Forums/en/vcgeneral/thread/430449b3-f6dd-4e18-84de-eebd26a8d668
 #include < time.h >
 #include <windows.h> //I've omitted this line.
