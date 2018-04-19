@@ -67,6 +67,41 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_64f_convert_32f_u_avx512f(float* outputVector, const double* inputVector, unsigned int num_points){
+  unsigned int number = 0;
+
+  const unsigned int oneSixteenthPoints = num_points / 16;
+
+  const double* inputVectorPtr = (const double*)inputVector;
+  float* outputVectorPtr = outputVector;
+  __m256 ret1, ret2;
+  __m512d inputVal1, inputVal2;
+
+  for(;number < oneSixteenthPoints; number++){
+    inputVal1 = _mm512_loadu_pd(inputVectorPtr); inputVectorPtr += 8;
+    inputVal2 = _mm512_loadu_pd(inputVectorPtr); inputVectorPtr += 8;
+
+    ret1 = _mm512_cvtpd_ps(inputVal1);
+    ret2 = _mm512_cvtpd_ps(inputVal2);
+
+    _mm256_storeu_ps(outputVectorPtr, ret1);
+    outputVectorPtr += 8;
+
+    _mm256_storeu_ps(outputVectorPtr, ret2);
+    outputVectorPtr += 8;
+  }
+
+  number = oneSixteenthPoints * 16;
+  for(; number < num_points; number++){
+    outputVector[number] = (float)(inputVector[number]);
+  }
+}
+#endif /* LV_HAVE_AVX512F */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -158,6 +193,41 @@ static inline void volk_64f_convert_32f_generic(float* outputVector, const doubl
 
 #include <inttypes.h>
 #include <stdio.h>
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_64f_convert_32f_a_avx512f(float* outputVector, const double* inputVector, unsigned int num_points){
+  unsigned int number = 0;
+
+  const unsigned int oneSixteenthPoints = num_points / 16;
+
+  const double* inputVectorPtr = (const double*)inputVector;
+  float* outputVectorPtr = outputVector;
+  __m256 ret1, ret2;
+  __m512d inputVal1, inputVal2;
+
+  for(;number < oneSixteenthPoints; number++){
+    inputVal1 = _mm512_load_pd(inputVectorPtr); inputVectorPtr += 8;
+    inputVal2 = _mm512_load_pd(inputVectorPtr); inputVectorPtr += 8;
+
+    ret1 = _mm512_cvtpd_ps(inputVal1);
+    ret2 = _mm512_cvtpd_ps(inputVal2);
+
+    _mm256_store_ps(outputVectorPtr, ret1);
+    outputVectorPtr += 8;
+
+    _mm256_store_ps(outputVectorPtr, ret2);
+    outputVectorPtr += 8;
+  }
+
+  number = oneSixteenthPoints * 16;
+  for(; number < num_points; number++){
+    outputVector[number] = (float)(inputVector[number]);
+  }
+}
+#endif /* LV_HAVE_AVX512F */
+
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
