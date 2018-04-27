@@ -337,7 +337,7 @@ static inline void volk_32u_reverse_32u_bintree_permute_bottom_up(uint32_t* out,
 #include <arm_neon.h>
 
 #define DO_RBIT                                          \
-    asm("rbit %1,%0" : "=r" (*out_ptr) : "r" (*in_ptr)); \
+    asm("rbit %0,%1" : "=r" (*out_ptr) : "r" (*in_ptr)); \
     in_ptr++;                                            \
     out_ptr++;
 
