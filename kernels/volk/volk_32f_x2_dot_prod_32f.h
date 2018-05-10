@@ -400,9 +400,52 @@ static inline void volk_32f_x2_dot_prod_32f_u_avx2_fma(float * result, const flo
 }
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
 
+#if LV_HAVE_AVX512F
+#include <immintrin.h>
+static inline void volk_32f_x2_dot_prod_32f_u_avx512f(float * result, const float * input, const float* taps, unsigned int num_points){
+  unsigned int number;
+  const unsigned int sixteenthPoints = num_points / 16;
 
+  const float* aPtr = input;
+  const float* bPtr = taps;
+
+  __m512 dotProdVal = _mm512_setzero_ps();
+  __m512 aVal1, bVal1;
+
+  for (number = 0; number < sixteenthPoints; number++ ) {
+
+    aVal1 = _mm512_loadu_ps(aPtr);
+    bVal1 = _mm512_loadu_ps(bPtr);
+    aPtr += 16;
+    bPtr += 16;
+
+    dotProdVal = _mm512_fmadd_ps(aVal1, bVal1, dotProdVal);
+  }
+
+  __VOLK_ATTR_ALIGNED(64) float dotProductVector[16];
+  _mm512_storeu_ps(dotProductVector, dotProdVal); // Store the results back into the dot product vector
+
+  float dotProduct =
+    dotProductVector[0] + dotProductVector[1] +
+    dotProductVector[2] + dotProductVector[3] +
+    dotProductVector[4] + dotProductVector[5] +
+    dotProductVector[6] + dotProductVector[7] +
+    dotProductVector[8] + dotProductVector[9] +
+    dotProductVector[10] + dotProductVector[11] +
+    dotProductVector[12] + dotProductVector[13] +
+    dotProductVector[14] + dotProductVector[15];
+
+  for(number = sixteenthPoints * 16; number < num_points; number++){
+    dotProduct += ((*aPtr++) * (*bPtr++));
+  }
+
+  *result = dotProduct;
+
+}
+#endif /* LV_HAVE_AVX512F */
 
 #endif /*INCLUDED_volk_32f_x2_dot_prod_32f_u_H*/
+
 #ifndef INCLUDED_volk_32f_x2_dot_prod_32f_a_H
 #define INCLUDED_volk_32f_x2_dot_prod_32f_a_H
 
@@ -733,6 +776,49 @@ static inline void volk_32f_x2_dot_prod_32f_a_avx2_fma(float * result, const flo
 }
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
 
+#if LV_HAVE_AVX512F
+#include <immintrin.h>
+static inline void volk_32f_x2_dot_prod_32f_a_avx512f(float * result, const float * input, const float* taps, unsigned int num_points){
+  unsigned int number;
+  const unsigned int sixteenthPoints = num_points / 16;
+
+  const float* aPtr = input;
+  const float* bPtr = taps;
+
+  __m512 dotProdVal = _mm512_setzero_ps();
+  __m512 aVal1, bVal1;
+
+  for (number = 0; number < sixteenthPoints; number++ ) {
+
+    aVal1 = _mm512_load_ps(aPtr);
+    bVal1 = _mm512_load_ps(bPtr);
+    aPtr += 16;
+    bPtr += 16;
+
+    dotProdVal = _mm512_fmadd_ps(aVal1, bVal1, dotProdVal);
+  }
+
+  __VOLK_ATTR_ALIGNED(64) float dotProductVector[16];
+  _mm512_store_ps(dotProductVector, dotProdVal); // Store the results back into the dot product vector
+
+  float dotProduct =
+    dotProductVector[0] + dotProductVector[1] +
+    dotProductVector[2] + dotProductVector[3] +
+    dotProductVector[4] + dotProductVector[5] +
+    dotProductVector[6] + dotProductVector[7] +
+    dotProductVector[8] + dotProductVector[9] +
+    dotProductVector[10] + dotProductVector[11] +
+    dotProductVector[12] + dotProductVector[13] +
+    dotProductVector[14] + dotProductVector[15];
+
+  for(number = sixteenthPoints * 16; number < num_points; number++){
+    dotProduct += ((*aPtr++) * (*bPtr++));
+  }
+
+  *result = dotProduct;
+
+}
+#endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
