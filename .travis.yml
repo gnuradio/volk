@@ -1,0 +1,52 @@
+language: cpp
+
+dist: trusty
+sudo: false
+
+addons:
+  apt:
+    packages: &common_packages
+      - python-mako
+      - liborc-dev
+      - libboost-system-dev
+      - libboost-filesystem-dev
+
+matrix:
+  include:
+    # Job 1 ... gcc-4.8 (default GCC version)
+    - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
+      addons: {apt: {packages: [*common_packages]}}
+    # Job 2 ... gcc-4.9
+    - env: MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-4.9]}}
+    # Job 3 ... gcc-5
+    - env: MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-5]}}
+    # Job 4 ... gcc-6
+    - env: MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-6]}}
+    # Job 5 ... gcc-7
+    - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-7]}}
+    # Job 6 ... ARM cross compile (gcc-4.8)
+    - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8 && BOOST_ROOT=$TRAVIS_BUILD_DIR/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm-linux-gnueabihf.cmake"
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-arm-linux-gnueabihf, qemu-user]}}
+      before_script:
+        - wget --no-check-certificate https://sourceforge.net/projects/boost/files/boost/1.66.0/boost_1_66_0.tar.bz2
+        - tar xvf boost_1_66_0.tar.bz2 2>&1 | tail -10
+        - cd boost_1_66_0
+        - ./bootstrap.sh
+        - echo "using gcc" ":" "arm" ":" "arm-linux-gnueabihf-g++ ;" > user-config.jam
+        - BOOST_BUILD_PATH=./ ./b2 toolset=gcc-arm --with-system --with-filesystem
+        - cd ..
+    # Job 6 .. clang
+    - env: MATRIX_EVAL="CC=\"clang -fprofile-instr-generate -fcoverage-mapping\" && CXX=\"clang++ -fprofile-instr-generate -fcoverage-mapping\""
+      addons: {apt: {packages: [*common_packages]}}
+#      before_install:
+#        - pip install --user codecov
+#      after_success:
+#        - bash <(curl -s https://codecov.io/bash)
+
+script:
+  - eval "${MATRIX_EVAL}"
+  - mkdir build && cd build && BOOST_ROOT=$BOOST_ROOT cmake ${CMAKE_ARG} ../ && make && ctest -V && cd ..

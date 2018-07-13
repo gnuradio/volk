@@ -111,7 +111,7 @@ volk_32fc_x2_conjugate_dot_prod_32fc_u_avx(lv_32fc_t* result, const lv_32fc_t* i
   const float *a_p = (const float*) input;
   const float *b_p = (const float*) taps;
 
-  int qpoint = 0;
+  int qpoint;
   for (qpoint = 0; qpoint < quarter_points; ++qpoint) {
     avec = _mm256_loadu_ps(a_p);
     bvec = _mm256_loadu_ps(b_p);
@@ -363,7 +363,7 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse(lv_32fc_t* result,
 
   __VOLK_ATTR_ALIGNED(16) static const uint32_t conjugator[4]= {0x00000000, 0x80000000, 0x00000000, 0x80000000};
 
-  asm volatile
+  __VOLK_ASM __VOLK_VOLATILE
     (
      "#  ccomplex_conjugate_dotprod_generic (float* result, const float *input,\n\t"
      "#                         const float *taps, unsigned num_bytes)\n\t"
@@ -499,7 +499,7 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse_32(lv_32fc_t* resu
   int bound = num_bytes >> 4;
   int leftovers = num_bytes % 16;
 
-  asm volatile
+  __VOLK_ASM __VOLK_VOLATILE
     (
      "	#pushl	%%ebp\n\t"
      "	#movl	%%esp, %%ebp\n\t"

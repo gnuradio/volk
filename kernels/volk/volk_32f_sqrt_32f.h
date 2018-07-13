@@ -133,6 +133,7 @@ volk_32f_sqrt_32f_a_avx(float* cVector, const float* aVector, unsigned int num_p
 
 #endif /* LV_HAVE_AVX */
 
+
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 

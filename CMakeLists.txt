@@ -44,8 +44,8 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 
 set(VERSION_INFO_MAJOR_VERSION 1)
-set(VERSION_INFO_MINOR_VERSION 3)
-set(VERSION_INFO_MAINT_VERSION 0git)
+set(VERSION_INFO_MINOR_VERSION 4)
+set(VERSION_INFO_MAINT_VERSION 1git)
 include(VolkVersion) #setup version info
 
 ########################################################################
@@ -174,7 +174,9 @@ install(FILES
     ${CMAKE_SOURCE_DIR}/include/volk/volk_prefs.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_complex.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_common.h
+    ${CMAKE_SOURCE_DIR}/include/volk/saturation_arithmetic.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
+    ${CMAKE_SOURCE_DIR}/include/volk/volk_sse_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
     ${CMAKE_BINARY_DIR}/include/volk/volk.h

@@ -1,10 +1,10 @@
-@ static inline void volk_32f_x2_dot_prod_32f_neonasm_opts(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
+@ static inline void volk_32f_x2_dot_prod_32f_a_neonasm_opts(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
     @ r0 = cVector
     @ r1 = aVector
     @ r2 = bVector
     @ r3 = num_points
-    .global    volk_32f_x2_dot_prod_32f_neonasm_opts
-volk_32f_x2_dot_prod_32f_neonasm_opts:
+    .global    volk_32f_x2_dot_prod_32f_a_neonasm_opts
+volk_32f_x2_dot_prod_32f_a_neonasm_opts:
      push    {r4, r5, r6, r7, r8, r9, r10, r11}
     @ sixteenth_points = num_points / 16
      lsrs       r8, r3, #4

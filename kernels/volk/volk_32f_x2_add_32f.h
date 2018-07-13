@@ -148,8 +148,8 @@ volk_32f_x2_add_32f_u_avx(float* cVector, const float* aVector,
     *cPtr++ = (*aPtr++) + (*bPtr++);
   }
 }
-
 #endif /* LV_HAVE_AVX */
+
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
@@ -362,13 +362,13 @@ volk_32f_x2_add_32f_u_neon(float* cVector, const float* aVector,
 
 #endif /* LV_HAVE_NEON */
 
-#ifdef LV_HAVE_NEON
-extern void volk_32f_x2_add_32f_neonasm(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
-#endif /* LV_HAVE_NEON */
+#ifdef LV_HAVE_NEONV7
+extern void volk_32f_x2_add_32f_a_neonasm(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
+#endif /* LV_HAVE_NEONV7 */
 
-#ifdef LV_HAVE_NEON
-extern void volk_32f_x2_add_32f_neonpipeline(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
-#endif /* LV_HAVE_NEON */
+#ifdef LV_HAVE_NEONV7
+extern void volk_32f_x2_add_32f_a_neonpipeline(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
+#endif /* LV_HAVE_NEONV7 */
 
 #ifdef LV_HAVE_GENERIC
 

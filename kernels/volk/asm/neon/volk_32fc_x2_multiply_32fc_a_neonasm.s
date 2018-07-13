@@ -1,6 +1,6 @@
-@ static inline void volk_32fc_x2_multiply_32fc_neonasm(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
-	.global	volk_32fc_x2_multiply_32fc_neonasm
-volk_32fc_x2_multiply_32fc_neonasm:
+@ static inline void volk_32fc_x2_multiply_32fc_a_neonasm(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
+	.global	volk_32fc_x2_multiply_32fc_a_neonasm
+volk_32fc_x2_multiply_32fc_a_neonasm:
     push    {r4, r5, r6, r7, r8, r9, r14}
     lsrs    r7, r3, #2
     @ r0 is c vector

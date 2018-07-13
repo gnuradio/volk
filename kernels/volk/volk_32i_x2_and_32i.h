@@ -128,28 +128,28 @@ volk_32i_x2_and_32i_a_avx2(int32_t* cVector, const int32_t* aVector,
                           const int32_t* bVector, unsigned int num_points)
 {
   unsigned int number = 0;
-  const unsigned int eigthPoints = num_points / 8;
+  const unsigned int oneEightPoints = num_points / 8;
 
-  float* cPtr = (float*)cVector;
-  const float* aPtr = (float*)aVector;
-  const float* bPtr = (float*)bVector;
+  int32_t* cPtr = cVector;
+  const int32_t* aPtr = aVector;
+  const int32_t* bPtr = bVector;
 
-  __m256 aVal, bVal, cVal;
-  for(;number < eigthPoints; number++){
+  __m256i aVal, bVal, cVal;
+  for(;number < oneEightPoints; number++){
 
-    aVal = _mm256_load_ps(aPtr);
-    bVal = _mm256_load_ps(bPtr);
+    aVal = _mm256_load_si256((__m256i*)aPtr);
+    bVal = _mm256_load_si256((__m256i*)bPtr);
 
-    cVal = _mm256_and_ps(aVal, bVal);
+    cVal = _mm256_and_si256(aVal, bVal);
 
-    _mm256_store_ps(cPtr,cVal); // Store the results back into the C container
+    _mm256_store_si256((__m256i*)cPtr,cVal); // Store the results back into the C container
 
     aPtr += 8;
     bPtr += 8;
     cPtr += 8;
   }
 
-  number = eigthPoints * 8;
+  number = oneEightPoints * 8;
   for(;number < num_points; number++){
     cVector[number] = aVector[number] & bVector[number];
   }
@@ -259,6 +259,7 @@ volk_32i_x2_and_32i_u_orc(int32_t* cVector, const int32_t* aVector,
 
 #endif /* INCLUDED_volk_32i_x2_and_32i_a_H */
 
+
 #ifndef INCLUDED_volk_32i_x2_and_32i_u_H
 #define INCLUDED_volk_32i_x2_and_32i_u_H
 
@@ -309,33 +310,33 @@ volk_32i_x2_and_32i_u_avx2(int32_t* cVector, const int32_t* aVector,
                           const int32_t* bVector, unsigned int num_points)
 {
   unsigned int number = 0;
-  const unsigned int eigthPoints = num_points / 8;
+  const unsigned int oneEightPoints = num_points / 8;
 
-  float* cPtr = (float*)cVector;
-  const float* aPtr = (float*)aVector;
-  const float* bPtr = (float*)bVector;
+  int32_t* cPtr = cVector;
+  const int32_t* aPtr = aVector;
+  const int32_t* bPtr = bVector;
 
-  __m256 aVal, bVal, cVal;
-  for(;number < eigthPoints; number++){
+  __m256i aVal, bVal, cVal;
+  for(;number < oneEightPoints; number++){
 
-    aVal = _mm256_loadu_ps(aPtr);
-    bVal = _mm256_loadu_ps(bPtr);
+    aVal = _mm256_loadu_si256((__m256i*)aPtr);
+    bVal = _mm256_loadu_si256((__m256i*)bPtr);
 
-    cVal = _mm256_and_ps(aVal, bVal);
+    cVal = _mm256_and_si256(aVal, bVal);
 
-    _mm256_storeu_ps(cPtr,cVal); // Store the results back into the C container
+    _mm256_storeu_si256((__m256i*)cPtr,cVal); // Store the results back into the C container
 
     aPtr += 8;
     bPtr += 8;
     cPtr += 8;
   }
 
-  number = eigthPoints * 8;
+  number = oneEightPoints * 8;
   for(;number < num_points; number++){
     cVector[number] = aVector[number] & bVector[number];
   }
 }
 #endif /* LV_HAVE_AVX2 */
 
-#endif /* INCLUDED_volk_32i_x2_and_32i_u_H */
 
+#endif /* INCLUDED_volk_32i_x2_and_32i_u_H */

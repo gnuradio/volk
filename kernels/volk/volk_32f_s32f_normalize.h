@@ -198,4 +198,5 @@ static inline void volk_32f_s32f_normalize_u_avx(float* vecBuffer, const float s
 }
 #endif /* LV_HAVE_AVX */
 
+
 #endif /* INCLUDED_volk_32f_s32f_normalize_u_H */

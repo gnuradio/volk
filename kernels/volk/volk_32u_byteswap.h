@@ -162,7 +162,7 @@ static inline void volk_32u_byteswap_neon(uint32_t* intsToSwap, unsigned int num
   uint8x8_t int_lookup01, int_lookup23, int_lookup45, int_lookup67;
   uint8x8_t swapped_int01, swapped_int23, swapped_int45, swapped_int67;
 
-  /* these magic numbers are used as byte-indeces in the LUT.
+  /* these magic numbers are used as byte-indices in the LUT.
      they are pre-computed to save time. A simple C program
      can calculate them; for example for lookup01:
     uint8_t chars[8] = {24, 16, 8, 0, 25, 17, 9, 1};

@@ -902,12 +902,12 @@ static inline void volk_32f_x2_dot_prod_32f_neon(float * result, const float * i
 
 #endif /* LV_HAVE_NEON */
 
-#ifdef LV_HAVE_NEON
-extern void volk_32f_x2_dot_prod_32f_neonasm(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
-#endif /* LV_HAVE_NEON */
+#ifdef LV_HAVE_NEONV7
+extern void volk_32f_x2_dot_prod_32f_a_neonasm(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
+#endif /* LV_HAVE_NEONV7 */
 
-#ifdef LV_HAVE_NEON
-extern void volk_32f_x2_dot_prod_32f_neonasm_opts(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
-#endif /* LV_HAVE_NEON */
+#ifdef LV_HAVE_NEONV7
+extern void volk_32f_x2_dot_prod_32f_a_neonasm_opts(float* cVector, const float* aVector, const float* bVector, unsigned int num_points);
+#endif /* LV_HAVE_NEONV7 */
 
 #endif /*INCLUDED_volk_32f_x2_dot_prod_32f_a_H*/

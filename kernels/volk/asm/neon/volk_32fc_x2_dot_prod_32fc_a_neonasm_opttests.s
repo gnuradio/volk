@@ -1,6 +1,6 @@
-@ static inline void volk_32fc_x2_dot_prod_32fc_neonasm_opttests(float* cVector, const float* aVector, const float* bVector, unsigned int num_points)@
-.global	volk_32fc_x2_dot_prod_32fc_neonasm_opttests
-volk_32fc_x2_dot_prod_32fc_neonasm_opttests:
+@ static inline void volk_32fc_x2_dot_prod_32fc_a_neonasm_opttests(float* cVector, const float* aVector, const float* bVector, unsigned int num_points)@
+.global	volk_32fc_x2_dot_prod_32fc_a_neonasm_opttests
+volk_32fc_x2_dot_prod_32fc_a_neonasm_opttests:
     push    {r4, r5, r6, r7, r8, r9, sl, fp, lr}
     vpush   {d8-d15}
     lsrs    fp, r3, #3
@@ -17,7 +17,7 @@ volk_32fc_x2_dot_prod_32fc_neonasm_opttests:
     vorr    q5, q7, q7
     veor    q6, q7, q7
     vorr    q7, q7, q7
-    beq     .smallvector 
+    beq     .smallvector
     mov     r4, r1
     mov     ip, r2
     mov     r3, #0
@@ -40,7 +40,7 @@ volk_32fc_x2_dot_prod_32fc_neonasm_opttests:
     vmla.f32        q1, q11, q14
     vmls.f32        q4, q15, q11
     vmla.f32        q3, q15, q10
-    bne     .mainloop 
+    bne     .mainloop
     lsl     r3, fp, #6
     add     r8, r8, r3
     add     r7, r7, r3
@@ -71,7 +71,7 @@ volk_32fc_x2_dot_prod_32fc_neonasm_opttests:
     vadd.f32        s17, s17, s15
     vstr    s16, [sl]
     vstr    s17, [sl, #4]
-    bls     .epilog 
+    bls     .epilog
     add     r5, sp, #8
 .tailcase:
     ldr     r3, [r7], #8
@@ -89,7 +89,7 @@ volk_32fc_x2_dot_prod_32fc_neonasm_opttests:
     vadd.f32        s17, s17, s15
     vstr    s16, [sl]
     vstr    s17, [sl, #4]
-    bne     .tailcase 
+    bne     .tailcase
 .epilog:
     add     sp, sp, #52     @ 0x34
     vpop    {d8-d15}

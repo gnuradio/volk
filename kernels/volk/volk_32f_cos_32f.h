@@ -334,7 +334,7 @@ static inline void
 
   number = quarterPoints * 4;
   for(;number < num_points; number++){
-    *bPtr++ = cos(*aPtr++);
+    *bPtr++ = cosf(*aPtr++);
   }
 }
 
@@ -592,7 +592,7 @@ volk_32f_cos_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num
 
   number = quarterPoints * 4;
   for(;number < num_points; number++){
-    *bPtr++ = cos(*aPtr++);
+    *bPtr++ = cosf(*aPtr++);
   }
 }
 
@@ -667,7 +667,7 @@ volk_32f_cos_32f_generic(float* bVector, const float* aVector, unsigned int num_
   unsigned int number = 0;
 
   for(; number < num_points; number++){
-    *bPtr++ = cos(*aPtr++);
+    *bPtr++ = cosf(*aPtr++);
   }
 }
 

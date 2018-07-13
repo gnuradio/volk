@@ -131,7 +131,6 @@ volk_32f_s32f_stddev_32f_a_sse4_1(float* stddev, const float* inputBuffer,
 
 #endif /* LV_HAVE_SSE4_1 */
 
-
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 

@@ -75,33 +75,28 @@ volk_8ic_s32f_deinterleave_real_32f_a_avx2(float* iBuffer, const lv_8sc_t* compl
   const float iScalar= 1.0 / scalar;
   __m256 invScalar = _mm256_set1_ps(iScalar);
   __m256i complexVal, iIntVal;
-  __m128i hcomplexVal;
   int8_t* complexVectorPtr = (int8_t*)complexVector;
 
-  __m256i moveMask = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
-
+  __m256i moveMask = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                                     14, 12, 10, 8, 6, 4, 2, 0,
+                                     0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                                     14, 12, 10, 8, 6, 4, 2, 0);
   for(;number < sixteenthPoints; number++){
-    complexVal = _mm256_load_si256((__m256i*)complexVectorPtr); complexVectorPtr += 32;
+    complexVal = _mm256_load_si256((__m256i*)complexVectorPtr);
+    complexVectorPtr += 32;
     complexVal = _mm256_shuffle_epi8(complexVal, moveMask);
 
-    hcomplexVal = _mm256_extracti128_si256(complexVal,0);
-    iIntVal = _mm256_cvtepi8_epi32(hcomplexVal);
+    iIntVal = _mm256_cvtepi8_epi32(_mm256_castsi256_si128(complexVal));
     iFloatValue = _mm256_cvtepi32_ps(iIntVal);
-
     iFloatValue = _mm256_mul_ps(iFloatValue, invScalar);
-
     _mm256_store_ps(iBufferPtr, iFloatValue);
-
     iBufferPtr += 8;
 
-    hcomplexVal = _mm256_extracti128_si256(complexVal,1);
-    iIntVal = _mm256_cvtepi8_epi32(hcomplexVal);
+    complexVal = _mm256_permute4x64_epi64(complexVal, 0b11000110);
+    iIntVal = _mm256_cvtepi8_epi32(_mm256_castsi256_si128(complexVal));
     iFloatValue = _mm256_cvtepi32_ps(iIntVal);
-
     iFloatValue = _mm256_mul_ps(iFloatValue, invScalar);
-
     _mm256_store_ps(iBufferPtr, iFloatValue);
-
     iBufferPtr += 8;
   }
 
@@ -113,6 +108,7 @@ volk_8ic_s32f_deinterleave_real_32f_a_avx2(float* iBuffer, const lv_8sc_t* compl
 
 }
 #endif /* LV_HAVE_AVX2 */
+
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>

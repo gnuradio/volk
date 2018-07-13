@@ -132,6 +132,7 @@ volk_32f_x2_s32f_interleave_16ic_a_avx2(lv_16sc_t* complexVector, const float* i
 }
 #endif /* LV_HAVE_AVX2 */
 
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
@@ -327,4 +328,6 @@ volk_32f_x2_s32f_interleave_16ic_u_avx2(lv_16sc_t* complexVector, const float* i
   }
 }
 #endif /* LV_HAVE_AVX2 */
+
+
 #endif /* INCLUDED_volk_32f_x2_s32f_interleave_16ic_u_H */

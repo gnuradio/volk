@@ -646,17 +646,17 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_neon ( lv_32fc_t* __restrict re
 
 #endif /*LV_HAVE_NEON*/
 
-#ifdef LV_HAVE_NEON
+#ifdef LV_HAVE_NEONV7
 extern void volk_32fc_32f_dot_prod_32fc_a_neonasm ( lv_32fc_t* result, const  lv_32fc_t* input, const  float* taps, unsigned int num_points);
-#endif /*LV_HAVE_NEON*/
+#endif /*LV_HAVE_NEONV7*/
 
-#ifdef LV_HAVE_NEON
+#ifdef LV_HAVE_NEONV7
 extern void volk_32fc_32f_dot_prod_32fc_a_neonasmvmla ( lv_32fc_t* result, const  lv_32fc_t* input, const  float* taps, unsigned int num_points);
-#endif /*LV_HAVE_NEON*/
+#endif /*LV_HAVE_NEONV7*/
 
-#ifdef LV_HAVE_NEON
+#ifdef LV_HAVE_NEONV7
 extern void volk_32fc_32f_dot_prod_32fc_a_neonpipeline ( lv_32fc_t* result, const  lv_32fc_t* input, const  float* taps, unsigned int num_points);
-#endif /*LV_HAVE_NEON*/
+#endif /*LV_HAVE_NEONV7*/
 
 #ifdef LV_HAVE_SSE
 

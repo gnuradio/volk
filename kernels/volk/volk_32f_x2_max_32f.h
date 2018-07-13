@@ -253,6 +253,7 @@ volk_32f_x2_max_32f_u_orc(float* cVector, const float* aVector,
 
 #endif /* INCLUDED_volk_32f_x2_max_32f_a_H */
 
+
 #ifndef INCLUDED_volk_32f_x2_max_32f_u_H
 #define INCLUDED_volk_32f_x2_max_32f_u_H
 

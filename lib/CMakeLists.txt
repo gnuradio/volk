@@ -201,7 +201,7 @@ if(CPU_IS_x86)
         file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps
           ${CMAKE_CURRENT_BINARY_DIR}/test_cvtpi32_ps.c)
     else(CMAKE_SIZEOF_VOID_P EQUAL 4)
-	    # 64-bit compilations won't need this command so don't overrule AVX 
+	    # 64-bit compilations won't need this command so don't overrule AVX
 	    set(HAVE_AVX_CVTPI32_PS 0)
     endif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 
@@ -248,6 +248,36 @@ if(NOT CPU_IS_x86)
     OVERRULE_ARCH(sse4_2 "Architecture is not x86 or x86_64")
     OVERRULE_ARCH(avx "Architecture is not x86 or x86_64")
 endif(NOT CPU_IS_x86)
+
+########################################################################
+# Select neon based on ARM ISA version
+########################################################################
+
+# First, compile a test program to see if compiler supports neon.
+
+include(CheckCSourceCompiles)
+
+check_c_source_compiles("#include <arm_neon.h>\nint main(){ uint8_t *dest; uint8x8_t res; vst1_u8(dest, res); }"
+	                neon_compile_result)
+
+if(neon_compile_result)
+    check_c_source_compiles("int main(){asm volatile(\"vrev32.8 q0, q0\");}"
+                            have_neonv7_result )
+    check_c_source_compiles("int main(){asm volatile(\"sub v1.4s,v1.4s,v1.4s\");}"
+                            have_neonv8_result )
+
+    if (have_neonv7_result)
+        OVERRULE_ARCH(neonv8 "CPU is armv7")
+    endif()
+
+    if (have_neonv8_result)
+        OVERRULE_ARCH(neonv7 "CPU is armv8")
+    endif()
+else(neon_compile_result)
+    OVERRULE_ARCH(neon "Compiler doesn't support NEON")
+    OVERRULE_ARCH(neonv7 "Compiler doesn't support NEON")
+    OVERRULE_ARCH(neonv8 "Compiler doesn't support NEON")
+endif(neon_compile_result)
 
 ########################################################################
 # implement overruling in the ORC case,
@@ -405,7 +435,7 @@ string(REPLACE "\n" " \\n" COMPILER_INFO ${COMPILER_INFO})
 #  on by default, but let users turn it off
 ########################################################################
 if(${CMAKE_VERSION} VERSION_GREATER "2.8.9")
-  set(ASM_ARCHS_AVAILABLE "neon")
+  set(ASM_ARCHS_AVAILABLE "neonv7" "neonv8")
 
   set(FULL_C_FLAGS "${CMAKE_C_FLAGS}" "${CMAKE_CXX_COMPILER_ARG1}")
 
@@ -414,7 +444,7 @@ if(${CMAKE_VERSION} VERSION_GREATER "2.8.9")
   # set up the assembler flags and include the source files
   foreach(ARCH ${ASM_ARCHS_AVAILABLE})
       string(REGEX MATCH "${ARCH}" ASM_ARCH "${available_archs}")
-    if( ASM_ARCH STREQUAL "neon" )
+    if( ASM_ARCH STREQUAL "neonv7" )
       message(STATUS "---- Adding ASM files") # we always use ATT syntax
       message(STATUS "-- Detected neon architecture; enabling ASM")
       # setup architecture specific assembler flags
@@ -619,10 +649,15 @@ if(ENABLE_TESTING)
     )
 
     include(VolkAddTest)
-    VOLK_ADD_TEST(volk_test_all
+    VOLK_GEN_TEST("volk_test_all"
         SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
-                       ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
         TARGET_DEPS volk
-    )
+      )
+    foreach(kernel ${h_files})
+      get_filename_component(kernel ${kernel} NAME)
+      string(REPLACE ".h" "" kernel ${kernel})
+      VOLK_ADD_TEST(${kernel} "volk_test_all")
+    endforeach()
 
 endif(ENABLE_TESTING)

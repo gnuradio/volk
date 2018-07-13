@@ -121,7 +121,7 @@ volk_32f_s32f_convert_8i_u_avx2(int8_t* outputVector, const float* inputVector,
     intInputVal3 = _mm256_permute4x64_epi64(intInputVal3, 0b11011000);
 
     intInputVal1 = _mm256_packs_epi16(intInputVal1, intInputVal3);
-    intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);//00100111);
+    intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
 
     _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal);
     outputVectorPtr += 32;
@@ -337,7 +337,7 @@ volk_32f_s32f_convert_8i_a_avx2(int8_t* outputVector, const float* inputVector,
     intInputVal3 = _mm256_permute4x64_epi64(intInputVal3, 0b11011000);
 
     intInputVal1 = _mm256_packs_epi16(intInputVal1, intInputVal3);
-    intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);//00100111);
+    intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
 
     _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal);
     outputVectorPtr += 32;

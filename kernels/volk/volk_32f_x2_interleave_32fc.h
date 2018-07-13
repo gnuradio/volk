@@ -118,8 +118,8 @@ volk_32f_x2_interleave_32fc_a_avx(lv_32fc_t* complexVector, const float* iBuffer
     *complexVectorPtr++ = *qBufferPtr++;
   }
 }
-#endif /* LV_HAVE_AVX */
 
+#endif /* LV_HAV_AVX */
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>

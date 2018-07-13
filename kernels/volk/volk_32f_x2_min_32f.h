@@ -257,6 +257,7 @@ volk_32f_x2_min_32f_a_avx512f(float* cVector, const float* aVector,
 
 #endif /* INCLUDED_volk_32f_x2_min_32f_a_H */
 
+
 #ifndef INCLUDED_volk_32f_x2_min_32f_u_H
 #define INCLUDED_volk_32f_x2_min_32f_u_H
 

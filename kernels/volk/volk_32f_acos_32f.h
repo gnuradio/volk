@@ -264,7 +264,7 @@ volk_32f_acos_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
 
   number = quarterPoints * 4;
   for(;number < num_points; number++){
-    *bPtr++ = acos(*aPtr++);
+    *bPtr++ = acosf(*aPtr++);
   }
 }
 
@@ -464,7 +464,7 @@ volk_32f_acos_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
 
   number = quarterPoints * 4;
   for(;number < num_points; number++){
-    *bPtr++ = acos(*aPtr++);
+    *bPtr++ = acosf(*aPtr++);
   }
 }
 
@@ -480,7 +480,7 @@ volk_32f_acos_32f_generic(float* bVector, const float* aVector, unsigned int num
   unsigned int number = 0;
 
   for(number = 0; number < num_points; number++){
-    *bPtr++ = acos(*aPtr++);
+    *bPtr++ = acosf(*aPtr++);
   }
 
 }

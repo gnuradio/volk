@@ -36,6 +36,7 @@ include_directories(
 add_executable(volk_profile
     ${CMAKE_CURRENT_SOURCE_DIR}/volk_profile.cc
     ${PROJECT_SOURCE_DIR}/lib/qa_utils.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc
 )
 
 
@@ -53,13 +54,14 @@ install(
 )
 
 # MAKE volk-config-info
-add_executable(volk-config-info volk-config-info.cc)
+add_executable(volk-config-info volk-config-info.cc ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc
+        )
 
 if(ENABLE_STATIC_LIBS)
-    target_link_libraries(volk-config-info volk_static ${Boost_LIBRARIES})
+    target_link_libraries(volk-config-info volk_static)
     set_target_properties(volk-config-info PROPERTIES LINK_FLAGS "-static")
 else()
-    target_link_libraries(volk-config-info volk ${Boost_LIBRARIES})
+    target_link_libraries(volk-config-info volk)
 endif()
 
 install(

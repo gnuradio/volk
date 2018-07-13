@@ -20,166 +20,96 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "qa_utils.h"
-#include "kernel_tests.h"
+#include <boost/filesystem/operations.hpp>   // for create_directories, exists
+#include <boost/filesystem/path.hpp>         // for path, operator<<
+#include <boost/filesystem/path_traits.hpp>  // for filesystem
+#include <stddef.h>                          // for size_t
+#include <sys/stat.h>                        // for stat
+#include <volk/volk_prefs.h>                 // for volk_get_config_path
+#include <iostream>                          // for operator<<, basic_ostream
+#include <fstream>                           // IWYU pragma: keep
+#include <map>                               // for map, map<>::iterator
+#include <utility>                           // for pair
+#include <vector>                            // for vector, vector<>::const_...
+
+#include "kernel_tests.h"                    // for init_test_list
+#include "qa_utils.h"                        // for volk_test_results_t, vol...
+#include "volk/volk_complex.h"               // for lv_32fc_t
+#include "volk_option_helpers.h"             // for option_list, option_t
 #include "volk_profile.h"
 
-#include <volk/volk.h>
-#include <volk/volk_prefs.h>
-
-#include <ciso646>
-#include <vector>
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-#include <boost/xpressive/xpressive.hpp>
-#include <iostream>
-#include <fstream>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 namespace fs = boost::filesystem;
 
-int main(int argc, char *argv[]) {
-    // Adding program options
-    boost::program_options::options_description desc("Options");
-    desc.add_options()
-      ("help,h", "Print help messages")
-      ("benchmark,b",
-            boost::program_options::value<bool>()->default_value( false )
-                                                ->implicit_value( true ),
-            "Run all kernels (benchmark mode)")
-      ("tol,t",
-            boost::program_options::value<float>()->default_value( 1e-6 ),
-            "Set the default error tolerance for tests")
-      ("vlen,v",
-            boost::program_options::value<int>()->default_value( 131071 ),
-            "Set the default vector length for tests") // default is a mersenne prime
-      ("iter,i",
-            boost::program_options::value<int>()->default_value( 1987 ),
-            "Set the default number of test iterations per kernel")
-      ("tests-regex,R",
-            boost::program_options::value<std::string>(),
-            "Run tests matching regular expression.")
-      ("update,u",
-            boost::program_options::value<bool>()->default_value( false )
-                                                     ->implicit_value( true ),
-            "Run only kernels missing from config; use -R to further restrict the candidates")
-      ("dry-run,n",
-            boost::program_options::value<bool>()->default_value( false )
-                                                     ->implicit_value( true ),
-            "Dry run. Respect other options, but don't write to file")
-      ("json,j",
-            boost::program_options::value<std::string>(),
-            "JSON output file")
-      ("path,p",
-            boost::program_options::value<std::string>(),
-            "Specify volk_config path.")
-      ;
+volk_test_params_t test_params(1e-6f, 327.f, 131071, 1987, false, "");
 
-    // Handle the options that were given
-    boost::program_options::variables_map vm;
-    bool benchmark_mode;
-    std::string kernel_regex;
+void set_benchmark(bool val) { test_params.set_benchmark(val); }
+void set_tolerance(float val) { test_params.set_tol(val); }
+void set_vlen(int val) { test_params.set_vlen((unsigned int)val); }
+void set_iter(int val) { test_params.set_iter((unsigned int)val); }
+void set_substr(std::string val) { test_params.set_regex(val); }
+bool update_mode = false;
+void set_update(bool val) { update_mode = val; }
+bool dry_run = false;
+void set_dryrun(bool val) { dry_run = val; }
+std::string json_filename("");
+void set_json(std::string val) { json_filename = val; }
+std::string volk_config_path("");
+void set_volk_config(std::string val) { volk_config_path = val; }
+
+int main(int argc, char *argv[]) {
+
+    option_list profile_options("volk_profile");
+    profile_options.add(option_t("benchmark", "b", "Run all kernels (benchmark mode)", set_benchmark));
+    profile_options.add(option_t("tol", "t", "Set the default tolerance for all tests", set_tolerance));
+    profile_options.add(option_t("vlen", "v", "Set the default vector length for tests", set_vlen));
+    profile_options.add((option_t("iter", "i", "Set the default number of test iterations per kernel", set_iter)));
+    profile_options.add((option_t("tests-substr", "R", "Run tests matching substring", set_substr)));
+    profile_options.add((option_t("update", "u", "Run only kernels missing from config", set_update)));
+    profile_options.add((option_t("dry-run", "n", "Dry run. Respect other options, but don't write to file", set_dryrun)));
+    profile_options.add((option_t("json", "j", "Write results to JSON file named as argument value", set_json)));
+    profile_options.add((option_t("path", "p", "Specify the volk_config path", set_volk_config)));
+    profile_options.parse(argc, argv);
+    
+    if (profile_options.present("help")) {
+        return 0;
+    }
+
+    if(dry_run) {
+        std::cout << "Warning: this IS a dry-run. Config will not be written!" << std::endl;
+    }
+
+    // Adding program options
     std::ofstream json_file;
-    float def_tol;
-    lv_32fc_t def_scalar;
-    int def_iter;
-    int def_vlen;
-    bool def_benchmark_mode;
-    std::string def_kernel_regex;
-    bool update_mode = false;
-    bool dry_run = false;
     std::string config_file;
 
-    // Handle the provided options
-    try {
-        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
-        boost::program_options::notify(vm);
-        benchmark_mode = vm.count("benchmark")?vm["benchmark"].as<bool>():false;
-        if ( vm.count("tests-regex" ) ) {
-            kernel_regex = vm["tests-regex"].as<std::string>();
-        }
-        else {
-            kernel_regex = ".*";
-        }
-
-        def_tol = vm["tol"].as<float>();
-        def_scalar = 327.0;
-        def_vlen = vm["vlen"].as<int>();
-        def_iter = vm["iter"].as<int>();
-        def_benchmark_mode = benchmark_mode;
-        def_kernel_regex = kernel_regex;
-        update_mode = vm["update"].as<bool>();
-        dry_run = vm["dry-run"].as<bool>();
-    }
-    catch (boost::program_options::error& error) {
-        std::cerr << "Error: " << error.what() << std::endl << std::endl;
-        std::cerr << desc << std::endl;
-        return 1;
+    if ( json_filename != "" ) {
+        json_file.open( json_filename.c_str() );
     }
 
-    /** --help option */
-    if ( vm.count("help") ) {
-      std::cout << "The VOLK profiler." << std::endl
-                << desc << std::endl;
-      return 0;
+    if ( volk_config_path != "" ) {
+        config_file = volk_config_path + "/volk_config";
     }
-
-    if ( vm.count("json") ) {
-        std::string filename;
-        try {
-             filename = vm["json"].as<std::string>();
-        }
-        catch (boost::bad_any_cast& error) {
-            std::cerr << error.what() << std::endl;
-            return 1;
-        }
-        json_file.open( filename.c_str() );
-    }
-
-    if ( vm.count("path") ) {
-        try {
-             config_file = vm["path"].as<std::string>() + "/volk_config";
-        }
-        catch (boost::bad_any_cast& error) {
-            std::cerr << error.what() << std::endl;
-            return 1;
-        }
-    }
-
-    volk_test_params_t test_params(def_tol, def_scalar, def_vlen, def_iter,
-        def_benchmark_mode, def_kernel_regex);
 
     // Run tests
     std::vector<volk_test_results_t> results;
     if(update_mode) {
-        if( vm.count("path") ) read_results(&results, config_file);
+        if( config_file != "" ) read_results(&results, config_file);
         else read_results(&results);
     }
 
-
     // Initialize the list of tests
-    // the default test parameters come from options
     std::vector<volk_test_case_t> test_cases = init_test_list(test_params);
-    boost::xpressive::sregex kernel_expression;
-    try {
-        kernel_expression = boost::xpressive::sregex::compile(kernel_regex);
-    }
-    catch (boost::xpressive::regex_error& error) {
-        std::cerr << "Error occured while compiling regex" << std::endl << std::endl;
-        return 1;
-    }
 
-    // Iteratate through list of tests running each one
+    // Iterate through list of tests running each one
+    std::string substr_to_match(test_params.kernel_regex());
     for(unsigned int ii = 0; ii < test_cases.size(); ++ii) {
         bool regex_match = true;
 
         volk_test_case_t test_case = test_cases[ii];
         // if the kernel name matches regex then do the test
-        if(boost::xpressive::regex_search(test_case.name(), kernel_expression)) {
-            regex_match = true;
-        }
-        else {
+        std::string test_case_name = test_case.name();
+        if(test_case_name.find(substr_to_match) == std::string::npos) {
             regex_match = false;
         }
 
@@ -201,22 +131,21 @@ int main(int argc, char *argv[]) {
             run_volk_tests(test_case.desc(), test_case.kernel_ptr(), test_case.name(),
                 test_case.test_parameters(), &results, test_case.puppet_master_name());
             }
-            catch (std::string error) {
+            catch (std::string &error) {
                 std::cerr << "Caught Exception in 'run_volk_tests': " << error << std::endl;
             }
-
         }
     }
 
 
     // Output results according to provided options
-    if(vm.count("json")) {
+    if(json_filename != "") {
         write_json(json_file, results);
         json_file.close();
     }
 
     if(!dry_run) {
-        if(vm.count("path")) write_results(&results, false, config_file);
+        if(config_file != "") write_results(&results, false, config_file);
         else write_results(&results, false);
     }
     else {
@@ -234,11 +163,12 @@ void read_results(std::vector<volk_test_results_t> *results)
 
 void read_results(std::vector<volk_test_results_t> *results, std::string path)
 {
-    const fs::path config_path(path);
+    struct stat buffer;
+    bool config_status = (stat (path.c_str(), &buffer) == 0);
 
-    if(fs::exists(config_path)) {
+    if( config_status ) {
         // a config exists and we are reading results from it
-        std::ifstream config(config_path.string().c_str());
+        std::ifstream config(path.c_str());
         char config_line[256];
         while(config.getline(config_line, 255)) {
             // tokenize the input line by kernel_name unaligned aligned
@@ -249,10 +179,10 @@ void read_results(std::vector<volk_test_results_t> *results, std::string path)
             std::size_t str_size = config_str.size();
             std::size_t found = 1;
 
-            found = config_str.find(" ");
+            found = config_str.find(' ');
             // Split line by spaces
             while(found && found < str_size) {
-                found = config_str.find(" ");
+                found = config_str.find(' ');
                 // kernel names MUST be less than 128 chars, which is
                 // a length restricted by volk/volk_prefs.c
                 // on the last token in the parsed string we won't find a space
@@ -278,7 +208,6 @@ void read_results(std::vector<volk_test_results_t> *results, std::string path)
             }
         }
     }
-
 }
 
 void write_results(const std::vector<volk_test_results_t> *results, bool update_result)
@@ -291,11 +220,14 @@ void write_results(const std::vector<volk_test_results_t> *results, bool update_
 
 void write_results(const std::vector<volk_test_results_t> *results, bool update_result, const std::string path)
 {
-    const fs::path config_path(path);
+//    struct stat buffer;
+//    bool config_status = (stat (path.c_str(), &buffer) == 0);
 
-    // Until we can update the config on a kernel by kernel basis
-    // do not overwrite volk_config when using a regex.
-    if (not fs::exists(config_path.branch_path()))
+    /*
+     * These
+     */
+    const fs::path config_path(path);
+    if (! fs::exists(config_path.branch_path()))
     {
         std::cout << "Creating " << config_path.branch_path() << "..." << std::endl;
         fs::create_directories(config_path.branch_path());
@@ -303,17 +235,17 @@ void write_results(const std::vector<volk_test_results_t> *results, bool update_
 
     std::ofstream config;
     if(update_result) {
-        std::cout << "Updating " << config_path << "..." << std::endl;
-        config.open(config_path.string().c_str(), std::ofstream::app);
+        std::cout << "Updating " << path << "..." << std::endl;
+        config.open(path.c_str(), std::ofstream::app);
         if (!config.is_open()) { //either we don't have write access or we don't have the dir yet
-            std::cout << "Error opening file " << config_path << std::endl;
+            std::cout << "Error opening file " << path << std::endl;
         }
     }
     else {
-        std::cout << "Writing " << config_path << "..." << std::endl;
-        config.open(config_path.string().c_str());
+        std::cout << "Writing " << path << "..." << std::endl;
+        config.open(path.c_str());
         if (!config.is_open()) { //either we don't have write access or we don't have the dir yet
-            std::cout << "Error opening file " << config_path << std::endl;
+            std::cout << "Error opening file " << path << std::endl;
         }
 
         config << "\

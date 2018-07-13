@@ -1,25 +1,21 @@
+#include <volk/volk.h>
 #include "qa_utils.h"
 
-#include <boost/foreach.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/typeof/typeof.hpp>
-#include <boost/type_traits.hpp>
+#include <volk/volk.h>                              // for volk_func_desc_t
+#include <volk/volk_malloc.h>                       // for volk_free, volk_m...
 
-#include <iostream>
-#include <cstring>
-#include <fstream>
-#include <vector>
-#include <map>
-#include <list>
-#include <ctime>
-#include <cmath>
-#include <limits>
-
-#include <volk/volk.h>
-#include <volk/volk_cpu.h>
-#include <volk/volk_common.h>
-#include <volk/volk_malloc.h>
+#include <assert.h>                                 // for assert
+#include <stdint.h>                                 // for uint16_t, uint64_t
+#include <sys/time.h>                               // for CLOCKS_PER_SEC
+#include <sys/types.h>                              // for int16_t, int32_t
+#include <cmath>                                    // for sqrt, fabs, abs
+#include <cstring>                                  // for memcpy, memset
+#include <ctime>                                    // for clock
+#include <fstream>                                  // for operator<<, basic...
+#include <iostream>                                 // for cout, cerr
+#include <limits>                                   // for numeric_limits
+#include <map>                                      // for map, map<>::mappe...
+#include <vector>                                   // for vector, _Bit_refe...
 
 float uniform() {
   return 2.0f * ((float) rand() / RAND_MAX - 0.5f);	// uniformly (-1, 1)
@@ -77,6 +73,22 @@ static std::vector<std::string> get_arch_list(volk_func_desc_t desc) {
     return archlist;
 }
 
+template <typename T>
+T volk_lexical_cast(const std::string& str)
+{
+    for (unsigned int c_index = 0; c_index < str.size(); ++c_index) {
+        if (str.at(c_index) < '0' || str.at(c_index) > '9') {
+            throw "not all numbers!";
+        }
+    }
+    T var;
+    std::istringstream iss;
+    iss.str(str);
+    iss >> var;
+    // deal with any error bits that may have been set on the stream
+    return var;
+}
+
 volk_type_t volk_type_from_string(std::string name) {
     volk_type_t type;
     type.is_float = false;
@@ -102,8 +114,8 @@ volk_type_t volk_type_from_string(std::string name) {
         throw std::string("no size spec in type ").append(name);
     }
     //will throw if malformed
-    int size = boost::lexical_cast<int>(name.substr(0, last_size_pos+1));
-
+    int size = volk_lexical_cast<int>(name.substr(0, last_size_pos+1));
+    
     assert(((size % 8) == 0) && (size <= 64) && (size != 0));
     type.size = size/8; //in bytes
 
@@ -129,14 +141,28 @@ volk_type_t volk_type_from_string(std::string name) {
     return type;
 }
 
+std::vector<std::string> split_signature(const std::string &protokernel_signature) {
+    std::vector<std::string> signature_tokens;
+    std::string token;
+    for (unsigned int loc = 0; loc < protokernel_signature.size(); ++loc) {
+        if (protokernel_signature.at(loc) == '_') {
+            // this is a break
+            signature_tokens.push_back(token);
+            token = "";
+        } else {
+            token.push_back(protokernel_signature.at(loc));
+        }
+    }
+    // Get the last one to the end of the string
+    signature_tokens.push_back(token);
+    return signature_tokens;
+}
+
 static void get_signatures_from_name(std::vector<volk_type_t> &inputsig,
                                    std::vector<volk_type_t> &outputsig,
                                    std::string name) {
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char> > tok(name, sep);
-    std::vector<std::string> toked;
-    tok.assign(name);
-    toked.assign(tok.begin(), tok.end());
+
+    std::vector<std::string> toked = split_signature(name);
 
     assert(toked[0] == "volk");
     toked.erase(toked.begin());
@@ -147,7 +173,8 @@ static void get_signatures_from_name(std::vector<volk_type_t> &inputsig,
     enum { SIDE_INPUT, SIDE_NAME, SIDE_OUTPUT } side = SIDE_INPUT;
     std::string fn_name;
     volk_type_t type;
-    BOOST_FOREACH(std::string token, toked) {
+    for (unsigned int token_index = 0; token_index < toked.size(); ++token_index) {
+        std::string token = toked[token_index];
         try {
             type = volk_type_from_string(token);
             if(side == SIDE_NAME) side = SIDE_OUTPUT; //if this is the first one after the name...
@@ -158,7 +185,7 @@ static void get_signatures_from_name(std::vector<volk_type_t> &inputsig,
             if(token[0] == 'x' && (token.size() > 1) && (token[1] > '0' || token[1] < '9')) { //it's a multiplier
                 if(side == SIDE_INPUT) assert(inputsig.size() > 0);
                 else assert(outputsig.size() > 0);
-                int multiplier = boost::lexical_cast<int>(token.substr(1, token.size()-1)); //will throw if invalid
+                int multiplier = volk_lexical_cast<int>(token.substr(1, token.size()-1)); //will throw if invalid
                 for(int i=1; i<multiplier; i++) {
                     if(side == SIDE_INPUT) inputsig.push_back(inputsig.back());
                     else outputsig.push_back(outputsig.back());
@@ -373,7 +400,7 @@ bool run_volk_tests(volk_func_desc_t desc,
     try {
         get_signatures_from_name(inputsig, outputsig, name);
     }
-    catch (boost::bad_lexical_cast& error) {
+    catch (std::exception &error) {
         std::cerr << "Error: unable to get function signature from kernel name" << std::endl;
         std::cerr << "  - " << name << std::endl;
         return false;
@@ -389,7 +416,8 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
     std::vector<void *> inbuffs;
-    BOOST_FOREACH(volk_type_t sig, inputsig) {
+    for (unsigned int inputsig_index = 0; inputsig_index < inputsig.size(); ++ inputsig_index) {
+        volk_type_t sig = inputsig[inputsig_index];
         if(!sig.is_scalar) //we don't make buffers for scalars
           inbuffs.push_back(mem_pool.get_new(vlen*sig.size*(sig.is_complex ? 2 : 1)));
     }
