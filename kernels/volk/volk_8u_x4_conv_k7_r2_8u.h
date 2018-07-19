@@ -215,9 +215,9 @@ volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y, unsigned char* X,
       ((__m256i  *) Y)[1] = _mm256_subs_epu8(((__m256i  *) Y)[1], m6);
     }
     unsigned char a188, a194;
-    int a186, a205;
+    int a205;
     int s48, s54;
-    unsigned char  *a187, *a193, *b15;
+    unsigned char  *a187, *a193;
     int  *a204, *a206, *a223, *b16;
     __m256i  *a184, *a185, *a190, *a196, *a208, *a225;
     __m256i a199, a200;

@@ -98,7 +98,6 @@ volk_32fc_index_max_32u_a_avx2(uint32_t* target, lv_32fc_t* src0,
   holderi.int_vec = holder1 = _mm256_setzero_si256();
 
   int bound = num_bytes >> 6;
-  int leftovers0 = (num_bytes >> 5) & 1;
   int leftovers1 = (num_bytes >> 4) & 1;
   int i = 0;
 
@@ -416,7 +415,6 @@ volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
   holderi.int_vec = holder1 = _mm256_setzero_si256();
 
   int bound = num_bytes >> 6;
-  int leftovers0 = (num_bytes >> 5) & 1;
   int leftovers1 = (num_bytes >> 4) & 1;
   int i = 0;
 
