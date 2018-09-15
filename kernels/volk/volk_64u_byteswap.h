@@ -238,6 +238,39 @@ static inline void volk_64u_byteswap_a_ssse3(uint64_t* intsToSwap, unsigned int 
 #endif /* LV_HAVE_SSSE3 */
 
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_64u_byteswap_neonv8(uint64_t* intsToSwap, unsigned int num_points){
+  uint32_t* inputPtr = (uint32_t*)intsToSwap;
+  const unsigned int n4points = num_points / 4;
+  uint8x16x2_t input;
+  uint8x16_t idx = { 7,6,5,4, 3,2,1,0, 15,14,13,12, 11,10,9,8 };
+
+  unsigned int number = 0;
+  for(number = 0; number < n4points; ++number){
+    __VOLK_PREFETCH(inputPtr+8);
+    input = vld2q_u8((uint8_t*) inputPtr);
+    input.val[0] = vqtbl1q_u8(input.val[0], idx);
+    input.val[1] = vqtbl1q_u8(input.val[1], idx);
+    vst2q_u8((uint8_t*) inputPtr, input);
+
+    inputPtr += 8;
+  }
+
+  for(number = n4points * 4; number < num_points; ++number){
+    uint32_t output1 = *inputPtr;
+    uint32_t output2 =  inputPtr[1];
+
+    output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) | ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
+    output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) | ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
+
+    *inputPtr++ = output2;
+    *inputPtr++ = output1;
+  }
+
+}
+#else
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
@@ -290,7 +323,7 @@ static inline void volk_64u_byteswap_neon(uint64_t* intsToSwap, unsigned int num
 
 }
 #endif /* LV_HAVE_NEON */
-
+#endif
 
 #endif /* INCLUDED_volk_64u_byteswap_u_H */
 #ifndef INCLUDED_volk_64u_byteswap_a_H
