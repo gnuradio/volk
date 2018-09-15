@@ -166,7 +166,7 @@ volk_16i_max_star_horizontal_16i_neon(int16_t* target, int16_t* src0, unsigned i
   int16x8x2_t input_vec;
   int16x8_t diff, max_vec, zeros;
   uint16x8_t comp1, comp2;
-  zeros = veorq_s16(zeros, zeros);
+  zeros = vdupq_n_s16(0);
   for(number=0; number < eighth_points; ++number) {
     input_vec = vld2q_s16(src0);
     //__VOLK_PREFETCH(src0+16);

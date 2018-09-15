@@ -129,7 +129,7 @@ volk_16i_max_star_16i_neon(short* target, short* src0, unsigned int num_points)
   int16x8_t input_vec;
   int16x8_t diff, zeros;
   uint16x8_t comp1, comp2;
-  zeros = veorq_s16(zeros, zeros);
+  zeros = vdupq_n_s16(0);
 
   int16x8x2_t tmpvec;
 
