@@ -297,13 +297,13 @@ static inline void volk_32fc_s32fc_multiply_32fc_neon(lv_32fc_t* cVector, const 
         tmp_imag.val[1] = vmlaq_f32(tmp_imag.val[1], a_val.val[0], scalar_val.val[1]);
         tmp_imag.val[0] = vmlsq_f32(tmp_imag.val[0], a_val.val[1], scalar_val.val[1]);
 
-        vst2q_f32((float*)cVector, tmp_imag);
+        vst2q_f32((float*)cPtr, tmp_imag);
         aPtr += 4;
-        cVector += 4;
+        cPtr += 4;
     }
 
     for(number = quarter_points*4; number < num_points; number++){
-      *cVector++ = *aPtr++ * scalar;
+      *cPtr++ = *aPtr++ * scalar;
     }
 }
 #endif /* LV_HAVE_NEON */

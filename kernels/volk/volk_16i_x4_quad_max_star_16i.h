@@ -218,7 +218,7 @@ volk_16i_x4_quad_max_star_16i_neon(short* target, short* src0, short* src1,
   int16x8_t comp0, comp1, comp2, comp3;
   int16x8_t result1_vec, result2_vec;
   int16x8_t zeros;
-  zeros = veorq_s16(zeros, zeros);
+  zeros = vdupq_n_s16(0);
   for(i=0; i < eighth_points; ++i) {
     src0_vec = vld1q_s16(src0);
     src1_vec = vld1q_s16(src1);
