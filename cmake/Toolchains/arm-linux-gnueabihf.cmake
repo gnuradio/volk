@@ -24,6 +24,8 @@ get_filename_component(ARM_TOOLCHAIN_DIR ${BINUTILS_PATH} DIRECTORY)
 set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}gcc)
 set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
 set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++)
+## the following is needed for CheckCSourceCompiles used in lib/CMakeLists.txt
+set(CMAKE_C_FLAGS "-mfpu=neon" CACHE STRING "" FORCE)
 
 set(CMAKE_OBJCOPY ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}objcopy CACHE INTERNAL "objcopy tool")
 set(CMAKE_SIZE_UTIL ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}size CACHE INTERNAL "size tool")
