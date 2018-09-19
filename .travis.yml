@@ -26,7 +26,7 @@ matrix:
     # Job 5 ... gcc-7
     - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-7]}}
-    # Job 6 ... ARM cross compile (gcc-4.8)
+    # Job 6 ... ARMv7 cross compile (gcc-4.8)
     - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8 && BOOST_ROOT=$TRAVIS_BUILD_DIR/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm-linux-gnueabihf.cmake"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-arm-linux-gnueabihf, qemu-user]}}
       before_script:
@@ -36,6 +36,17 @@ matrix:
         - ./bootstrap.sh
         - echo "using gcc" ":" "arm" ":" "arm-linux-gnueabihf-g++ ;" > user-config.jam
         - BOOST_BUILD_PATH=./ ./b2 toolset=gcc-arm --with-system --with-filesystem
+        - cd ..
+    # Job 6 ... ARMv8 (aarch64) cross compile (gcc-4.8)
+    - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8 && BOOST_ROOT=$TRAVIS_BUILD_DIR/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/aarch64-linux-gnu.cmake"
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-aarch64-linux-gnu, qemu-user]}}
+      before_script:
+        - wget --no-check-certificate https://sourceforge.net/projects/boost/files/boost/1.66.0/boost_1_66_0.tar.bz2
+        - tar xvf boost_1_66_0.tar.bz2 2>&1 | tail -10
+        - cd boost_1_66_0
+        - ./bootstrap.sh
+        - echo "using gcc" ":" "aarch64" ":" "aarch64-linux-gnu-g++ ;" > user-config.jam
+        - BOOST_BUILD_PATH=./ ./b2 toolset=gcc-aarch64 --with-system --with-filesystem
         - cd ..
     # Job 7 .. clang
     - env: MATRIX_EVAL="CC=\"clang -fprofile-instr-generate -fcoverage-mapping\" && CXX=\"clang++ -fprofile-instr-generate -fcoverage-mapping\""
