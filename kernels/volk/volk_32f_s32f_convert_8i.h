@@ -110,10 +110,10 @@ volk_32f_s32f_convert_8i_u_avx2(int8_t* outputVector, const float* inputVector,
     inputVal3 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal3, vScalar), vmax_val), vmin_val);
     inputVal4 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal4, vScalar), vmax_val), vmin_val);
 
-    intInputVal1 = _mm256_cvtps_epi32(inputVal1);
-    intInputVal2 = _mm256_cvtps_epi32(inputVal2);
-    intInputVal3 = _mm256_cvtps_epi32(inputVal3);
-    intInputVal4 = _mm256_cvtps_epi32(inputVal4);
+    intInputVal1 = _mm256_cvttps_epi32(inputVal1);
+    intInputVal2 = _mm256_cvttps_epi32(inputVal2);
+    intInputVal3 = _mm256_cvttps_epi32(inputVal3);
+    intInputVal4 = _mm256_cvttps_epi32(inputVal4);
 
     intInputVal1 = _mm256_packs_epi32(intInputVal1, intInputVal2);
     intInputVal1 = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
@@ -176,10 +176,10 @@ volk_32f_s32f_convert_8i_u_sse2(int8_t* outputVector, const float* inputVector,
     inputVal3 = _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal3, vScalar), vmax_val), vmin_val);
     inputVal4 = _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal4, vScalar), vmax_val), vmin_val);
 
-    intInputVal1 = _mm_cvtps_epi32(inputVal1);
-    intInputVal2 = _mm_cvtps_epi32(inputVal2);
-    intInputVal3 = _mm_cvtps_epi32(inputVal3);
-    intInputVal4 = _mm_cvtps_epi32(inputVal4);
+    intInputVal1 = _mm_cvttps_epi32(inputVal1);
+    intInputVal2 = _mm_cvttps_epi32(inputVal2);
+    intInputVal3 = _mm_cvttps_epi32(inputVal3);
+    intInputVal4 = _mm_cvttps_epi32(inputVal4);
 
     intInputVal1 = _mm_packs_epi32(intInputVal1, intInputVal2);
     intInputVal3 = _mm_packs_epi32(intInputVal3, intInputVal4);
@@ -326,10 +326,10 @@ volk_32f_s32f_convert_8i_a_avx2(int8_t* outputVector, const float* inputVector,
     inputVal3 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal3, vScalar), vmax_val), vmin_val);
     inputVal4 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal4, vScalar), vmax_val), vmin_val);
 
-    intInputVal1 = _mm256_cvtps_epi32(inputVal1);
-    intInputVal2 = _mm256_cvtps_epi32(inputVal2);
-    intInputVal3 = _mm256_cvtps_epi32(inputVal3);
-    intInputVal4 = _mm256_cvtps_epi32(inputVal4);
+    intInputVal1 = _mm256_cvttps_epi32(inputVal1);
+    intInputVal2 = _mm256_cvttps_epi32(inputVal2);
+    intInputVal3 = _mm256_cvttps_epi32(inputVal3);
+    intInputVal4 = _mm256_cvttps_epi32(inputVal4);
 
     intInputVal1 = _mm256_packs_epi32(intInputVal1, intInputVal2);
     intInputVal1 = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
@@ -392,10 +392,10 @@ volk_32f_s32f_convert_8i_a_sse2(int8_t* outputVector, const float* inputVector,
     inputVal3 = _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal3, vScalar), vmax_val), vmin_val);
     inputVal4 = _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal4, vScalar), vmax_val), vmin_val);
 
-    intInputVal1 = _mm_cvtps_epi32(inputVal1);
-    intInputVal2 = _mm_cvtps_epi32(inputVal2);
-    intInputVal3 = _mm_cvtps_epi32(inputVal3);
-    intInputVal4 = _mm_cvtps_epi32(inputVal4);
+    intInputVal1 = _mm_cvttps_epi32(inputVal1);
+    intInputVal2 = _mm_cvttps_epi32(inputVal2);
+    intInputVal3 = _mm_cvttps_epi32(inputVal3);
+    intInputVal4 = _mm_cvttps_epi32(inputVal4);
 
     intInputVal1 = _mm_packs_epi32(intInputVal1, intInputVal2);
     intInputVal3 = _mm_packs_epi32(intInputVal3, intInputVal4);
