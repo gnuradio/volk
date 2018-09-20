@@ -101,7 +101,7 @@ volk_32f_s32f_convert_32i_u_sse2(int32_t* outputVector, const float* inputVector
     inputVal1 = _mm_loadu_ps(inputVectorPtr); inputVectorPtr += 4;
 
     inputVal1 = _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
-    intInputVal1 = _mm_cvtps_epi32(inputVal1);
+    intInputVal1 = _mm_cvttps_epi32(inputVal1);
 
     _mm_storeu_si128((__m128i*)outputVectorPtr, intInputVal1);
     outputVectorPtr += 4;
@@ -236,7 +236,7 @@ volk_32f_s32f_convert_32i_a_avx(int32_t* outputVector, const float* inputVector,
     inputVal1 = _mm256_load_ps(inputVectorPtr); inputVectorPtr += 8;
 
     inputVal1 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
-    intInputVal1 = _mm256_cvtps_epi32(inputVal1);
+    intInputVal1 = _mm256_cvttps_epi32(inputVal1);
 
     _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal1);
     outputVectorPtr += 8;
@@ -284,7 +284,7 @@ volk_32f_s32f_convert_32i_a_sse2(int32_t* outputVector, const float* inputVector
     inputVal1 = _mm_load_ps(inputVectorPtr); inputVectorPtr += 4;
 
     inputVal1 = _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
-    intInputVal1 = _mm_cvtps_epi32(inputVal1);
+    intInputVal1 = _mm_cvttps_epi32(inputVal1);
 
     _mm_store_si128((__m128i*)outputVectorPtr, intInputVal1);
     outputVectorPtr += 4;
