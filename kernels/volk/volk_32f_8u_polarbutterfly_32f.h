@@ -305,20 +305,14 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
-
-/*
- * https://software.intel.com/sites/landingpage/IntrinsicsGuide/#
- * lists '__m256 _mm256_loadu2_m128 (float const* hiaddr, float const* loaddr)'.
- * But GCC 4.8.4 doesn't know about it. Or headers are missing or something. Anyway, it doesn't compile :(
- * This is what I want: llr0 = _mm256_loadu2_m128(src_llr_ptr, src_llr_ptr + 8);
- * also useful but missing: _mm256_set_m128(hi, lo)
- */
+#include <volk/volk_avx_intrinsics.h>
 
 static inline void
 volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
-    const int frame_size, const int frame_exp,
+    const int frame_exp,
     const int stage, const int u_num, const int row)
 {
+  const int frame_size = 0x01 << frame_exp;
   if(row % 2){ // for odd rows just do the only necessary calculation and return.
     const float* next_llrs = llrs + frame_size + row;
     *(llrs + row) = llr_even(*(next_llrs - 1), *next_llrs, u[u_num - 1]);
@@ -338,8 +332,6 @@ volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
   float* dst_llr_ptr;
 
   __m256 src0, src1, dst;
-  __m256 part0, part1;
-  __m256 llr0, llr1;
 
   if(row){ // not necessary for ZERO row. == first bit to be decoded.
     // first do bit combination for all stages
@@ -350,7 +342,7 @@ volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
 
     if(stage_size > 15){
       _mm256_zeroupper();
-      volk_8u_x2_encodeframepolar_8u_u_avx2(u_target, u_temp, stage_size);
+      volk_8u_x2_encodeframepolar_8u_u_ssse3(u_target, u_temp, stage_size);
     }
     else{
       volk_8u_x2_encodeframepolar_8u_generic(u_target, u_temp, stage_size);
@@ -359,13 +351,7 @@ volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
     src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
     dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
 
-    const __m128i zeros = _mm_set1_epi8(0x00);
-    const __m128i sign_extract = _mm_set1_epi8(0x80);
-    const __m256i shuffle_mask = _mm256_setr_epi8(0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x01, 0xff, 0xff, 0xff, 0x02, 0xff, 0xff, 0xff, 0x03,
-                                                 0xff, 0xff, 0xff, 0x04, 0xff, 0xff, 0xff, 0x05, 0xff, 0xff, 0xff, 0x06, 0xff, 0xff, 0xff, 0x07);
     __m128i fbits;
-    __m256i sign_bits;
-    __m256 sign_mask;
 
     int p;
     for(p = 0; p < stage_size; p += 8){
@@ -373,28 +359,11 @@ volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
       fbits = _mm_loadu_si128((__m128i*) u_target);
       u_target += 8;
 
-      // prepare sign mask for correct +-
-      fbits = _mm_cmpgt_epi8(fbits, zeros);
-      fbits = _mm_and_si128(fbits, sign_extract);
-      sign_bits = _mm256_insertf128_si256(sign_bits,fbits,0);
-      sign_bits = _mm256_insertf128_si256(sign_bits,fbits,1);
-      sign_bits = _mm256_shuffle_epi8(sign_bits, shuffle_mask);
-
       src0 = _mm256_loadu_ps(src_llr_ptr);
       src1 = _mm256_loadu_ps(src_llr_ptr + 8);
       src_llr_ptr += 16;
 
-      sign_mask = _mm256_castsi256_ps(sign_bits);
-
-      // deinterleave values
-      part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
-      part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
-      llr0 = _mm256_shuffle_ps(part0, part1, 0x88);
-      llr1 = _mm256_shuffle_ps(part0, part1, 0xdd);
-
-      // calculate result
-      llr0 = _mm256_xor_ps(llr0, sign_mask);
-      dst = _mm256_add_ps(llr0, llr1);
+      dst = _mm256_polar_fsign_add_llrs_avx2(src0, src1, fbits);
 
       _mm256_storeu_ps(dst_llr_ptr, dst);
       dst_llr_ptr += 8;
@@ -405,9 +374,8 @@ volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
   }
 
   const int min_stage = stage > 2 ? stage : 2;
-  const __m256 sign_mask = _mm256_set1_ps(-0.0);
-  const __m256 abs_mask = _mm256_andnot_ps(sign_mask, _mm256_castsi256_ps(_mm256_set1_epi8(0xff)));
-  __m256 sign;
+
+  _mm256_zeroall(); // Important to clear cache!
 
   int el;
   while(min_stage < loop_stage){
@@ -419,16 +387,7 @@ volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
       src1 = _mm256_loadu_ps(src_llr_ptr);
       src_llr_ptr += 8;
 
-      // deinterleave values
-      part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
-      part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
-      llr0 = _mm256_shuffle_ps(part0, part1, 0x88);
-      llr1 = _mm256_shuffle_ps(part0, part1, 0xdd);
-
-      // calculate result
-      sign = _mm256_xor_ps(_mm256_and_ps(llr0, sign_mask), _mm256_and_ps(llr1, sign_mask));
-      dst = _mm256_min_ps(_mm256_and_ps(llr0, abs_mask), _mm256_and_ps(llr1, abs_mask));
-      dst = _mm256_or_ps(dst, sign);
+      dst = _mm256_polar_minsum_llrs(src0, src1);
 
       _mm256_storeu_ps(dst_llr_ptr, dst);
       dst_llr_ptr += 8;
