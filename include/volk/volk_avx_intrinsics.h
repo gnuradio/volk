@@ -88,23 +88,6 @@ _mm256_polar_sign_mask(__m128i fbits){
 //  return _mm256_set_m128(_mm_castsi128_ps(sign_bits1), _mm_castsi128_ps(sign_bits0));
 }
 
-static inline __m256
-_mm256_polar_sign_mask_avx2(__m128i fbits){
-  const __m128i zeros = _mm_set1_epi8(0x00);
-  const __m128i sign_extract = _mm_set1_epi8(0x80);
-  const __m256i shuffle_mask = _mm256_setr_epi8(0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x01, 0xff, 0xff, 0xff, 0x02, 0xff, 0xff, 0xff, 0x03,
-                                                 0xff, 0xff, 0xff, 0x04, 0xff, 0xff, 0xff, 0x05, 0xff, 0xff, 0xff, 0x06, 0xff, 0xff, 0xff, 0x07);
-  __m256i sign_bits;
-  
-  fbits = _mm_cmpgt_epi8(fbits, zeros);
-  fbits = _mm_and_si128(fbits, sign_extract);
-  sign_bits = _mm256_insertf128_si256(sign_bits,fbits,0);
-  sign_bits = _mm256_insertf128_si256(sign_bits,fbits,1);
-  sign_bits = _mm256_shuffle_epi8(sign_bits, shuffle_mask);
-
-  return _mm256_castsi256_ps(sign_bits);
-}
-
 static inline void
 _mm256_polar_deinterleave(__m256 *llr0, __m256 *llr1, __m256 src0, __m256 src1){
     // deinterleave values
@@ -142,17 +125,4 @@ _mm256_polar_fsign_add_llrs(__m256 src0, __m256 src1, __m128i fbits){
     return dst;
 }
 
-static inline __m256
-_mm256_polar_fsign_add_llrs_avx2(__m256 src0, __m256 src1, __m128i fbits){
-    // prepare sign mask for correct +-
-    __m256 sign_mask = _mm256_polar_sign_mask_avx2(fbits);
-
-    __m256 llr0, llr1;
-    _mm256_polar_deinterleave(&llr0, &llr1, src0, src1);
-
-    // calculate result
-    llr0 = _mm256_xor_ps(llr0, sign_mask);
-    __m256 dst = _mm256_add_ps(llr0, llr1);
-    return dst;
-}
 #endif /* INCLUDE_VOLK_VOLK_AVX_INTRINSICS_H_ */

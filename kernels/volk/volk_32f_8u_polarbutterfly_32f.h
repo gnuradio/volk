@@ -305,7 +305,7 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
-#include <volk/volk_avx_intrinsics.h>
+#include <volk/volk_avx2_intrinsics.h>
 
 static inline void
 volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
