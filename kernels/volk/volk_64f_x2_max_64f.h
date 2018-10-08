@@ -74,6 +74,45 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void
+volk_64f_x2_max_64f_a_avx512f(double* cVector, const double* aVector,
+                           const double* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eigthPoints = num_points / 8;
+
+  double* cPtr = cVector;
+  const double* aPtr = aVector;
+  const double* bPtr=  bVector;
+
+  __m512d aVal, bVal, cVal;
+  for(;number < eigthPoints; number++){
+
+    aVal = _mm512_load_pd(aPtr);
+    bVal = _mm512_load_pd(bPtr);
+
+    cVal = _mm512_max_pd(aVal, bVal);
+
+    _mm512_store_pd(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 8;
+    bPtr += 8;
+    cPtr += 8;
+  }
+
+  number = eigthPoints * 8;
+  for(;number < num_points; number++){
+    const double a = *aPtr++;
+    const double b = *bPtr++;
+    *cPtr++ = ( a > b ? a : b);
+  }
+}
+#endif /* LV_HAVE_AVX512F */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -180,6 +219,45 @@ volk_64f_x2_max_64f_generic(double* cVector, const double* aVector,
 
 #include <inttypes.h>
 #include <stdio.h>
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void
+volk_64f_x2_max_64f_u_avx512f(double* cVector, const double* aVector,
+                           const double* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eigthPoints = num_points / 8;
+
+  double* cPtr = cVector;
+  const double* aPtr = aVector;
+  const double* bPtr=  bVector;
+
+  __m512d aVal, bVal, cVal;
+  for(;number < eigthPoints; number++){
+
+    aVal = _mm512_loadu_pd(aPtr);
+    bVal = _mm512_loadu_pd(bPtr);
+
+    cVal = _mm512_max_pd(aVal, bVal);
+
+    _mm512_storeu_pd(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 8;
+    bPtr += 8;
+    cPtr += 8;
+  }
+
+  number = eigthPoints * 8;
+  for(;number < num_points; number++){
+    const double a = *aPtr++;
+    const double b = *bPtr++;
+    *cPtr++ = ( a > b ? a : b);
+  }
+}
+#endif /* LV_HAVE_AVX512F */
+
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>

@@ -1,19 +1,19 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2015 Free Software Foundation, Inc.
- * 
+ *
  * This file is part of GNU Radio
- * 
+ *
  * GNU Radio is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * GNU Radio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with GNU Radio; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -302,5 +302,106 @@ volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs, unsigned char* u,
 }
 
 #endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+#include <volk/volk_avx2_intrinsics.h>
+
+static inline void
+volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs, unsigned char* u,
+    const int frame_exp,
+    const int stage, const int u_num, const int row)
+{
+  const int frame_size = 0x01 << frame_exp;
+  if(row % 2){ // for odd rows just do the only necessary calculation and return.
+    const float* next_llrs = llrs + frame_size + row;
+    *(llrs + row) = llr_even(*(next_llrs - 1), *next_llrs, u[u_num - 1]);
+    return;
+  }
+
+  const int max_stage_depth = calculate_max_stage_depth_for_row(frame_exp, row);
+  if(max_stage_depth < 3){ // vectorized version needs larger vectors.
+    volk_32f_8u_polarbutterfly_32f_generic(llrs, u, frame_exp, stage, u_num, row);
+    return;
+  }
+
+  int loop_stage = max_stage_depth;
+  int stage_size = 0x01 << loop_stage;
+
+  float* src_llr_ptr;
+  float* dst_llr_ptr;
+
+  __m256 src0, src1, dst;
+
+  if(row){ // not necessary for ZERO row. == first bit to be decoded.
+    // first do bit combination for all stages
+    // effectively encode some decoded bits again.
+    unsigned char* u_target = u + frame_size;
+    unsigned char* u_temp = u + 2* frame_size;
+    memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
+
+    if(stage_size > 15){
+      _mm256_zeroupper();
+      volk_8u_x2_encodeframepolar_8u_u_ssse3(u_target, u_temp, stage_size);
+    }
+    else{
+      volk_8u_x2_encodeframepolar_8u_generic(u_target, u_temp, stage_size);
+    }
+
+    src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
+    dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
+
+    __m128i fbits;
+
+    int p;
+    for(p = 0; p < stage_size; p += 8){
+      _mm256_zeroupper();
+      fbits = _mm_loadu_si128((__m128i*) u_target);
+      u_target += 8;
+
+      src0 = _mm256_loadu_ps(src_llr_ptr);
+      src1 = _mm256_loadu_ps(src_llr_ptr + 8);
+      src_llr_ptr += 16;
+
+      dst = _mm256_polar_fsign_add_llrs_avx2(src0, src1, fbits);
+
+      _mm256_storeu_ps(dst_llr_ptr, dst);
+      dst_llr_ptr += 8;
+    }
+
+    --loop_stage;
+    stage_size >>= 1;
+  }
+
+  const int min_stage = stage > 2 ? stage : 2;
+
+  _mm256_zeroall(); // Important to clear cache!
+
+  int el;
+  while(min_stage < loop_stage){
+    dst_llr_ptr = llrs + loop_stage * frame_size + row;
+    src_llr_ptr = dst_llr_ptr + frame_size;
+    for(el = 0; el < stage_size; el += 8){
+      src0 = _mm256_loadu_ps(src_llr_ptr);
+      src_llr_ptr += 8;
+      src1 = _mm256_loadu_ps(src_llr_ptr);
+      src_llr_ptr += 8;
+
+      dst = _mm256_polar_minsum_llrs(src0, src1);
+
+      _mm256_storeu_ps(dst_llr_ptr, dst);
+      dst_llr_ptr += 8;
+    }
+
+    --loop_stage;
+    stage_size >>= 1;
+
+  }
+
+  // for stages < 3 vectors are too small!.
+  llr_odd_stages(llrs, stage, loop_stage + 1,frame_size, row);
+}
+
+#endif /* LV_HAVE_AVX2 */
 
 #endif /* VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_ */

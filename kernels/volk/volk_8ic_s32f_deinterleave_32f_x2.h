@@ -60,6 +60,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
@@ -279,3 +280,81 @@ volk_8ic_s32f_deinterleave_32f_x2_generic(float* iBuffer, float* qBuffer,
 
 
 #endif /* INCLUDED_volk_8ic_s32f_deinterleave_32f_x2_a_H */
+
+
+#ifndef INCLUDED_volk_8ic_s32f_deinterleave_32f_x2_u_H
+#define INCLUDED_volk_8ic_s32f_deinterleave_32f_x2_u_H
+
+#include <volk/volk_common.h>
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_8ic_s32f_deinterleave_32f_x2_u_avx2(float* iBuffer, float* qBuffer, const lv_8sc_t* complexVector,
+                                           const float scalar, unsigned int num_points)
+{
+  float* iBufferPtr = iBuffer;
+  float* qBufferPtr = qBuffer;
+
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
+  __m256 iFloatValue, qFloatValue;
+
+  const float iScalar= 1.0 / scalar;
+  __m256 invScalar = _mm256_set1_ps(iScalar);
+  __m256i complexVal, iIntVal, qIntVal;
+  __m128i iComplexVal, qComplexVal;
+  int8_t* complexVectorPtr = (int8_t*)complexVector;
+
+  __m256i MoveMask = _mm256_set_epi8(15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8,
+      6, 4, 2, 0,15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0);
+
+  for(;number < sixteenthPoints; number++){
+    complexVal = _mm256_loadu_si256((__m256i*)complexVectorPtr); complexVectorPtr += 32;
+    complexVal = _mm256_shuffle_epi8(complexVal, MoveMask);
+    complexVal = _mm256_permute4x64_epi64(complexVal,0xd8);
+    iComplexVal = _mm256_extractf128_si256(complexVal,0);
+    qComplexVal = _mm256_extractf128_si256(complexVal,1);
+
+    iIntVal = _mm256_cvtepi8_epi32(iComplexVal);
+    iFloatValue = _mm256_cvtepi32_ps(iIntVal);
+    iFloatValue = _mm256_mul_ps(iFloatValue, invScalar);
+    _mm256_storeu_ps(iBufferPtr, iFloatValue);
+    iBufferPtr += 8;
+
+    qIntVal = _mm256_cvtepi8_epi32(qComplexVal);
+    qFloatValue = _mm256_cvtepi32_ps(qIntVal);
+    qFloatValue = _mm256_mul_ps(qFloatValue, invScalar);
+    _mm256_storeu_ps(qBufferPtr, qFloatValue);
+    qBufferPtr += 8;
+
+    complexVal = _mm256_srli_si256(complexVal, 8);
+    iComplexVal = _mm256_extractf128_si256(complexVal,0);
+    qComplexVal = _mm256_extractf128_si256(complexVal,1);
+
+    iIntVal = _mm256_cvtepi8_epi32(iComplexVal);
+    iFloatValue = _mm256_cvtepi32_ps(iIntVal);
+    iFloatValue = _mm256_mul_ps(iFloatValue, invScalar);
+    _mm256_storeu_ps(iBufferPtr, iFloatValue);
+    iBufferPtr += 8;
+
+    qIntVal = _mm256_cvtepi8_epi32(qComplexVal);
+    qFloatValue = _mm256_cvtepi32_ps(qIntVal);
+    qFloatValue = _mm256_mul_ps(qFloatValue, invScalar);
+    _mm256_storeu_ps(qBufferPtr, qFloatValue);
+    qBufferPtr += 8;
+  }
+
+  number = sixteenthPoints * 16;
+  for(; number < num_points; number++){
+    *iBufferPtr++ = (float)(*complexVectorPtr++) * iScalar;
+    *qBufferPtr++ = (float)(*complexVectorPtr++) * iScalar;
+  }
+
+}
+#endif /* LV_HAVE_AVX2 */
+
+#endif /* INCLUDED_volk_8ic_s32f_deinterleave_32f_x2_u_H */

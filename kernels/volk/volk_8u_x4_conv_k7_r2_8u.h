@@ -122,6 +122,198 @@ BFLY(int i, int s, unsigned char * syms, unsigned char *Y,
 }
 
 
+#if LV_HAVE_AVX2
+
+#include <immintrin.h>
+#include <stdio.h>
+
+static inline void
+volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y, unsigned char* X,
+                                unsigned char* syms, unsigned char* dec,
+                                unsigned int framebits, unsigned int excess,
+                                unsigned char* Branchtab)
+{
+  unsigned int i9;
+  for(i9 = 0; i9 < ((framebits + excess)>>1); i9++) {
+    unsigned char a75, a81;
+    int a73, a92;
+    int s20, s21;
+    unsigned char  *a80, *b6;
+    int  *a110, *a91, *a93;
+    __m256i  *a112, *a71, *a72, *a77, *a83, *a95;
+    __m256i a86, a87;
+    __m256i a76, a78, a79, a82, a84, a85, a88, a89
+      , a90, d10, d9, m23, m24, m25
+      , m26, s18, s19, s22
+      , s23, s24, s25, t13, t14, t15;
+    a71 = ((__m256i  *) X);
+    s18 = *(a71);
+    a72 = (a71 + 1);
+    s19 = *(a72);
+    s22 = _mm256_permute2x128_si256(s18,s19,0x20);
+    s19 = _mm256_permute2x128_si256(s18,s19,0x31);
+    s18 = s22;
+    a73 = (4 * i9);
+    b6 = (syms + a73);
+    a75 = *(b6);
+    a76 = _mm256_set1_epi8(a75);
+    a77 = ((__m256i  *) Branchtab);
+    a78 = *(a77);
+    a79 = _mm256_xor_si256(a76, a78);
+    a80 = (b6 + 1);
+    a81 = *(a80);
+    a82 = _mm256_set1_epi8(a81);
+    a83 = (a77 + 1);
+    a84 = *(a83);
+    a85 = _mm256_xor_si256(a82, a84);
+    t13 = _mm256_avg_epu8(a79,a85);
+    a86 = ((__m256i ) t13);
+    a87 = _mm256_srli_epi16(a86, 2);
+    a88 = ((__m256i ) a87);
+    t14 = _mm256_and_si256(a88, _mm256_set1_epi8(63));
+    t15 = _mm256_subs_epu8(_mm256_set1_epi8(63), t14);
+    m23 = _mm256_adds_epu8(s18, t14);
+    m24 = _mm256_adds_epu8(s19, t15);
+    m25 = _mm256_adds_epu8(s18, t15);
+    m26 = _mm256_adds_epu8(s19, t14);
+    a89 = _mm256_min_epu8(m24, m23);
+    d9 = _mm256_cmpeq_epi8(a89, m24);
+    a90 = _mm256_min_epu8(m26, m25);
+    d10 = _mm256_cmpeq_epi8(a90, m26);
+    s22 = _mm256_unpacklo_epi8(d9,d10);
+    s23 = _mm256_unpackhi_epi8(d9,d10);
+    s20 = _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x20));
+    a91 = ((int  *) dec);
+    a92 = (4 * i9);
+    a93 = (a91 + a92);
+    *(a93) = s20;
+    s21 = _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x31));
+    a110 = (a93 + 1);
+    *(a110) = s21;
+    s22 = _mm256_unpacklo_epi8(a89, a90);
+    s23 = _mm256_unpackhi_epi8(a89, a90);
+    a95 = ((__m256i  *) Y);
+    s24 = _mm256_permute2x128_si256(s22, s23, 0x20);
+    *(a95) = s24;
+    s23 = _mm256_permute2x128_si256(s22, s23, 0x31);
+    a112 = (a95 + 1);
+    *(a112) = s23;
+    if ((((unsigned char  *) Y)[0]>210)) {
+      __m256i m5, m6;
+      m5 = ((__m256i  *) Y)[0];
+      m5 = _mm256_min_epu8(m5, ((__m256i  *) Y)[1]);
+      __m256i m7;
+      m7 = _mm256_min_epu8(_mm256_srli_si256(m5, 8), m5);
+      m7 = ((__m256i ) _mm256_min_epu8(((__m256i ) _mm256_srli_epi64(m7, 32)), ((__m256i ) m7)));
+      m7 = ((__m256i ) _mm256_min_epu8(((__m256i ) _mm256_srli_epi64(m7, 16)), ((__m256i ) m7)));
+      m7 = ((__m256i ) _mm256_min_epu8(((__m256i ) _mm256_srli_epi64(m7, 8)), ((__m256i ) m7)));
+      m7 = _mm256_unpacklo_epi8(m7, m7);
+      m7 = _mm256_shufflelo_epi16(m7, 0);
+      m6 = _mm256_unpacklo_epi64(m7, m7);
+      m6 = _mm256_permute2x128_si256(m6, m6, 0); //copy lower half of m6 to upper half, since above ops operate on 128 bit lanes
+      ((__m256i  *) Y)[0] = _mm256_subs_epu8(((__m256i  *) Y)[0], m6);
+      ((__m256i  *) Y)[1] = _mm256_subs_epu8(((__m256i  *) Y)[1], m6);
+    }
+    unsigned char a188, a194;
+    int a205;
+    int s48, s54;
+    unsigned char  *a187, *a193;
+    int  *a204, *a206, *a223, *b16;
+    __m256i  *a184, *a185, *a190, *a196, *a208, *a225;
+    __m256i a199, a200;
+    __m256i a189, a191, a192, a195, a197, a198, a201
+      , a202, a203, d17, d18, m39, m40, m41
+      , m42, s46, s47, s50
+      , s51, t25, t26, t27;
+    a184 = ((__m256i  *) Y);
+    s46 = *(a184);
+    a185 = (a184 + 1);
+    s47 = *(a185);
+    s50 = _mm256_permute2x128_si256(s46,s47,0x20);
+    s47 = _mm256_permute2x128_si256(s46,s47,0x31);
+    s46 = s50;
+    a187 = (b6 + 2);
+    a188 = *(a187);
+    a189 = _mm256_set1_epi8(a188);
+    a190 = ((__m256i  *) Branchtab);
+    a191 = *(a190);
+    a192 = _mm256_xor_si256(a189, a191);
+    a193 = (b6 + 3);
+    a194 = *(a193);
+    a195 = _mm256_set1_epi8(a194);
+    a196 = (a190 + 1);
+    a197 = *(a196);
+    a198 = _mm256_xor_si256(a195, a197);
+    t25 = _mm256_avg_epu8(a192,a198);
+    a199 = ((__m256i ) t25);
+    a200 = _mm256_srli_epi16(a199, 2);
+    a201 = ((__m256i ) a200);
+    t26 = _mm256_and_si256(a201, _mm256_set1_epi8(63));
+    t27 = _mm256_subs_epu8(_mm256_set1_epi8(63), t26);
+    m39 = _mm256_adds_epu8(s46, t26);
+    m40 = _mm256_adds_epu8(s47, t27);
+    m41 = _mm256_adds_epu8(s46, t27);
+    m42 = _mm256_adds_epu8(s47, t26);
+    a202 = _mm256_min_epu8(m40, m39);
+    d17 = _mm256_cmpeq_epi8(a202, m40);
+    a203 = _mm256_min_epu8(m42, m41);
+    d18 = _mm256_cmpeq_epi8(a203, m42);
+    s24 = _mm256_unpacklo_epi8(d17,d18);
+    s25 = _mm256_unpackhi_epi8(d17,d18);
+    s48 = _mm256_movemask_epi8(_mm256_permute2x128_si256(s24, s25, 0x20));
+    a204 = ((int  *) dec);
+    a205 = (4 * i9);
+    b16 = (a204 + a205);
+    a206 = (b16 + 2);
+    *(a206) = s48;
+    s54 = _mm256_movemask_epi8(_mm256_permute2x128_si256(s24, s25, 0x31));
+    a223 = (b16 + 3);
+    *(a223) = s54;
+    s50 = _mm256_unpacklo_epi8(a202, a203);
+    s51 = _mm256_unpackhi_epi8(a202, a203);
+    s25 = _mm256_permute2x128_si256(s50, s51, 0x20);
+    s51 = _mm256_permute2x128_si256(s50, s51, 0x31);
+    a208 = ((__m256i  *) X);
+    *(a208) = s25;
+    a225 = (a208 + 1);
+    *(a225) = s51;
+
+    if ((((unsigned char  *) X)[0]>210)) {
+      __m256i m12, m13;
+      m12 = ((__m256i  *) X)[0];
+      m12 = _mm256_min_epu8(m12, ((__m256i  *) X)[1]);
+      __m256i m14;
+      m14 = _mm256_min_epu8(_mm256_srli_si256(m12, 8), m12);
+      m14 = ((__m256i ) _mm256_min_epu8(((__m256i ) _mm256_srli_epi64(m14, 32)), ((__m256i ) m14)));
+      m14 = ((__m256i ) _mm256_min_epu8(((__m256i ) _mm256_srli_epi64(m14, 16)), ((__m256i ) m14)));
+      m14 = ((__m256i ) _mm256_min_epu8(((__m256i ) _mm256_srli_epi64(m14, 8)), ((__m256i ) m14)));
+      m14 = _mm256_unpacklo_epi8(m14, m14);
+      m14 = _mm256_shufflelo_epi16(m14, 0);
+      m13 = _mm256_unpacklo_epi64(m14, m14);
+      m13 = _mm256_permute2x128_si256(m13, m13, 0);
+      ((__m256i  *) X)[0] = _mm256_subs_epu8(((__m256i  *) X)[0], m13);
+      ((__m256i  *) X)[1] = _mm256_subs_epu8(((__m256i  *) X)[1], m13);
+    }
+  }
+
+  renormalize(X, 210);
+
+  unsigned int j;
+  for(j=0; j < (framebits + excess) % 2; ++j) {
+    int i;
+    for(i=0;i<64/2;i++){
+      BFLY(i, (((framebits+excess) >> 1) << 1) + j , syms, Y, X, (decision_t *)dec, Branchtab);
+    }
+
+    renormalize(Y, 210);
+
+  }
+  /*skip*/
+}
+
+#endif /*LV_HAVE_AVX2*/
+
+
 #if LV_HAVE_SSE3
 
 #include <pmmintrin.h>

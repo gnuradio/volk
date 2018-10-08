@@ -43,10 +43,44 @@
  */
 
 
-#ifndef INCLUDED_volk_16ic_convert_32fc_H
-#define INCLUDED_volk_16ic_convert_32fc_H
+#ifndef INCLUDED_volk_16ic_convert_32fc_a_H
+#define INCLUDED_volk_16ic_convert_32fc_a_H
 
 #include <volk/volk_complex.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void volk_16ic_convert_32fc_a_avx2(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
+{
+    const unsigned int avx_iters = num_points / 8;
+    unsigned int number = 0;
+    const int16_t* complexVectorPtr = (int16_t*)inputVector;
+    float* outputVectorPtr = (float*)outputVector;
+    __m256 outVal;
+    __m256i outValInt;
+    __m128i cplxValue;
+
+    for(number = 0; number < avx_iters; number++)
+        {
+            cplxValue = _mm_load_si128((__m128i*)complexVectorPtr);
+            complexVectorPtr += 8;
+            
+            outValInt = _mm256_cvtepi16_epi32(cplxValue);
+            outVal = _mm256_cvtepi32_ps(outValInt);
+            _mm256_store_ps((float*)outputVectorPtr, outVal);
+
+            outputVectorPtr += 8;
+        }
+
+    number = avx_iters * 8;
+    for(; number < num_points*2; number++)
+        {
+            *outputVectorPtr++ = (float)*complexVectorPtr++;
+        }
+}
+
+#endif /* LV_HAVE_AVX2 */
 
 #ifdef LV_HAVE_GENERIC
 
@@ -90,70 +124,10 @@ static inline void volk_16ic_convert_32fc_a_sse2(lv_32fc_t* outputVector, const 
 
 #endif /* LV_HAVE_SSE2 */
 
-
-#ifdef LV_HAVE_SSE2
-#include <emmintrin.h>
-
-static inline void volk_16ic_convert_32fc_u_sse2(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
-{
-    const unsigned int sse_iters = num_points / 2;
-
-    const lv_16sc_t* _in = inputVector;
-    lv_32fc_t* _out = outputVector;
-    __m128 a;
-    unsigned int i, number;
-
-    for(number = 0; number < sse_iters; number++)
-        {
-            a = _mm_set_ps((float)(lv_cimag(_in[1])), (float)(lv_creal(_in[1])), (float)(lv_cimag(_in[0])), (float)(lv_creal(_in[0]))); // //load (2 byte imag, 2 byte real) x 2 into 128 bits reg
-            _mm_storeu_ps((float*)_out, a);
-            _in += 2;
-            _out += 2;
-        }
-    for (i = 0; i < (num_points % 2); ++i)
-        {
-            *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
-            _in++;
-        }
-}
-
-#endif /* LV_HAVE_SSE2 */
-
-
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
-static inline void volk_16ic_convert_32fc_u_axv(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
-{
-    const unsigned int sse_iters = num_points / 4;
-
-    const lv_16sc_t* _in = inputVector;
-    lv_32fc_t* _out = outputVector;
-    __m256 a;
-    unsigned int i, number;
-
-    for(number = 0; number < sse_iters; number++)
-        {
-            a = _mm256_set_ps((float)(lv_cimag(_in[3])), (float)(lv_creal(_in[3])), (float)(lv_cimag(_in[2])), (float)(lv_creal(_in[2])), (float)(lv_cimag(_in[1])), (float)(lv_creal(_in[1])), (float)(lv_cimag(_in[0])), (float)(lv_creal(_in[0]))); // //load (2 byte imag, 2 byte real) x 2 into 128 bits reg
-            _mm256_storeu_ps((float*)_out, a);
-            _in += 4;
-            _out += 4;
-        }
-    _mm256_zeroupper();
-    for (i = 0; i < (num_points % 4); ++i)
-        {
-            *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
-            _in++;
-        }
-}
-
-#endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void volk_16ic_convert_32fc_a_axv(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
+static inline void volk_16ic_convert_32fc_a_avx(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
 {
     const unsigned int sse_iters = num_points / 4;
 
@@ -213,4 +187,104 @@ static inline void volk_16ic_convert_32fc_neon(lv_32fc_t* outputVector, const lv
 }
 #endif /* LV_HAVE_NEON */
 
-#endif /* INCLUDED_volk_32fc_convert_16ic_H */
+#endif /* INCLUDED_volk_32fc_convert_16ic_a_H */
+
+#ifndef INCLUDED_volk_16ic_convert_32fc_u_H
+#define INCLUDED_volk_16ic_convert_32fc_u_H
+
+#include <volk/volk_complex.h>
+
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void volk_16ic_convert_32fc_u_avx2(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
+{
+    const unsigned int avx_iters = num_points / 8;
+    unsigned int number = 0;
+    const int16_t* complexVectorPtr = (int16_t*)inputVector;
+    float* outputVectorPtr = (float*)outputVector;
+    __m256 outVal;
+    __m256i outValInt;
+    __m128i cplxValue;
+
+    for(number = 0; number < avx_iters; number++)
+        {
+            cplxValue = _mm_loadu_si128((__m128i*)complexVectorPtr);
+            complexVectorPtr += 8;
+            
+            outValInt = _mm256_cvtepi16_epi32(cplxValue);
+            outVal = _mm256_cvtepi32_ps(outValInt);
+            _mm256_storeu_ps((float*)outputVectorPtr, outVal);
+
+            outputVectorPtr += 8;
+        }
+
+    number = avx_iters * 8;
+    for(; number < num_points*2; number++)
+        {
+            *outputVectorPtr++ = (float)*complexVectorPtr++;
+        }
+}
+
+#endif /* LV_HAVE_AVX2 */
+
+#ifdef LV_HAVE_SSE2
+#include <emmintrin.h>
+
+static inline void volk_16ic_convert_32fc_u_sse2(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
+{
+    const unsigned int sse_iters = num_points / 2;
+
+    const lv_16sc_t* _in = inputVector;
+    lv_32fc_t* _out = outputVector;
+    __m128 a;
+    unsigned int i, number;
+
+    for(number = 0; number < sse_iters; number++)
+        {
+            a = _mm_set_ps((float)(lv_cimag(_in[1])), (float)(lv_creal(_in[1])), (float)(lv_cimag(_in[0])), (float)(lv_creal(_in[0]))); // //load (2 byte imag, 2 byte real) x 2 into 128 bits reg
+            _mm_storeu_ps((float*)_out, a);
+            _in += 2;
+            _out += 2;
+        }
+    for (i = 0; i < (num_points % 2); ++i)
+        {
+            *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
+            _in++;
+        }
+}
+
+#endif /* LV_HAVE_SSE2 */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_16ic_convert_32fc_u_avx(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
+{
+    const unsigned int sse_iters = num_points / 4;
+
+    const lv_16sc_t* _in = inputVector;
+    lv_32fc_t* _out = outputVector;
+    __m256 a;
+    unsigned int i, number;
+
+    for(number = 0; number < sse_iters; number++)
+        {
+            a = _mm256_set_ps((float)(lv_cimag(_in[3])), (float)(lv_creal(_in[3])), (float)(lv_cimag(_in[2])), (float)(lv_creal(_in[2])), (float)(lv_cimag(_in[1])), (float)(lv_creal(_in[1])), (float)(lv_cimag(_in[0])), (float)(lv_creal(_in[0]))); // //load (2 byte imag, 2 byte real) x 2 into 128 bits reg
+            _mm256_storeu_ps((float*)_out, a);
+            _in += 4;
+            _out += 4;
+        }
+    _mm256_zeroupper();
+    for (i = 0; i < (num_points % 4); ++i)
+        {
+            *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
+            _in++;
+        }
+}
+
+#endif /* LV_HAVE_AVX */
+#endif /* INCLUDED_volk_32fc_convert_16ic_u_H */
+

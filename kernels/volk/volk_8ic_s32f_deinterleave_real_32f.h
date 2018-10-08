@@ -228,3 +228,68 @@ volk_8ic_s32f_deinterleave_real_32f_generic(float* iBuffer, const lv_8sc_t* comp
 
 
 #endif /* INCLUDED_volk_8ic_s32f_deinterleave_real_32f_a_H */
+
+#ifndef INCLUDED_volk_8ic_s32f_deinterleave_real_32f_u_H
+#define INCLUDED_volk_8ic_s32f_deinterleave_real_32f_u_H
+
+#include <volk/volk_common.h>
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_8ic_s32f_deinterleave_real_32f_u_avx2(float* iBuffer, const lv_8sc_t* complexVector,
+                                             const float scalar, unsigned int num_points)
+{
+  float* iBufferPtr = iBuffer;
+
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
+  __m256 iFloatValue;
+
+  const float iScalar= 1.0 / scalar;
+  __m256 invScalar = _mm256_set1_ps(iScalar);
+  __m256i complexVal, iIntVal;
+  __m128i hcomplexVal;
+  int8_t* complexVectorPtr = (int8_t*)complexVector;
+
+  __m256i moveMask = _mm256_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
+
+  for(;number < sixteenthPoints; number++){
+    complexVal = _mm256_loadu_si256((__m256i*)complexVectorPtr); complexVectorPtr += 32;
+    complexVal = _mm256_shuffle_epi8(complexVal, moveMask);
+
+    hcomplexVal = _mm256_extracti128_si256(complexVal,0);
+    iIntVal = _mm256_cvtepi8_epi32(hcomplexVal);
+    iFloatValue = _mm256_cvtepi32_ps(iIntVal);
+
+    iFloatValue = _mm256_mul_ps(iFloatValue, invScalar);
+
+    _mm256_storeu_ps(iBufferPtr, iFloatValue);
+
+    iBufferPtr += 8;
+
+    hcomplexVal = _mm256_extracti128_si256(complexVal,1);
+    iIntVal = _mm256_cvtepi8_epi32(hcomplexVal);
+    iFloatValue = _mm256_cvtepi32_ps(iIntVal);
+
+    iFloatValue = _mm256_mul_ps(iFloatValue, invScalar);
+
+    _mm256_storeu_ps(iBufferPtr, iFloatValue);
+
+    iBufferPtr += 8;
+  }
+
+  number = sixteenthPoints * 16;
+  for(; number < num_points; number++){
+    *iBufferPtr++ = (float)(*complexVectorPtr++) * iScalar;
+    complexVectorPtr++;
+  }
+
+}
+#endif /* LV_HAVE_AVX2 */
+
+
+#endif /* INCLUDED_volk_8ic_s32f_deinterleave_real_32f_u_H */

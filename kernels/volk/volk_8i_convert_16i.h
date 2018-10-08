@@ -56,6 +56,39 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_8i_convert_16i_u_avx2(int16_t* outputVector, const int8_t* inputVector,
+                             unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
+
+  const __m128i* inputVectorPtr = (const __m128i*)inputVector;
+  __m256i* outputVectorPtr = (__m256i*)outputVector;
+  __m128i inputVal;
+  __m256i ret;
+
+  for(;number < sixteenthPoints; number++){
+    inputVal = _mm_loadu_si128(inputVectorPtr);
+    ret = _mm256_cvtepi8_epi16(inputVal);
+    ret = _mm256_slli_epi16(ret, 8); // Multiply by 256
+    _mm256_storeu_si256(outputVectorPtr, ret);
+
+    outputVectorPtr++;
+    inputVectorPtr++;
+  }
+
+  number = sixteenthPoints * 16;
+  for(; number < num_points; number++){
+    outputVector[number] = (int16_t)(inputVector[number])*256;
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
+
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
@@ -123,6 +156,39 @@ volk_8i_convert_16i_generic(int16_t* outputVector, const int8_t* inputVector,
 
 #include <inttypes.h>
 #include <stdio.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_8i_convert_16i_a_avx2(int16_t* outputVector, const int8_t* inputVector,
+                             unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
+
+  const __m128i* inputVectorPtr = (const __m128i*)inputVector;
+  __m256i* outputVectorPtr = (__m256i*)outputVector;
+  __m128i inputVal;
+  __m256i ret;
+
+  for(;number < sixteenthPoints; number++){
+    inputVal = _mm_load_si128(inputVectorPtr);
+    ret = _mm256_cvtepi8_epi16(inputVal);
+    ret = _mm256_slli_epi16(ret, 8); // Multiply by 256
+    _mm256_store_si256(outputVectorPtr, ret);
+
+    outputVectorPtr++;
+    inputVectorPtr++;
+  }
+
+  number = sixteenthPoints * 16;
+  for(; number < num_points; number++){
+    outputVector[number] = (int16_t)(inputVector[number])*256;
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>

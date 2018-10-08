@@ -125,5 +125,4 @@ _mm256_polar_fsign_add_llrs(__m256 src0, __m256 src1, __m128i fbits){
     return dst;
 }
 
-
 #endif /* INCLUDE_VOLK_VOLK_AVX_INTRINSICS_H_ */
