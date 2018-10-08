@@ -296,7 +296,7 @@ volk_8i_convert_32f_neon(float* outputVector, const int8_t* inputVector,
       outputVectorPtr += 4;
   }
   for(number = sixteenthPoints * 16; number < num_points; number++){
-      *outputVectorPtr++ = ((float)(*inputVectorPtr++) + offset) * multiplier;
+      *outputVectorPtr++ = (float)(*inputVectorPtr++) * multiplier;
   }
 }
 

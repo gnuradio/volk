@@ -293,7 +293,6 @@ volk_8i_convert_64f_neon(double* outputVector, const int8_t* inputVector,
   double* outputVectorPtr = outputVector;
   const int8_t* inputVectorPtr = inputVector;
 
-  const double offset = -127.5;
   const double multiplier = 1.0 / 127.5;
 
   const float64x2_t qmulScalar = vdupq_n_f64(multiplier);
