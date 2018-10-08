@@ -25,8 +25,8 @@
  *
  * \b Overview
  *
- * Convert the input vector of 8-bit unsigned ints ranging [0 - 255] to
- * a vector of floats ranging [-1 - 1].
+ * Convert the input vector of 8-bit unsigned ints ranging [0,255] to
+ * a vector of floats ranging [-1,1].
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -125,7 +125,7 @@ volk_8u_convert_32f_u_sse4_1(float* outputVector, const uint8_t* inputVector,
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_8u_convert_32f_generic(float* outputVector, const uint8_t* inputVector,
+volk_8u_convert_32f_u_generic(float* outputVector, const uint8_t* inputVector,
                             unsigned int num_points)
 {
   float* outputVectorPtr = outputVector;
@@ -140,9 +140,53 @@ volk_8u_convert_32f_generic(float* outputVector, const uint8_t* inputVector,
 }
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_8u_convert_32f_u_generic_lut8(float* outputVector, const uint8_t* inputVector,
+                                   unsigned int num_points)
+{
+  /* generate lookup table */
+  #define gen(x) (((x) - 127.5f) / 127.5f)
+  #define gen16(x) \
+    gen(x|0x0), gen(x|0x1), gen(x|0x2), gen(x|0x3), gen(x|0x4), gen(x|0x5), gen(x|0x6), gen(x|0x7),\
+    gen(x|0x8), gen(x|0x9), gen(x|0xa), gen(x|0xb), gen(x|0xc), gen(x|0xd), gen(x|0xe), gen(x|0xf)
+  static const float lut[256] = {
+    gen16(0x00), gen16(0x10), gen16(0x20), gen16(0x30),
+    gen16(0x40), gen16(0x50), gen16(0x60), gen16(0x70),
+    gen16(0x80), gen16(0x90), gen16(0xa0), gen16(0xb0),
+    gen16(0xc0), gen16(0xd0), gen16(0xe0), gen16(0xf0)
+  };
+  #undef gen
+  #undef gen16
+
+  /* index lut to convert */
+  float* outputVectorPtr = outputVector;
+  const uint8_t* inputVectorPtr = inputVector;
+  unsigned int number = 0;
+
+  for(number = 0; number < num_points; number++){
+    *outputVectorPtr++ = lut[*inputVectorPtr++];
+  }
+}
+#endif /* LV_HAVE_GENERIC */
 
 
-#endif /* INCLUDED_VOLK_8s_CONVERT_32f_UNALIGNED8_H */
+#ifdef LV_HAVE_ORC
+extern void
+volk_8u_convert_32f_a_orc_impl(float* outputVector, const uint8_t* inputVector,
+                               unsigned int num_points);
+
+static inline void
+volk_8u_convert_32f_u_orc(float* outputVector, const uint8_t* inputVector,
+                          unsigned int num_points)
+{
+  volk_8u_convert_32f_a_orc_impl(outputVector, inputVector, num_points);
+}
+#endif /* LV_HAVE_ORC */
+
+
+#endif /* INCLUDED_VOLK_8u_CONVERT_32f_u_H */
 #ifndef INCLUDED_volk_8u_convert_32f_a_H
 #define INCLUDED_volk_8u_convert_32f_a_H
 
@@ -229,42 +273,42 @@ volk_8u_convert_32f_neon(float* outputVector, const uint8_t* inputVector,
   const float32x4_t qaddScalar = vdupq_n_f32(offset);
   const float32x4_t qmulScalar = vdupq_n_f32(multiplier);
 
-  int8x8x2_t inputVal;
+  uint8x8x2_t inputVal;
   float32x4x2_t outputFloat;
-  int16x8_t tmp;
+  uint16x8_t tmp;
   
   unsigned int number = 0;
   const unsigned int sixteenthPoints = num_points / 16;
   for(;number < sixteenthPoints; number++){
       __VOLK_PREFETCH(inputVectorPtr+16);
 
-      inputVal = vld2_s8(inputVectorPtr);
-      inputVal = vzip_s8(inputVal.val[0], inputVal.val[1]);
+      inputVal = vld2_u8(inputVectorPtr);
+      inputVal = vzip_u8(inputVal.val[0], inputVal.val[1]);
       inputVectorPtr += 16;
 
-      tmp = vmovl_s8(inputVal.val[0]);
+      tmp = vmovl_u8(inputVal.val[0]);
 
-      outputFloat.val[0] = vcvtq_f32_s32(vmovl_s16(vget_low_s16(tmp)));
+      outputFloat.val[0] = vcvtq_f32_u32(vmovl_u16(vget_low_u16(tmp)));
       outputFloat.val[0] = vaddq_f32(outputFloat.val[0], qaddScalar);
       outputFloat.val[0] = vmulq_f32(outputFloat.val[0], qmulScalar);
       vst1q_f32(outputVectorPtr, outputFloat.val[0]);
       outputVectorPtr += 4;
 
-      outputFloat.val[1] = vcvtq_f32_s32(vmovl_s16(vget_high_s16(tmp)));
+      outputFloat.val[1] = vcvtq_f32_u32(vmovl_u16(vget_high_u16(tmp)));
       outputFloat.val[1] = vaddq_f32(outputFloat.val[1], qaddScalar);
       outputFloat.val[1] = vmulq_f32(outputFloat.val[1], qmulScalar);
       vst1q_f32(outputVectorPtr, outputFloat.val[1]);
       outputVectorPtr += 4;
 
-      tmp = vmovl_s8(inputVal.val[1]);
+      tmp = vmovl_u8(inputVal.val[1]);
 
-      outputFloat.val[0] = vcvtq_f32_s32(vmovl_s16(vget_low_s16(tmp)));
+      outputFloat.val[0] = vcvtq_f32_u32(vmovl_u16(vget_low_u16(tmp)));
       outputFloat.val[0] = vaddq_f32(outputFloat.val[0], qaddScalar);
       outputFloat.val[0] = vmulq_f32(outputFloat.val[0], qmulScalar);
       vst1q_f32(outputVectorPtr, outputFloat.val[0]);
       outputVectorPtr += 4;
 
-      outputFloat.val[1] = vcvtq_f32_s32(vmovl_s16(vget_high_s16(tmp)));
+      outputFloat.val[1] = vcvtq_f32_u32(vmovl_u16(vget_high_u16(tmp)));
       outputFloat.val[1] = vaddq_f32(outputFloat.val[1], qaddScalar);
       outputFloat.val[1] = vmulq_f32(outputFloat.val[1], qmulScalar);
       vst1q_f32(outputVectorPtr, outputFloat.val[1]);
@@ -283,15 +327,17 @@ static inline void
 volk_8u_convert_32f_a_generic(float* outputVector, const uint8_t* inputVector,
                               unsigned int num_points)
 {
-  float* outputVectorPtr = outputVector;
-  const uint8_t* inputVectorPtr = inputVector;
-  unsigned int number = 0;
-  const float offset = -127.5;
-  const float multiplier = 1.0 / 127.5;
+  volk_8u_convert_32f_u_generic(outputVector, inputVector, num_points);
+}
+#endif /* LV_HAVE_GENERIC */
 
-  for(number = 0; number < num_points; number++){
-    *outputVectorPtr++ = ((float)(*inputVectorPtr++) + offset) * multiplier;
-  }
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_8u_convert_32f_a_generic_lut8(float* outputVector, const uint8_t* inputVector,
+                                   unsigned int num_points)
+{
+  volk_8u_convert_32f_u_generic_lut8(outputVector, inputVector, num_points);
 }
 #endif /* LV_HAVE_GENERIC */
 
@@ -302,7 +348,7 @@ volk_8u_convert_32f_a_orc_impl(float* outputVector, const uint8_t* inputVector,
                                unsigned int num_points);
 
 static inline void
-volk_8u_convert_32f_u_orc(float* outputVector, const uint8_t* inputVector,
+volk_8u_convert_32f_a_orc(float* outputVector, const uint8_t* inputVector,
                           unsigned int num_points)
 {
   volk_8u_convert_32f_a_orc_impl(outputVector, inputVector, num_points);
@@ -311,4 +357,4 @@ volk_8u_convert_32f_u_orc(float* outputVector, const uint8_t* inputVector,
 
 
 
-#endif /* INCLUDED_VOLK_8s_CONVERT_32f_ALIGNED8_H */
+#endif /* INCLUDED_VOLK_8u_CONVERT_32f_a_H */
