@@ -323,7 +323,7 @@ volk_8u_convert_64f_neon(double* outputVector, const uint8_t* inputVector,
   uint8x8x2_t inputVal;
   float64x2x4_t outputDouble;
   uint16x8_t tmp1;
-  uint32x4_t tmp2;
+  uint16x4_t tmp2;
   
   unsigned int number = 0;
   const unsigned int sixteenthPoints = num_points / 16;
