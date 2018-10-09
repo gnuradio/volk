@@ -221,6 +221,7 @@ volk_32f_s32f_convert_8i_u_sse(int8_t* outputVector, const float* inputVector,
                                const float scalar, unsigned int num_points)
 {
   unsigned int number = 0;
+  size_t inner_loop;
 
   const unsigned int quarterPoints = num_points / 4;
 
@@ -245,7 +246,7 @@ volk_32f_s32f_convert_8i_u_sse(int8_t* outputVector, const float* inputVector,
     ret = _mm_max_ps(_mm_min_ps(_mm_mul_ps(ret, vScalar), vmax_val), vmin_val);
 
     _mm_store_ps(outputFloatBuffer, ret);
-    for (size_t inner_loop = 0; inner_loop < 4; inner_loop++){
+    for (inner_loop = 0; inner_loop < 4; inner_loop++){
       if (outputFloatBuffer[inner_loop] > 0)
         *outputVectorPtr++ = (int8_t)(outputFloatBuffer[inner_loop] + 0.5f);
       else
@@ -420,6 +421,7 @@ volk_32f_s32f_convert_8i_a_sse(int8_t* outputVector, const float* inputVector,
                                const float scalar, unsigned int num_points)
 {
   unsigned int number = 0;
+  size_t inner_loop;
 
   const unsigned int quarterPoints = num_points / 4;
 
@@ -444,7 +446,7 @@ volk_32f_s32f_convert_8i_a_sse(int8_t* outputVector, const float* inputVector,
     ret = _mm_max_ps(_mm_min_ps(_mm_mul_ps(ret, vScalar), vmax_val), vmin_val);
 
     _mm_store_ps(outputFloatBuffer, ret);
-    for (size_t inner_loop = 0; inner_loop < 4; inner_loop++){
+    for (inner_loop = 0; inner_loop < 4; inner_loop++){
       if (outputFloatBuffer[inner_loop] > 0)
         *outputVectorPtr++ = (int8_t)(outputFloatBuffer[inner_loop] + 0.5f);
       else
