@@ -299,8 +299,8 @@ volk_8i_convert_64f_neon(double* outputVector, const int8_t* inputVector,
 
   int8x8x2_t inputVal;
   float64x2x4_t outputDouble;
-  uint16x8_t tmp1;
-  uint32x4_t tmp2;
+  int16x8_t tmp1;
+  int32x4_t tmp2;
   
   unsigned int number = 0;
   const unsigned int sixteenthPoints = num_points / 16;
