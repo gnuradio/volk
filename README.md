@@ -24,10 +24,10 @@ Welcome to VOLK!
 
 VOLK is a sub-project of GNU Radio. Please see http://libvolk.org for bug
 tracking, documentation, source code, and contact information about VOLK.
-See http://gnuradio.org/ for information about GNU Radio.
+See https://www.gnuradio.org/ for information about GNU Radio.
 
 Bleeding edge code can be found in our git repository at
-http://gnuradio.org/git/volk.git/.
+https://www.gnuradio.org/git/volk.git/.
 
 How to use VOLK:
 
