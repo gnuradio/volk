@@ -1,5 +1,5 @@
 #
-# Copyright 2011 Free Software Foundation, Inc.
+# Copyright 2011,2018 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 ########################################################################
 # Project setup
 ########################################################################
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose build type: None Debug Release RelWithDebInfo MinSizeRel")
 project(volk)
 enable_language(CXX)
@@ -255,8 +255,10 @@ install(
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/Modules/VolkConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake
     DESTINATION ${CMAKE_MODULES_DIR}/volk
-    COMPONENT "volk_devel"
-)
+    COMPONENT "volk_devel" )
+
+install(EXPORT VOLK-export FILE VolkTargets.cmake
+  NAMESPACE Volk:: DESTINATION ${CMAKE_MODULES_DIR}/volk )
 
 ########################################################################
 # Option to enable QA testing, on by default

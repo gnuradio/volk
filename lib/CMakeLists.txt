@@ -1,5 +1,5 @@
 #
-# Copyright 2011-2012,2014 Free Software Foundation, Inc.
+# Copyright 2011-2012,2014,2018 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -547,94 +547,63 @@ if(MSVC)
     set_source_files_properties(${volk_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
-#Use object library for faster overall build in newer versions of cmake
-if(CMAKE_VERSION VERSION_GREATER "2.8.11")
-    #Create a volk object library (requires cmake >= 2.8.8)
-    add_library(volk_obj OBJECT ${volk_sources})
-    # a better cmake-fu user may make this more repeatable
-    target_include_directories(volk_obj
-        PUBLIC ${PROJECT_BINARY_DIR}/include
-        PUBLIC ${PROJECT_SOURCE_DIR}/include
-        PRIVATE ${PROJECT_SOURCE_DIR}/kernels
-        PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+#Create a volk object library
+add_library(volk_obj OBJECT ${volk_sources})
+target_include_directories(volk_obj
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  PUBLIC $<INSTALL_INTERFACE:include>
+  PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+  PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+
+#Add dynamic library
+add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
+target_link_libraries(volk ${volk_libraries} m)
+target_include_directories(volk
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  PUBLIC $<INSTALL_INTERFACE:include>
+  PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+  PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+
+#Configure target properties
+set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
+set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
+set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
+
+#Install locations
+install(TARGETS volk
+  EXPORT VOLK-export
+  LIBRARY DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_runtime" # .so file
+  ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
+  RUNTIME DESTINATION bin              COMPONENT "volk_runtime" # .dll file
+  )
+
+#Configure static library
+if(ENABLE_STATIC_LIBS)
+  add_library(volk_static STATIC $<TARGET_OBJECTS:volk_obj>)
+  target_link_libraries(volk_static ${volk_libraries} pthread m)
+  target_include_directories(volk_static
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    PUBLIC $<INSTALL_INTERFACE:include>
+    PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-    #Add dynamic library
-    add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
-    target_link_libraries(volk ${volk_libraries})
-    target_include_directories(volk
-        PUBLIC ${PROJECT_BINARY_DIR}/include
-        PUBLIC ${PROJECT_SOURCE_DIR}/include
-        PRIVATE ${PROJECT_SOURCE_DIR}/kernels
-        PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+  set_target_properties(volk_static PROPERTIES OUTPUT_NAME volk)
+
+  install(TARGETS volk_static
+    EXPORT VOLK-export
+    ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"
     )
+endif(ENABLE_STATIC_LIBS)
 
-    #Configure target properties
-    set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
-    set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
-    set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
-
-    #Install locations
-    install(TARGETS volk
-        LIBRARY DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_runtime" # .so file
-        ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
-        RUNTIME DESTINATION bin              COMPONENT "volk_runtime" # .dll file
-    )
-
-    #Configure static library
-    if(ENABLE_STATIC_LIBS)
-        add_library(volk_static STATIC $<TARGET_OBJECTS:volk_obj>)
-        target_include_directories(volk_static
-            PUBLIC ${PROJECT_BINARY_DIR}/include
-            PUBLIC ${PROJECT_SOURCE_DIR}/include
-            PRIVATE ${PROJECT_SOURCE_DIR}/kernels
-            PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-        )
-
-        set_target_properties(volk_static PROPERTIES OUTPUT_NAME volk)
-
-        install(TARGETS volk_static
-            ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"
-        )
-    endif(ENABLE_STATIC_LIBS)
-#Older cmake versions (slower to build when building dynamic/static libs)
-else()
-    #create the volk runtime library
-    add_library(volk SHARED ${volk_sources})
-    target_link_libraries(volk ${volk_libraries})
-    include_directories(volk
-        PUBLIC ${PROJECT_BINARY_DIR}/include
-        PUBLIC ${PROJECT_SOURCE_DIR}/include
-        PRIVATE ${PROJECT_SOURCE_DIR}/kernels
-        PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-    set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
-    set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
-
-    install(TARGETS volk
-        LIBRARY DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_runtime" # .so file
-        ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
-        RUNTIME DESTINATION bin              COMPONENT "volk_runtime" # .dll file
-    )
-
-    if(ENABLE_STATIC_LIBS)
-        add_library(volk_static STATIC ${volk_sources})
-
-        if(NOT WIN32)
-            set_target_properties(volk_static
-                PROPERTIES OUTPUT_NAME volk)
-        endif(NOT WIN32)
-
-        install(TARGETS volk_static
-            ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
-        )
-    endif(ENABLE_STATIC_LIBS)
-
-endif(CMAKE_VERSION VERSION_GREATER "2.8.11")
 ########################################################################
 # Build the QA test application
 ########################################################################
