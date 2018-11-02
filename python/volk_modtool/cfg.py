@@ -31,7 +31,7 @@ import re
 
 class volk_modtool_config:
     def key_val_sub(self, num, stuff, section):
-        return re.sub('\$' + 'k' + str(num), stuff[num][0], (re.sub('\$' + str(num), stuff[num][1], section[1][num])));
+        return re.sub(r'\$' + 'k' + str(num), stuff[num][0], (re.sub(r'\$' + str(num), stuff[num][1], section[1][num])));
 
     def verify(self):
         for i in self.verification:
