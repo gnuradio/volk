@@ -257,6 +257,10 @@ endif(NOT CPU_IS_x86)
 
 include(CheckCSourceCompiles)
 
+if (have_mfpu_neon)
+  set(CMAKE_REQUIRED_FLAGS "-mfpu=neon")
+endif(have_mfpu_neon)
+
 check_c_source_compiles("#include <arm_neon.h>\nint main(){ uint8_t *dest; uint8x8_t res; vst1_u8(dest, res); }"
 	                neon_compile_result)
 
@@ -279,6 +283,9 @@ else(neon_compile_result)
     OVERRULE_ARCH(neonv8 "Compiler doesn't support NEON")
 endif(neon_compile_result)
 
+if (have_mfpu_neon)
+  unset(CMAKE_REQUIRED_FLAGS)
+endif (have_mfpu_neon)
 ########################################################################
 # implement overruling in the ORC case,
 # since ORC always passes flag detection
@@ -411,6 +418,12 @@ foreach(machine_name ${available_machines})
         --mode "machine_flags" --machine "${machine_name}" --compiler "${COMPILER_NAME}"
         OUTPUT_VARIABLE ${machine_name}_flags OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+    if ("${machine_name}" STREQUAL "neon")
+	  if (have_mfpu_neon)
+	    set(neon_flags "${neon_flags} -mfpu=neon")
+	  endif (have_mfpu_neon)
+	endif()
+
     MESSAGE(STATUS "BUILD INFO ::: ${machine_name} ::: ${COMPILER_NAME} ::: ${CMAKE_C_FLAGS_${CBTU}} ${CMAKE_C_FLAGS} ${${machine_name}_flags}")
     set(COMPILER_INFO "${COMPILER_INFO}${machine_name}:::${COMPILER_NAME}:::${CMAKE_C_FLAGS_${CBTU}} ${CMAKE_C_FLAGS} ${${machine_name}_flags}\n" )
     if(${machine_name}_flags AND NOT MSVC)
