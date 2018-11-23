@@ -101,7 +101,7 @@ volk_32f_s32f_convert_32i_u_avx(int32_t* outputVector, const float* inputVector,
     inputVal1 = _mm256_loadu_ps(inputVectorPtr); inputVectorPtr += 8;
 
     inputVal1 = _mm256_max_ps(_mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
-    intInputVal1 = _mm256_cvtps_epi32(inputVal1);
+    intInputVal1 = _mm256_cvttps_epi32(inputVal1);
 
     _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal1);
     outputVectorPtr += 8;
