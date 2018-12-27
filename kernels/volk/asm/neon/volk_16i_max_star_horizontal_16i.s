@@ -5,8 +5,7 @@ volk_16i_max_star_horizontal_16i_a_neonasm:
 	@ r1 - aVector: pointer to input array 1
 	@ r2 - num_points: number of items to process
 
-volk_16i_max_star_horizontal_16i_a_neonasm:
-    pld     [r1:128]
+    pld     [r1, #128]
     push    {r4, r5, r6}    @ preserve register states
     lsrs    r5, r2, #4      @ 1/16th points = num_points/16
     vmov.i32    q12, #0     @ q12 = [0,0,0,0]
@@ -17,7 +16,7 @@ volk_16i_max_star_horizontal_16i_a_neonasm:
 
 .loop1:
     vld2.16 {d16-d19}, [r4]! @ aVector, interleaved load
-    pld [r4:128]
+    pld [r4, #128]
     add r3, r3, #1           @ number += 1
     cmp r3, r5               @ number < 1/16th points
     vsub.i16    q10, q8, q9  @ subtraction
