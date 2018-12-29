@@ -73,6 +73,56 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_32f_s32f_convert_32i_neon(int32_t* outputVector,
+                               const float* inputVector,
+                               const float scalar,
+                               unsigned int num_points) {
+    int32_t* outputVectorPtr = outputVector;
+    const float* inputVectorPtr = inputVector;
+    unsigned int number;
+    unsigned int quarter_points = num_points / 4;
+    float32x4_t input_vec, scalar_vec;
+    int32x4_t ouput_vec;
+    
+    float min_val = -2147483648;
+    float max_val = 2147483647;
+    float r;
+    
+    scalar_vec = vdupq_n_f32(scalar);
+    
+    for(number = 0; number < quarter_points; number++) {
+        // load f32
+        input_vec = vld1q_f32(inputVectorPtr);
+        // scale, this is saturating
+        input_vec = vmulq_f32(input_vec, scalar_vec);
+        // convert f32 to s32
+        ouput_vec = vcvtq_s32_f32(input_vec);
+        // store
+        vst1q_s32(outputVectorPtr, ouput_vec);
+        // move pointers ahead
+        outputVectorPtr+=4;
+        inputVectorPtr+=4;
+    }
+    
+    // deal with the rest
+    for(number = quarter_points * 4; number < num_points; number++) {
+        r = *inputVectorPtr++ * scalar;
+        if(r > max_val)
+            r = max_val;
+        else if(r < min_val)
+            r = min_val;
+        *outputVectorPtr++ = (int32_t)(r);
+    }
+}
+
+#endif /* LV_HAVE_NEON */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
