@@ -172,10 +172,10 @@ volk_16ic_magnitude_16i_a_sse3(int16_t* magnitudeVector, const lv_16sc_t* comple
     result = _mm_mul_ps(result, vScalar); // Scale the results
 
     _mm_store_ps(outputFloatBuffer, result);
-    *magnitudeVectorPtr++ = (int16_t)(outputFloatBuffer[0]);
-    *magnitudeVectorPtr++ = (int16_t)(outputFloatBuffer[1]);
-    *magnitudeVectorPtr++ = (int16_t)(outputFloatBuffer[2]);
-    *magnitudeVectorPtr++ = (int16_t)(outputFloatBuffer[3]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(outputFloatBuffer[0]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(outputFloatBuffer[1]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(outputFloatBuffer[2]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(outputFloatBuffer[3]);
   }
 
   number = quarterPoints * 4;
@@ -185,7 +185,7 @@ volk_16ic_magnitude_16i_a_sse3(int16_t* magnitudeVector, const lv_16sc_t* comple
     const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
     const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
     const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
-    *magnitudeVectorPtr++ = (int16_t)(val1Result);
+    *magnitudeVectorPtr++ = (int16_t)rintf(val1Result);
   }
 }
 #endif /* LV_HAVE_SSE3 */
@@ -246,10 +246,10 @@ volk_16ic_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_16sc_t* complex
     result = _mm_mul_ps(result, vScalar); // Scale the results
 
     _mm_store_ps(outputFloatBuffer, result);
-    *magnitudeVectorPtr++ = (int16_t)(outputFloatBuffer[0]);
-    *magnitudeVectorPtr++ = (int16_t)(outputFloatBuffer[1]);
-    *magnitudeVectorPtr++ = (int16_t)(outputFloatBuffer[2]);
-    *magnitudeVectorPtr++ = (int16_t)(outputFloatBuffer[3]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(outputFloatBuffer[0]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(outputFloatBuffer[1]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(outputFloatBuffer[2]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(outputFloatBuffer[3]);
   }
 
   number = quarterPoints * 4;
@@ -259,7 +259,7 @@ volk_16ic_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_16sc_t* complex
     const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
     const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
     const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
-    *magnitudeVectorPtr++ = (int16_t)(val1Result);
+    *magnitudeVectorPtr++ = (int16_t)rintf(val1Result);
   }
 }
 #endif /* LV_HAVE_SSE */
@@ -276,7 +276,7 @@ volk_16ic_magnitude_16i_generic(int16_t* magnitudeVector, const lv_16sc_t* compl
   for(number = 0; number < num_points; number++){
     float real = ((float)(*complexVectorPtr++)) / scalar;
     float imag = ((float)(*complexVectorPtr++)) / scalar;
-    *magnitudeVectorPtr++ = (int16_t)(sqrtf((real*real) + (imag*imag)) * scalar);
+    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((real*real) + (imag*imag)) * scalar);
   }
 }
 #endif /* LV_HAVE_GENERIC */
