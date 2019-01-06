@@ -76,7 +76,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_a_avx(float* noiseFloorAmplitude,
   const unsigned int eighthPoints = num_points / 8;
 
   const float* dataPointsPtr = realDataPoints;
-  __VOLK_ATTR_ALIGNED(16) float avgPointsVector[8];
+  __VOLK_ATTR_ALIGNED(32) float avgPointsVector[8];
 
   __m256 dataPointsVal;
   __m256 avgPointsVal = _mm256_setzero_ps();
@@ -150,7 +150,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_a_avx(float* noiseFloorAmplitude,
   sumMean += avgPointsVector[7];
 
   // Calculate the number of valid bins from the remaning count
-  __VOLK_ATTR_ALIGNED(16) float validBinCountVector[8];
+  __VOLK_ATTR_ALIGNED(32) float validBinCountVector[8];
   _mm256_store_ps(validBinCountVector, vValidBinCount);
 
   float validBinCount = 0;
