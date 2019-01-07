@@ -113,7 +113,7 @@ volk_32fc_s32f_magnitude_16i_a_avx2(int16_t* magnitudeVector, const lv_32fc_t* c
 
     result = _mm256_mul_ps(result, vScalar);
 
-    resultInt = _mm256_cvttps_epi32(result);
+    resultInt = _mm256_cvtps_epi32(result);
     resultInt = _mm256_packs_epi32(resultInt, resultInt);
     resultInt = _mm256_permutevar8x32_epi32(resultInt, idx); //permute to compensate for shuffling in hadd and packs
     resultShort = _mm256_extracti128_si256(resultInt,0);
@@ -126,7 +126,7 @@ volk_32fc_s32f_magnitude_16i_a_avx2(int16_t* magnitudeVector, const lv_32fc_t* c
   for(; number < num_points; number++){
     float val1Real = *complexVectorPtr++;
     float val1Imag = *complexVectorPtr++;
-    *magnitudeVectorPtr++ = (int16_t)(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
+    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
   }
 }
 #endif /* LV_HAVE_AVX2 */
@@ -320,7 +320,7 @@ volk_32fc_s32f_magnitude_16i_u_avx2(int16_t* magnitudeVector, const lv_32fc_t* c
 
     result = _mm256_mul_ps(result, vScalar);
 
-    resultInt = _mm256_cvttps_epi32(result);
+    resultInt = _mm256_cvtps_epi32(result);
     resultInt = _mm256_packs_epi32(resultInt, resultInt);
     resultInt = _mm256_permutevar8x32_epi32(resultInt, idx); //permute to compensate for shuffling in hadd and packs
     resultShort = _mm256_extracti128_si256(resultInt,0);
