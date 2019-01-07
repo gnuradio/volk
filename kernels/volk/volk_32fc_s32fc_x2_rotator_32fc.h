@@ -543,7 +543,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx_fma(lv_32fc_t* outVecto
     lv_32fc_t* cPtr = outVector;
     const lv_32fc_t* aPtr = inVector;
     lv_32fc_t incr = 1;
-    lv_32fc_t phase_Ptr[4] = {(*phase), (*phase), (*phase), (*phase)};
+    __VOLK_ATTR_ALIGNED(32) lv_32fc_t phase_Ptr[4] = {(*phase), (*phase), (*phase), (*phase)};
 
     unsigned int i, j = 0;
 
