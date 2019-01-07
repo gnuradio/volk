@@ -33,15 +33,15 @@ class volk_modtool:
         self.volk = re.compile('volk')
         self.remove_after_underscore = re.compile("_.*")
         self.volk_included = re.compile('INCLUDED_VOLK')
-        self.volk_run_tests = re.compile('^\s*VOLK_RUN_TESTS.*\n', re.MULTILINE)
-        self.volk_profile = re.compile('^\s*(VOLK_PROFILE|VOLK_PUPPET_PROFILE).*\n', re.MULTILINE)
-        self.volk_kernel_tests = re.compile('^\s*\((VOLK_INIT_TEST|VOLK_INIT_PUPP).*\n', re.MULTILINE)
-        self.volk_null_kernel = re.compile('^\s*;\n', re.MULTILINE)
+        self.volk_run_tests = re.compile(r'^\s*VOLK_RUN_TESTS.*\n', re.MULTILINE)
+        self.volk_profile = re.compile(r'^\s*(VOLK_PROFILE|VOLK_PUPPET_PROFILE).*\n', re.MULTILINE)
+        self.volk_kernel_tests = re.compile(r'^\s*\((VOLK_INIT_TEST|VOLK_INIT_PUPP).*\n', re.MULTILINE)
+        self.volk_null_kernel = re.compile(r'^\s*;\n', re.MULTILINE)
         self.my_dict = cfg
-        self.lastline = re.compile('\s*char path\[1024\];.*')
-        self.badassert = re.compile('^\s*assert\(toked\[0\] == "volk_.*\n', re.MULTILINE)
+        self.lastline = re.compile(r'\s*char path\[1024\];.*')
+        self.badassert = re.compile(r'^\s*assert\(toked\[0\] == "volk_.*\n', re.MULTILINE)
         self.goodassert = '    assert(toked[0] == "volk");\n'
-        self.baderase = re.compile('^\s*toked.erase\(toked.begin\(\)\);.*\n', re.MULTILINE)
+        self.baderase = re.compile(r'^\s*toked.erase\(toked.begin\(\)\);.*\n', re.MULTILINE)
         self.gooderase = '    toked.erase(toked.begin());\n    toked.erase(toked.begin());\n'
 
     def get_basename(self, base=None):
@@ -71,7 +71,7 @@ class volk_modtool:
 
         for line in hdr_files:
 
-            subline = re.search(".*\.h.*", os.path.basename(line))
+            subline = re.search(r".*\.h.*", os.path.basename(line))
             if subline:
                 subsubline = begins.search(subline.group(0))
                 if subsubline:
@@ -85,7 +85,7 @@ class volk_modtool:
         for line in hdr_files:
             for dt in datatypes:
                 if dt in line:
-                    subline = re.search(begins.pattern[:-2] + dt + ".*(?=\.h)", line)
+                    subline = re.search(begins.pattern[:-2] + dt + r".*(?=\.h)", line)
                     if subline:
                         functions.append(subline.group(0))
 
@@ -184,8 +184,8 @@ class volk_modtool:
         inpath = os.path.abspath(base)
         kernel = re.compile(name)
         search_kernels = Set([kernel])
-        profile = re.compile('^\s*VOLK_PROFILE')
-        puppet = re.compile('^\s*VOLK_PUPPET')
+        profile = re.compile(r'^\s*VOLK_PROFILE')
+        puppet = re.compile(r'^\s*VOLK_PUPPET')
         src_dest = os.path.join(inpath, 'apps/', top[:-1] + '_profile.cc')
         infile = open(src_dest)
         otherlines = infile.readlines()
@@ -252,8 +252,8 @@ class volk_modtool:
         kernel = re.compile(name)
         search_kernels = Set([kernel])
 
-        profile = re.compile('^\s*VOLK_PROFILE')
-        puppet = re.compile('^\s*VOLK_PUPPET')
+        profile = re.compile(r'^\s*VOLK_PROFILE')
+        puppet = re.compile(r'^\s*VOLK_PUPPET')
         infile = open(os.path.join(inpath, 'apps/', oldvolk.pattern + '_profile.cc'))
         otherinfile = open(os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'apps/volk_' + self.my_dict['name'] + '_profile.cc'))
         dest = os.path.join(self.my_dict['destination'], 'volk_' + self.my_dict['name'], 'apps/volk_' + self.my_dict['name'] + '_profile.cc')
@@ -300,7 +300,7 @@ class volk_modtool:
         inserted = False
         insert = False
         for otherline in otherlines:
-            if re.match('\s*', otherline) is None or re.match('\s*#.*', otherline) is None:
+            if re.match(r'\s*', otherline) is None or re.match(r'\s*#.*', otherline) is None:
                 insert = True
             if insert and not inserted:
                 inserted = True
