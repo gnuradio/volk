@@ -372,10 +372,10 @@ static inline void volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in
 #include <arm_neon.h>
 
 #define DO_RBIT					\
-  asm("rbit %[result], %[value]"		\
-      : [result]"=r" (*out_ptr)			\
-      : [value] "r"  (*in_ptr)			\
-      : );					\
+  __VOLK_ASM("rbit %[result], %[value]"         \
+             : [result]"=r" (*out_ptr)          \
+             : [value] "r"  (*in_ptr)           \
+             : );                               \
   in_ptr++;					\
   out_ptr++;
 

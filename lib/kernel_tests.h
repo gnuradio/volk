@@ -21,10 +21,8 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
 {
 
     // Some kernels need a lower tolerance
-    volk_test_params_t test_params_inacc = volk_test_params_t(1e-2, test_params.scalar(),
-            test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
-    volk_test_params_t test_params_inacc_tenth = volk_test_params_t(1e-1, test_params.scalar(),
-            test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex());
+    volk_test_params_t test_params_inacc = test_params.make_tol(1e-2);
+    volk_test_params_t test_params_inacc_tenth = test_params.make_tol(1e-1);
 
     std::vector<volk_test_case_t> test_cases;
     QA(VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt,     test_params))
@@ -35,7 +33,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_PUPP(volk_32u_popcntpuppet_32u, volk_32u_popcnt_32u,  test_params))
     QA(VOLK_INIT_PUPP(volk_64u_byteswappuppet_64u, volk_64u_byteswap, test_params))
     QA(VOLK_INIT_PUPP(volk_32fc_s32fc_rotatorpuppet_32fc, volk_32fc_s32fc_x2_rotator_32fc, test_params))
-    QA(VOLK_INIT_PUPP(volk_8u_conv_k7_r2puppet_8u, volk_8u_x4_conv_k7_r2_8u, volk_test_params_t(0, test_params.scalar(), test_params.vlen(), test_params.iter()/10, test_params.benchmark_mode(), test_params.kernel_regex())))
+    QA(VOLK_INIT_PUPP(volk_8u_conv_k7_r2puppet_8u, volk_8u_x4_conv_k7_r2_8u, test_params.make_tol(0)))
     QA(VOLK_INIT_PUPP(volk_32f_x2_fm_detectpuppet_32f, volk_32f_s32f_32f_fm_detect_32f, test_params))
     QA(VOLK_INIT_TEST(volk_16ic_s32f_deinterleave_real_32f,           test_params))
     QA(VOLK_INIT_TEST(volk_16ic_deinterleave_real_8i,                 test_params))
@@ -56,9 +54,9 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32f_index_max_32u,                         test_params))
     QA(VOLK_INIT_TEST(volk_32fc_32f_multiply_32fc,                    test_params))
     QA(VOLK_INIT_TEST(volk_32fc_32f_add_32fc,                         test_params))
-    QA(VOLK_INIT_TEST(volk_32f_log2_32f,           volk_test_params_t(1.5e-1, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
-    QA(VOLK_INIT_TEST(volk_32f_expfast_32f,        volk_test_params_t(1e-1, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
-    QA(VOLK_INIT_TEST(volk_32f_x2_pow_32f,         volk_test_params_t(1e-2, test_params.scalar(), test_params.vlen(), test_params.iter(), test_params.benchmark_mode(), test_params.kernel_regex())))
+    QA(VOLK_INIT_TEST(volk_32f_log2_32f,                              test_params.make_absolute(1e-5)))
+    QA(VOLK_INIT_TEST(volk_32f_expfast_32f,                           test_params_inacc_tenth))
+    QA(VOLK_INIT_TEST(volk_32f_x2_pow_32f,                            test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_sin_32f,                               test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_cos_32f,                               test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_tan_32f,                               test_params_inacc))

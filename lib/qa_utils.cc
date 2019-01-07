@@ -247,28 +247,38 @@ inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func, std::vector<void *> &b
 }
 
 template <class t>
-bool fcompare(t *in1, t *in2, unsigned int vlen, float tol) {
+bool fcompare(t *in1, t *in2, unsigned int vlen, float tol, bool absolute_mode) {
     bool fail = false;
     int print_max_errs = 10;
     for(unsigned int i=0; i<vlen; i++) {
-        // for very small numbers we'll see round off errors due to limited
-        // precision. So a special test case...
-        if(fabs(((t *)(in1))[i]) < 1e-30) {
-            if( fabs( ((t *)(in2))[i] ) > tol )
-            {
+        if (absolute_mode) {
+            if (fabs(((t *)(in1))[i] - ((t *)(in2))[i]) > tol) {
                 fail=true;
                 if(print_max_errs-- > 0) {
                     std::cout << "offset " << i << " in1: " << t(((t *)(in1))[i]) << " in2: " << t(((t *)(in2))[i]);
                     std::cout << " tolerance was: " << tol << std::endl;
                 }
             }
-        }
-        // the primary test is the percent different greater than given tol
-        else if(fabs(((t *)(in1))[i] - ((t *)(in2))[i])/fabs(((t *)in1)[i]) > tol) {
-            fail=true;
-            if(print_max_errs-- > 0) {
-                std::cout << "offset " << i << " in1: " << t(((t *)(in1))[i]) << " in2: " << t(((t *)(in2))[i]);
-                std::cout << " tolerance was: " << tol << std::endl;
+        } else {
+            // for very small numbers we'll see round off errors due to limited
+            // precision. So a special test case...
+            if(fabs(((t *)(in1))[i]) < 1e-30) {
+                if( fabs( ((t *)(in2))[i] ) > tol )
+                {
+                    fail=true;
+                    if(print_max_errs-- > 0) {
+                    std::cout << "offset " << i << " in1: " << t(((t *)(in1))[i]) << " in2: " << t(((t *)(in2))[i]);
+                        std::cout << " tolerance was: " << tol << std::endl;
+                    }
+                }
+            }
+            // the primary test is the percent different greater than given tol
+            else if(fabs(((t *)(in1))[i] - ((t *)(in2))[i])/fabs(((t *)in1)[i]) > tol) {
+                fail=true;
+                if(print_max_errs-- > 0) {
+                    std::cout << "offset " << i << " in1: " << t(((t *)(in1))[i]) << " in2: " << t(((t *)(in2))[i]);
+                    std::cout << " tolerance was: " << tol << std::endl;
+                }
             }
         }
     }
@@ -277,7 +287,11 @@ bool fcompare(t *in1, t *in2, unsigned int vlen, float tol) {
 }
 
 template <class t>
-bool ccompare(t *in1, t *in2, unsigned int vlen, float tol) {
+bool ccompare(t *in1, t *in2, unsigned int vlen, float tol, bool absolute_mode) {
+    if (absolute_mode) {
+      std::cout << "ccompare does not support absolute mode" << std::endl;
+      return true;
+    }
     bool fail = false;
     int print_max_errs = 10;
     for(unsigned int i=0; i<2*vlen; i+=2) {
@@ -311,7 +325,11 @@ bool ccompare(t *in1, t *in2, unsigned int vlen, float tol) {
 }
 
 template <class t>
-bool icompare(t *in1, t *in2, unsigned int vlen, unsigned int tol) {
+bool icompare(t *in1, t *in2, unsigned int vlen, unsigned int tol, bool absolute_mode) {
+    if (absolute_mode) {
+      std::cout << "icompare does not support absolute mode" << std::endl;
+      return true;
+    }
     bool fail = false;
     int print_max_errs = 10;
     for(unsigned int i=0; i<vlen; i++) {
@@ -354,7 +372,7 @@ bool run_volk_tests(volk_func_desc_t desc,
 {
     return run_volk_tests(desc, manual_func, name, test_params.tol(), test_params.scalar(),
         test_params.vlen(), test_params.iter(), results, puppet_master_name,
-        test_params.benchmark_mode());
+        test_params.absolute_mode(), test_params.benchmark_mode());
 }
 
 bool run_volk_tests(volk_func_desc_t desc,
@@ -366,6 +384,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                     unsigned int iter,
                     std::vector<volk_test_results_t> *results,
                     std::string puppet_master_name,
+                    bool absolute_mode,
                     bool benchmark_mode
 ) {
     // Initialize this entry in results vector
@@ -527,15 +546,15 @@ bool run_volk_tests(volk_func_desc_t desc,
                 if(both_sigs[j].is_float) {
                     if(both_sigs[j].size == 8) {
                         if (both_sigs[j].is_complex) {
-                            fail = ccompare((double *) test_data[generic_offset][j], (double *) test_data[i][j], vlen, tol_f);
+                            fail = ccompare((double *) test_data[generic_offset][j], (double *) test_data[i][j], vlen, tol_f, absolute_mode);
                         } else {
-                            fail = fcompare((double *) test_data[generic_offset][j], (double *) test_data[i][j], vlen, tol_f);
+                            fail = fcompare((double *) test_data[generic_offset][j], (double *) test_data[i][j], vlen, tol_f, absolute_mode);
                         }
                     } else {
                         if (both_sigs[j].is_complex) {
-                            fail = ccompare((float *) test_data[generic_offset][j], (float *) test_data[i][j], vlen, tol_f);
+                            fail = ccompare((float *) test_data[generic_offset][j], (float *) test_data[i][j], vlen, tol_f, absolute_mode);
                         } else {
-                            fail = fcompare((float *) test_data[generic_offset][j], (float *) test_data[i][j], vlen, tol_f);
+                            fail = fcompare((float *) test_data[generic_offset][j], (float *) test_data[i][j], vlen, tol_f, absolute_mode);
                         }
                     }
                 } else {
@@ -543,41 +562,41 @@ bool run_volk_tests(volk_func_desc_t desc,
                     switch(both_sigs[j].size) {
                     case 8:
                         if(both_sigs[j].is_signed) {
-                            fail = icompare((int64_t *) test_data[generic_offset][j], (int64_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            fail = icompare((int64_t *) test_data[generic_offset][j], (int64_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                         } else {
-                            fail = icompare((uint64_t *) test_data[generic_offset][j], (uint64_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            fail = icompare((uint64_t *) test_data[generic_offset][j], (uint64_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                         }
                         break;
                     case 4:
                         if(both_sigs[j].is_complex) {
                             if(both_sigs[j].is_signed) {
-                                fail = icompare((int16_t *) test_data[generic_offset][j], (int16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                                fail = icompare((int16_t *) test_data[generic_offset][j], (int16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                             } else {
-                                fail = icompare((uint16_t *) test_data[generic_offset][j], (uint16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                                fail = icompare((uint16_t *) test_data[generic_offset][j], (uint16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                             }
                         }
                         else {
                             if (both_sigs[j].is_signed) {
                                 fail = icompare((int32_t *) test_data[generic_offset][j], (int32_t *) test_data[i][j],
-                                                vlen * (both_sigs[j].is_complex ? 2 : 1), tol_i);
+                                                vlen * (both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                             } else {
                                 fail = icompare((uint32_t *) test_data[generic_offset][j], (uint32_t *) test_data[i][j],
-                                                vlen * (both_sigs[j].is_complex ? 2 : 1), tol_i);
+                                                vlen * (both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                             }
                         }
                         break;
                     case 2:
                         if(both_sigs[j].is_signed) {
-                            fail = icompare((int16_t *) test_data[generic_offset][j], (int16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            fail = icompare((int16_t *) test_data[generic_offset][j], (int16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                         } else {
-                            fail = icompare((uint16_t *) test_data[generic_offset][j], (uint16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            fail = icompare((uint16_t *) test_data[generic_offset][j], (uint16_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                         }
                         break;
                     case 1:
                         if(both_sigs[j].is_signed) {
-                            fail = icompare((int8_t *) test_data[generic_offset][j], (int8_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            fail = icompare((int8_t *) test_data[generic_offset][j], (int8_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                         } else {
-                            fail = icompare((uint8_t *) test_data[generic_offset][j], (uint8_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i);
+                            fail = icompare((uint8_t *) test_data[generic_offset][j], (uint8_t *) test_data[i][j], vlen*(both_sigs[j].is_complex ? 2 : 1), tol_i, absolute_mode);
                         }
                         break;
                     default:
