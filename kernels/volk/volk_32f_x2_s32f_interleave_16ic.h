@@ -165,8 +165,8 @@ volk_32f_x2_s32f_interleave_16ic_a_sse2(lv_16sc_t* complexVector, const float* i
     cplxValue2 = _mm_unpackhi_ps(iValue, qValue);
     cplxValue2 = _mm_mul_ps(cplxValue2, vScalar);
 
-    intValue1 = _mm_cvttps_epi32(cplxValue1);
-    intValue2 = _mm_cvttps_epi32(cplxValue2);
+    intValue1 = _mm_cvtps_epi32(cplxValue1);
+    intValue2 = _mm_cvtps_epi32(cplxValue2);
 
     intValue1 = _mm_packs_epi32(intValue1, intValue2);
 
