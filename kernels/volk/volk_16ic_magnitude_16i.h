@@ -102,7 +102,7 @@ volk_16ic_magnitude_16i_a_avx2(int16_t* magnitudeVector, const lv_16sc_t* comple
 
     result = _mm256_mul_ps(result, vScalar); // Scale the results
 
-    int1 = _mm256_cvttps_epi32(result);
+    int1 = _mm256_cvtps_epi32(result);
     int1 = _mm256_packs_epi32(int1, int1);
     int1 = _mm256_permutevar8x32_epi32(int1, idx); //permute to compensate for shuffling in hadd and packs
     short1 = _mm256_extracti128_si256(int1, 0);
@@ -117,7 +117,7 @@ volk_16ic_magnitude_16i_a_avx2(int16_t* magnitudeVector, const lv_16sc_t* comple
     const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
     const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
     const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
-    *magnitudeVectorPtr++ = (int16_t)(val1Result);
+    *magnitudeVectorPtr++ = (int16_t)rintf(val1Result);
   }
 }
 #endif /* LV_HAVE_AVX2 */
@@ -347,7 +347,7 @@ volk_16ic_magnitude_16i_u_avx2(int16_t* magnitudeVector, const lv_16sc_t* comple
 
     result = _mm256_mul_ps(result, vScalar); // Scale the results
 
-    int1 = _mm256_cvttps_epi32(result);
+    int1 = _mm256_cvtps_epi32(result);
     int1 = _mm256_packs_epi32(int1, int1);
     int1 = _mm256_permutevar8x32_epi32(int1, idx); //permute to compensate for shuffling in hadd and packs
     short1 = _mm256_extracti128_si256(int1, 0);
@@ -362,7 +362,7 @@ volk_16ic_magnitude_16i_u_avx2(int16_t* magnitudeVector, const lv_16sc_t* comple
     const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
     const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
     const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
-    *magnitudeVectorPtr++ = (int16_t)(val1Result);
+    *magnitudeVectorPtr++ = (int16_t)rintf(val1Result);
   }
 }
 #endif /* LV_HAVE_AVX2 */

@@ -111,8 +111,8 @@ volk_32f_x2_s32f_interleave_16ic_a_avx2(lv_16sc_t* complexVector, const float* i
     cplxValue2 = _mm256_unpackhi_ps(iValue, qValue);
     cplxValue2 = _mm256_mul_ps(cplxValue2, vScalar);
 
-    intValue1 = _mm256_cvttps_epi32(cplxValue1);
-    intValue2 = _mm256_cvttps_epi32(cplxValue2);
+    intValue1 = _mm256_cvtps_epi32(cplxValue1);
+    intValue2 = _mm256_cvtps_epi32(cplxValue2);
 
     intValue1 = _mm256_packs_epi32(intValue1, intValue2);
 
@@ -308,8 +308,8 @@ volk_32f_x2_s32f_interleave_16ic_u_avx2(lv_16sc_t* complexVector, const float* i
     cplxValue2 = _mm256_unpackhi_ps(iValue, qValue);
     cplxValue2 = _mm256_mul_ps(cplxValue2, vScalar);
 
-    intValue1 = _mm256_cvttps_epi32(cplxValue1);
-    intValue2 = _mm256_cvttps_epi32(cplxValue2);
+    intValue1 = _mm256_cvtps_epi32(cplxValue1);
+    intValue2 = _mm256_cvtps_epi32(cplxValue2);
 
     intValue1 = _mm256_packs_epi32(intValue1, intValue2);
 
