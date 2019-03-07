@@ -566,7 +566,7 @@ target_include_directories(volk_obj
 
 #Add dynamic library
 add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
-target_link_libraries(volk ${volk_libraries} m)
+target_link_libraries(volk ${volk_libraries})
 target_include_directories(volk
   PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -577,9 +577,13 @@ target_include_directories(volk
   )
 
 #Configure target properties
-set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
+if(NOT MSVC)
+  set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
+  target_link_libraries(volk m)
+endif()
 set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
 set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
+
 
 #Install locations
 install(TARGETS volk
@@ -592,7 +596,10 @@ install(TARGETS volk
 #Configure static library
 if(ENABLE_STATIC_LIBS)
   add_library(volk_static STATIC $<TARGET_OBJECTS:volk_obj>)
-  target_link_libraries(volk_static ${volk_libraries} pthread m)
+  target_link_libraries(volk_static ${volk_libraries} pthread)
+  if(NOT MSVC)
+    target_link_libraries(volk_static m)
+  endif()
   target_include_directories(volk_static
     PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
