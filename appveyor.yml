@@ -13,10 +13,10 @@ environment:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GENERATOR: Visual Studio 14 2015
       VC_VERSION: vc140
- 
+
 install:
     - cd c:\projects\volk
-    - mkdir packages
+    - mkdir -Force packages
     - cd packages
     - nuget install boost_system-%VC_VERSION% -Version %BOOST_VERSION%
     - nuget install boost_filesystem-%VC_VERSION% -Version %BOOST_VERSION%
