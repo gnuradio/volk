@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/gnuradio/volk.svg?branch=master)](https://travis-ci.org/gnuradio/volk)
+[![Build Status](https://travis-ci.org/gnuradio/volk.svg?branch=master)](https://travis-ci.org/gnuradio/volk) [![Build status](https://ci.appveyor.com/api/projects/status/5o56mgw0do20jlh3/branch/master?svg=true)](https://ci.appveyor.com/project/gnuradio/volk/branch/master)
 >
 > Copyright 2015 Free Software Foundation, Inc.
 >
