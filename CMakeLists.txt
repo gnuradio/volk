@@ -1,5 +1,5 @@
 #
-# Copyright 2011,2018 Free Software Foundation, Inc.
+# Copyright 2011,2018,2019 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,8 +21,13 @@
 cmake_minimum_required(VERSION 2.8.12)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose build type: None Debug Release RelWithDebInfo MinSizeRel")
 project(volk)
+
 enable_language(CXX)
+set(CMAKE_CXX_STANDARD 11)
+
 enable_language(C)
+set(CMAKE_C_STANDARD 11)
+
 enable_testing()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
