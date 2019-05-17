@@ -78,16 +78,12 @@ static inline void
 volk_32f_s32f_convert_8i_single(int8_t* out, const float in){
   float min_val = -128;
   float max_val = 127;
-  if (in > 0){
-    if(in > max_val)
-        *out = (int8_t)(max_val);
-    else
-        *out = (int8_t)(in + 0.5f);
+  if(in > max_val){
+    *out = (int8_t)(max_val);
+  }else if(in < min_val){
+    *out = (int8_t)(min_val);
   }else{
-    if(in < min_val)
-        *out = (int8_t)(min_val);
-    else
-        *out = (int8_t)(in - 0.5f);
+    *out = (int8_t)(rintf(in));
   }
 }
 
@@ -247,11 +243,7 @@ volk_32f_s32f_convert_8i_u_sse(int8_t* outputVector, const float* inputVector,
 
     _mm_store_ps(outputFloatBuffer, ret);
     for (inner_loop = 0; inner_loop < 4; inner_loop++){
-      if (outputFloatBuffer[inner_loop] > 0)
-        *outputVectorPtr++ = (int8_t)(outputFloatBuffer[inner_loop] + 0.5f);
-      else
-        *outputVectorPtr++ = (int8_t)(outputFloatBuffer[inner_loop] - 0.5f);
-
+      *outputVectorPtr++ = (int8_t)(rintf(outputFloatBuffer[inner_loop]));
     }
   }
 
@@ -447,11 +439,7 @@ volk_32f_s32f_convert_8i_a_sse(int8_t* outputVector, const float* inputVector,
 
     _mm_store_ps(outputFloatBuffer, ret);
     for (inner_loop = 0; inner_loop < 4; inner_loop++){
-      if (outputFloatBuffer[inner_loop] > 0)
-        *outputVectorPtr++ = (int8_t)(outputFloatBuffer[inner_loop] + 0.5f);
-      else
-        *outputVectorPtr++ = (int8_t)(outputFloatBuffer[inner_loop] - 0.5f);
-
+      *outputVectorPtr++ = (int8_t)(rintf(outputFloatBuffer[inner_loop]));
     }
   }
 
