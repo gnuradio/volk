@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <volk/volk_prefs.h>
 
 void volk_get_config_path(char *path)
@@ -16,6 +17,13 @@ void volk_get_config_path(char *path)
     if(home!=NULL){
         strncpy(path,home,512);
         strcat(path,suffix2);
+        return;
+    }
+
+    //check for system-wide config file
+    if (access("/etc/volk/volk_config", F_OK) != -1){
+        strncpy(path, "/etc", 512);
+        strcat(path, suffix2);
         return;
     }
 
