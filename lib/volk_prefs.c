@@ -44,6 +44,14 @@ void volk_get_config_path(char *path)
             return;
         }
     }
+
+    //check for system-wide config file
+    if (access("/etc/volk/volk_config", F_OK) != -1){
+        strncpy(path, "/etc", 512);
+        strcat(path, suffix2);
+        return;
+    }
+
     //If still no path was found set path[0] to '0' and fall through
     path[0] = 0;
     return;
