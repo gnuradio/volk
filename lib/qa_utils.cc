@@ -19,27 +19,24 @@
 #include <random>
 #include <vector>                                   // for vector, _Bit_refe...
 
-float uniform() {
-    std::random_device r;
-    std::default_random_engine e1(r());
-    std::uniform_real_distribution<float> uniform_dist(-1.0, 1.0);
-    return uniform_dist(e1);    // uniformly (-1, 1)
-}
-
-template <class t>
-void random_floats (t *buf, unsigned n)
+template <typename T>
+void random_floats (T *buf, unsigned int n, std::default_random_engine& e1)
 {
-  for (unsigned i = 0; i < n; i++)
-    buf[i] = uniform ();
+  std::uniform_real_distribution<T> uniform_dist(T(-1), T(1));
+  for (unsigned int i = 0; i < n; i++)
+    buf[i] = uniform_dist(e1);
 }
 
 void load_random_data(void *data, volk_type_t type, unsigned int n) {
     std::random_device r;
+    std::default_random_engine e1(r());
     std::default_random_engine e2(r());
     if(type.is_complex) n *= 2;
     if(type.is_float) {
-        if(type.size == 8) random_floats<double>((double *)data, n);
-        else random_floats<float>((float *)data, n);
+      if(type.size == 8)
+	random_floats<double>((double *)data, n, e1);
+      else
+	random_floats<float> ((float  *)data, n, e1);
     } else {
         float int_max = float(uint64_t(2) << (type.size*8));
         if(type.is_signed) int_max /= 2.0;
