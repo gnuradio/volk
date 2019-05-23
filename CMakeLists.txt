@@ -77,7 +77,6 @@ endif(MSVC)
 ########################################################################
 # Dependencies setup
 ########################################################################
-
 # Python
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
 VOLK_PYTHON_CHECK_MODULE("python >= 2.7" sys "sys.version.split()[0] >= '2.7'" PYTHON_MIN_VER_FOUND)
@@ -111,10 +110,14 @@ if(MSVC)
     endif(BOOST_ALL_DYN_LINK)
 endif(MSVC)
 
-include(VolkBoost)
+if(CMAKE_CXX_STANDARD GREATER_EQUAL 17)
+    set(Boost_LIBRARIES "")
+else()
+    include(VolkBoost)
 
-if(NOT Boost_FOUND)
-    message(FATAL_ERROR "VOLK Requires boost to build")
+    if(NOT Boost_FOUND)
+        message(FATAL_ERROR "VOLK Requires boost to build")
+    endif()
 endif()
 
 # Orc

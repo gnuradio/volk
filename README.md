@@ -45,3 +45,10 @@ Build with cmake:
     $ sudo make install
 
 That's it!
+
+## BoostSANS
+
+It is possible to build VOLK without Boost. Though, this depends on the latest C++ compilers. Be aware that this requires GCC9 or later. In `CMakeLists.txt` change the line `set(CMAKE_CXX_STANDARD 11)` to `set(CMAKE_CXX_STANDARD 17)`.
+Rerun the build instructions.
+
+Voila! That's it!
