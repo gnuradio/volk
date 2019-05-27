@@ -20,29 +20,31 @@
 #include <vector>                                   // for vector, _Bit_refe...
 
 template <typename T>
-void random_floats (T *buf, unsigned int n, std::default_random_engine& e1)
+void random_floats(void *buf, unsigned int n, std::default_random_engine& rnd_engine)
 {
-  std::uniform_real_distribution<T> uniform_dist(T(-1), T(1));
-  for (unsigned int i = 0; i < n; i++)
-    buf[i] = uniform_dist(e1);
+    T *array = static_cast<T*>(buf);
+    std::uniform_real_distribution<T> uniform_dist(T(-1), T(1));
+    for(unsigned int i = 0; i < n; i++) {
+        array[i] = uniform_dist(rnd_engine);
+    }
 }
 
 void load_random_data(void *data, volk_type_t type, unsigned int n) {
-    std::random_device r;
-    std::default_random_engine e1(r());
-    std::default_random_engine e2(r());
+    std::random_device rnd_device;
+    std::default_random_engine rnd_engine(rnd_device());
     if(type.is_complex) n *= 2;
     if(type.is_float) {
-      if(type.size == 8)
-	random_floats<double>((double *)data, n, e1);
-      else
-	random_floats<float> ((float  *)data, n, e1);
+        if(type.size == 8) {
+            random_floats<double>(data, n, rnd_engine);
+        } else {
+            random_floats<float> (data, n, rnd_engine);
+        }
     } else {
         float int_max = float(uint64_t(2) << (type.size*8));
         if(type.is_signed) int_max /= 2.0;
         std::uniform_real_distribution<float> uniform_dist(-int_max, int_max);
         for(unsigned int i=0; i<n; i++) {
-            float scaled_rand = uniform_dist(e2);
+            float scaled_rand = uniform_dist(rnd_engine);
             //man i really don't know how to do this in a more clever way, you have to cast down at some point
             switch(type.size) {
             case 8:
