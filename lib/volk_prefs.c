@@ -1,7 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(_MSC_VER)
+#include <io.h>
+#define access _access
+#define F_OK 0
+#else
 #include <unistd.h>
+#endif
 #include <volk/volk_prefs.h>
 
 void volk_get_config_path(char *path)
@@ -14,10 +20,30 @@ void volk_get_config_path(char *path)
 
     //allows config redirection via env variable
     home = getenv("VOLK_CONFIGPATH");
-    if(home!=NULL){
-        strncpy(path,home,512);
-        strcat(path,suffix2);
+    if(home != NULL){
+        strncpy(path, home, 512);
+        strcat(path, suffix2);
         return;
+    }
+
+    //check for user-local config file
+    home = getenv("HOME");
+    if (home != NULL){
+        strncpy(path, home, 512);
+        strcat(path, suffix);
+        if (access(path, F_OK) != -1){
+            return;
+        }
+    }
+
+    //check for config file in APPDATA (Windows)
+    home = getenv("APPDATA");
+    if (home != NULL){
+        strncpy(path, home, 512);
+        strcat(path, suffix);
+        if (access(path, F_OK) != -1){
+            return;
+        }
     }
 
     //check for system-wide config file
@@ -27,15 +53,8 @@ void volk_get_config_path(char *path)
         return;
     }
 
-    if (home == NULL) home = getenv("HOME");
-    if (home == NULL) home = getenv("APPDATA");
-    if (home == NULL){
-        path[0] = 0;
-        return;
-    }
-
-    strncpy(path, home, 512);
-    strcat(path, suffix);
+    path[0] = 0;
+    return;
 }
 
 size_t volk_load_preferences(volk_arch_pref_t **prefs_res)
