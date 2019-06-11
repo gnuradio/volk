@@ -123,7 +123,7 @@ endif()
 if(CMAKE_VERSION VERSION_LESS 3.8)
     set(FILESYSTEM_FOUND FALSE)
 else()
-    find_package(FILESYSTEM)
+    find_package(FILESYSTEM COMPONENTS Final Experimental)
 endif()
 
 #### Set C++ standard to 17 if std::filesystem is available
