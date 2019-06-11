@@ -39,12 +39,16 @@ add_executable(volk_profile
     ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc
 )
 
+if(${FILESYSTEM_FOUND})
+    add_definitions(-DHAS_STD_FILESYSTEM=1)
+    target_link_libraries(volk_profile PRIVATE std::filesystem)
+endif()
 
 if(ENABLE_STATIC_LIBS)
-    target_link_libraries(volk_profile volk_static ${Boost_LIBRARIES})
+    target_link_libraries(volk_profile PRIVATE volk_static ${Boost_LIBRARIES})
     set_target_properties(volk_profile PROPERTIES LINK_FLAGS "-static")
 else()
-    target_link_libraries(volk_profile volk ${Boost_LIBRARIES})
+    target_link_libraries(volk_profile PRIVATE volk ${Boost_LIBRARIES})
 endif()
 
 install(

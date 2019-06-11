@@ -20,9 +20,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#if HAS_STD_FILESYSTEM
+#include <filesystem>
+#else
 #include <boost/filesystem/operations.hpp>   // for create_directories, exists
 #include <boost/filesystem/path.hpp>         // for path, operator<<
 #include <boost/filesystem/path_traits.hpp>  // for filesystem
+#endif
 #include <stddef.h>                          // for size_t
 #include <sys/stat.h>                        // for stat
 #include <volk/volk_prefs.h>                 // for volk_get_config_path
@@ -38,8 +42,11 @@
 #include "volk_option_helpers.h"             // for option_list, option_t
 #include "volk_profile.h"
 
-
+#if HAS_STD_FILESYSTEM
+namespace fs = std::filesystem;
+#else
 namespace fs = boost::filesystem;
+#endif
 
 volk_test_params_t test_params(1e-6f, 327.f, 131071, 1987, false, "");
 
