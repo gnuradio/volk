@@ -1082,7 +1082,7 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfma(lv_32fc_t* result, con
 
 #ifdef LV_HAVE_NEON
 static inline void volk_32fc_x2_dot_prod_32fc_neon_optfmaunroll(lv_32fc_t* result, const lv_32fc_t* input, const lv_32fc_t* taps, unsigned int num_points) {
-// NOTE: GCC does a poor job with this kernel, but the euivalent ASM code is very fast
+// NOTE: GCC does a poor job with this kernel, but the equivalent ASM code is very fast
 
     unsigned int quarter_points = num_points / 8;
     unsigned int number;

@@ -63,7 +63,7 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_a_avx2(lv_16sc_t* cVector
     // Calculate the ar*(-ci) + cr*(ai)
     imagz = _mm256_madd_epi16(x,y);
 
-    // Perfrom the addition of products
+    // Perform the addition of products
 
     _mm256_store_si256((__m256i*)c, _mm256_packs_epi32(_mm256_unpacklo_epi32(realz, imagz), _mm256_unpackhi_epi32(realz, imagz)));
 
@@ -227,7 +227,7 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_u_avx2(lv_16sc_t* cVector
     // Calculate the ar*(-ci) + cr*(ai)
     imagz = _mm256_madd_epi16(x,y);
 
-    // Perfrom the addition of products
+    // Perform the addition of products
 
     _mm256_storeu_si256((__m256i*)c, _mm256_packs_epi32(_mm256_unpacklo_epi32(realz, imagz), _mm256_unpackhi_epi32(realz, imagz)));
 
