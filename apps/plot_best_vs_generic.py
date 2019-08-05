@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright 2019 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
