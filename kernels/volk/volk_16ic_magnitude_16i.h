@@ -367,4 +367,57 @@ volk_16ic_magnitude_16i_u_avx2(int16_t* magnitudeVector, const lv_16sc_t* comple
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_NEONV7
+#include <arm_neon.h>
+#include <volk/volk_neon_intrinsics.h>
+
+static inline void
+volk_16ic_magnitude_16i_neonv7(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points)
+{
+    unsigned int number = 0;
+    unsigned int quarter_points = num_points / 4;
+    
+    const float scalar = 32768.0;
+    const float inv_scalar = 1. / scalar;
+    
+    int16_t* magnitudeVectorPtr = magnitudeVector;
+    const lv_16sc_t* complexVectorPtr = complexVector;
+    
+    float32x4_t mag_vec;
+    float32x4x2_t c_vec;
+    
+    for(number = 0; number < quarter_points; number++) {
+        const int16x4x2_t c16_vec = vld2_s16((int16_t*)complexVectorPtr);
+        __VOLK_PREFETCH(complexVectorPtr+4);
+        c_vec.val[0] = vcvtq_f32_s32(vmovl_s16(c16_vec.val[0]));
+        c_vec.val[1] = vcvtq_f32_s32(vmovl_s16(c16_vec.val[1]));
+        // Scale to close to 0-1
+        c_vec.val[0] = vmulq_n_f32(c_vec.val[0], inv_scalar);
+        c_vec.val[1] = vmulq_n_f32(c_vec.val[1], inv_scalar);
+        // vsqrtq_f32 is armv8
+        const float32x4_t mag_vec_squared = _vmagnitudesquaredq_f32(c_vec);
+        mag_vec = vmulq_f32(mag_vec_squared, _vinvsqrtq_f32(mag_vec_squared));
+        // Reconstruct
+        mag_vec = vmulq_n_f32(mag_vec, scalar);
+        // Add 0.5 for correct rounding because vcvtq_s32_f32 truncates.
+        // This works because the magnitude is always positive.
+        mag_vec = vaddq_f32(mag_vec, vdupq_n_f32(0.5));
+        const int16x4_t mag16_vec = vmovn_s32(vcvtq_s32_f32(mag_vec));
+        vst1_s16(magnitudeVectorPtr, mag16_vec);
+        // Advance pointers
+        magnitudeVectorPtr+=4;
+        complexVectorPtr+=4;
+    }
+    
+    // Deal with the rest
+    for(number = quarter_points * 4; number < num_points; number++) {
+        const float real = lv_creal(*complexVectorPtr) * inv_scalar;
+        const float imag = lv_cimag(*complexVectorPtr) * inv_scalar;
+        *magnitudeVectorPtr = (int16_t)rintf(sqrtf((real*real) + (imag*imag)) * scalar);
+        complexVectorPtr++;
+        magnitudeVectorPtr++;
+    }
+}
+#endif /* LV_HAVE_NEONV7 */
+
 #endif /* INCLUDED_volk_16ic_magnitude_16i_u_H */
