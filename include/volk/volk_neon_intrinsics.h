@@ -23,6 +23,8 @@
 /* Copyright (C) 2011  Julien Pommier
  Copyright (C) 2019  Albin Stigo
  
+ _vsincosq_f32
+ 
  This software is provided 'as-is', without any express or implied
  warranty.  In no event will the authors be held liable for any damages
  arising from the use of this software.
@@ -110,11 +112,7 @@ static inline float32x4_t _vinvq_f32(float32x4_t x)
 /* Evaluation of 4 sines & cosines at once.
  * Optimized from here (zlib license)
  * http://gruntthepeon.free.fr/ssemath/ */
-static inline void _vsincosq_f32(float32x4_t x,
-                                 float32x4_t *ysin,
-                                 float32x4_t *ycos) {
-    float32x4_t y;
-    
+static inline float32x4x2_t _vsincosq_f32(float32x4_t x) {
     const float32x4_t c_minus_cephes_DP1 = vdupq_n_f32(-0.78515625);
     const float32x4_t c_minus_cephes_DP2 = vdupq_n_f32(-2.4187564849853515625e-4);
     const float32x4_t c_minus_cephes_DP3 = vdupq_n_f32(-3.77489497744594108e-8);
@@ -138,7 +136,7 @@ static inline void _vsincosq_f32(float32x4_t x,
     sign_mask_sin = vcltq_f32(x, CONST_0);
     x = vabsq_f32(x);
     // scale by 4/pi
-    y = vmulq_f32(x, c_cephes_FOPI);
+    float32x4_t y = vmulq_f32(x, c_cephes_FOPI);
     
     // store the integer part of y in mm0
     emm2 = vcvtq_u32_f32(y);
@@ -163,7 +161,6 @@ static inline void _vsincosq_f32(float32x4_t x,
     
     /* Evaluate the first polynom  (0 <= x <= Pi/4) in y1,
      and the second polynom      (Pi/4 <= x <= 0) in y2 */
-    
     float32x4_t y1, y2;
     float32x4_t z = vmulq_f32(x,x);
     
@@ -182,26 +179,27 @@ static inline void _vsincosq_f32(float32x4_t x,
     /* select the correct result from the two polynoms */
     const float32x4_t ys = vbslq_f32(poly_mask, y1, y2);
     const float32x4_t yc = vbslq_f32(poly_mask, y2, y1);
-    *ysin = vbslq_f32(sign_mask_sin, vnegq_f32(ys), ys);
-    *ycos = vbslq_f32(sign_mask_cos, yc, vnegq_f32(yc));
+    
+    float32x4x2_t sincos;
+    sincos.val[0] = vbslq_f32(sign_mask_sin, vnegq_f32(ys), ys);
+    sincos.val[1] = vbslq_f32(sign_mask_cos, yc, vnegq_f32(yc));
+    
+    return sincos;
 }
 
 static inline float32x4_t _vsinq_f32(float32x4_t x) {
-    float32x4_t ysin, ycos;
-    _vsincosq_f32(x, &ysin, &ycos);
-    return ysin;
+    const float32x4x2_t sincos = _vsincosq_f32(x);
+    return sincos.val[0];
 }
 
 static inline float32x4_t _vcosq_f32(float32x4_t x) {
-    float32x4_t ysin, ycos;
-    _vsincosq_f32(x, &ysin, &ycos);
-    return ycos;
+    const float32x4x2_t sincos = _vsincosq_f32(x);
+    return sincos.val[1];
 }
 
 static inline float32x4_t _vtanq_f32(float32x4_t x) {
-    float32x4_t ysin, ycos;
-    _vsincosq_f32(x, &ysin, &ycos);
-    return vmulq_f32(ysin, _vinvq_f32(ycos));
+    const float32x4x2_t sincos = _vsincosq_f32(x);
+    return vmulq_f32(sincos.val[0], _vinvq_f32(sincos.val[1]));
 }
 
 
