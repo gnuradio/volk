@@ -311,7 +311,7 @@ volk_32fc_deinterleave_64f_x2_neon(double *iBuffer, double *qBuffer,
                                    const lv_32fc_t *complexVector,
                                    unsigned int num_points) {
   unsigned int number = 0;
-  unsigned int half_points = half_points / 2;
+  unsigned int half_points = num_points / 2;
   const float *complexVectorPtr = (float *)complexVector;
   double *iBufferPtr = iBuffer;
   double *qBufferPtr = qBuffer;
@@ -333,8 +333,8 @@ volk_32fc_deinterleave_64f_x2_neon(double *iBuffer, double *qBuffer,
   }
 
   for (number = half_points * 2; number < num_points; number++) {
-    *iBufferPtr++ = *complexVectorPtr++;
-    *qBufferPtr++ = *complexVectorPtr++;
+    *iBufferPtr++ = (double)*complexVectorPtr++;
+    *qBufferPtr++ = (double)*complexVectorPtr++;
   }
 }
 #endif /* LV_HAVE_NEONV8 */
