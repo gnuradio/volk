@@ -150,7 +150,8 @@ volk_32f_log2_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int 
 
   number = eighthPoints * 8;
   for(;number < num_points; number++){
-    *bPtr++ = log2f(*aPtr++);
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
   }
 }
 
@@ -210,7 +211,8 @@ volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_
 
   number = eighthPoints * 8;
   for(;number < num_points; number++){
-    *bPtr++ = log2f(*aPtr++);
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
   }
 }
 
@@ -226,7 +228,8 @@ volk_32f_log2_32f_generic(float* bVector, const float* aVector, unsigned int num
   unsigned int number = 0;
 
   for(number = 0; number < num_points; number++) {
-    *bPtr++ = log2f(*aPtr++);
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
   }
 
 }
@@ -286,7 +289,8 @@ volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
 
   number = quarterPoints * 4;
   for(;number < num_points; number++){
-    *bPtr++ = log2f(*aPtr++);
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
   }
 }
 
@@ -380,7 +384,8 @@ volk_32f_log2_32f_neon(float* bVector, const float* aVector, unsigned int num_po
   }
 
   for(number = quarterPoints * 4; number < num_points; number++){
-    *bPtr++ = log2f(*aPtr++);
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
   }
 }
 
@@ -403,7 +408,8 @@ volk_32f_log2_32f_u_generic(float* bVector, const float* aVector, unsigned int n
   unsigned int number = 0;
 
   for(number = 0; number < num_points; number++){
-    *bPtr++ = log2f(*aPtr++);
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
   }
 }
 
@@ -464,7 +470,8 @@ volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
 
   number = quarterPoints * 4;
   for(;number < num_points; number++){
-    *bPtr++ = log2f(*aPtr++);
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
   }
 }
 
@@ -524,7 +531,8 @@ volk_32f_log2_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int 
 
   number = eighthPoints * 8;
   for(;number < num_points; number++){
-    *bPtr++ = log2f(*aPtr++);
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
   }
 }
 
@@ -584,7 +592,8 @@ volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_
 
   number = eighthPoints * 8;
   for(;number < num_points; number++){
-    *bPtr++ = log2f(*aPtr++);
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
   }
 }
 
