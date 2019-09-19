@@ -98,44 +98,37 @@ static inline void
 volk_32f_x3_sum_of_poly_32f_a_sse3(float* target, float* src0, float* center_point_array,
                                    float* cutoff, unsigned int num_points)
 {
-  const unsigned int num_bytes = num_points*4;
+  float result = 0.0f;
+  float fst    = 0.0f;
+  float sq     = 0.0f;
+  float thrd   = 0.0f;
+  float frth   = 0.0f;
 
-  float result = 0.0;
-  float fst = 0.0;
-  float sq = 0.0;
-  float thrd = 0.0;
-  float frth = 0.0;
-  //float fith = 0.0;
+  __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9, xmm10;
 
-  __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9, xmm10;// xmm11, xmm12;
-
-  xmm9 = _mm_setzero_ps();
-  xmm1 = _mm_setzero_ps();
-
-  xmm0 = _mm_load1_ps(&center_point_array[0]);
-  xmm6 = _mm_load1_ps(&center_point_array[1]);
-  xmm7 = _mm_load1_ps(&center_point_array[2]);
-  xmm8 = _mm_load1_ps(&center_point_array[3]);
-  //xmm11 = _mm_load1_ps(&center_point_array[4]);
+  xmm9  = _mm_setzero_ps();
+  xmm1  = _mm_setzero_ps();
+  xmm0  = _mm_load1_ps(&center_point_array[0]);
+  xmm6  = _mm_load1_ps(&center_point_array[1]);
+  xmm7  = _mm_load1_ps(&center_point_array[2]);
+  xmm8  = _mm_load1_ps(&center_point_array[3]);
   xmm10 = _mm_load1_ps(cutoff);
 
-  int bound = num_bytes >> 4;
-  int leftovers = (num_bytes >> 2) & 3;
+  int bound = num_points/8;
+  int leftovers = num_points - 8*bound;
   int i = 0;
-
   for(; i < bound; ++i) {
+    // 1st
     xmm2 = _mm_load_ps(src0);
     xmm2 = _mm_max_ps(xmm10, xmm2);
     xmm3 = _mm_mul_ps(xmm2, xmm2);
     xmm4 = _mm_mul_ps(xmm2, xmm3);
     xmm5 = _mm_mul_ps(xmm3, xmm3);
-    //xmm12 = _mm_mul_ps(xmm3, xmm4);
 
     xmm2 = _mm_mul_ps(xmm2, xmm0);
     xmm3 = _mm_mul_ps(xmm3, xmm6);
     xmm4 = _mm_mul_ps(xmm4, xmm7);
     xmm5 = _mm_mul_ps(xmm5, xmm8);
-    //xmm12 = _mm_mul_ps(xmm12, xmm11);
 
     xmm2 = _mm_add_ps(xmm2, xmm3);
     xmm3 = _mm_add_ps(xmm4, xmm5);
@@ -143,38 +136,47 @@ volk_32f_x3_sum_of_poly_32f_a_sse3(float* target, float* src0, float* center_poi
     src0 += 4;
 
     xmm9 = _mm_add_ps(xmm2, xmm9);
+    xmm9 = _mm_add_ps(xmm3, xmm9);
 
+    // 2nd
+    xmm2 = _mm_load_ps(src0);
+    xmm2 = _mm_max_ps(xmm10, xmm2);
+    xmm3 = _mm_mul_ps(xmm2, xmm2);
+    xmm4 = _mm_mul_ps(xmm2, xmm3);
+    xmm5 = _mm_mul_ps(xmm3, xmm3);
+
+    xmm2 = _mm_mul_ps(xmm2, xmm0);
+    xmm3 = _mm_mul_ps(xmm3, xmm6);
+    xmm4 = _mm_mul_ps(xmm4, xmm7);
+    xmm5 = _mm_mul_ps(xmm5, xmm8);
+
+    xmm2 = _mm_add_ps(xmm2, xmm3);
+    xmm3 = _mm_add_ps(xmm4, xmm5);
+
+    src0 += 4;
+
+    xmm1 = _mm_add_ps(xmm2, xmm1);
     xmm1 = _mm_add_ps(xmm3, xmm1);
-
-    //xmm9 = _mm_add_ps(xmm12, xmm9);
   }
-
   xmm2 = _mm_hadd_ps(xmm9, xmm1);
   xmm3 = _mm_hadd_ps(xmm2, xmm2);
   xmm4 = _mm_hadd_ps(xmm3, xmm3);
-
   _mm_store_ss(&result, xmm4);
 
-
-
   for(i = 0; i < leftovers; ++i) {
-    fst = src0[i];
-    fst = MAX(fst, *cutoff);
-    sq = fst * fst;
+    fst  = *src0++;
+    fst  = MAX(fst, *cutoff);
+    sq   = fst * fst;
     thrd = fst * sq;
     frth = sq * sq;
-    //fith = sq * thrd;
-
     result += (center_point_array[0] * fst +
 	       center_point_array[1] * sq +
 	       center_point_array[2] * thrd +
-	       center_point_array[3] * frth);// +
-	       //center_point_array[4] * fith);
+	       center_point_array[3] * frth);
   }
 
-  result += ((float)((bound * 4) + leftovers)) * center_point_array[4]; //center_point_array[5];
-
-  target[0] = result;
+  result += (float)(num_points) * center_point_array[4];
+  *target = result;
 }
 
 
@@ -232,21 +234,18 @@ volk_32f_x3_sum_of_poly_32f_a_avx2_fma(float* target, float* src0, float* center
   _mm256_store_ps(temp_results, target_vec);
   *target = temp_results[0] + temp_results[1] + temp_results[4] + temp_results[5];
 
-
   for(i = eighth_points*8; i < num_points; ++i) {
-    fst = *(src0++);
-    fst = MAX(fst, *cutoff);
-    sq = fst * fst;
+    fst  = *src0++;
+    fst  = MAX(fst, *cutoff);
+    sq   = fst * fst;
     thrd = fst * sq;
     frth = sq * sq;
-
     *target += (center_point_array[0] * fst +
-	       center_point_array[1] * sq +
-	       center_point_array[2] * thrd +
-	       center_point_array[3] * frth);
+                center_point_array[1] * sq +
+                center_point_array[2] * thrd +
+                center_point_array[3] * frth);
   }
-
-  *target += ((float)(num_points)) * center_point_array[4];
+  *target += (float)(num_points) * center_point_array[4];
 }
 #endif // LV_HAVE_AVX && LV_HAVE_FMA
 
@@ -304,23 +303,21 @@ volk_32f_x3_sum_of_poly_32f_a_avx(float* target, float* src0, float* center_poin
   _mm256_store_ps(temp_results, target_vec);
   *target = temp_results[0] + temp_results[1] + temp_results[4] + temp_results[5];
 
-
   for(i = eighth_points*8; i < num_points; ++i) {
-    fst = *(src0++);
-    fst = MAX(fst, *cutoff);
-    sq = fst * fst;
+    fst  = *src0++;
+    fst  = MAX(fst, *cutoff);
+    sq   = fst * fst;
     thrd = fst * sq;
     frth = sq * sq;
-
     *target += (center_point_array[0] * fst +
-	       center_point_array[1] * sq +
-	       center_point_array[2] * thrd +
-	       center_point_array[3] * frth);
+                center_point_array[1] * sq +
+                center_point_array[2] * thrd +
+                center_point_array[3] * frth);
   }
-
-  *target += ((float)(num_points)) * center_point_array[4];
+  *target += (float)(num_points) * center_point_array[4];
 }
 #endif // LV_HAVE_AVX
+
 
 
 #ifdef LV_HAVE_GENERIC
@@ -329,43 +326,44 @@ static inline void
 volk_32f_x3_sum_of_poly_32f_generic(float* target, float* src0, float* center_point_array,
                                     float* cutoff, unsigned int num_points)
 {
-  const unsigned int num_bytes = num_points*4;
+  const unsigned int eighth_points = num_points / 8;
 
-  float result = 0.0;
-  float fst = 0.0;
-  float sq = 0.0;
-  float thrd = 0.0;
-  float frth = 0.0;
-  //float fith = 0.0;
+  float result[8] = {0.0f,0.0f,0.0f,0.0f, 0.0f,0.0f,0.0f,0.0f};
+  float fst  = 0.0f;
+  float sq   = 0.0f;
+  float thrd = 0.0f;
+  float frth = 0.0f;
 
   unsigned int i = 0;
-
-  for(; i < num_bytes >> 2; ++i) {
-    fst = src0[i];
-    fst = MAX(fst, *cutoff);
-
-    sq = fst * fst;
-    thrd = fst * sq;
-    frth = sq * sq;
-    //fith = sq * thrd;
-
-    result += (center_point_array[0] * fst +
-	       center_point_array[1] * sq +
-	       center_point_array[2] * thrd +
-	       center_point_array[3] * frth); //+
-	       //center_point_array[4] * fith);
-    /*printf("%f12...%d\n", (center_point_array[0] * fst +
-		  center_point_array[1] * sq +
-		  center_point_array[2] * thrd +
-			 center_point_array[3] * frth) +
-	   //center_point_array[4] * fith) +
-	   (center_point_array[4]), i);
-    */
+  unsigned int k = 0;
+  for(i = 0; i < eighth_points; ++i) {
+    for(k = 0; k < 8; ++k) {
+      fst  = *src0++;
+      fst  = MAX(fst, *cutoff);
+      sq   = fst * fst;
+      thrd = fst * sq;
+      frth = fst * thrd;
+      result[k] += center_point_array[0] * fst  + center_point_array[1] * sq;
+      result[k] += center_point_array[2] * thrd + center_point_array[3] * frth;
+    }
   }
+  for(k = 0; k < 8; k+=2)
+    result[k] = result[k]+result[k+1];
 
-  result += ((float)(num_bytes >> 2)) * (center_point_array[4]);//(center_point_array[5]);
+  *target = result[0] + result[2] + result[4] + result[6];
 
-  *target = result;
+  for(i = eighth_points*8; i < num_points; ++i) {
+    fst  = *src0++;
+    fst  = MAX(fst, *cutoff);
+    sq   = fst * fst;
+    thrd = fst * sq;
+    frth = fst * thrd;
+    *target += (center_point_array[0] * fst +
+                center_point_array[1] * sq +
+                center_point_array[2] * thrd +
+                center_point_array[3] * frth);
+  }
+  *target += (float)(num_points) * center_point_array[4];
 }
 
 #endif /*LV_HAVE_GENERIC*/
@@ -418,7 +416,7 @@ volk_32f_x3_sum_of_poly_32f_a_neon(float* __restrict target, float* __restrict s
   accumulator = res_accumulators[0] + res_accumulators[1] +
           res_accumulators[2] + res_accumulators[3];
 
-  *target = accumulator + center_point_array[4] * (float)num_points;
+  *target = accumulator + (float)num_points * center_point_array[4];
 }
 
 #endif /* LV_HAVE_NEON */
@@ -502,7 +500,7 @@ volk_32f_x3_sum_of_poly_32f_neonvert(float* __restrict target, float* __restrict
                     center_point_array[3] * frth); //+
   }
 
-  *target = accumulator + center_point_array[4] * (float)num_points;
+  *target = accumulator + (float)num_points * center_point_array[4];
 }
 
 #endif /* LV_HAVE_NEON */
@@ -525,11 +523,11 @@ volk_32f_x3_sum_of_poly_32f_neonvert(float* __restrict target, float* __restrict
 
 static inline void
 volk_32f_x3_sum_of_poly_32f_u_avx_fma(float* target, float* src0, float* center_point_array,
-                                  float* cutoff, unsigned int num_points)
+                                      float* cutoff, unsigned int num_points)
 {
   const unsigned int eighth_points = num_points / 8;
-  float fst = 0.0;
-  float sq = 0.0;
+  float fst  = 0.0;
+  float sq   = 0.0;
   float thrd = 0.0;
   float frth = 0.0;
 
@@ -572,21 +570,19 @@ volk_32f_x3_sum_of_poly_32f_u_avx_fma(float* target, float* src0, float* center_
   _mm256_storeu_ps(temp_results, target_vec);
   *target = temp_results[0] + temp_results[1] + temp_results[4] + temp_results[5];
 
-
   for(i = eighth_points*8; i < num_points; ++i) {
-    fst = *(src0++);
-    fst = MAX(fst, *cutoff);
-    sq = fst * fst;
+    fst  = *src0++;
+    fst  = MAX(fst, *cutoff);
+    sq   = fst * fst;
     thrd = fst * sq;
     frth = sq * sq;
-
     *target += (center_point_array[0] * fst +
-	       center_point_array[1] * sq +
-	       center_point_array[2] * thrd +
-	       center_point_array[3] * frth);
+                center_point_array[1] * sq +
+                center_point_array[2] * thrd +
+                center_point_array[3] * frth);
   }
 
-  *target += ((float)(num_points)) * center_point_array[4];
+  *target += (float)(num_points) * center_point_array[4];
 }
 #endif // LV_HAVE_AVX && LV_HAVE_FMA
 
@@ -598,8 +594,8 @@ volk_32f_x3_sum_of_poly_32f_u_avx(float* target, float* src0, float* center_poin
                                   float* cutoff, unsigned int num_points)
 {
   const unsigned int eighth_points = num_points / 8;
-  float fst = 0.0;
-  float sq = 0.0;
+  float fst  = 0.0;
+  float sq   = 0.0;
   float thrd = 0.0;
   float frth = 0.0;
 
@@ -644,21 +640,20 @@ volk_32f_x3_sum_of_poly_32f_u_avx(float* target, float* src0, float* center_poin
   _mm256_storeu_ps(temp_results, target_vec);
   *target = temp_results[0] + temp_results[1] + temp_results[4] + temp_results[5];
 
-
   for(i = eighth_points*8; i < num_points; ++i) {
-    fst = *(src0++);
-    fst = MAX(fst, *cutoff);
-    sq = fst * fst;
+    fst  = *src0++;
+    fst  = MAX(fst, *cutoff);
+    sq   = fst * fst;
     thrd = fst * sq;
     frth = sq * sq;
 
     *target += (center_point_array[0] * fst +
-	       center_point_array[1] * sq +
-	       center_point_array[2] * thrd +
-	       center_point_array[3] * frth);
+                center_point_array[1] * sq +
+                center_point_array[2] * thrd +
+                center_point_array[3] * frth);
   }
 
-  *target += ((float)(num_points)) * center_point_array[4];
+  *target += (float)(num_points) * center_point_array[4];
 }
 #endif // LV_HAVE_AVX
 
