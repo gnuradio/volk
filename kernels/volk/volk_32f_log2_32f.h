@@ -96,6 +96,23 @@
 
 #define LOG_POLY_DEGREE 6
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_32f_log2_32f_generic(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+  unsigned int number = 0;
+
+  for(number = 0; number < num_points; number++) {
+    float const result = log2f(*aPtr++);
+    *bPtr++ = isinf(result) ? -127.0f : result;
+  }
+
+}
+#endif /* LV_HAVE_GENERIC */
+
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
 
@@ -149,10 +166,7 @@ volk_32f_log2_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int 
   }
 
   number = eighthPoints * 8;
-  for(;number < num_points; number++){
-    float const result = log2f(*aPtr++);
-    *bPtr++ = isinf(result) ? -127.0f : result;
-  }
+  volk_32f_log2_32f_generic(bPtr, aPtr, num_points-number);
 }
 
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for aligned */
@@ -210,30 +224,10 @@ volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_
   }
 
   number = eighthPoints * 8;
-  for(;number < num_points; number++){
-    float const result = log2f(*aPtr++);
-    *bPtr++ = isinf(result) ? -127.0f : result;
-  }
+  volk_32f_log2_32f_generic(bPtr, aPtr, num_points-number);
 }
 
 #endif /* LV_HAVE_AVX2 for aligned */
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void
-volk_32f_log2_32f_generic(float* bVector, const float* aVector, unsigned int num_points)
-{
-  float* bPtr = bVector;
-  const float* aPtr = aVector;
-  unsigned int number = 0;
-
-  for(number = 0; number < num_points; number++) {
-    float const result = log2f(*aPtr++);
-    *bPtr++ = isinf(result) ? -127.0f : result;
-  }
-
-}
-#endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
@@ -288,10 +282,7 @@ volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
   }
 
   number = quarterPoints * 4;
-  for(;number < num_points; number++){
-    float const result = log2f(*aPtr++);
-    *bPtr++ = isinf(result) ? -127.0f : result;
-  }
+  volk_32f_log2_32f_generic(bPtr, aPtr, num_points-number);
 }
 
 #endif /* LV_HAVE_SSE4_1 for aligned */
@@ -383,10 +374,8 @@ volk_32f_log2_32f_neon(float* bVector, const float* aVector, unsigned int num_po
     bPtr += 4;
   }
 
-  for(number = quarterPoints * 4; number < num_points; number++){
-    float const result = log2f(*aPtr++);
-    *bPtr++ = isinf(result) ? -127.0f : result;
-  }
+  number = quarterPoints * 4;
+  volk_32f_log2_32f_generic(bPtr, aPtr, num_points-number);
 }
 
 #endif /* LV_HAVE_NEON */
@@ -469,10 +458,7 @@ volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
   }
 
   number = quarterPoints * 4;
-  for(;number < num_points; number++){
-    float const result = log2f(*aPtr++);
-    *bPtr++ = isinf(result) ? -127.0f : result;
-  }
+  volk_32f_log2_32f_u_generic(bPtr, aPtr, num_points-number);
 }
 
 #endif /* LV_HAVE_SSE4_1 for unaligned */
@@ -530,10 +516,7 @@ volk_32f_log2_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int 
   }
 
   number = eighthPoints * 8;
-  for(;number < num_points; number++){
-    float const result = log2f(*aPtr++);
-    *bPtr++ = isinf(result) ? -127.0f : result;
-  }
+  volk_32f_log2_32f_u_generic(bPtr, aPtr, num_points-number);
 }
 
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for unaligned */
@@ -591,10 +574,7 @@ volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_
   }
 
   number = eighthPoints * 8;
-  for(;number < num_points; number++){
-    float const result = log2f(*aPtr++);
-    *bPtr++ = isinf(result) ? -127.0f : result;
-  }
+  volk_32f_log2_32f_u_generic(bPtr, aPtr, num_points-number);
 }
 
 #endif /* LV_HAVE_AVX2 for unaligned */
