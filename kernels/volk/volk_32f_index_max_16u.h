@@ -109,7 +109,7 @@ volk_32f_index_max_16u_a_avx(uint16_t* target, const float* src0,
     currentValues  = _mm256_load_ps(inputPtr); inputPtr += 8;
     currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
 
-    compareResults = _mm256_cmp_ps(maxValues, currentValues,14);
+    compareResults = _mm256_cmp_ps(currentValues, maxValues, _CMP_LE_OS);
 
     maxValuesIndex = _mm256_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
     maxValues      = _mm256_blendv_ps(currentValues, maxValues, compareResults);
@@ -123,6 +123,9 @@ volk_32f_index_max_16u_a_avx(uint16_t* target, const float* src0,
     if(maxValuesBuffer[number] > max){
       index = maxIndexesBuffer[number];
       max = maxValuesBuffer[number];
+    } else if(maxValuesBuffer[number] == max){
+      if (index > maxIndexesBuffer[number])
+        index = maxIndexesBuffer[number];
     }
   }
 
@@ -170,7 +173,7 @@ volk_32f_index_max_16u_a_sse4_1(uint16_t* target, const float* src0,
     currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
     currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-    compareResults = _mm_cmpgt_ps(maxValues, currentValues);
+    compareResults = _mm_cmple_ps(currentValues, maxValues);
 
     maxValuesIndex = _mm_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
     maxValues      = _mm_blendv_ps(currentValues, maxValues, compareResults);
@@ -184,6 +187,9 @@ volk_32f_index_max_16u_a_sse4_1(uint16_t* target, const float* src0,
     if(maxValuesBuffer[number] > max){
       index = maxIndexesBuffer[number];
       max = maxValuesBuffer[number];
+    } else if(maxValuesBuffer[number] == max){
+      if (index > maxIndexesBuffer[number])
+        index = maxIndexesBuffer[number];
     }
   }
 
@@ -233,7 +239,7 @@ volk_32f_index_max_16u_a_sse(uint16_t* target, const float* src0,
     currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
     currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-    compareResults = _mm_cmpgt_ps(maxValues, currentValues);
+    compareResults = _mm_cmple_ps(currentValues, maxValues);
 
     maxValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, maxValuesIndex) , _mm_andnot_ps(compareResults, currentIndexes));
 
@@ -248,6 +254,9 @@ volk_32f_index_max_16u_a_sse(uint16_t* target, const float* src0,
     if(maxValuesBuffer[number] > max){
       index = maxIndexesBuffer[number];
       max = maxValuesBuffer[number];
+    } else if(maxValuesBuffer[number] == max){
+      if (index > maxIndexesBuffer[number])
+        index = maxIndexesBuffer[number];
     }
   }
 
@@ -334,7 +343,7 @@ volk_32f_index_max_16u_u_avx(uint16_t* target, const float* src0,
     currentValues  = _mm256_loadu_ps(inputPtr); inputPtr += 8;
     currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
 
-    compareResults = _mm256_cmp_ps(maxValues, currentValues,14);
+    compareResults = _mm256_cmp_ps(currentValues, maxValues, _CMP_LE_OS);
 
     maxValuesIndex = _mm256_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
     maxValues      = _mm256_blendv_ps(currentValues, maxValues, compareResults);
@@ -348,6 +357,9 @@ volk_32f_index_max_16u_u_avx(uint16_t* target, const float* src0,
     if(maxValuesBuffer[number] > max){
       index = maxIndexesBuffer[number];
       max = maxValuesBuffer[number];
+    } else if(maxValuesBuffer[number] == max){
+      if (index > maxIndexesBuffer[number])
+        index = maxIndexesBuffer[number];
     }
   }
 
