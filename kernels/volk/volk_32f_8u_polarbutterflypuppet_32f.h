@@ -1,19 +1,19 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2015 Free Software Foundation, Inc.
- * 
+ *
  * This file is part of GNU Radio
- * 
+ *
  * GNU Radio is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * GNU Radio is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with GNU Radio; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -100,7 +100,7 @@ volk_32f_8u_polarbutterflypuppet_32f_generic(float* llrs, const float* input, un
 
   unsigned int u_num = 0;
   for(; u_num < frame_size; u_num++){
-    volk_32f_8u_polarbutterfly_32f_generic(llrs, u, frame_size, frame_exp, 0, u_num, u_num);
+    volk_32f_8u_polarbutterfly_32f_generic(llrs, u, frame_exp, 0, u_num, u_num);
     u[u_num] = llrs[u_num] > 0 ? 0 : 1;
   }
 
@@ -120,13 +120,33 @@ volk_32f_8u_polarbutterflypuppet_32f_u_avx(float* llrs, const float* input, unsi
 
   unsigned int u_num = 0;
   for(; u_num < frame_size; u_num++){
-    volk_32f_8u_polarbutterfly_32f_u_avx(llrs, u, frame_size, frame_exp, 0, u_num, u_num);
+    volk_32f_8u_polarbutterfly_32f_u_avx(llrs, u, frame_exp, 0, u_num, u_num);
     u[u_num] = llrs[u_num] > 0 ? 0 : 1;
   }
 
   clean_up_intermediate_values(llrs, u, frame_size, elements);
 }
 #endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_AVX2
+static inline void
+volk_32f_8u_polarbutterflypuppet_32f_u_avx2(float* llrs, const float* input, unsigned char* u, const int elements)
+{
+  unsigned int frame_size = maximum_frame_size(elements);
+  unsigned int frame_exp = log2_of_power_of_2(frame_size);
+
+  sanitize_bytes(u, elements);
+  generate_error_free_input_vector(llrs + frame_exp * frame_size, u, frame_size);
+
+  unsigned int u_num = 0;
+  for(; u_num < frame_size; u_num++){
+    volk_32f_8u_polarbutterfly_32f_u_avx2(llrs, u, frame_exp, 0, u_num, u_num);
+    u[u_num] = llrs[u_num] > 0 ? 0 : 1;
+  }
+
+  clean_up_intermediate_values(llrs, u, frame_size, elements);
+}
+#endif /* LV_HAVE_AVX2 */
 
 
 

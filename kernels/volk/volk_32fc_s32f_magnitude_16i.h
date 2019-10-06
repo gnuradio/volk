@@ -78,6 +78,59 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+volk_32fc_s32f_magnitude_16i_a_avx2(int16_t* magnitudeVector, const lv_32fc_t* complexVector,
+                                    const float scalar, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  const float* complexVectorPtr = (const float*)complexVector;
+  int16_t* magnitudeVectorPtr = magnitudeVector;
+
+  __m256 vScalar = _mm256_set1_ps(scalar);
+  __m256i idx = _mm256_set_epi32(0,0,0,0,5,1,4,0);
+  __m256 cplxValue1, cplxValue2, result;
+  __m256i resultInt;
+  __m128i resultShort;
+
+  for(;number < eighthPoints; number++){
+    cplxValue1 = _mm256_load_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    cplxValue2 = _mm256_load_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, cplxValue1); // Square the values
+    cplxValue2 = _mm256_mul_ps(cplxValue2, cplxValue2); // Square the Values
+
+    result = _mm256_hadd_ps(cplxValue1, cplxValue2); // Add the I2 and Q2 values
+
+    result = _mm256_sqrt_ps(result);
+
+    result = _mm256_mul_ps(result, vScalar);
+
+    resultInt = _mm256_cvtps_epi32(result);
+    resultInt = _mm256_packs_epi32(resultInt, resultInt);
+    resultInt = _mm256_permutevar8x32_epi32(resultInt, idx); //permute to compensate for shuffling in hadd and packs
+    resultShort = _mm256_extracti128_si256(resultInt,0);
+    _mm_store_si128((__m128i*)magnitudeVectorPtr,resultShort);
+    magnitudeVectorPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  magnitudeVectorPtr = &magnitudeVector[number];
+  for(; number < num_points; number++){
+    float val1Real = *complexVectorPtr++;
+    float val1Imag = *complexVectorPtr++;
+    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
+  }
+}
+#endif /* LV_HAVE_AVX2 */
+
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
 
@@ -114,10 +167,10 @@ volk_32fc_s32f_magnitude_16i_a_sse3(int16_t* magnitudeVector, const lv_32fc_t* c
     result = _mm_mul_ps(result, vScalar);
 
     _mm_store_ps(floatBuffer, result);
-    *magnitudeVectorPtr++ = (int16_t)(floatBuffer[0]);
-    *magnitudeVectorPtr++ = (int16_t)(floatBuffer[1]);
-    *magnitudeVectorPtr++ = (int16_t)(floatBuffer[2]);
-    *magnitudeVectorPtr++ = (int16_t)(floatBuffer[3]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(floatBuffer[0]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(floatBuffer[1]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(floatBuffer[2]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(floatBuffer[3]);
   }
 
   number = quarterPoints * 4;
@@ -125,7 +178,7 @@ volk_32fc_s32f_magnitude_16i_a_sse3(int16_t* magnitudeVector, const lv_32fc_t* c
   for(; number < num_points; number++){
     float val1Real = *complexVectorPtr++;
     float val1Imag = *complexVectorPtr++;
-    *magnitudeVectorPtr++ = (int16_t)(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
+    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
   }
 }
 #endif /* LV_HAVE_SSE3 */
@@ -172,10 +225,10 @@ volk_32fc_s32f_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_32fc_t* co
     result = _mm_mul_ps(result, vScalar);
 
     _mm_store_ps(floatBuffer, result);
-    *magnitudeVectorPtr++ = (int16_t)(floatBuffer[0]);
-    *magnitudeVectorPtr++ = (int16_t)(floatBuffer[1]);
-    *magnitudeVectorPtr++ = (int16_t)(floatBuffer[2]);
-    *magnitudeVectorPtr++ = (int16_t)(floatBuffer[3]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(floatBuffer[0]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(floatBuffer[1]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(floatBuffer[2]);
+    *magnitudeVectorPtr++ = (int16_t)rintf(floatBuffer[3]);
   }
 
   number = quarterPoints * 4;
@@ -183,7 +236,7 @@ volk_32fc_s32f_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_32fc_t* co
   for(; number < num_points; number++){
     float val1Real = *complexVectorPtr++;
     float val1Imag = *complexVectorPtr++;
-    *magnitudeVectorPtr++ = (int16_t)(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
+    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
   }
 }
 #endif /* LV_HAVE_SSE */
@@ -200,26 +253,73 @@ volk_32fc_s32f_magnitude_16i_generic(int16_t* magnitudeVector, const lv_32fc_t* 
   for(number = 0; number < num_points; number++){
     const float real = *complexVectorPtr++;
     const float imag = *complexVectorPtr++;
-    *magnitudeVectorPtr++ = (int16_t)(sqrtf((real*real) + (imag*imag)) * scalar);
+    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((real*real) + (imag*imag)) * scalar);
   }
 }
 #endif /* LV_HAVE_GENERIC */
 
 
-#ifdef LV_HAVE_ORC
+#endif /* INCLUDED_volk_32fc_s32f_magnitude_16i_a_H */
 
-extern void
-volk_32fc_s32f_magnitude_16i_a_orc_impl(int16_t* magnitudeVector, const lv_32fc_t* complexVector,
-                                        const float scalar, unsigned int num_points);
+#ifndef INCLUDED_volk_32fc_s32f_magnitude_16i_u_H
+#define INCLUDED_volk_32fc_s32f_magnitude_16i_u_H
+
+#include <volk/volk_common.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <math.h>
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
 
 static inline void
-volk_32fc_s32f_magnitude_16i_u_orc(int16_t* magnitudeVector, const lv_32fc_t* complexVector,
-                                   const float scalar, unsigned int num_points)
+volk_32fc_s32f_magnitude_16i_u_avx2(int16_t* magnitudeVector, const lv_32fc_t* complexVector,
+                                    const float scalar, unsigned int num_points)
 {
-  volk_32fc_s32f_magnitude_16i_a_orc_impl(magnitudeVector, complexVector, scalar, num_points);
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  const float* complexVectorPtr = (const float*)complexVector;
+  int16_t* magnitudeVectorPtr = magnitudeVector;
+
+  __m256 vScalar = _mm256_set1_ps(scalar);
+  __m256i idx = _mm256_set_epi32(0,0,0,0,5,1,4,0);
+  __m256 cplxValue1, cplxValue2, result;
+  __m256i resultInt;
+  __m128i resultShort;
+
+  for(;number < eighthPoints; number++){
+    cplxValue1 = _mm256_loadu_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    cplxValue2 = _mm256_loadu_ps(complexVectorPtr);
+    complexVectorPtr += 8;
+
+    cplxValue1 = _mm256_mul_ps(cplxValue1, cplxValue1); // Square the values
+    cplxValue2 = _mm256_mul_ps(cplxValue2, cplxValue2); // Square the Values
+
+    result = _mm256_hadd_ps(cplxValue1, cplxValue2); // Add the I2 and Q2 values
+
+    result = _mm256_sqrt_ps(result);
+
+    result = _mm256_mul_ps(result, vScalar);
+
+    resultInt = _mm256_cvtps_epi32(result);
+    resultInt = _mm256_packs_epi32(resultInt, resultInt);
+    resultInt = _mm256_permutevar8x32_epi32(resultInt, idx); //permute to compensate for shuffling in hadd and packs
+    resultShort = _mm256_extracti128_si256(resultInt,0);
+    _mm_storeu_si128((__m128i*)magnitudeVectorPtr,resultShort);
+    magnitudeVectorPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  magnitudeVectorPtr = &magnitudeVector[number];
+  for(; number < num_points; number++){
+    float val1Real = *complexVectorPtr++;
+    float val1Imag = *complexVectorPtr++;
+    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
+  }
 }
+#endif /* LV_HAVE_AVX2 */
 
-#endif /* LV_HAVE_ORC */
-
-
-#endif /* INCLUDED_volk_32fc_s32f_magnitude_16i_a_H */
+#endif /* INCLUDED_volk_32fc_s32f_magnitude_16i_u_H */

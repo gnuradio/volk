@@ -74,6 +74,78 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void
+volk_32f_x2_divide_32f_a_avx512f(float* cVector, const float* aVector,
+                             const float* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
+
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+  const float* bPtr=  bVector;
+
+  __m512 aVal, bVal, cVal;
+  for(;number < sixteenthPoints; number++){
+    aVal = _mm512_load_ps(aPtr);
+    bVal = _mm512_load_ps(bPtr);
+
+    cVal = _mm512_div_ps(aVal, bVal);
+
+    _mm512_store_ps(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 16;
+    bPtr += 16;
+    cPtr += 16;
+  }
+
+  number = sixteenthPoints * 16;
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) / (*bPtr++);
+  }
+}
+#endif /* LV_HAVE_AVX512F */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_x2_divide_32f_a_avx(float* cVector, const float* aVector,
+                             const float* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+  const float* bPtr=  bVector;
+
+  __m256 aVal, bVal, cVal;
+  for(;number < eighthPoints; number++){
+    aVal = _mm256_load_ps(aPtr);
+    bVal = _mm256_load_ps(bPtr);
+
+    cVal = _mm256_div_ps(aVal, bVal);
+
+    _mm256_store_ps(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 8;
+    bPtr += 8;
+    cPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) / (*bPtr++);
+  }
+}
+#endif /* LV_HAVE_AVX */
+
+
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
@@ -110,40 +182,60 @@ volk_32f_x2_divide_32f_a_sse(float* cVector, const float* aVector,
 #endif /* LV_HAVE_SSE */
 
 
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
 
 static inline void
-volk_32f_x2_divide_32f_a_avx(float* cVector, const float* aVector,
-                             const float* bVector, unsigned int num_points)
+volk_32f_x2_divide_32f_neon(float* cVector, const float* aVector,
+			    const float* bVector, unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int eigthPoints = num_points / 8;
-
   float* cPtr = cVector;
   const float* aPtr = aVector;
-  const float* bPtr=  bVector;
+  const float* bPtr = bVector;
 
-  __m256 aVal, bVal, cVal;
-  for(;number < eigthPoints; number++){
-    aVal = _mm256_load_ps(aPtr);
-    bVal = _mm256_load_ps(bPtr);
+  float32x4x4_t aVal, bVal, bInv, cVal;
 
-    cVal = _mm256_div_ps(aVal, bVal);
+  const unsigned int eighthPoints = num_points / 16;
+  unsigned int number = 0;
+  for(; number < eighthPoints; number++){
+    aVal = vld4q_f32(aPtr);
+    aPtr += 16;
+    bVal = vld4q_f32(bPtr);
+    bPtr += 16;
 
-    _mm256_store_ps(cPtr,cVal); // Store the results back into the C container
+    __VOLK_PREFETCH(aPtr+16);
+    __VOLK_PREFETCH(bPtr+16);
 
-    aPtr += 8;
-    bPtr += 8;
-    cPtr += 8;
+    bInv.val[0] = vrecpeq_f32(bVal.val[0]);
+    bInv.val[0] = vmulq_f32(bInv.val[0], vrecpsq_f32(bInv.val[0], bVal.val[0]));
+    bInv.val[0] = vmulq_f32(bInv.val[0], vrecpsq_f32(bInv.val[0], bVal.val[0]));
+    cVal.val[0] = vmulq_f32(aVal.val[0], bInv.val[0]);
+
+    bInv.val[1] = vrecpeq_f32(bVal.val[1]);
+    bInv.val[1] = vmulq_f32(bInv.val[1], vrecpsq_f32(bInv.val[1], bVal.val[1]));
+    bInv.val[1] = vmulq_f32(bInv.val[1], vrecpsq_f32(bInv.val[1], bVal.val[1]));
+    cVal.val[1] = vmulq_f32(aVal.val[1], bInv.val[1]);
+
+    bInv.val[2] = vrecpeq_f32(bVal.val[2]);
+    bInv.val[2] = vmulq_f32(bInv.val[2], vrecpsq_f32(bInv.val[2], bVal.val[2]));
+    bInv.val[2] = vmulq_f32(bInv.val[2], vrecpsq_f32(bInv.val[2], bVal.val[2]));
+    cVal.val[2] = vmulq_f32(aVal.val[2], bInv.val[2]);
+
+    bInv.val[3] = vrecpeq_f32(bVal.val[3]);
+    bInv.val[3] = vmulq_f32(bInv.val[3], vrecpsq_f32(bInv.val[3], bVal.val[3]));
+    bInv.val[3] = vmulq_f32(bInv.val[3], vrecpsq_f32(bInv.val[3], bVal.val[3]));
+    cVal.val[3] = vmulq_f32(aVal.val[3], bInv.val[3]);
+
+    vst4q_f32(cPtr, cVal);
+    cPtr += 16;
   }
 
-  number = eigthPoints * 8;
-  for(;number < num_points; number++){
+  for(number = eighthPoints * 16; number < num_points; number++){
     *cPtr++ = (*aPtr++) / (*bPtr++);
   }
 }
-#endif /* LV_HAVE_AVX */
+
+#endif /* LV_HAVE_NEON */
 
 
 #ifdef LV_HAVE_GENERIC
@@ -189,6 +281,42 @@ volk_32f_x2_divide_32f_u_orc(float* cVector, const float* aVector,
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void
+volk_32f_x2_divide_32f_u_avx512f(float* cVector, const float* aVector,
+                             const float* bVector, unsigned int num_points)
+{
+  unsigned int number = 0;
+  const unsigned int sixteenthPoints = num_points / 16;
+
+  float* cPtr = cVector;
+  const float* aPtr = aVector;
+  const float* bPtr=  bVector;
+
+  __m512 aVal, bVal, cVal;
+  for(;number < sixteenthPoints; number++){
+    aVal = _mm512_loadu_ps(aPtr);
+    bVal = _mm512_loadu_ps(bPtr);
+
+    cVal = _mm512_div_ps(aVal, bVal);
+
+    _mm512_storeu_ps(cPtr,cVal); // Store the results back into the C container
+
+    aPtr += 16;
+    bPtr += 16;
+    cPtr += 16;
+  }
+
+  number = sixteenthPoints * 16;
+  for(;number < num_points; number++){
+    *cPtr++ = (*aPtr++) / (*bPtr++);
+  }
+}
+#endif /* LV_HAVE_AVX512F */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -197,14 +325,14 @@ volk_32f_x2_divide_32f_u_avx(float* cVector, const float* aVector,
                              const float* bVector, unsigned int num_points)
 {
   unsigned int number = 0;
-  const unsigned int eigthPoints = num_points / 8;
+  const unsigned int eighthPoints = num_points / 8;
 
   float* cPtr = cVector;
   const float* aPtr = aVector;
   const float* bPtr=  bVector;
 
   __m256 aVal, bVal, cVal;
-  for(;number < eigthPoints; number++){
+  for(;number < eighthPoints; number++){
     aVal = _mm256_loadu_ps(aPtr);
     bVal = _mm256_loadu_ps(bPtr);
 
@@ -217,7 +345,7 @@ volk_32f_x2_divide_32f_u_avx(float* cVector, const float* aVector,
     cPtr += 8;
   }
 
-  number = eigthPoints * 8;
+  number = eighthPoints * 8;
   for(;number < num_points; number++){
     *cPtr++ = (*aPtr++) / (*bPtr++);
   }

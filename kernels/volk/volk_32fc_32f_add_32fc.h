@@ -187,5 +187,52 @@ volk_32fc_32f_add_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_32fc_32f_add_32fc_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector,
+			    const float* bVector, unsigned int num_points)
+{
+  lv_32fc_t* cPtr = cVector;
+  const lv_32fc_t* aPtr = aVector;
+  const float* bPtr = bVector;
+
+  float32x4x4_t aVal0, aVal1;
+  float32x4x2_t bVal0, bVal1;
+
+  const unsigned int sixteenthPoints = num_points / 16;
+  unsigned int number = 0;
+  for(; number < sixteenthPoints; number++){
+    aVal0 = vld4q_f32((const float*)aPtr);
+    aPtr += 8;
+    aVal1 = vld4q_f32((const float*)aPtr);
+    aPtr += 8;
+    __VOLK_PREFETCH(aPtr+16);
+
+    bVal0 = vld2q_f32((const float*)bPtr);
+    bPtr += 8;
+    bVal1 = vld2q_f32((const float*)bPtr);
+    bPtr += 8;
+    __VOLK_PREFETCH(bPtr+16);
+
+    aVal0.val[0] = vaddq_f32(aVal0.val[0], bVal0.val[0]);
+    aVal0.val[2] = vaddq_f32(aVal0.val[2], bVal0.val[1]);
+
+    aVal1.val[2] = vaddq_f32(aVal1.val[2], bVal1.val[1]);
+    aVal1.val[0] = vaddq_f32(aVal1.val[0], bVal1.val[0]);
+
+    vst4q_f32((float*)(cPtr), aVal0);
+    cPtr += 8;
+    vst4q_f32((float*)(cPtr), aVal1);
+    cPtr += 8;
+  }
+
+  for(number = sixteenthPoints * 16; number < num_points; number++){
+    *cPtr++ = (*aPtr++) + (*bPtr++);
+  }
+}
+#endif /* LV_HAVE_NEON */
+
 
 #endif /* INCLUDED_volk_32fc_32f_add_32fc_a_H */

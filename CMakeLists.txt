@@ -1,5 +1,5 @@
 #
-# Copyright 2011 Free Software Foundation, Inc.
+# Copyright 2011,2018,2019 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,11 +18,16 @@
 ########################################################################
 # Project setup
 ########################################################################
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose build type: None Debug Release RelWithDebInfo MinSizeRel")
 project(volk)
+
 enable_language(CXX)
+set(CMAKE_CXX_STANDARD 11)
+
 enable_language(C)
+set(CMAKE_C_STANDARD 11)
+
 enable_testing()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
@@ -43,9 +48,9 @@ VOLK_CHECK_BUILD_TYPE(${CMAKE_BUILD_TYPE})
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 
-set(VERSION_INFO_MAJOR_VERSION 1)
-set(VERSION_INFO_MINOR_VERSION 3)
-set(VERSION_INFO_MAINT_VERSION 0git)
+set(VERSION_INFO_MAJOR_VERSION 2)
+set(VERSION_INFO_MINOR_VERSION 0)
+set(VERSION_INFO_MAINT_VERSION 0)
 include(VolkVersion) #setup version info
 
 ########################################################################
@@ -176,6 +181,7 @@ install(FILES
     ${CMAKE_SOURCE_DIR}/include/volk/volk_common.h
     ${CMAKE_SOURCE_DIR}/include/volk/saturation_arithmetic.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
+    ${CMAKE_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_sse_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
@@ -184,6 +190,7 @@ install(FILES
     ${CMAKE_BINARY_DIR}/include/volk/volk_config_fixed.h
     ${CMAKE_BINARY_DIR}/include/volk/volk_typedefs.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_malloc.h
+    ${CMAKE_SOURCE_DIR}/include/volk/constants.h
     DESTINATION include/volk
     COMPONENT "volk_devel"
 )
@@ -254,8 +261,10 @@ install(
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/Modules/VolkConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake
     DESTINATION ${CMAKE_MODULES_DIR}/volk
-    COMPONENT "volk_devel"
-)
+    COMPONENT "volk_devel" )
+
+install(EXPORT VOLK-export FILE VolkTargets.cmake
+  NAMESPACE Volk:: DESTINATION ${CMAKE_MODULES_DIR}/volk )
 
 ########################################################################
 # Option to enable QA testing, on by default

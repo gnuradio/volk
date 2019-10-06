@@ -76,6 +76,182 @@
 #ifndef INCLUDED_volk_32f_cos_32f_a_H
 #define INCLUDED_volk_32f_cos_32f_a_H
 
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+
+static inline void
+ volk_32f_cos_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  unsigned int eighthPoints = num_points / 8;
+  unsigned int i = 0;
+
+  __m256 aVal, s, r, m4pi, pio4A, pio4B, pio4C, cp1, cp2, cp3, cp4, cp5, ffours, ftwos, fones, fzeroes;
+  __m256 sine, cosine;
+  __m256i q, ones, twos, fours;
+
+  m4pi = _mm256_set1_ps(1.273239544735162542821171882678754627704620361328125);
+  pio4A = _mm256_set1_ps(0.7853981554508209228515625);
+  pio4B = _mm256_set1_ps(0.794662735614792836713604629039764404296875e-8);
+  pio4C = _mm256_set1_ps(0.306161699786838294306516483068750264552437361480769e-16);
+  ffours = _mm256_set1_ps(4.0);
+  ftwos = _mm256_set1_ps(2.0);
+  fones = _mm256_set1_ps(1.0);
+  fzeroes = _mm256_setzero_ps();
+  __m256i zeroes = _mm256_set1_epi32(0);
+  ones = _mm256_set1_epi32(1);
+  __m256i allones = _mm256_set1_epi32(0xffffffff);
+  twos = _mm256_set1_epi32(2);
+  fours = _mm256_set1_epi32(4);
+
+  cp1 = _mm256_set1_ps(1.0);
+  cp2 = _mm256_set1_ps(0.08333333333333333);
+  cp3 = _mm256_set1_ps(0.002777777777777778);
+  cp4 = _mm256_set1_ps(4.96031746031746e-05);
+  cp5 = _mm256_set1_ps(5.511463844797178e-07);
+  union bit256 condition1;
+  union bit256 condition3;
+
+  for(;number < eighthPoints; number++){
+
+    aVal = _mm256_load_ps(aPtr);
+    // s = fabs(aVal)
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
+    q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
+    // r = q + q&1, q indicates quadrant, r gives
+    r = _mm256_cvtepi32_ps(_mm256_add_epi32(q, _mm256_and_si256(q, ones)));
+
+    s = _mm256_fnmadd_ps(r,pio4A,s);
+    s = _mm256_fnmadd_ps(r,pio4B,s);
+    s = _mm256_fnmadd_ps(r,pio4C,s);
+
+    s = _mm256_div_ps(s, _mm256_set1_ps(8.0));    // The constant is 2^N, for 3 times argument reduction
+    s = _mm256_mul_ps(s, s);
+    // Evaluate Taylor series
+    s = _mm256_mul_ps(_mm256_fmadd_ps(_mm256_fmsub_ps(_mm256_fmadd_ps(_mm256_fmsub_ps(s, cp5, cp4), s, cp3), s, cp2), s, cp1), s);
+
+    for(i = 0; i < 3; i++)
+      s = _mm256_mul_ps(s, _mm256_sub_ps(ffours, s));
+    s = _mm256_div_ps(s, ftwos);
+
+    sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
+    cosine = _mm256_sub_ps(fones, s);
+
+    // if(((q+1)&2) != 0) { cosine=sine;}
+    condition1.int_vec = _mm256_cmpeq_epi32(_mm256_and_si256(_mm256_add_epi32(q, ones), twos), zeroes);
+    condition1.int_vec = _mm256_xor_si256(allones, condition1.int_vec);
+
+    // if(((q+2)&4) != 0) { cosine = -cosine;}
+    condition3.int_vec = _mm256_cmpeq_epi32(_mm256_and_si256(_mm256_add_epi32(q, twos), fours), zeroes);
+    condition3.int_vec = _mm256_xor_si256(allones, condition3.int_vec);
+
+    cosine = _mm256_add_ps(cosine, _mm256_and_ps(_mm256_sub_ps(sine, cosine), condition1.float_vec));
+    cosine = _mm256_sub_ps(cosine, _mm256_and_ps(_mm256_mul_ps(cosine, _mm256_set1_ps(2.0f)), condition3.float_vec));
+    _mm256_store_ps(bPtr, cosine);
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = cos(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for aligned */
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+ volk_32f_cos_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  unsigned int eighthPoints = num_points / 8;
+  unsigned int i = 0;
+
+  __m256 aVal, s, r, m4pi, pio4A, pio4B, pio4C, cp1, cp2, cp3, cp4, cp5, ffours, ftwos, fones, fzeroes;
+  __m256 sine, cosine;
+  __m256i q, ones, twos, fours;
+
+  m4pi = _mm256_set1_ps(1.273239544735162542821171882678754627704620361328125);
+  pio4A = _mm256_set1_ps(0.7853981554508209228515625);
+  pio4B = _mm256_set1_ps(0.794662735614792836713604629039764404296875e-8);
+  pio4C = _mm256_set1_ps(0.306161699786838294306516483068750264552437361480769e-16);
+  ffours = _mm256_set1_ps(4.0);
+  ftwos = _mm256_set1_ps(2.0);
+  fones = _mm256_set1_ps(1.0);
+  fzeroes = _mm256_setzero_ps();
+  __m256i zeroes = _mm256_set1_epi32(0);
+  ones = _mm256_set1_epi32(1);
+  __m256i allones = _mm256_set1_epi32(0xffffffff);
+  twos = _mm256_set1_epi32(2);
+  fours = _mm256_set1_epi32(4);
+
+  cp1 = _mm256_set1_ps(1.0);
+  cp2 = _mm256_set1_ps(0.08333333333333333);
+  cp3 = _mm256_set1_ps(0.002777777777777778);
+  cp4 = _mm256_set1_ps(4.96031746031746e-05);
+  cp5 = _mm256_set1_ps(5.511463844797178e-07);
+  union bit256 condition1;
+  union bit256 condition3;
+
+  for(;number < eighthPoints; number++){
+
+    aVal = _mm256_load_ps(aPtr);
+    // s = fabs(aVal)
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
+    q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
+    // r = q + q&1, q indicates quadrant, r gives
+    r = _mm256_cvtepi32_ps(_mm256_add_epi32(q, _mm256_and_si256(q, ones)));
+
+    s = _mm256_sub_ps(s, _mm256_mul_ps(r,pio4A));
+    s = _mm256_sub_ps(s, _mm256_mul_ps(r,pio4B));
+    s = _mm256_sub_ps(s, _mm256_mul_ps(r,pio4C));
+
+    s = _mm256_div_ps(s, _mm256_set1_ps(8.0));    // The constant is 2^N, for 3 times argument reduction
+    s = _mm256_mul_ps(s, s);
+    // Evaluate Taylor series
+    s = _mm256_mul_ps(_mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(_mm256_mul_ps(_mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(_mm256_mul_ps(s, cp5), cp4), s), cp3), s), cp2), s), cp1), s);
+
+    for(i = 0; i < 3; i++)
+      s = _mm256_mul_ps(s, _mm256_sub_ps(ffours, s));
+    s = _mm256_div_ps(s, ftwos);
+
+    sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
+    cosine = _mm256_sub_ps(fones, s);
+
+    // if(((q+1)&2) != 0) { cosine=sine;}
+    condition1.int_vec = _mm256_cmpeq_epi32(_mm256_and_si256(_mm256_add_epi32(q, ones), twos), zeroes);
+    condition1.int_vec = _mm256_xor_si256(allones, condition1.int_vec);
+
+    // if(((q+2)&4) != 0) { cosine = -cosine;}
+    condition3.int_vec = _mm256_cmpeq_epi32(_mm256_and_si256(_mm256_add_epi32(q, twos), fours), zeroes);
+    condition3.int_vec = _mm256_xor_si256(allones, condition3.int_vec);
+
+    cosine = _mm256_add_ps(cosine, _mm256_and_ps(_mm256_sub_ps(sine, cosine), condition1.float_vec));
+    cosine = _mm256_sub_ps(cosine, _mm256_and_ps(_mm256_mul_ps(cosine, _mm256_set1_ps(2.0f)), condition3.float_vec));
+    _mm256_store_ps(bPtr, cosine);
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = cos(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 for aligned */
+
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
@@ -170,6 +346,182 @@ static inline void
 
 #ifndef INCLUDED_volk_32f_cos_32f_u_H
 #define INCLUDED_volk_32f_cos_32f_u_H
+
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+
+static inline void
+ volk_32f_cos_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  unsigned int eighthPoints = num_points / 8;
+  unsigned int i = 0;
+
+  __m256 aVal, s, r, m4pi, pio4A, pio4B, pio4C, cp1, cp2, cp3, cp4, cp5, ffours, ftwos, fones, fzeroes;
+  __m256 sine, cosine;
+  __m256i q, ones, twos, fours;
+
+  m4pi = _mm256_set1_ps(1.273239544735162542821171882678754627704620361328125);
+  pio4A = _mm256_set1_ps(0.7853981554508209228515625);
+  pio4B = _mm256_set1_ps(0.794662735614792836713604629039764404296875e-8);
+  pio4C = _mm256_set1_ps(0.306161699786838294306516483068750264552437361480769e-16);
+  ffours = _mm256_set1_ps(4.0);
+  ftwos = _mm256_set1_ps(2.0);
+  fones = _mm256_set1_ps(1.0);
+  fzeroes = _mm256_setzero_ps();
+  __m256i zeroes = _mm256_set1_epi32(0);
+  ones = _mm256_set1_epi32(1);
+  __m256i allones = _mm256_set1_epi32(0xffffffff);
+  twos = _mm256_set1_epi32(2);
+  fours = _mm256_set1_epi32(4);
+
+  cp1 = _mm256_set1_ps(1.0);
+  cp2 = _mm256_set1_ps(0.08333333333333333);
+  cp3 = _mm256_set1_ps(0.002777777777777778);
+  cp4 = _mm256_set1_ps(4.96031746031746e-05);
+  cp5 = _mm256_set1_ps(5.511463844797178e-07);
+  union bit256 condition1;
+  union bit256 condition3;
+
+  for(;number < eighthPoints; number++){
+
+    aVal = _mm256_loadu_ps(aPtr);
+    // s = fabs(aVal)
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
+    q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
+    // r = q + q&1, q indicates quadrant, r gives
+    r = _mm256_cvtepi32_ps(_mm256_add_epi32(q, _mm256_and_si256(q, ones)));
+
+    s = _mm256_fnmadd_ps(r,pio4A,s);
+    s = _mm256_fnmadd_ps(r,pio4B,s);
+    s = _mm256_fnmadd_ps(r,pio4C,s);
+
+    s = _mm256_div_ps(s, _mm256_set1_ps(8.0));    // The constant is 2^N, for 3 times argument reduction
+    s = _mm256_mul_ps(s, s);
+    // Evaluate Taylor series
+    s = _mm256_mul_ps(_mm256_fmadd_ps(_mm256_fmsub_ps(_mm256_fmadd_ps(_mm256_fmsub_ps(s, cp5, cp4), s, cp3), s, cp2), s, cp1), s);
+
+    for(i = 0; i < 3; i++)
+      s = _mm256_mul_ps(s, _mm256_sub_ps(ffours, s));
+    s = _mm256_div_ps(s, ftwos);
+
+    sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
+    cosine = _mm256_sub_ps(fones, s);
+
+    // if(((q+1)&2) != 0) { cosine=sine;}
+    condition1.int_vec = _mm256_cmpeq_epi32(_mm256_and_si256(_mm256_add_epi32(q, ones), twos), zeroes);
+    condition1.int_vec = _mm256_xor_si256(allones, condition1.int_vec);
+
+    // if(((q+2)&4) != 0) { cosine = -cosine;}
+    condition3.int_vec = _mm256_cmpeq_epi32(_mm256_and_si256(_mm256_add_epi32(q, twos), fours), zeroes);
+    condition3.int_vec = _mm256_xor_si256(allones, condition3.int_vec);
+
+    cosine = _mm256_add_ps(cosine, _mm256_and_ps(_mm256_sub_ps(sine, cosine), condition1.float_vec));
+    cosine = _mm256_sub_ps(cosine, _mm256_and_ps(_mm256_mul_ps(cosine, _mm256_set1_ps(2.0f)), condition3.float_vec));
+    _mm256_storeu_ps(bPtr, cosine);
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = cos(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for unaligned */
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void
+ volk_32f_cos_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  unsigned int eighthPoints = num_points / 8;
+  unsigned int i = 0;
+
+  __m256 aVal, s, r, m4pi, pio4A, pio4B, pio4C, cp1, cp2, cp3, cp4, cp5, ffours, ftwos, fones, fzeroes;
+  __m256 sine, cosine;
+  __m256i q, ones, twos, fours;
+
+  m4pi = _mm256_set1_ps(1.273239544735162542821171882678754627704620361328125);
+  pio4A = _mm256_set1_ps(0.7853981554508209228515625);
+  pio4B = _mm256_set1_ps(0.794662735614792836713604629039764404296875e-8);
+  pio4C = _mm256_set1_ps(0.306161699786838294306516483068750264552437361480769e-16);
+  ffours = _mm256_set1_ps(4.0);
+  ftwos = _mm256_set1_ps(2.0);
+  fones = _mm256_set1_ps(1.0);
+  fzeroes = _mm256_setzero_ps();
+  __m256i zeroes = _mm256_set1_epi32(0);
+  ones = _mm256_set1_epi32(1);
+  __m256i allones = _mm256_set1_epi32(0xffffffff);
+  twos = _mm256_set1_epi32(2);
+  fours = _mm256_set1_epi32(4);
+
+  cp1 = _mm256_set1_ps(1.0);
+  cp2 = _mm256_set1_ps(0.08333333333333333);
+  cp3 = _mm256_set1_ps(0.002777777777777778);
+  cp4 = _mm256_set1_ps(4.96031746031746e-05);
+  cp5 = _mm256_set1_ps(5.511463844797178e-07);
+  union bit256 condition1;
+  union bit256 condition3;
+
+  for(;number < eighthPoints; number++){
+
+    aVal = _mm256_loadu_ps(aPtr);
+    // s = fabs(aVal)
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
+    q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
+    // r = q + q&1, q indicates quadrant, r gives
+    r = _mm256_cvtepi32_ps(_mm256_add_epi32(q, _mm256_and_si256(q, ones)));
+
+    s = _mm256_sub_ps(s, _mm256_mul_ps(r,pio4A));
+    s = _mm256_sub_ps(s, _mm256_mul_ps(r,pio4B));
+    s = _mm256_sub_ps(s, _mm256_mul_ps(r,pio4C));
+
+    s = _mm256_div_ps(s, _mm256_set1_ps(8.0));    // The constant is 2^N, for 3 times argument reduction
+    s = _mm256_mul_ps(s, s);
+    // Evaluate Taylor series
+    s = _mm256_mul_ps(_mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(_mm256_mul_ps(_mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(_mm256_mul_ps(s, cp5), cp4), s), cp3), s), cp2), s), cp1), s);
+
+    for(i = 0; i < 3; i++)
+      s = _mm256_mul_ps(s, _mm256_sub_ps(ffours, s));
+    s = _mm256_div_ps(s, ftwos);
+
+    sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
+    cosine = _mm256_sub_ps(fones, s);
+
+    // if(((q+1)&2) != 0) { cosine=sine;}
+    condition1.int_vec = _mm256_cmpeq_epi32(_mm256_and_si256(_mm256_add_epi32(q, ones), twos), zeroes);
+    condition1.int_vec = _mm256_xor_si256(allones, condition1.int_vec);
+
+    // if(((q+2)&4) != 0) { cosine = -cosine;}
+    condition3.int_vec = _mm256_cmpeq_epi32(_mm256_and_si256(_mm256_add_epi32(q, twos), fours), zeroes);
+    condition3.int_vec = _mm256_xor_si256(allones, condition3.int_vec);
+
+    cosine = _mm256_add_ps(cosine, _mm256_and_ps(_mm256_sub_ps(sine, cosine), condition1.float_vec));
+    cosine = _mm256_sub_ps(cosine, _mm256_and_ps(_mm256_mul_ps(cosine, _mm256_set1_ps(2.0f)), condition3.float_vec));
+    _mm256_storeu_ps(bPtr, cosine);
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = cos(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 for unaligned */
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>

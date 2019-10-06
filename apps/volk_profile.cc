@@ -20,20 +20,23 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "qa_utils.h"
-#include "kernel_tests.h"
-#include "volk_option_helpers.h"
+#include <boost/filesystem/operations.hpp>   // for create_directories, exists
+#include <boost/filesystem/path.hpp>         // for path, operator<<
+#include <boost/filesystem/path_traits.hpp>  // for filesystem
+#include <stddef.h>                          // for size_t
+#include <sys/stat.h>                        // for stat
+#include <volk/volk_prefs.h>                 // for volk_get_config_path
+#include <iostream>                          // for operator<<, basic_ostream
+#include <fstream>                           // IWYU pragma: keep
+#include <map>                               // for map, map<>::iterator
+#include <utility>                           // for pair
+#include <vector>                            // for vector, vector<>::const_...
+
+#include "kernel_tests.h"                    // for init_test_list
+#include "qa_utils.h"                        // for volk_test_results_t, vol...
+#include "volk/volk_complex.h"               // for lv_32fc_t
+#include "volk_option_helpers.h"             // for option_list, option_t
 #include "volk_profile.h"
-
-#include <volk/volk.h>
-#include <volk/volk_prefs.h>
-
-#include <vector>
-#include <boost/filesystem.hpp>
-#include <iostream>
-#include <fstream>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 
 namespace fs = boost::filesystem;
@@ -67,7 +70,7 @@ int main(int argc, char *argv[]) {
     profile_options.add((option_t("json", "j", "Write results to JSON file named as argument value", set_json)));
     profile_options.add((option_t("path", "p", "Specify the volk_config path", set_volk_config)));
     profile_options.parse(argc, argv);
-    
+
     if (profile_options.present("help")) {
         return 0;
     }
@@ -153,7 +156,7 @@ int main(int argc, char *argv[]) {
 void read_results(std::vector<volk_test_results_t> *results)
 {
     char path[1024];
-    volk_get_config_path(path);
+    volk_get_config_path(path, true);
 
     read_results(results, std::string(path));
 }
@@ -210,7 +213,7 @@ void read_results(std::vector<volk_test_results_t> *results, std::string path)
 void write_results(const std::vector<volk_test_results_t> *results, bool update_result)
 {
     char path[1024];
-    volk_get_config_path(path);
+    volk_get_config_path(path, false);
 
     write_results( results, update_result, std::string(path));
 }
@@ -224,10 +227,10 @@ void write_results(const std::vector<volk_test_results_t> *results, bool update_
      * These
      */
     const fs::path config_path(path);
-    if (not fs::exists(config_path.branch_path()))
+    if (! fs::exists(config_path.parent_path()))
     {
-        std::cout << "Creating " << config_path.branch_path() << "..." << std::endl;
-        fs::create_directories(config_path.branch_path());
+        std::cout << "Creating " << config_path.parent_path() << "..." << std::endl;
+        fs::create_directories(config_path.parent_path());
     }
 
     std::ofstream config;
@@ -305,5 +308,3 @@ void write_json(std::ofstream &json_file, std::vector<volk_test_results_t> resul
     json_file << " ]" << std::endl;
     json_file << "}" << std::endl;
 }
-
-

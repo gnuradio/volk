@@ -19,11 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <volk_rank_archs.h>
-#include <volk/volk_prefs.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <volk_rank_archs.h>
+#include <volk/volk_prefs.h>
 
 int volk_get_index(
     const char *impl_names[], //list of implementations by name

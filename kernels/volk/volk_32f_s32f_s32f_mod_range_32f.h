@@ -289,7 +289,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector, c
   __m128 input, output;
   __m128 is_smaller, is_bigger;
   __m128 excess, adj;
-  __m64 lo, hi;
+  __m128i rounddown;
 
   const float *inPtr = inputVector;
   float *outPtr = outputVector;
@@ -305,13 +305,9 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector, c
     excess = _mm_or_ps(_mm_and_ps(_mm_sub_ps(input, upper), is_bigger), excess);
     // how many do we have to add? (int(excess/distance+1)*distance)
     excess = _mm_div_ps(excess, distance);
-    // round down – for some reason, SSE doesn't come with a 4x float -> 4x int32 conversion.
-    // we're using adj as temp variable
-    adj = _mm_setzero_ps();
-    adj = _mm_movehl_ps(adj, excess);
-    lo = _mm_cvttps_pi32(excess);
-    hi = _mm_cvttps_pi32(adj);
-    excess = _mm_cvtpi32x2_ps(lo,hi);
+    // round down – for some reason
+    rounddown = _mm_cvttps_epi32(excess);
+    excess = _mm_cvtepi32_ps(rounddown);
     // plus 1
     adj = _mm_set_ps1(1.0f);
     excess = _mm_add_ps(excess, adj);
@@ -350,7 +346,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector, c
   __m128 input, output;
   __m128 is_smaller, is_bigger;
   __m128 excess, adj;
-  __m64 lo, hi;
+  __m128i rounddown;
 
   const float *inPtr = inputVector;
   float *outPtr = outputVector;
@@ -366,13 +362,9 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector, c
     excess = _mm_or_ps(_mm_and_ps(_mm_sub_ps(input, upper), is_bigger), excess);
     // how many do we have to add? (int(excess/distance+1)*distance)
     excess = _mm_div_ps(excess, distance);
-    // round down – for some reason, SSE doesn't come with a 4x float -> 4x int32 conversion.
-    // we're using adj as temp variable
-    adj = _mm_setzero_ps();
-    adj = _mm_movehl_ps(adj, excess);
-    lo = _mm_cvttps_pi32(excess);
-    hi = _mm_cvttps_pi32(adj);
-    excess = _mm_cvtpi32x2_ps(lo,hi);
+    // round down
+    rounddown = _mm_cvttps_epi32(excess);
+    excess = _mm_cvtepi32_ps(rounddown);
     // plus 1
     adj = _mm_set_ps1(1.0f);
     excess = _mm_add_ps(excess, adj);

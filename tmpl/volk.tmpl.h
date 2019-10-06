@@ -38,7 +38,7 @@ typedef struct volk_func_desc
     const char **impl_names;
     const int *impl_deps;
     const bool *impl_alignment;
-    const size_t n_impls;
+    size_t n_impls;
 } volk_func_desc_t;
 
 //! Prints a list of machines available

@@ -75,6 +75,137 @@
 #include<stdio.h>
 #include<volk/volk_complex.h>
 
+#ifdef LV_HAVE_AVX2
+#include<immintrin.h>
+
+static inline void
+volk_32fc_index_max_32u_a_avx2(uint32_t* target, lv_32fc_t* src0,
+                               uint32_t num_points)
+{
+  const uint32_t num_bytes = num_points*8;
+
+  union bit256 holderf;
+  union bit256 holderi;
+  float sq_dist = 0.0;
+
+  union bit256 xmm5, xmm4;
+  __m256 xmm1, xmm2, xmm3;
+  __m256i xmm8, xmm11, xmm12, xmmfive, xmmfour, xmm9, holder0, holder1, xmm10;
+
+  xmm5.int_vec = xmmfive = _mm256_setzero_si256();
+  xmm4.int_vec = xmmfour = _mm256_setzero_si256();
+  holderf.int_vec = holder0 = _mm256_setzero_si256();
+  holderi.int_vec = holder1 = _mm256_setzero_si256();
+
+  int bound = num_bytes >> 6;
+  int leftovers1 = (num_bytes >> 4) & 1;
+  int i = 0;
+
+  xmm8 = _mm256_set_epi32(7,6,5,4,3, 2, 1, 0);
+  xmm9 = _mm256_setzero_si256();
+  xmm10 = _mm256_set1_epi32(8);
+  xmm3 = _mm256_setzero_ps();
+  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+
+  for(; i < bound; ++i) {
+    xmm1 = _mm256_load_ps((float*)src0);
+    xmm2 = _mm256_load_ps((float*)&src0[4]);
+
+    src0 += 8;
+
+    xmm1 = _mm256_mul_ps(xmm1, xmm1);
+    xmm2 = _mm256_mul_ps(xmm2, xmm2);
+
+    xmm1 = _mm256_hadd_ps(xmm1, xmm2);
+    xmm1 = _mm256_permutevar8x32_ps(xmm1, idx);
+
+    xmm3 = _mm256_max_ps(xmm1, xmm3);
+
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+
+    xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
+    xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
+
+    xmm9 = _mm256_add_epi32(xmm11,  xmm12);
+
+    xmm8 = _mm256_add_epi32(xmm8, xmm10);
+  }
+
+  xmm10 = _mm256_set1_epi32(4);
+  for(i = 0; i < leftovers1; ++i) {
+    xmm1 = _mm256_load_ps((float*)src0);
+
+    xmm1 = _mm256_mul_ps(xmm1, xmm1);
+
+    src0 += 4;
+
+    xmm1 = _mm256_hadd_ps(xmm1, xmm1);
+
+    xmm3 = _mm256_max_ps(xmm1, xmm3);
+
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+
+    xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
+    xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
+
+    xmm9 = _mm256_add_epi32(xmm11, xmm12);
+
+    xmm8 = _mm256_add_epi32(xmm8, xmm10);
+  }
+
+  idx = _mm256_set_epi32(1,0,1,0,1,0,1,0);
+  xmm10 = _mm256_set1_epi32(2);
+  for(i = 0; i < leftovers1; ++i) {
+    xmm2 = _mm256_load_ps((float*)src0);
+
+    xmm1 = _mm256_permutevar8x32_ps(bit256_p(&xmm8)->float_vec, idx);
+    xmm8 = bit256_p(&xmm1)->int_vec;
+
+    xmm2 = _mm256_mul_ps(xmm2, xmm2);
+
+    src0 += 2;
+
+    xmm1 = _mm256_hadd_ps(xmm2, xmm2);
+
+    xmm3 = _mm256_max_ps(xmm1, xmm3);
+
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+
+    xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
+    xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
+
+    xmm9 = _mm256_add_epi32(xmm11, xmm12);
+
+    xmm8 = _mm256_add_epi32(xmm8, xmm10);
+  }
+
+  _mm256_store_ps((float*)&(holderf.f), xmm3);
+  _mm256_store_si256(&(holderi.int_vec), xmm9);
+
+  target[0] = holderi.i[0];
+  sq_dist = holderf.f[0];
+  target[0] = (holderf.f[1] > sq_dist) ? holderi.i[1] : target[0];
+  sq_dist = (holderf.f[1] > sq_dist) ? holderf.f[1] : sq_dist;
+  target[0] = (holderf.f[2] > sq_dist) ? holderi.i[2] : target[0];
+  sq_dist = (holderf.f[2] > sq_dist) ? holderf.f[2] : sq_dist;
+  target[0] = (holderf.f[3] > sq_dist) ? holderi.i[3] : target[0];
+  sq_dist = (holderf.f[3] > sq_dist) ? holderf.f[3] : sq_dist;
+  target[0] = (holderf.f[4] > sq_dist) ? holderi.i[4] : target[0];
+  sq_dist = (holderf.f[4] > sq_dist) ? holderf.f[4] : sq_dist;
+  target[0] = (holderf.f[5] > sq_dist) ? holderi.i[5] : target[0];
+  sq_dist = (holderf.f[5] > sq_dist) ? holderf.f[5] : sq_dist;
+  target[0] = (holderf.f[6] > sq_dist) ? holderi.i[6] : target[0];
+  sq_dist = (holderf.f[6] > sq_dist) ? holderf.f[6] : sq_dist;
+  target[0] = (holderf.f[7] > sq_dist) ? holderi.i[7] : target[0];
+  sq_dist = (holderf.f[7] > sq_dist) ? holderf.f[7] : sq_dist;
+
+}
+
+#endif /*LV_HAVE_AVX2*/
+
 #ifdef LV_HAVE_SSE3
 #include<xmmintrin.h>
 #include<pmmintrin.h>
@@ -251,3 +382,145 @@ static inline void
 
 
 #endif /*INCLUDED_volk_32fc_index_max_32u_a_H*/
+
+
+#ifndef INCLUDED_volk_32fc_index_max_32u_u_H
+#define INCLUDED_volk_32fc_index_max_32u_u_H
+
+#include <volk/volk_common.h>
+#include<inttypes.h>
+#include<stdio.h>
+#include<volk/volk_complex.h>
+
+#ifdef LV_HAVE_AVX2
+#include<immintrin.h>
+
+static inline void
+volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
+                               uint32_t num_points)
+{
+  const uint32_t num_bytes = num_points*8;
+
+  union bit256 holderf;
+  union bit256 holderi;
+  float sq_dist = 0.0;
+
+  union bit256 xmm5, xmm4;
+  __m256 xmm1, xmm2, xmm3;
+  __m256i xmm8, xmm11, xmm12, xmmfive, xmmfour, xmm9, holder0, holder1, xmm10;
+
+  xmm5.int_vec = xmmfive = _mm256_setzero_si256();
+  xmm4.int_vec = xmmfour = _mm256_setzero_si256();
+  holderf.int_vec = holder0 = _mm256_setzero_si256();
+  holderi.int_vec = holder1 = _mm256_setzero_si256();
+
+  int bound = num_bytes >> 6;
+  int leftovers1 = (num_bytes >> 4) & 1;
+  int i = 0;
+
+  xmm8 = _mm256_set_epi32(7,6,5,4,3, 2, 1, 0);
+  xmm9 = _mm256_setzero_si256();
+  xmm10 = _mm256_set1_epi32(8);
+  xmm3 = _mm256_setzero_ps();
+  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+
+  for(; i < bound; ++i) {
+    xmm1 = _mm256_loadu_ps((float*)src0);
+    xmm2 = _mm256_loadu_ps((float*)&src0[4]);
+
+    src0 += 8;
+
+    xmm1 = _mm256_mul_ps(xmm1, xmm1);
+    xmm2 = _mm256_mul_ps(xmm2, xmm2);
+
+    xmm1 = _mm256_hadd_ps(xmm1, xmm2);
+    xmm1 = _mm256_permutevar8x32_ps(xmm1, idx);
+
+    xmm3 = _mm256_max_ps(xmm1, xmm3);
+
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+
+    xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
+    xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
+
+    xmm9 = _mm256_add_epi32(xmm11,  xmm12);
+
+    xmm8 = _mm256_add_epi32(xmm8, xmm10);
+  }
+
+  xmm10 = _mm256_set1_epi32(4);
+  for(i = 0; i < leftovers1; ++i) {
+    xmm1 = _mm256_loadu_ps((float*)src0);
+
+    xmm1 = _mm256_mul_ps(xmm1, xmm1);
+
+    src0 += 4;
+
+    xmm1 = _mm256_hadd_ps(xmm1, xmm1);
+
+    xmm3 = _mm256_max_ps(xmm1, xmm3);
+
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+
+    xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
+    xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
+
+    xmm9 = _mm256_add_epi32(xmm11, xmm12);
+
+    xmm8 = _mm256_add_epi32(xmm8, xmm10);
+  }
+
+  idx = _mm256_set_epi32(1,0,1,0,1,0,1,0);
+  xmm10 = _mm256_set1_epi32(2);
+  for(i = 0; i < leftovers1; ++i) {
+    xmm2 = _mm256_loadu_ps((float*)src0);
+
+    xmm1 = _mm256_permutevar8x32_ps(bit256_p(&xmm8)->float_vec, idx);
+    xmm8 = bit256_p(&xmm1)->int_vec;
+
+    xmm2 = _mm256_mul_ps(xmm2, xmm2);
+
+    src0 += 2;
+
+    xmm1 = _mm256_hadd_ps(xmm2, xmm2);
+
+    xmm3 = _mm256_max_ps(xmm1, xmm3);
+
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+
+    xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
+    xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
+
+    xmm9 = _mm256_add_epi32(xmm11, xmm12);
+
+    xmm8 = _mm256_add_epi32(xmm8, xmm10);
+  }
+
+  _mm256_storeu_ps((float*)&(holderf.f), xmm3);
+  _mm256_storeu_si256(&(holderi.int_vec), xmm9);
+
+  target[0] = holderi.i[0];
+  sq_dist = holderf.f[0];
+  target[0] = (holderf.f[1] > sq_dist) ? holderi.i[1] : target[0];
+  sq_dist = (holderf.f[1] > sq_dist) ? holderf.f[1] : sq_dist;
+  target[0] = (holderf.f[2] > sq_dist) ? holderi.i[2] : target[0];
+  sq_dist = (holderf.f[2] > sq_dist) ? holderf.f[2] : sq_dist;
+  target[0] = (holderf.f[3] > sq_dist) ? holderi.i[3] : target[0];
+  sq_dist = (holderf.f[3] > sq_dist) ? holderf.f[3] : sq_dist;
+  target[0] = (holderf.f[4] > sq_dist) ? holderi.i[4] : target[0];
+  sq_dist = (holderf.f[4] > sq_dist) ? holderf.f[4] : sq_dist;
+  target[0] = (holderf.f[5] > sq_dist) ? holderi.i[5] : target[0];
+  sq_dist = (holderf.f[5] > sq_dist) ? holderf.f[5] : sq_dist;
+  target[0] = (holderf.f[6] > sq_dist) ? holderi.i[6] : target[0];
+  sq_dist = (holderf.f[6] > sq_dist) ? holderf.f[6] : sq_dist;
+  target[0] = (holderf.f[7] > sq_dist) ? holderi.i[7] : target[0];
+  sq_dist = (holderf.f[7] > sq_dist) ? holderf.f[7] : sq_dist;
+
+}
+
+#endif /*LV_HAVE_AVX2*/
+
+#endif /*INCLUDED_volk_32fc_index_max_32u_u_H*/

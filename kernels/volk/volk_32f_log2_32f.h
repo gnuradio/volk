@@ -94,6 +94,128 @@
 #include <inttypes.h>
 #include <math.h>
 
+#define LOG_POLY_DEGREE 6
+
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+
+#define POLY0_FMAAVX2(x, c0) _mm256_set1_ps(c0)
+#define POLY1_FMAAVX2(x, c0, c1) _mm256_fmadd_ps(POLY0_FMAAVX2(x, c1), x, _mm256_set1_ps(c0))
+#define POLY2_FMAAVX2(x, c0, c1, c2) _mm256_fmadd_ps(POLY1_FMAAVX2(x, c1, c2), x, _mm256_set1_ps(c0))
+#define POLY3_FMAAVX2(x, c0, c1, c2, c3) _mm256_fmadd_ps(POLY2_FMAAVX2(x, c1, c2, c3), x, _mm256_set1_ps(c0))
+#define POLY4_FMAAVX2(x, c0, c1, c2, c3, c4) _mm256_fmadd_ps(POLY3_FMAAVX2(x, c1, c2, c3, c4), x, _mm256_set1_ps(c0))
+#define POLY5_FMAAVX2(x, c0, c1, c2, c3, c4, c5) _mm256_fmadd_ps(POLY4_FMAAVX2(x, c1, c2, c3, c4, c5), x, _mm256_set1_ps(c0))
+
+static inline void
+volk_32f_log2_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  __m256 aVal, bVal, mantissa, frac, leadingOne;
+  __m256i bias, exp;
+
+  for(;number < eighthPoints; number++){
+
+    aVal = _mm256_load_ps(aPtr);
+    bias = _mm256_set1_epi32(127);
+    leadingOne = _mm256_set1_ps(1.0f);
+    exp = _mm256_sub_epi32(_mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal), _mm256_set1_epi32(0x7f800000)), 23), bias);
+    bVal = _mm256_cvtepi32_ps(exp);
+
+    // Now to extract mantissa
+    frac = _mm256_or_ps(leadingOne, _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
+
+#if LOG_POLY_DEGREE == 6
+    mantissa = POLY5_FMAAVX2( frac, 3.1157899f, -3.3241990f, 2.5988452f, -1.2315303f,  3.1821337e-1f, -3.4436006e-2f);
+#elif LOG_POLY_DEGREE == 5
+    mantissa = POLY4_FMAAVX2( frac, 2.8882704548164776201f, -2.52074962577807006663f, 1.48116647521213171641f, -0.465725644288844778798f, 0.0596515482674574969533f);
+#elif LOG_POLY_DEGREE == 4
+    mantissa = POLY3_FMAAVX2( frac, 2.61761038894603480148f, -1.75647175389045657003f, 0.688243882994381274313f, -0.107254423828329604454f);
+#elif LOG_POLY_DEGREE == 3
+    mantissa = POLY2_FMAAVX2( frac, 2.28330284476918490682f, -1.04913055217340124191f, 0.204446009836232697516f);
+#else
+#error
+#endif
+
+    bVal = _mm256_fmadd_ps(mantissa, _mm256_sub_ps(frac, leadingOne), bVal);
+    _mm256_store_ps(bPtr, bVal);
+
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = log2f(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for aligned */
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+#define POLY0_AVX2(x, c0) _mm256_set1_ps(c0)
+#define POLY1_AVX2(x, c0, c1) _mm256_add_ps(_mm256_mul_ps(POLY0_AVX2(x, c1), x), _mm256_set1_ps(c0))
+#define POLY2_AVX2(x, c0, c1, c2) _mm256_add_ps(_mm256_mul_ps(POLY1_AVX2(x, c1, c2), x), _mm256_set1_ps(c0))
+#define POLY3_AVX2(x, c0, c1, c2, c3) _mm256_add_ps(_mm256_mul_ps(POLY2_AVX2(x, c1, c2, c3), x), _mm256_set1_ps(c0))
+#define POLY4_AVX2(x, c0, c1, c2, c3, c4) _mm256_add_ps(_mm256_mul_ps(POLY3_AVX2(x, c1, c2, c3, c4), x), _mm256_set1_ps(c0))
+#define POLY5_AVX2(x, c0, c1, c2, c3, c4, c5) _mm256_add_ps(_mm256_mul_ps(POLY4_AVX2(x, c1, c2, c3, c4, c5), x), _mm256_set1_ps(c0))
+
+static inline void
+volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  __m256 aVal, bVal, mantissa, frac, leadingOne;
+  __m256i bias, exp;
+
+  for(;number < eighthPoints; number++){
+
+    aVal = _mm256_load_ps(aPtr);
+    bias = _mm256_set1_epi32(127);
+    leadingOne = _mm256_set1_ps(1.0f);
+    exp = _mm256_sub_epi32(_mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal), _mm256_set1_epi32(0x7f800000)), 23), bias);
+    bVal = _mm256_cvtepi32_ps(exp);
+
+    // Now to extract mantissa
+    frac = _mm256_or_ps(leadingOne, _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
+
+#if LOG_POLY_DEGREE == 6
+    mantissa = POLY5_AVX2( frac, 3.1157899f, -3.3241990f, 2.5988452f, -1.2315303f,  3.1821337e-1f, -3.4436006e-2f);
+#elif LOG_POLY_DEGREE == 5
+    mantissa = POLY4_AVX2( frac, 2.8882704548164776201f, -2.52074962577807006663f, 1.48116647521213171641f, -0.465725644288844778798f, 0.0596515482674574969533f);
+#elif LOG_POLY_DEGREE == 4
+    mantissa = POLY3_AVX2( frac, 2.61761038894603480148f, -1.75647175389045657003f, 0.688243882994381274313f, -0.107254423828329604454f);
+#elif LOG_POLY_DEGREE == 3
+    mantissa = POLY2_AVX2( frac, 2.28330284476918490682f, -1.04913055217340124191f, 0.204446009836232697516f);
+#else
+#error
+#endif
+
+    bVal = _mm256_add_ps(_mm256_mul_ps(mantissa, _mm256_sub_ps(frac, leadingOne)), bVal);
+    _mm256_store_ps(bPtr, bVal);
+
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = log2f(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 for aligned */
+
 #ifdef LV_HAVE_GENERIC
 
 static inline void
@@ -110,71 +232,6 @@ volk_32f_log2_32f_generic(float* bVector, const float* aVector, unsigned int num
 }
 #endif /* LV_HAVE_GENERIC */
 
-#ifdef LV_HAVE_AVX2
-#include <immintrin.h>
-
-#define AVX_POLY0(x, c0) _mm256_set1_ps(c0)
-#define AVX_POLY1(x, c0, c1) _mm256_add_ps(_mm256_mul_ps(AVX_POLY0(x, c1), x), _mm256_set1_ps(c0))
-#define AVX_POLY2(x, c0, c1, c2) _mm256_add_ps(_mm256_mul_ps(AVX_POLY1(x, c1, c2), x), _mm256_set1_ps(c0))
-#define AVX_POLY3(x, c0, c1, c2, c3) _mm256_add_ps(_mm256_mul_ps(AVX_POLY2(x, c1, c2, c3), x), _mm256_set1_ps(c0))
-#define AVX_POLY4(x, c0, c1, c2, c3, c4) _mm256_add_ps(_mm256_mul_ps(AVX_POLY3(x, c1, c2, c3, c4), x), _mm256_set1_ps(c0))
-#define AVX_POLY5(x, c0, c1, c2, c3, c4, c5) _mm256_add_ps(_mm256_mul_ps(AVX_POLY4(x, c1, c2, c3, c4, c5), x), _mm256_set1_ps(c0))
-
-#define AVX_LOG_POLY_DEGREE 6
-
-static inline void
-volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_points)
-{
-  float* bPtr = bVector;
-  const float* aPtr = aVector;
-
-  unsigned int number = 0;
-  const unsigned int quarterPoints = num_points / 8;
-
-  __m256 aVal, bVal, mantissa, frac, leadingOne;
-  __m256i bias, exp;
-
-  for(;number < quarterPoints; number++){
-
-    aVal = _mm256_load_ps(aPtr);
-    bias = _mm256_set1_epi32(127);
-    leadingOne = _mm256_set1_ps(1.0f);
-    exp = _mm256_sub_epi32(_mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal), _mm256_set1_epi32(0x7f800000)), 23), bias);
-    bVal = _mm256_cvtepi32_ps(exp);
-
-    // Now to extract mantissa
-    frac = _mm256_or_ps(leadingOne, _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
-
-#if AVX_LOG_POLY_DEGREE == 6
-    mantissa = AVX_POLY5( frac, 3.1157899f, -3.3241990f, 2.5988452f, -1.2315303f,  3.1821337e-1f, -3.4436006e-2f);
-#elif AVX_LOG_POLY_DEGREE == 5
-    mantissa = AVX_POLY4( frac, 2.8882704548164776201f, -2.52074962577807006663f, 1.48116647521213171641f, -0.465725644288844778798f, 0.0596515482674574969533f);
-#elif AVX_LOG_POLY_DEGREE == 4
-    mantissa = AVX_POLY3( frac, 2.61761038894603480148f, -1.75647175389045657003f, 0.688243882994381274313f, -0.107254423828329604454f);
-#elif AVX_LOG_POLY_DEGREE == 3
-    mantissa = AVX_POLY2( frac, 2.28330284476918490682f, -1.04913055217340124191f, 0.204446009836232697516f);
-#else
-#error
-#endif
-
-    bVal = _mm256_add_ps(bVal, _mm256_mul_ps(mantissa, _mm256_sub_ps(frac, leadingOne)));
-    _mm256_store_ps(bPtr, bVal);
-
-    aPtr += 8;
-    bPtr += 8;
-  }
-
-  number = quarterPoints * 8;
-  for(;number < num_points; number++){
-    *bPtr++ = log2f(*aPtr++);
-  }
-}
-
-#endif /* LV_HAVE_AVX2 for aligned */
-
-
-
-
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
@@ -184,8 +241,6 @@ volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_
 #define POLY3(x, c0, c1, c2, c3) _mm_add_ps(_mm_mul_ps(POLY2(x, c1, c2, c3), x), _mm_set1_ps(c0))
 #define POLY4(x, c0, c1, c2, c3, c4) _mm_add_ps(_mm_mul_ps(POLY3(x, c1, c2, c3, c4), x), _mm_set1_ps(c0))
 #define POLY5(x, c0, c1, c2, c3, c4, c5) _mm_add_ps(_mm_mul_ps(POLY4(x, c1, c2, c3, c4, c5), x), _mm_set1_ps(c0))
-
-#define LOG_POLY_DEGREE 6
 
 static inline void
 volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
@@ -236,7 +291,6 @@ volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
 }
 
 #endif /* LV_HAVE_SSE4_1 for aligned */
-
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
@@ -355,68 +409,6 @@ volk_32f_log2_32f_u_generic(float* bVector, const float* aVector, unsigned int n
 
 #endif /* LV_HAVE_GENERIC */
 
-#ifdef LV_HAVE_AVX2
-#include <immintrin.h>
-
-#define AVX_POLY0(x, c0) _mm256_set1_ps(c0)
-#define AVX_POLY1(x, c0, c1) _mm256_add_ps(_mm256_mul_ps(AVX_POLY0(x, c1), x), _mm256_set1_ps(c0))
-#define AVX_POLY2(x, c0, c1, c2) _mm256_add_ps(_mm256_mul_ps(AVX_POLY1(x, c1, c2), x), _mm256_set1_ps(c0))
-#define AVX_POLY3(x, c0, c1, c2, c3) _mm256_add_ps(_mm256_mul_ps(AVX_POLY2(x, c1, c2, c3), x), _mm256_set1_ps(c0))
-#define AVX_POLY4(x, c0, c1, c2, c3, c4) _mm256_add_ps(_mm256_mul_ps(AVX_POLY3(x, c1, c2, c3, c4), x), _mm256_set1_ps(c0))
-#define AVX_POLY5(x, c0, c1, c2, c3, c4, c5) _mm256_add_ps(_mm256_mul_ps(AVX_POLY4(x, c1, c2, c3, c4, c5), x), _mm256_set1_ps(c0))
-
-#define AVX_LOG_POLY_DEGREE 6
-
-static inline void
-volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_points)
-{
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
-
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 8;
-
-    __m256 aVal, bVal, mantissa, frac, leadingOne;
-    __m256i bias, exp;
-
-    for(;number < quarterPoints; number++){
-
-        aVal = _mm256_loadu_ps(aPtr);
-        bias = _mm256_set1_epi32(127);
-        leadingOne = _mm256_set1_ps(1.0f);
-        exp = _mm256_sub_epi32(_mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal), _mm256_set1_epi32(0x7f800000)), 23), bias);
-        bVal = _mm256_cvtepi32_ps(exp);
-
-        // Now to extract mantissa
-        frac = _mm256_or_ps(leadingOne, _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
-
-#if AVX_LOG_POLY_DEGREE == 6
-        mantissa = AVX_POLY5( frac, 3.1157899f, -3.3241990f, 2.5988452f, -1.2315303f,  3.1821337e-1f, -3.4436006e-2f);
-#elif AVX_LOG_POLY_DEGREE == 5
-        mantissa = AVX_POLY4( frac, 2.8882704548164776201f, -2.52074962577807006663f, 1.48116647521213171641f, -0.465725644288844778798f, 0.0596515482674574969533f);
-#elif AVX_LOG_POLY_DEGREE == 4
-    mantissa = AVX_POLY3( frac, 2.61761038894603480148f, -1.75647175389045657003f, 0.688243882994381274313f, -0.107254423828329604454f);
-#elif AVX_LOG_POLY_DEGREE == 3
-    mantissa = AVX_POLY2( frac, 2.28330284476918490682f, -1.04913055217340124191f, 0.204446009836232697516f);
-#else
-#error
-#endif
-
-        bVal = _mm256_add_ps(bVal, _mm256_mul_ps(mantissa, _mm256_sub_ps(frac, leadingOne)));
-        _mm256_storeu_ps(bPtr, bVal);
-
-        aPtr += 8;
-        bPtr += 8;
-    }
-
-    number = quarterPoints * 8;
-    for(;number < num_points; number++){
-        *bPtr++ = log2f(*aPtr++);
-    }
-}
-
-#endif /* LV_HAVE_AVX2 for aligned */
-
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
@@ -427,8 +419,6 @@ volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_
 #define POLY3(x, c0, c1, c2, c3) _mm_add_ps(_mm_mul_ps(POLY2(x, c1, c2, c3), x), _mm_set1_ps(c0))
 #define POLY4(x, c0, c1, c2, c3, c4) _mm_add_ps(_mm_mul_ps(POLY3(x, c1, c2, c3, c4), x), _mm_set1_ps(c0))
 #define POLY5(x, c0, c1, c2, c3, c4, c5) _mm_add_ps(_mm_mul_ps(POLY4(x, c1, c2, c3, c4, c5), x), _mm_set1_ps(c0))
-
-#define LOG_POLY_DEGREE 6
 
 static inline void
 volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
@@ -479,5 +469,126 @@ volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
 }
 
 #endif /* LV_HAVE_SSE4_1 for unaligned */
+
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+
+#define POLY0_FMAAVX2(x, c0) _mm256_set1_ps(c0)
+#define POLY1_FMAAVX2(x, c0, c1) _mm256_fmadd_ps(POLY0_FMAAVX2(x, c1), x, _mm256_set1_ps(c0))
+#define POLY2_FMAAVX2(x, c0, c1, c2) _mm256_fmadd_ps(POLY1_FMAAVX2(x, c1, c2), x, _mm256_set1_ps(c0))
+#define POLY3_FMAAVX2(x, c0, c1, c2, c3) _mm256_fmadd_ps(POLY2_FMAAVX2(x, c1, c2, c3), x, _mm256_set1_ps(c0))
+#define POLY4_FMAAVX2(x, c0, c1, c2, c3, c4) _mm256_fmadd_ps(POLY3_FMAAVX2(x, c1, c2, c3, c4), x, _mm256_set1_ps(c0))
+#define POLY5_FMAAVX2(x, c0, c1, c2, c3, c4, c5) _mm256_fmadd_ps(POLY4_FMAAVX2(x, c1, c2, c3, c4, c5), x, _mm256_set1_ps(c0))
+
+static inline void
+volk_32f_log2_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  __m256 aVal, bVal, mantissa, frac, leadingOne;
+  __m256i bias, exp;
+
+  for(;number < eighthPoints; number++){
+
+    aVal = _mm256_loadu_ps(aPtr);
+    bias = _mm256_set1_epi32(127);
+    leadingOne = _mm256_set1_ps(1.0f);
+    exp = _mm256_sub_epi32(_mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal), _mm256_set1_epi32(0x7f800000)), 23), bias);
+    bVal = _mm256_cvtepi32_ps(exp);
+
+    // Now to extract mantissa
+    frac = _mm256_or_ps(leadingOne, _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
+
+#if LOG_POLY_DEGREE == 6
+    mantissa = POLY5_FMAAVX2( frac, 3.1157899f, -3.3241990f, 2.5988452f, -1.2315303f,  3.1821337e-1f, -3.4436006e-2f);
+#elif LOG_POLY_DEGREE == 5
+    mantissa = POLY4_FMAAVX2( frac, 2.8882704548164776201f, -2.52074962577807006663f, 1.48116647521213171641f, -0.465725644288844778798f, 0.0596515482674574969533f);
+#elif LOG_POLY_DEGREE == 4
+    mantissa = POLY3_FMAAVX2( frac, 2.61761038894603480148f, -1.75647175389045657003f, 0.688243882994381274313f, -0.107254423828329604454f);
+#elif LOG_POLY_DEGREE == 3
+    mantissa = POLY2_FMAAVX2( frac, 2.28330284476918490682f, -1.04913055217340124191f, 0.204446009836232697516f);
+#else
+#error
+#endif
+
+    bVal = _mm256_fmadd_ps(mantissa, _mm256_sub_ps(frac, leadingOne), bVal);
+    _mm256_storeu_ps(bPtr, bVal);
+
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = log2f(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for unaligned */
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+#define POLY0_AVX2(x, c0) _mm256_set1_ps(c0)
+#define POLY1_AVX2(x, c0, c1) _mm256_add_ps(_mm256_mul_ps(POLY0_AVX2(x, c1), x), _mm256_set1_ps(c0))
+#define POLY2_AVX2(x, c0, c1, c2) _mm256_add_ps(_mm256_mul_ps(POLY1_AVX2(x, c1, c2), x), _mm256_set1_ps(c0))
+#define POLY3_AVX2(x, c0, c1, c2, c3) _mm256_add_ps(_mm256_mul_ps(POLY2_AVX2(x, c1, c2, c3), x), _mm256_set1_ps(c0))
+#define POLY4_AVX2(x, c0, c1, c2, c3, c4) _mm256_add_ps(_mm256_mul_ps(POLY3_AVX2(x, c1, c2, c3, c4), x), _mm256_set1_ps(c0))
+#define POLY5_AVX2(x, c0, c1, c2, c3, c4, c5) _mm256_add_ps(_mm256_mul_ps(POLY4_AVX2(x, c1, c2, c3, c4, c5), x), _mm256_set1_ps(c0))
+
+static inline void
+volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_points)
+{
+  float* bPtr = bVector;
+  const float* aPtr = aVector;
+
+  unsigned int number = 0;
+  const unsigned int eighthPoints = num_points / 8;
+
+  __m256 aVal, bVal, mantissa, frac, leadingOne;
+  __m256i bias, exp;
+
+  for(;number < eighthPoints; number++){
+
+    aVal = _mm256_loadu_ps(aPtr);
+    bias = _mm256_set1_epi32(127);
+    leadingOne = _mm256_set1_ps(1.0f);
+    exp = _mm256_sub_epi32(_mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal), _mm256_set1_epi32(0x7f800000)), 23), bias);
+    bVal = _mm256_cvtepi32_ps(exp);
+
+    // Now to extract mantissa
+    frac = _mm256_or_ps(leadingOne, _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
+
+#if LOG_POLY_DEGREE == 6
+    mantissa = POLY5_AVX2( frac, 3.1157899f, -3.3241990f, 2.5988452f, -1.2315303f,  3.1821337e-1f, -3.4436006e-2f);
+#elif LOG_POLY_DEGREE == 5
+    mantissa = POLY4_AVX2( frac, 2.8882704548164776201f, -2.52074962577807006663f, 1.48116647521213171641f, -0.465725644288844778798f, 0.0596515482674574969533f);
+#elif LOG_POLY_DEGREE == 4
+    mantissa = POLY3_AVX2( frac, 2.61761038894603480148f, -1.75647175389045657003f, 0.688243882994381274313f, -0.107254423828329604454f);
+#elif LOG_POLY_DEGREE == 3
+    mantissa = POLY2_AVX2( frac, 2.28330284476918490682f, -1.04913055217340124191f, 0.204446009836232697516f);
+#else
+#error
+#endif
+
+    bVal = _mm256_add_ps(_mm256_mul_ps(mantissa, _mm256_sub_ps(frac, leadingOne)), bVal);
+    _mm256_storeu_ps(bPtr, bVal);
+
+    aPtr += 8;
+    bPtr += 8;
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    *bPtr++ = log2f(*aPtr++);
+  }
+}
+
+#endif /* LV_HAVE_AVX2 for unaligned */
+
 
 #endif /* INCLUDED_volk_32f_log2_32f_u_H */

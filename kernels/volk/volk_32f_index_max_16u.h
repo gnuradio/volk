@@ -77,6 +77,67 @@
 #include <limits.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_index_max_16u_a_avx(uint16_t* target, const float* src0,
+                                uint32_t num_points)
+{
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
+  uint32_t number = 0;
+  const uint32_t eighthPoints = num_points / 8;
+
+  float* inputPtr = (float*)src0;
+
+  __m256 indexIncrementValues = _mm256_set1_ps(8);
+  __m256 currentIndexes = _mm256_set_ps(-1,-2,-3,-4,-5,-6,-7,-8);
+
+  float max = src0[0];
+  float index = 0;
+  __m256 maxValues = _mm256_set1_ps(max);
+  __m256 maxValuesIndex = _mm256_setzero_ps();
+  __m256 compareResults;
+  __m256 currentValues;
+
+  __VOLK_ATTR_ALIGNED(32) float maxValuesBuffer[8];
+  __VOLK_ATTR_ALIGNED(32) float maxIndexesBuffer[8];
+
+  for(;number < eighthPoints; number++){
+
+    currentValues  = _mm256_load_ps(inputPtr); inputPtr += 8;
+    currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
+
+    compareResults = _mm256_cmp_ps(maxValues, currentValues,14);
+
+    maxValuesIndex = _mm256_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
+    maxValues      = _mm256_blendv_ps(currentValues, maxValues, compareResults);
+  }
+
+  // Calculate the largest value from the remaining 4 points
+  _mm256_store_ps(maxValuesBuffer, maxValues);
+  _mm256_store_ps(maxIndexesBuffer, maxValuesIndex);
+
+  for(number = 0; number < 8; number++){
+    if(maxValuesBuffer[number] > max){
+      index = maxIndexesBuffer[number];
+      max = maxValuesBuffer[number];
+    }
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    if(src0[number] > max){
+      index = number;
+      max = src0[number];
+    }
+  }
+  target[0] = (uint16_t)index;
+}
+
+#endif /*LV_HAVE_AVX*/
+
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
@@ -229,3 +290,77 @@ volk_32f_index_max_16u_generic(uint16_t* target, const float* src0,
 
 
 #endif /*INCLUDED_volk_32f_index_max_16u_a_H*/
+
+
+
+#ifndef INCLUDED_volk_32f_index_max_16u_u_H
+#define INCLUDED_volk_32f_index_max_16u_u_H
+
+#include <volk/volk_common.h>
+#include <volk/volk_common.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_index_max_16u_u_avx(uint16_t* target, const float* src0,
+                                uint32_t num_points)
+{
+  num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
+  uint32_t number = 0;
+  const uint32_t eighthPoints = num_points / 8;
+
+  float* inputPtr = (float*)src0;
+
+  __m256 indexIncrementValues = _mm256_set1_ps(8);
+  __m256 currentIndexes = _mm256_set_ps(-1,-2,-3,-4,-5,-6,-7,-8);
+
+  float max = src0[0];
+  float index = 0;
+  __m256 maxValues = _mm256_set1_ps(max);
+  __m256 maxValuesIndex = _mm256_setzero_ps();
+  __m256 compareResults;
+  __m256 currentValues;
+
+  __VOLK_ATTR_ALIGNED(32) float maxValuesBuffer[8];
+  __VOLK_ATTR_ALIGNED(32) float maxIndexesBuffer[8];
+
+  for(;number < eighthPoints; number++){
+
+    currentValues  = _mm256_loadu_ps(inputPtr); inputPtr += 8;
+    currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
+
+    compareResults = _mm256_cmp_ps(maxValues, currentValues,14);
+
+    maxValuesIndex = _mm256_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
+    maxValues      = _mm256_blendv_ps(currentValues, maxValues, compareResults);
+  }
+
+  // Calculate the largest value from the remaining 4 points
+  _mm256_storeu_ps(maxValuesBuffer, maxValues);
+  _mm256_storeu_ps(maxIndexesBuffer, maxValuesIndex);
+
+  for(number = 0; number < 8; number++){
+    if(maxValuesBuffer[number] > max){
+      index = maxIndexesBuffer[number];
+      max = maxValuesBuffer[number];
+    }
+  }
+
+  number = eighthPoints * 8;
+  for(;number < num_points; number++){
+    if(src0[number] > max){
+      index = number;
+      max = src0[number];
+    }
+  }
+  target[0] = (uint16_t)index;
+}
+
+#endif /*LV_HAVE_AVX*/
+
+#endif /*INCLUDED_volk_32f_index_max_16u_u_H*/

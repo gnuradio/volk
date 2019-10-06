@@ -162,7 +162,7 @@ static inline void volk_32u_byteswap_neon(uint32_t* intsToSwap, unsigned int num
   uint8x8_t int_lookup01, int_lookup23, int_lookup45, int_lookup67;
   uint8x8_t swapped_int01, swapped_int23, swapped_int45, swapped_int67;
 
-  /* these magic numbers are used as byte-indeces in the LUT.
+  /* these magic numbers are used as byte-indices in the LUT.
      they are pre-computed to save time. A simple C program
      can calculate them; for example for lookup01:
     uint8_t chars[8] = {24, 16, 8, 0, 25, 17, 9, 1};
@@ -198,6 +198,40 @@ static inline void volk_32u_byteswap_neon(uint32_t* intsToSwap, unsigned int num
   }
 }
 #endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32u_byteswap_neonv8(uint32_t* intsToSwap, unsigned int num_points){
+  uint32_t* inputPtr = (uint32_t*)intsToSwap;
+  const unsigned int n8points = num_points / 8;
+  uint8x16_t input;
+  uint8x16_t idx = { 3,2,1,0, 7,6,5,4, 11,10,9,8, 15,14,13,12 };
+
+  unsigned int number = 0;
+  for(number = 0; number < n8points; ++number){
+    __VOLK_PREFETCH(inputPtr+8);
+    input = vld1q_u8((uint8_t*) inputPtr);
+    input = vqtbl1q_u8(input, idx);
+    vst1q_u8((uint8_t*) inputPtr, input);
+    inputPtr += 4;
+
+    input = vld1q_u8((uint8_t*) inputPtr);
+    input = vqtbl1q_u8(input, idx);
+    vst1q_u8((uint8_t*) inputPtr, input);
+    inputPtr += 4;
+  }
+
+  for(number = n8points * 8; number < num_points; ++number){
+    uint32_t output = *inputPtr;
+
+    output = (((output >> 24) & 0xff) | ((output >> 8) & 0x0000ff00) | ((output << 8) & 0x00ff0000) | ((output << 24) & 0xff000000));
+
+    *inputPtr++ = output;
+  }
+
+}
+#endif /* LV_HAVE_NEONV8 */
 
 
 #ifdef LV_HAVE_GENERIC

@@ -20,11 +20,21 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_volk_32f_x2_fm_detectpuppet_32f_H
-#define INCLUDED_volk_32f_x2_fm_detectpuppet_32f_H
+#ifndef INCLUDED_volk_32f_x2_fm_detectpuppet_32f_a_H
+#define INCLUDED_volk_32f_x2_fm_detectpuppet_32f_a_H
 
 #include "volk_32f_s32f_32f_fm_detect_32f.h"
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_32f_x2_fm_detectpuppet_32f_a_avx(float* outputVector, const float* inputVector, float* saveValue, unsigned int num_points)
+{
+  const float bound = 1.0f;
+
+  volk_32f_s32f_32f_fm_detect_32f_a_avx(outputVector, inputVector, bound, saveValue, num_points);
+}
+#endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
@@ -48,4 +58,22 @@ static inline void volk_32f_x2_fm_detectpuppet_32f_generic(float* outputVector, 
 #endif /* LV_HAVE_GENERIC */
 
 
-#endif /* INCLUDED_volk_32f_x2_fm_detectpuppet_32f_H */
+#endif /* INCLUDED_volk_32f_x2_fm_detectpuppet_32f_a_H */
+
+
+#ifndef INCLUDED_volk_32f_x2_fm_detectpuppet_32f_u_H
+#define INCLUDED_volk_32f_x2_fm_detectpuppet_32f_u_H
+
+#include "volk_32f_s32f_32f_fm_detect_32f.h"
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_32f_x2_fm_detectpuppet_32f_u_avx(float* outputVector, const float* inputVector, float* saveValue, unsigned int num_points)
+{
+  const float bound = 1.0f;
+
+  volk_32f_s32f_32f_fm_detect_32f_u_avx(outputVector, inputVector, bound, saveValue, num_points);
+}
+#endif /* LV_HAVE_AVX */
+#endif /* INCLUDED_volk_32f_x2_fm_detectpuppet_32f_u_H */
