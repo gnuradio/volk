@@ -690,7 +690,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx_fma(lv_32fc_t* outVecto
         yhp = _mm256_movehdup_ps(inc_Val);
 
         tmp1 = aVal;
-        tmp1p = ylp;
+        tmp1p = phase_Val;
 
         aVal = _mm256_shuffle_ps(aVal, aVal, 0xB1);
         phase_Val = _mm256_shuffle_ps(phase_Val, phase_Val, 0xB1);
@@ -788,7 +788,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx_fma(lv_32fc_t* outVecto
         yhp = _mm256_movehdup_ps(inc_Val);
 
         tmp1 = aVal;
-        tmp1p = ylp;
+        tmp1p = phase_Val;
 
         aVal = _mm256_shuffle_ps(aVal, aVal, 0xB1);
         phase_Val = _mm256_shuffle_ps(phase_Val, phase_Val, 0xB1);
