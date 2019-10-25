@@ -25,7 +25,7 @@
  *
  * \b Overview
  *
- * Returns Argmax_i x[i]. Finds and returns the index which contains the maximum value in the given vector.
+ * Returns Argmax_i x[i]. Finds and returns the index which contains the first maximum value in the given vector.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -37,7 +37,7 @@
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li target: The index of the maximum value in the input buffer.
+ * \li target: The index of the first maximum value in the input buffer.
  *
  * \b Example
  * \code
@@ -99,10 +99,10 @@ volk_32f_index_max_32u_a_sse4_1(uint32_t* target, const float* src0, uint32_t nu
       currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
       currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-      compareResults = _mm_cmple_ps(currentValues, maxValues);
+      compareResults = _mm_cmpgt_ps(currentValues, maxValues);
 
-      maxValuesIndex = _mm_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
-      maxValues      = _mm_blendv_ps(currentValues, maxValues, compareResults);
+      maxValuesIndex = _mm_blendv_ps(maxValuesIndex, currentIndexes, compareResults);
+      maxValues      = _mm_blendv_ps(maxValues, currentValues, compareResults);
     }
 
     // Calculate the largest value from the remaining 4 points
@@ -164,11 +164,13 @@ volk_32f_index_max_32u_a_sse(uint32_t* target, const float* src0, uint32_t num_p
       currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
       currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-      compareResults = _mm_cmple_ps(currentValues, maxValues);
+      compareResults = _mm_cmpgt_ps(currentValues, maxValues);
 
-      maxValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, maxValuesIndex) , _mm_andnot_ps(compareResults, currentIndexes));
+      maxValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, currentIndexes),
+                                 _mm_andnot_ps(compareResults, maxValuesIndex));
 
-      maxValues      = _mm_or_ps(_mm_and_ps(compareResults, maxValues) , _mm_andnot_ps(compareResults, currentValues));
+      maxValues      = _mm_or_ps(_mm_and_ps(compareResults, currentValues),
+                                 _mm_andnot_ps(compareResults, maxValues));
     }
 
     // Calculate the largest value from the remaining 4 points
@@ -228,9 +230,9 @@ static inline void volk_32f_index_max_32u_a_avx(uint32_t* target, const float* s
                 {
                     currentValues  = _mm256_load_ps(inputPtr); inputPtr += 8;
                     currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
-                    compareResults = _mm256_cmp_ps(currentValues, maxValues, _CMP_LE_OS);
-                    maxValuesIndex = _mm256_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
-                    maxValues      = _mm256_blendv_ps(currentValues, maxValues, compareResults);
+                    compareResults = _mm256_cmp_ps(currentValues, maxValues, _CMP_GT_OS);
+                    maxValuesIndex = _mm256_blendv_ps(maxValuesIndex, currentIndexes, compareResults);
+                    maxValues      = _mm256_blendv_ps(maxValues, currentValues, compareResults);
                 }
 
             // Calculate the largest value from the remaining 8 points
@@ -399,9 +401,9 @@ static inline void volk_32f_index_max_32u_u_avx(uint32_t* target, const float* s
                 {
                     currentValues  = _mm256_loadu_ps(inputPtr); inputPtr += 8;
                     currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
-                    compareResults = _mm256_cmp_ps(currentValues, maxValues, _CMP_LE_OS);
-                    maxValuesIndex = _mm256_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
-                    maxValues      = _mm256_blendv_ps(currentValues, maxValues, compareResults);
+                    compareResults = _mm256_cmp_ps(currentValues, maxValues, _CMP_GT_OS);
+                    maxValuesIndex = _mm256_blendv_ps(maxValuesIndex, currentIndexes, compareResults);
+                    maxValues      = _mm256_blendv_ps(maxValues, currentValues, compareResults);
                 }
 
             // Calculate the largest value from the remaining 8 points
@@ -466,9 +468,9 @@ static inline void volk_32f_index_max_32u_u_sse4_1(uint32_t* target, const float
                 {
                     currentValues  = _mm_loadu_ps(inputPtr); inputPtr += 4;
                     currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
-                    compareResults = _mm_cmple_ps(currentValues, maxValues);
-                    maxValuesIndex = _mm_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
-                    maxValues      = _mm_blendv_ps(currentValues, maxValues, compareResults);
+                    compareResults = _mm_cmpgt_ps(currentValues, maxValues);
+                    maxValuesIndex = _mm_blendv_ps(maxValuesIndex, currentIndexes, compareResults);
+                    maxValues      = _mm_blendv_ps(maxValues, currentValues, compareResults);
                 }
 
             // Calculate the largest value from the remaining 4 points
@@ -532,9 +534,11 @@ static inline void volk_32f_index_max_32u_u_sse(uint32_t* target, const float* s
                 {
                     currentValues  = _mm_loadu_ps(inputPtr); inputPtr += 4;
                     currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
-                    compareResults = _mm_cmple_ps(currentValues, maxValues);
-                    maxValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, maxValuesIndex) , _mm_andnot_ps(compareResults, currentIndexes));
-                    maxValues      = _mm_or_ps(_mm_and_ps(compareResults, maxValues) , _mm_andnot_ps(compareResults, currentValues));
+                    compareResults = _mm_cmpgt_ps(currentValues, maxValues);
+                    maxValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, currentIndexes),
+                                               _mm_andnot_ps(compareResults, maxValuesIndex));
+                    maxValues      = _mm_or_ps(_mm_and_ps(compareResults, currentValues),
+                                               _mm_andnot_ps(compareResults, maxValues));
                 }
 
             // Calculate the largest value from the remaining 4 points
