@@ -119,7 +119,7 @@ static inline void
 
     aVal = _mm256_load_ps(aPtr);
     // s = fabs(aVal)
-    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS)));
     // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
     q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
     // r = q + q&1, q indicates quadrant, r gives
@@ -207,7 +207,7 @@ static inline void
 
     aVal = _mm256_load_ps(aPtr);
     // s = fabs(aVal)
-    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS)));
     // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
     q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
     // r = q + q&1, q indicates quadrant, r gives
@@ -390,7 +390,7 @@ static inline void
 
     aVal = _mm256_loadu_ps(aPtr);
     // s = fabs(aVal)
-    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS)));
     // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
     q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
     // r = q + q&1, q indicates quadrant, r gives
@@ -478,7 +478,7 @@ static inline void
 
     aVal = _mm256_loadu_ps(aPtr);
     // s = fabs(aVal)
-    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS)));
     // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
     q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
     // r = q + q&1, q indicates quadrant, r gives

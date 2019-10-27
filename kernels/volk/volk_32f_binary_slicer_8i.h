@@ -139,10 +139,10 @@ volk_32f_binary_slicer_8i_a_avx2(int8_t* cVector, const float* aVector,
     a3_val = _mm256_load_ps(aPtr+24);
 
     // compare >= 0; return float
-    res0_f = _mm256_cmp_ps(a0_val, zero_val, 13);
-    res1_f = _mm256_cmp_ps(a1_val, zero_val, 13);
-    res2_f = _mm256_cmp_ps(a2_val, zero_val, 13);
-    res3_f = _mm256_cmp_ps(a3_val, zero_val, 13);
+    res0_f = _mm256_cmp_ps(a0_val, zero_val, _CMP_GE_OS);
+    res1_f = _mm256_cmp_ps(a1_val, zero_val, _CMP_GE_OS);
+    res2_f = _mm256_cmp_ps(a2_val, zero_val, _CMP_GE_OS);
+    res3_f = _mm256_cmp_ps(a3_val, zero_val, _CMP_GE_OS);
 
     // convert to 32i and >> 31
     res0_i = _mm256_srli_epi32(_mm256_cvtps_epi32(res0_f), 31);
@@ -216,10 +216,10 @@ volk_32f_binary_slicer_8i_u_avx2(int8_t* cVector, const float* aVector,
     a3_val = _mm256_loadu_ps(aPtr+24);
 
     // compare >= 0; return float
-    res0_f = _mm256_cmp_ps(a0_val, zero_val, 13);
-    res1_f = _mm256_cmp_ps(a1_val, zero_val, 13);
-    res2_f = _mm256_cmp_ps(a2_val, zero_val, 13);
-    res3_f = _mm256_cmp_ps(a3_val, zero_val, 13);
+    res0_f = _mm256_cmp_ps(a0_val, zero_val, _CMP_GE_OS);
+    res1_f = _mm256_cmp_ps(a1_val, zero_val, _CMP_GE_OS);
+    res2_f = _mm256_cmp_ps(a2_val, zero_val, _CMP_GE_OS);
+    res3_f = _mm256_cmp_ps(a3_val, zero_val, _CMP_GE_OS);
 
     // convert to 32i and >> 31
     res0_i = _mm256_srli_epi32(_mm256_cvtps_epi32(res0_f), 31);
