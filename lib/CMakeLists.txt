@@ -209,7 +209,7 @@ if(CPU_IS_x86)
     if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
       # Figure out the version of Clang
       if(CMAKE_VERSION VERSION_LESS "2.8.10")
-        # Exctract the Clang version from the --version string.
+        # Extract the Clang version from the --version string.
         # In cmake 2.8.10, we can just use CMAKE_C_COMPILER_VERSION
         # without having to go through these string manipulations
         execute_process(COMMAND ${CMAKE_C_COMPILER} --version

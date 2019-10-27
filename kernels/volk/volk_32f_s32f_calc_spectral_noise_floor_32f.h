@@ -149,7 +149,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_a_avx(float* noiseFloorAmplitude,
   sumMean += avgPointsVector[6];
   sumMean += avgPointsVector[7];
 
-  // Calculate the number of valid bins from the remaning count
+  // Calculate the number of valid bins from the remaining count
   __VOLK_ATTR_ALIGNED(32) float validBinCountVector[8];
   _mm256_store_ps(validBinCountVector, vValidBinCount);
 
@@ -261,7 +261,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_a_sse(float* noiseFloorAmplitude,
   sumMean += avgPointsVector[2];
   sumMean += avgPointsVector[3];
 
-  // Calculate the number of valid bins from the remaning count
+  // Calculate the number of valid bins from the remaining count
   __VOLK_ATTR_ALIGNED(16) float validBinCountVector[4];
   _mm_store_ps(validBinCountVector, vValidBinCount);
 
@@ -429,7 +429,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_u_avx(float* noiseFloorAmplitude,
   sumMean += avgPointsVector[6];
   sumMean += avgPointsVector[7];
 
-  // Calculate the number of valid bins from the remaning count
+  // Calculate the number of valid bins from the remaining count
   __VOLK_ATTR_ALIGNED(16) float validBinCountVector[8];
   _mm256_storeu_ps(validBinCountVector, vValidBinCount);
 

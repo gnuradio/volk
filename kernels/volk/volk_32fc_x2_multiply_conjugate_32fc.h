@@ -25,7 +25,7 @@
  *
  * \b Overview
  *
- * Multiplies a complex vector by the conjugate of a secod complex
+ * Multiplies a complex vector by the conjugate of a second complex
  * vector and returns the complex result.
  *
  * <b>Dispatcher Prototype</b>
