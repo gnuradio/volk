@@ -27,6 +27,9 @@
  *
  * Computes base 2 log of input vector and stores results in output vector.
  *
+ * Note that this implementation is not conforming to the IEEE FP standard, i.e.,
+ * +-Inf outputs are mapped to +-127.0f and +-NaN input values are not supported.
+ *
  * This kernel was adapted from Jose Fonseca's Fast SSE2 log implementation
  * http://jrfonseca.blogspot.in/2008/09/fast-sse2-pow-tables-or-polynomials.htm
  *
@@ -96,6 +99,12 @@
 
 #define LOG_POLY_DEGREE 6
 
+// +-Inf -> +-127.0f in order to match the behaviour of the SIMD kernels
+static inline float log2f_non_ieee(float f) {
+  float const result = log2f(f);
+  return isinf(result) ? copysignf(127.0f, result) : result;
+}
+
 #ifdef LV_HAVE_GENERIC
 
 static inline void
@@ -105,11 +114,8 @@ volk_32f_log2_32f_generic(float* bVector, const float* aVector, unsigned int num
   const float* aPtr = aVector;
   unsigned int number = 0;
 
-  for(number = 0; number < num_points; number++) {
-    float const result = log2f(*aPtr++);
-    *bPtr++ = isinf(result) ? -127.0f : result;
-  }
-
+  for(number = 0; number < num_points; number++)
+    *bPtr++ = log2f_non_ieee(*aPtr++);
 }
 #endif /* LV_HAVE_GENERIC */
 
