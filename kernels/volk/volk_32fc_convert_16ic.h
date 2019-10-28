@@ -159,6 +159,12 @@ static inline void volk_32fc_convert_16ic_a_sse2(lv_16sc_t* outputVector, const 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
+#define VCVTRQ_S32_F32(result, value)					\
+  __VOLK_ASM("VCVTR.S32.F32 %0, %1" : "=t"(result[0]) : "t"(value[0]) :); \
+  __VOLK_ASM("VCVTR.S32.F32 %0, %1" : "=t"(result[1]) : "t"(value[1]) :); \
+  __VOLK_ASM("VCVTR.S32.F32 %0, %1" : "=t"(result[2]) : "t"(value[2]) :); \
+  __VOLK_ASM("VCVTR.S32.F32 %0, %1" : "=t"(result[3]) : "t"(value[3]) :);
+
 static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector, const lv_32fc_t* inputVector, unsigned int num_points)
 {
     const unsigned int neon_iters = num_points / 4;
@@ -173,8 +179,7 @@ static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector, const lv
 
     const float32x4_t min_val = vmovq_n_f32(min_val_f);
     const float32x4_t max_val = vmovq_n_f32(max_val_f);
-    float32x4_t half = vdupq_n_f32(0.5f);
-    float32x4_t ret1, ret2, a, b, sign, PlusHalf, Round;
+    float32x4_t ret1, ret2, a, b;
 
     int32x4_t toint_a, toint_b;
     int16x4_t intInputVal1, intInputVal2;
@@ -189,18 +194,10 @@ static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector, const lv
             ret1 = vmaxq_f32(vminq_f32(a, max_val), min_val);
             ret2 = vmaxq_f32(vminq_f32(b, max_val), min_val);
 
-            /* in __aarch64__ we can do that with vcvtaq_s32_f32(ret1); vcvtaq_s32_f32(ret2); */
-            sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_f32(ret1), 31)));
-            PlusHalf = vaddq_f32(ret1, half);
-            Round = vsubq_f32(PlusHalf, sign);
-            toint_a = vcvtq_s32_f32(Round);
+	    VCVTRQ_S32_F32(toint_a, ret1);
+	    VCVTRQ_S32_F32(toint_b, ret2);
 
-            sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_f32(ret2), 31)));
-            PlusHalf = vaddq_f32(ret2, half);
-            Round = vsubq_f32(PlusHalf, sign);
-            toint_b = vcvtq_s32_f32(Round);
-
-            intInputVal1 = vqmovn_s32(toint_a);
+	    intInputVal1 = vqmovn_s32(toint_a);
             intInputVal2 = vqmovn_s32(toint_b);
 
             res = vcombine_s16(intInputVal1, intInputVal2);
@@ -219,6 +216,7 @@ static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector, const lv
         }
 }
 
+#undef VCVTRQ_S32_F32
 #endif /* LV_HAVE_NEON */
 
 
