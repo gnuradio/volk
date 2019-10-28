@@ -121,8 +121,8 @@ volk_32fc_index_max_32u_a_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -144,8 +144,8 @@ volk_32fc_index_max_32u_a_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -171,8 +171,8 @@ volk_32fc_index_max_32u_a_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -438,8 +438,8 @@ volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -461,8 +461,8 @@ volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -488,8 +488,8 @@ volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);

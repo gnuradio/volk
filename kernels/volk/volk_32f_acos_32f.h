@@ -105,10 +105,10 @@ volk_32f_acos_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int 
     d = aVal;
     aVal = _mm256_div_ps(_mm256_sqrt_ps(_mm256_mul_ps(_mm256_add_ps(fones, aVal), _mm256_sub_ps(fones, aVal))), aVal);
     z = aVal;
-    condition = _mm256_cmp_ps(z, fzeroes,1);
+    condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
     x = z;
-    condition = _mm256_cmp_ps(z, fones,1);
+    condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
     x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++)
@@ -119,13 +119,13 @@ volk_32f_acos_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int 
       y = _mm256_fmadd_ps(y, _mm256_mul_ps(x, x), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
-    condition = _mm256_cmp_ps(z, fones,14);
+    condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
 
     y = _mm256_add_ps(y, _mm256_and_ps(_mm256_fnmadd_ps(y, ftwos, pio2), condition));
     arccosine = y;
-    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    condition = _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS);
     arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
-    condition = _mm256_cmp_ps(d, fzeroes,1);
+    condition = _mm256_cmp_ps(d, fzeroes, _CMP_LT_OS);
     arccosine = _mm256_add_ps(arccosine, _mm256_and_ps(pi, condition));
 
     _mm256_store_ps(bPtr, arccosine);
@@ -170,10 +170,10 @@ volk_32f_acos_32f_a_avx(float* bVector, const float* aVector, unsigned int num_p
     d = aVal;
     aVal = _mm256_div_ps(_mm256_sqrt_ps(_mm256_mul_ps(_mm256_add_ps(fones, aVal), _mm256_sub_ps(fones, aVal))), aVal);
     z = aVal;
-    condition = _mm256_cmp_ps(z, fzeroes,1);
+    condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
     x = z;
-    condition = _mm256_cmp_ps(z, fones,1);
+    condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
     x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++)
@@ -184,13 +184,13 @@ volk_32f_acos_32f_a_avx(float* bVector, const float* aVector, unsigned int num_p
       y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
-    condition = _mm256_cmp_ps(z, fones,14);
+    condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
 
     y = _mm256_add_ps(y, _mm256_and_ps(_mm256_sub_ps(pio2, _mm256_mul_ps(y, ftwos)), condition));
     arccosine = y;
-    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    condition = _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS);
     arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
-    condition = _mm256_cmp_ps(d, fzeroes,1);
+    condition = _mm256_cmp_ps(d, fzeroes, _CMP_LT_OS);
     arccosine = _mm256_add_ps(arccosine, _mm256_and_ps(pi, condition));
 
     _mm256_store_ps(bPtr, arccosine);
@@ -304,10 +304,10 @@ volk_32f_acos_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int 
     d = aVal;
     aVal = _mm256_div_ps(_mm256_sqrt_ps(_mm256_mul_ps(_mm256_add_ps(fones, aVal), _mm256_sub_ps(fones, aVal))), aVal);
     z = aVal;
-    condition = _mm256_cmp_ps(z, fzeroes,1);
+    condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
     x = z;
-    condition = _mm256_cmp_ps(z, fones,1);
+    condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
     x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++)
@@ -318,13 +318,13 @@ volk_32f_acos_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int 
       y = _mm256_fmadd_ps(y, _mm256_mul_ps(x, x), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
-    condition = _mm256_cmp_ps(z, fones,14);
+    condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
 
     y = _mm256_add_ps(y, _mm256_and_ps(_mm256_fnmadd_ps(y, ftwos, pio2), condition));
     arccosine = y;
-    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    condition = _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS);
     arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
-    condition = _mm256_cmp_ps(d, fzeroes,1);
+    condition = _mm256_cmp_ps(d, fzeroes, _CMP_LT_OS);
     arccosine = _mm256_add_ps(arccosine, _mm256_and_ps(pi, condition));
 
     _mm256_storeu_ps(bPtr, arccosine);
@@ -369,10 +369,10 @@ volk_32f_acos_32f_u_avx(float* bVector, const float* aVector, unsigned int num_p
     d = aVal;
     aVal = _mm256_div_ps(_mm256_sqrt_ps(_mm256_mul_ps(_mm256_add_ps(fones, aVal), _mm256_sub_ps(fones, aVal))), aVal);
     z = aVal;
-    condition = _mm256_cmp_ps(z, fzeroes,1);
+    condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
     x = z;
-    condition = _mm256_cmp_ps(z, fones,1);
+    condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
     x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++)
@@ -383,13 +383,13 @@ volk_32f_acos_32f_u_avx(float* bVector, const float* aVector, unsigned int num_p
       y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)), _mm256_set1_ps(pow(-1,j)/(2*j+1)));
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
-    condition = _mm256_cmp_ps(z, fones,14);
+    condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
 
     y = _mm256_add_ps(y, _mm256_and_ps(_mm256_sub_ps(pio2, _mm256_mul_ps(y, ftwos)), condition));
     arccosine = y;
-    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    condition = _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS);
     arccosine = _mm256_sub_ps(arccosine, _mm256_and_ps(_mm256_mul_ps(arccosine, ftwos), condition));
-    condition = _mm256_cmp_ps(d, fzeroes,1);
+    condition = _mm256_cmp_ps(d, fzeroes, _CMP_LT_OS);
     arccosine = _mm256_add_ps(arccosine, _mm256_and_ps(pi, condition));
 
     _mm256_storeu_ps(bPtr, arccosine);

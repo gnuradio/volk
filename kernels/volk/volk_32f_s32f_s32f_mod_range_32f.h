@@ -62,8 +62,8 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_avx(float* outputVector, c
   for(counter = 0; counter < eight_points; counter++) {
     input = _mm256_loadu_ps(inPtr);
     // calculate mask: input < lower, input > upper
-    is_smaller = _mm256_cmp_ps(input, lower, 0x11); //0x11: Less than, ordered, non-signalling
-    is_bigger = _mm256_cmp_ps(input, upper, 0x1e); //0x1e: greater than, ordered, non-signalling
+    is_smaller = _mm256_cmp_ps(input, lower, _CMP_LT_OQ); //0x11: Less than, ordered, non-signalling
+    is_bigger = _mm256_cmp_ps(input, upper, _CMP_GT_OQ); //0x1e: greater than, ordered, non-signalling
     // find out how far we are out-of-bound – positive values!
     excess = _mm256_and_ps(_mm256_sub_ps(lower, input), is_smaller);
     excess = _mm256_or_ps(_mm256_and_ps(_mm256_sub_ps(input, upper), is_bigger), excess);
@@ -118,8 +118,8 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_avx(float* outputVector, c
   for(counter = 0; counter < eight_points; counter++) {
     input = _mm256_load_ps(inPtr);
     // calculate mask: input < lower, input > upper
-    is_smaller = _mm256_cmp_ps(input, lower, 0x11); //0x11: Less than, ordered, non-signalling
-    is_bigger = _mm256_cmp_ps(input, upper, 0x1e); //0x1e: greater than, ordered, non-signalling
+    is_smaller = _mm256_cmp_ps(input, lower, _CMP_LT_OQ); //0x11: Less than, ordered, non-signalling
+    is_bigger = _mm256_cmp_ps(input, upper, _CMP_GT_OQ); //0x1e: greater than, ordered, non-signalling
     // find out how far we are out-of-bound – positive values!
     excess = _mm256_and_ps(_mm256_sub_ps(lower, input), is_smaller);
     excess = _mm256_or_ps(_mm256_and_ps(_mm256_sub_ps(input, upper), is_bigger), excess);
