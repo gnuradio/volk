@@ -209,7 +209,7 @@ volk_32fc_s32f_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_32fc_t* co
   __m128 vScalar = _mm_set_ps1(scalar);
 
   __m128 cplxValue1, cplxValue2, result;
-  volatile __m128 iValue, qValue;
+  __m128 iValue, qValue;
 
   __VOLK_ATTR_ALIGNED(16) float floatBuffer[4];
 
@@ -225,10 +225,10 @@ volk_32fc_s32f_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_32fc_t* co
     // Arrange in q1q2q3q4 format
     qValue = _mm_shuffle_ps(cplxValue1, cplxValue2, _MM_SHUFFLE(3,1,3,1));
 
-    iValue = _mm_mul_ps(iValue, iValue); // Square the I values
-    qValue = _mm_mul_ps(qValue, qValue); // Square the Q Values
+    volatile __m128 iValue2 = _mm_mul_ps(iValue, iValue); // Square the I values
+    volatile __m128 qValue2 = _mm_mul_ps(qValue, qValue); // Square the Q Values
 
-    result = _mm_add_ps(iValue, qValue); // Add the I2 and Q2 values
+    result = _mm_add_ps(iValue2, qValue2); // Add the I2 and Q2 values
 
     result = _mm_sqrt_ps(result);
 
