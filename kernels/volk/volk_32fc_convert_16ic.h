@@ -73,8 +73,10 @@ static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector, const 
 
     for(i = 0; i < avx_iters; i++)
         {
-            inputVal1 = _mm256_load_ps((float*)inputVectorPtr); inputVectorPtr += 8;
-            inputVal2 = _mm256_load_ps((float*)inputVectorPtr); inputVectorPtr += 8;
+            inputVal1 = _mm256_load_ps((float*)inputVectorPtr);
+            inputVectorPtr += 8;
+            inputVal2 = _mm256_load_ps((float*)inputVectorPtr);
+            inputVectorPtr += 8;
             __VOLK_PREFETCH(inputVectorPtr + 16);
 
             // Clip
@@ -156,11 +158,18 @@ static inline void volk_32fc_convert_16ic_a_sse2(lv_16sc_t* outputVector, const 
 #endif /* LV_HAVE_SSE2 */
 
 
-#ifdef LV_HAVE_NEON
+#if LV_HAVE_NEONV7
 #include <arm_neon.h>
+
+#define VCVTRQ_S32_F32(res,val)                                         \
+  __VOLK_ASM ("VCVTR.S32.F32 %[r0], %[v0]\n\t" : [r0]"=w"(res[0]) : [v0]"w"(val[0]) : ); \
+  __VOLK_ASM ("VCVTR.S32.F32 %[r1], %[v1]\n\t" : [r1]"=w"(res[1]) : [v1]"w"(val[1]) : ); \
+  __VOLK_ASM ("VCVTR.S32.F32 %[r2], %[v2]\n\t" : [r2]"=w"(res[2]) : [v2]"w"(val[2]) : ); \
+  __VOLK_ASM ("VCVTR.S32.F32 %[r3], %[v3]\n\t" : [r3]"=w"(res[3]) : [v3]"w"(val[3]) : );
 
 static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector, const lv_32fc_t* inputVector, unsigned int num_points)
 {
+
     const unsigned int neon_iters = num_points / 4;
 
     float32_t* inputVectorPtr = (float32_t*)inputVector;
@@ -173,32 +182,27 @@ static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector, const lv
 
     const float32x4_t min_val = vmovq_n_f32(min_val_f);
     const float32x4_t max_val = vmovq_n_f32(max_val_f);
-    float32x4_t half = vdupq_n_f32(0.5f);
-    float32x4_t ret1, ret2, a, b, sign, PlusHalf, Round;
+    float32x4_t ret1, ret2, a, b;
 
-    int32x4_t toint_a, toint_b;
+    int32x4_t toint_a={0,0,0,0};
+    int32x4_t toint_b={0,0,0,0};
     int16x4_t intInputVal1, intInputVal2;
     int16x8_t res;
 
     for(i = 0; i < neon_iters; i++)
         {
-            a = vld1q_f32((const float32_t*)(inputVectorPtr)); inputVectorPtr += 4;
-            b = vld1q_f32((const float32_t*)(inputVectorPtr)); inputVectorPtr += 4;
+            a = vld1q_f32((const float32_t*)(inputVectorPtr));
+            inputVectorPtr += 4;
+            b = vld1q_f32((const float32_t*)(inputVectorPtr));
+            inputVectorPtr += 4;
             __VOLK_PREFETCH(inputVectorPtr + 8);
 
             ret1 = vmaxq_f32(vminq_f32(a, max_val), min_val);
             ret2 = vmaxq_f32(vminq_f32(b, max_val), min_val);
 
-            /* in __aarch64__ we can do that with vcvtaq_s32_f32(ret1); vcvtaq_s32_f32(ret2); */
-            sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_f32(ret1), 31)));
-            PlusHalf = vaddq_f32(ret1, half);
-            Round = vsubq_f32(PlusHalf, sign);
-            toint_a = vcvtq_s32_f32(Round);
-
-            sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_f32(ret2), 31)));
-            PlusHalf = vaddq_f32(ret2, half);
-            Round = vsubq_f32(PlusHalf, sign);
-            toint_b = vcvtq_s32_f32(Round);
+            // vcvtr takes into account the current rounding mode (as does rintf)
+            VCVTRQ_S32_F32(toint_a, ret1);
+            VCVTRQ_S32_F32(toint_b, ret2);
 
             intInputVal1 = vqmovn_s32(toint_a);
             intInputVal2 = vqmovn_s32(toint_b);
@@ -219,7 +223,67 @@ static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector, const lv
         }
 }
 
-#endif /* LV_HAVE_NEON */
+#undef VCVTRQ_S32_F32
+#endif /* LV_HAVE_NEONV7 */
+
+#if LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_convert_16ic_neonv8(lv_16sc_t* outputVector, const lv_32fc_t* inputVector, unsigned int num_points)
+{
+    const unsigned int neon_iters = num_points / 4;
+
+    float32_t* inputVectorPtr = (float32_t*)inputVector;
+    int16_t* outputVectorPtr = (int16_t*)outputVector;
+
+    const float min_val_f = (float)SHRT_MIN;
+    const float max_val_f = (float)SHRT_MAX;
+    float32_t aux;
+    unsigned int i;
+
+    const float32x4_t min_val = vmovq_n_f32(min_val_f);
+    const float32x4_t max_val = vmovq_n_f32(max_val_f);
+    float32x4_t ret1, ret2, a, b;
+
+    int32x4_t toint_a={0,0,0,0}, toint_b={0,0,0,0};
+    int16x4_t intInputVal1, intInputVal2;
+    int16x8_t res;
+
+    for(i = 0; i < neon_iters; i++)
+        {
+            a = vld1q_f32((const float32_t*)(inputVectorPtr));
+            inputVectorPtr += 4;
+            b = vld1q_f32((const float32_t*)(inputVectorPtr));
+            inputVectorPtr += 4;
+            __VOLK_PREFETCH(inputVectorPtr + 8);
+
+            ret1 = vmaxq_f32(vminq_f32(a, max_val), min_val);
+            ret2 = vmaxq_f32(vminq_f32(b, max_val), min_val);
+
+            // vrndiq takes into account the current rounding mode (as does rintf)
+            toint_a = vcvtq_s32_f32(vrndiq_f32(ret1));
+            toint_b = vcvtq_s32_f32(vrndiq_f32(ret2));
+
+            intInputVal1 = vqmovn_s32(toint_a);
+            intInputVal2 = vqmovn_s32(toint_b);
+
+            res = vcombine_s16(intInputVal1, intInputVal2);
+            vst1q_s16((int16_t*)outputVectorPtr, res);
+            outputVectorPtr += 8;
+        }
+
+    for(i = neon_iters * 8; i < num_points * 2; i++)
+        {
+            aux = *inputVectorPtr++;
+            if(aux > max_val_f)
+                aux = max_val_f;
+            else if(aux < min_val_f)
+                aux = min_val_f;
+            *outputVectorPtr++ = (int16_t)rintf(aux);
+        }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 
 
 #ifdef LV_HAVE_GENERIC
@@ -277,8 +341,10 @@ static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector, const 
 
     for(i = 0; i < avx_iters; i++)
         {
-            inputVal1 = _mm256_loadu_ps((float*)inputVectorPtr); inputVectorPtr += 8;
-            inputVal2 = _mm256_loadu_ps((float*)inputVectorPtr); inputVectorPtr += 8;
+            inputVal1 = _mm256_loadu_ps((float*)inputVectorPtr);
+            inputVectorPtr += 8;
+            inputVal2 = _mm256_loadu_ps((float*)inputVectorPtr);
+            inputVectorPtr += 8;
             __VOLK_PREFETCH(inputVectorPtr + 16);
 
             // Clip
@@ -331,8 +397,10 @@ static inline void volk_32fc_convert_16ic_u_sse2(lv_16sc_t* outputVector, const 
     unsigned int i;
     for(i = 0; i < sse_iters; i++)
         {
-            inputVal1 = _mm_loadu_ps((float*)inputVectorPtr); inputVectorPtr += 4;
-            inputVal2 = _mm_loadu_ps((float*)inputVectorPtr); inputVectorPtr += 4;
+            inputVal1 = _mm_loadu_ps((float*)inputVectorPtr);
+            inputVectorPtr += 4;
+            inputVal2 = _mm_loadu_ps((float*)inputVectorPtr);
+            inputVectorPtr += 4;
             __VOLK_PREFETCH(inputVectorPtr + 8);
 
             // Clip
