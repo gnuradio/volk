@@ -19,7 +19,7 @@
 
 # Original code from https://github.com/vector-of-bool/CMakeCM and modified
 # by C. Fernandez. The original code is distributed under the OSI-approved
-# BSD 3-Clause License.
+# BSD 3-Clause License. See https://cmake.org/licensing for details.
 
 #[=======================================================================[.rst:
 
