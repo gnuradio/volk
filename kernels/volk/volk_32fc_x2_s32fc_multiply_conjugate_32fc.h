@@ -75,9 +75,9 @@
  * weight = tmp;
  * weight[N + 1] = lv_cmake(lv_creal(weight[N + 1]), 0.f);
  * ...
- * lv_free(state);
- * lv_free(weight);
- * lv_free(next);
+ * volk_free(state);
+ * volk_free(weight);
+ * volk_free(next);
  * \endcode
  */
 
