@@ -25,12 +25,8 @@ project(volk)
 enable_language(CXX)
 enable_language(C)
 
-if(NOT (CMAKE_VERSION VERSION_LESS "3.1"))
-    set(CMAKE_C_STANDARD 11)
-    set(CMAKE_CXX_STANDARD 11)
-else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif()
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 enable_testing()
 
@@ -116,15 +112,7 @@ if(MSVC)
 endif(MSVC)
 
 # Check if we have std::filesystem
-if(POLICY CMP0057)
-    cmake_policy(SET CMP0057 NEW)
-endif()
-
-if(CMAKE_VERSION VERSION_LESS 3.8)
-    set(FILESYSTEM_FOUND FALSE)
-else()
-    find_package(FILESYSTEM COMPONENTS Final Experimental)
-endif()
+find_package(FILESYSTEM COMPONENTS Final Experimental)
 
 #### Set C++ standard to 17 if std::filesystem is available
 if(${FILESYSTEM_FOUND})
