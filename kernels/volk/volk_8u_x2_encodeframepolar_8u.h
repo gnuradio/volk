@@ -156,27 +156,27 @@ volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame, unsigned char* temp
   frame_ptr = frame;
   temp_ptr = temp;
 
-  // load first chunk.
-  // Tests show a 1-2% gain compared to loading a new chunk and using it right after.
-  r_temp0 = _mm_loadu_si128((__m128i*) temp_ptr);
-  temp_ptr += 16;
+  // prefetch first chunk
+  __VOLK_PREFETCH(temp_ptr);
 
   const __m128i shuffle_stage4 = _mm_setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15);
   const __m128i mask_stage4 = _mm_set_epi8(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
   const __m128i mask_stage3 = _mm_set_epi8(0x0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF, 0x0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF);
   const __m128i mask_stage2 = _mm_set_epi8(0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF);
 
-  for(branch = 1; branch < num_branches; ++branch){
+  for(branch = 0; branch < num_branches; ++branch){
+    r_temp0 = _mm_loadu_si128((__m128i*) temp_ptr);
+
+    // prefetch next chunk
+    temp_ptr += 16;
+    __VOLK_PREFETCH(temp_ptr);
+
     // shuffle once for bit-reversal.
     r_temp0 = _mm_shuffle_epi8(r_temp0, shuffle_stage4);
 
     shifted = _mm_srli_si128(r_temp0, 8);
     shifted = _mm_and_si128(shifted, mask_stage4);
     r_frame0 = _mm_xor_si128(shifted, r_temp0);
-
-    // start loading next chunk.
-    r_temp0 = _mm_loadu_si128((__m128i*) temp_ptr);
-    temp_ptr += 16;
 
     shifted = _mm_srli_si128(r_frame0, 4);
     shifted = _mm_and_si128(shifted, mask_stage3);
@@ -194,29 +194,6 @@ volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame, unsigned char* temp
     _mm_storeu_si128((__m128i*)frame_ptr, r_frame0);
     frame_ptr += 16;
   }
-  r_temp0 = _mm_shuffle_epi8(r_temp0, shuffle_stage4);
-
-  shifted = _mm_srli_si128(r_temp0, 8);
-  shifted = _mm_and_si128(shifted, mask_stage4);
-  r_frame0 = _mm_xor_si128(shifted, r_temp0);
-
-  // start loading the next chunk, but do not
-  // reload r_temp0
-
-  shifted = _mm_srli_si128(r_frame0, 4);
-  shifted = _mm_and_si128(shifted, mask_stage3);
-  r_frame0 = _mm_xor_si128(shifted, r_frame0);
-
-  shifted = _mm_srli_si128(r_frame0, 2);
-  shifted = _mm_and_si128(shifted, mask_stage2);
-  r_frame0 = _mm_xor_si128(shifted, r_frame0);
-
-  shifted = _mm_srli_si128(r_frame0, 1);
-  shifted = _mm_and_si128(shifted, mask_stage1);
-  r_frame0 = _mm_xor_si128(shifted, r_frame0);
-
-  // store result of chunk.
-  _mm_storeu_si128((__m128i*)frame_ptr, r_frame0);
 }
 
 #endif /* LV_HAVE_SSSE3 */
@@ -329,10 +306,9 @@ volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame, unsigned char* temp,
   frame_ptr = frame;
   temp_ptr = temp;
 
-  // load first chunk.
-  // Tests show a 1-2% gain compared to loading a new chunk and using it right after.
-  r_temp0 = _mm256_loadu_si256((__m256i*) temp_ptr);
-  temp_ptr += 32;
+  // prefetch first chunk
+  __VOLK_PREFETCH(temp_ptr);
+
   const __m256i shuffle_stage4 = _mm256_setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15,
                                                   0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15);
   const __m256i mask_stage4 = _mm256_set_epi8(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -343,6 +319,12 @@ volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame, unsigned char* temp,
                                               0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF);
 
   for(branch = 0; branch < num_branches/2; ++branch){
+    r_temp0 = _mm256_loadu_si256((__m256i*) temp_ptr);
+
+    // prefetch next chunk
+    temp_ptr += 32;
+    __VOLK_PREFETCH(temp_ptr);
+
     // shuffle once for bit-reversal.
     r_temp0 = _mm256_shuffle_epi8(r_temp0, shuffle_stage4);
 
@@ -350,9 +332,6 @@ volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame, unsigned char* temp,
     shifted = _mm256_and_si256(shifted, mask_stage4);
     r_frame0 = _mm256_xor_si256(shifted, r_temp0);
 
-    // start loading next chunk.
-    r_temp0 = _mm256_loadu_si256((__m256i*) temp_ptr);
-    temp_ptr += 32;
 
     shifted = _mm256_srli_si256(r_frame0, 4);
     shifted = _mm256_and_si256(shifted, mask_stage3);
@@ -453,27 +432,27 @@ volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame, unsigned char* temp
   frame_ptr = frame;
   temp_ptr = temp;
 
-  // load first chunk.
-  // Tests show a 1-2% gain compared to loading a new chunk and using it right after.
-  r_temp0 = _mm_load_si128((__m128i*) temp_ptr);
-  temp_ptr += 16;
+  // prefetch first chunk
+  __VOLK_PREFETCH(temp_ptr);
 
   const __m128i shuffle_stage4 = _mm_setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15);
   const __m128i mask_stage4 = _mm_set_epi8(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
   const __m128i mask_stage3 = _mm_set_epi8(0x0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF, 0x0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF);
   const __m128i mask_stage2 = _mm_set_epi8(0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF);
 
-  for(branch = 1; branch < num_branches; ++branch){
+  for(branch = 0; branch < num_branches; ++branch){
+    r_temp0 = _mm_load_si128((__m128i*) temp_ptr);
+
+    // prefetch next chunk
+    temp_ptr += 16;
+    __VOLK_PREFETCH(temp_ptr);
+
     // shuffle once for bit-reversal.
     r_temp0 = _mm_shuffle_epi8(r_temp0, shuffle_stage4);
 
     shifted = _mm_srli_si128(r_temp0, 8);
     shifted = _mm_and_si128(shifted, mask_stage4);
     r_frame0 = _mm_xor_si128(shifted, r_temp0);
-
-    // start loading next chunk.
-    r_temp0 = _mm_load_si128((__m128i*) temp_ptr);
-    temp_ptr += 16;
 
     shifted = _mm_srli_si128(r_frame0, 4);
     shifted = _mm_and_si128(shifted, mask_stage3);
@@ -491,29 +470,6 @@ volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame, unsigned char* temp
     _mm_store_si128((__m128i*)frame_ptr, r_frame0);
     frame_ptr += 16;
   }
-  // shuffle once for bit-reversal.
-  r_temp0 = _mm_shuffle_epi8(r_temp0, shuffle_stage4);
-
-  shifted = _mm_srli_si128(r_temp0, 8);
-  shifted = _mm_and_si128(shifted, mask_stage4);
-  r_frame0 = _mm_xor_si128(shifted, r_temp0);
-
-  // start loading the next chunk, but do not
-  // reload r_temp0
-  shifted = _mm_srli_si128(r_frame0, 4);
-  shifted = _mm_and_si128(shifted, mask_stage3);
-  r_frame0 = _mm_xor_si128(shifted, r_frame0);
-
-  shifted = _mm_srli_si128(r_frame0, 2);
-  shifted = _mm_and_si128(shifted, mask_stage2);
-  r_frame0 = _mm_xor_si128(shifted, r_frame0);
-
-  shifted = _mm_srli_si128(r_frame0, 1);
-  shifted = _mm_and_si128(shifted, mask_stage1);
-  r_frame0 = _mm_xor_si128(shifted, r_frame0);
-
-  // store result of chunk.
-  _mm_store_si128((__m128i*)frame_ptr, r_frame0);
 }
 #endif /* LV_HAVE_SSSE3 */
 
@@ -625,10 +581,9 @@ volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame, unsigned char* temp,
   frame_ptr = frame;
   temp_ptr = temp;
 
-  // load first chunk.
-  // Tests show a 1-2% gain compared to loading a new chunk and using it right after.
-  r_temp0 = _mm256_load_si256((__m256i*) temp_ptr);
-  temp_ptr += 32;
+  // prefetch first chunk.
+  __VOLK_PREFETCH(temp_ptr);
+
   const __m256i shuffle_stage4 = _mm256_setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15,
                                                   0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15);
   const __m256i mask_stage4 = _mm256_set_epi8(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -639,16 +594,18 @@ volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame, unsigned char* temp,
                                               0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF, 0x0, 0x0, 0xFF, 0xFF);
 
   for(branch = 0; branch < num_branches/2; ++branch){
+    r_temp0 = _mm256_load_si256((__m256i*) temp_ptr);
+
+    // prefetch next chunk
+    temp_ptr += 32;
+    __VOLK_PREFETCH(temp_ptr);
+
     // shuffle once for bit-reversal.
     r_temp0 = _mm256_shuffle_epi8(r_temp0, shuffle_stage4);
 
     shifted = _mm256_srli_si256(r_temp0, 8); //128 bit lanes
     shifted = _mm256_and_si256(shifted, mask_stage4);
     r_frame0 = _mm256_xor_si256(shifted, r_temp0);
-
-    // start loading next chunk.
-    r_temp0 = _mm256_load_si256((__m256i*) temp_ptr);
-    temp_ptr += 32;
 
     shifted = _mm256_srli_si256(r_frame0, 4);
     shifted = _mm256_and_si256(shifted, mask_stage3);

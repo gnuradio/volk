@@ -136,6 +136,52 @@ volk_32fc_s32f_power_spectrum_32f_a_sse3(float* logPowerOutput, const lv_32fc_t*
 }
 #endif /* LV_HAVE_SSE3 */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+#include <volk/volk_neon_intrinsics.h>
+
+static inline void
+volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, unsigned int num_points)
+{
+    float* logPowerOutputPtr = logPowerOutput;
+    const lv_32fc_t* complexFFTInputPtr = complexFFTInput;
+    const float iNormalizationFactor = 1.0 / normalizationFactor;
+    unsigned int number;
+    unsigned int quarter_points = num_points / 4;
+    float32x4x2_t fft_vec;
+    float32x4_t log_pwr_vec;
+    float32x4_t mag_squared_vec;
+    
+    const float inv_ln10_10 = 4.34294481903f; // 10.0/ln(10.)
+    
+    for(number = 0; number < quarter_points; number++) {
+        // Load
+        fft_vec = vld2q_f32((float*)complexFFTInputPtr);
+        // Prefetch next 4
+        __VOLK_PREFETCH(complexFFTInputPtr+4);
+        // Normalize
+        fft_vec.val[0] = vmulq_n_f32(fft_vec.val[0], iNormalizationFactor);
+        fft_vec.val[1] = vmulq_n_f32(fft_vec.val[1], iNormalizationFactor);
+        mag_squared_vec = _vmagnitudesquaredq_f32(fft_vec);
+        log_pwr_vec = vmulq_n_f32(_vlogq_f32(mag_squared_vec), inv_ln10_10);
+        // Store
+        vst1q_f32(logPowerOutputPtr, log_pwr_vec);
+        // Move pointers ahead
+        complexFFTInputPtr+=4;
+        logPowerOutputPtr+=4;
+    }
+    
+    // deal with the rest
+    for(number = quarter_points * 4; number < num_points; number++) {
+        const float real = lv_creal(*complexFFTInputPtr) * iNormalizationFactor;
+        const float imag = lv_cimag(*complexFFTInputPtr) * iNormalizationFactor;
+        *logPowerOutputPtr = 10.0 * log10f(((real * real) + (imag * imag)) + 1e-20);
+        complexFFTInputPtr++;
+        logPowerOutputPtr++;
+    }
+}
+
+#endif /* LV_HAVE_NEON */
 
 #ifdef LV_HAVE_GENERIC
 

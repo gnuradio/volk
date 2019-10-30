@@ -155,8 +155,11 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* syms, unsig
     once = 0;
   }
 
-    //unbias the old_metrics
+  //unbias the old_metrics
   memset(X, 31, d_numstates);
+
+  // initialize decisions
+  memset(D, 0, (d_numstates/8) * (framebits + 6));
 
   volk_8u_x4_conv_k7_r2_8u_spiral(Y, X, syms, D, framebits/2 - excess, excess, Branchtab);
 
@@ -228,8 +231,11 @@ static inline void volk_8u_conv_k7_r2puppet_8u_avx2(unsigned char* syms, unsigne
     once = 0;
   }
 
-    //unbias the old_metrics
+  //unbias the old_metrics
   memset(X, 31, d_numstates);
+
+  // initialize decisions
+  memset(D, 0, (d_numstates/8) * (framebits + 6));
 
   volk_8u_x4_conv_k7_r2_8u_avx2(Y, X, syms, D, framebits/2 - excess, excess, Branchtab);
 
@@ -302,11 +308,11 @@ static inline void volk_8u_conv_k7_r2puppet_8u_generic(unsigned char* syms, unsi
     once = 0;
   }
 
-
-
-
-    //unbias the old_metrics
+  //unbias the old_metrics
   memset(X, 31, d_numstates);
+
+  // initialize decisions
+  memset(D, 0, (d_numstates/8) * (framebits + 6));
 
   volk_8u_x4_conv_k7_r2_8u_generic(Y, X, syms, D, framebits/2 - excess, excess, Branchtab);
 

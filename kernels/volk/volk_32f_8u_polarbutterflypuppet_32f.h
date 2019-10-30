@@ -96,6 +96,7 @@ volk_32f_8u_polarbutterflypuppet_32f_generic(float* llrs, const float* input, un
   unsigned int frame_exp = log2_of_power_of_2(frame_size);
 
   sanitize_bytes(u, elements);
+  clean_up_intermediate_values(llrs, u, frame_size, elements);
   generate_error_free_input_vector(llrs + frame_exp * frame_size, u, frame_size);
 
   unsigned int u_num = 0;
@@ -116,6 +117,7 @@ volk_32f_8u_polarbutterflypuppet_32f_u_avx(float* llrs, const float* input, unsi
   unsigned int frame_exp = log2_of_power_of_2(frame_size);
 
   sanitize_bytes(u, elements);
+  clean_up_intermediate_values(llrs, u, frame_size, elements);
   generate_error_free_input_vector(llrs + frame_exp * frame_size, u, frame_size);
 
   unsigned int u_num = 0;
@@ -136,6 +138,7 @@ volk_32f_8u_polarbutterflypuppet_32f_u_avx2(float* llrs, const float* input, uns
   unsigned int frame_exp = log2_of_power_of_2(frame_size);
 
   sanitize_bytes(u, elements);
+  clean_up_intermediate_values(llrs, u, frame_size, elements);
   generate_error_free_input_vector(llrs + frame_exp * frame_size, u, frame_size);
 
   unsigned int u_num = 0;

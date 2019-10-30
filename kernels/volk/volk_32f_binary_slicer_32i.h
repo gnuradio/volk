@@ -169,7 +169,7 @@ volk_32f_binary_slicer_32i_a_avx(int* cVector, const float* aVector, unsigned in
   for(number = 0; number < quarter_points; number++){
     a_val = _mm256_load_ps(aPtr);
 
-    res_f = _mm256_cmp_ps (a_val, zero_val, 13);
+    res_f = _mm256_cmp_ps (a_val, zero_val, _CMP_GE_OS);
     binary_f = _mm256_and_ps (res_f, one_val);
     binary_i = _mm256_cvtps_epi32(binary_f);
 
@@ -252,7 +252,7 @@ volk_32f_binary_slicer_32i_u_avx(int* cVector, const float* aVector, unsigned in
   for(number = 0; number < quarter_points; number++){
     a_val = _mm256_loadu_ps(aPtr);
 
-    res_f = _mm256_cmp_ps (a_val, zero_val, 13);
+    res_f = _mm256_cmp_ps (a_val, zero_val, _CMP_GE_OS);
     binary_f = _mm256_and_ps (res_f, one_val);
     binary_i = _mm256_cvtps_epi32(binary_f);
 

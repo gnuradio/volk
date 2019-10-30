@@ -113,7 +113,7 @@ volk_32f_sin_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int n
 
   for(;number < eighthPoints; number++) {
     aVal = _mm256_load_ps(aPtr);
-    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS)));
     q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
     r = _mm256_add_epi32(q, _mm256_and_si256(q, ones));
 
@@ -133,8 +133,8 @@ volk_32f_sin_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int n
     sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
     cosine = _mm256_sub_ps(fones, s);
 
-    condition1 = _mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(_mm256_add_epi32(q, ones), twos)), fzeroes,4);
-    condition2 = _mm256_cmp_ps(_mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(q, fours)), fzeroes,4), _mm256_cmp_ps(aVal, fzeroes,1),4);
+    condition1 = _mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(_mm256_add_epi32(q, ones), twos)), fzeroes, _CMP_NEQ_UQ);
+    condition2 = _mm256_cmp_ps(_mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(q, fours)), fzeroes, _CMP_NEQ_UQ), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS), _CMP_NEQ_UQ);
     // Need this condition only for cos
     //condition3 = _mm_cmpneq_ps(_mm_cvtepi32_ps(_mm_and_si128(_mm_add_epi32(q, twos), fours)), fzeroes);
 
@@ -189,7 +189,7 @@ volk_32f_sin_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_p
 
   for(;number < eighthPoints; number++) {
     aVal = _mm256_load_ps(aPtr);
-    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS)));
     q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
     r = _mm256_add_epi32(q, _mm256_and_si256(q, ones));
 
@@ -209,8 +209,8 @@ volk_32f_sin_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_p
     sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
     cosine = _mm256_sub_ps(fones, s);
 
-    condition1 = _mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(_mm256_add_epi32(q, ones), twos)), fzeroes,4);
-    condition2 = _mm256_cmp_ps(_mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(q, fours)), fzeroes,4), _mm256_cmp_ps(aVal, fzeroes,1),4);
+    condition1 = _mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(_mm256_add_epi32(q, ones), twos)), fzeroes, _CMP_NEQ_UQ);
+    condition2 = _mm256_cmp_ps(_mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(q, fours)), fzeroes, _CMP_NEQ_UQ), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS), _CMP_NEQ_UQ);
     // Need this condition only for cos
     //condition3 = _mm_cmpneq_ps(_mm_cvtepi32_ps(_mm_and_si128(_mm_add_epi32(q, twos), fours)), fzeroes);
 
@@ -347,7 +347,7 @@ volk_32f_sin_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int n
 
   for(;number < eighthPoints; number++) {
     aVal = _mm256_loadu_ps(aPtr);
-    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS)));
     q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
     r = _mm256_add_epi32(q, _mm256_and_si256(q, ones));
 
@@ -367,8 +367,8 @@ volk_32f_sin_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int n
     sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
     cosine = _mm256_sub_ps(fones, s);
 
-    condition1 = _mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(_mm256_add_epi32(q, ones), twos)), fzeroes,4);
-    condition2 = _mm256_cmp_ps(_mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(q, fours)), fzeroes,4), _mm256_cmp_ps(aVal, fzeroes,1),4);
+    condition1 = _mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(_mm256_add_epi32(q, ones), twos)), fzeroes, _CMP_NEQ_UQ);
+    condition2 = _mm256_cmp_ps(_mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(q, fours)), fzeroes, _CMP_NEQ_UQ), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS), _CMP_NEQ_UQ);
     // Need this condition only for cos
     //condition3 = _mm_cmpneq_ps(_mm_cvtepi32_ps(_mm_and_si128(_mm_add_epi32(q, twos), fours)), fzeroes);
 
@@ -423,7 +423,7 @@ volk_32f_sin_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_p
 
   for(;number < eighthPoints; number++) {
     aVal = _mm256_loadu_ps(aPtr);
-    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes,1)));
+    s = _mm256_sub_ps(aVal, _mm256_and_ps(_mm256_mul_ps(aVal, ftwos), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS)));
     q = _mm256_cvtps_epi32(_mm256_floor_ps(_mm256_mul_ps(s, m4pi)));
     r = _mm256_add_epi32(q, _mm256_and_si256(q, ones));
 
@@ -443,8 +443,8 @@ volk_32f_sin_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_p
     sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
     cosine = _mm256_sub_ps(fones, s);
 
-    condition1 = _mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(_mm256_add_epi32(q, ones), twos)), fzeroes,4);
-    condition2 = _mm256_cmp_ps(_mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(q, fours)), fzeroes,4), _mm256_cmp_ps(aVal, fzeroes,1),4);
+    condition1 = _mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(_mm256_add_epi32(q, ones), twos)), fzeroes, _CMP_NEQ_UQ);
+    condition2 = _mm256_cmp_ps(_mm256_cmp_ps(_mm256_cvtepi32_ps(_mm256_and_si256(q, fours)), fzeroes, _CMP_NEQ_UQ), _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS), _CMP_NEQ_UQ);
     // Need this condition only for cos
     //condition3 = _mm_cmpneq_ps(_mm_cvtepi32_ps(_mm_and_si128(_mm_add_epi32(q, twos), fours)), fzeroes);
 

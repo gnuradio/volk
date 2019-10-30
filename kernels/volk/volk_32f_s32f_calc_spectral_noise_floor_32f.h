@@ -127,7 +127,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_a_avx(float* noiseFloorAmplitude,
     dataPointsPtr += 8;
 
     // Identify which items do not exceed the mean amplitude
-    compareMask = _mm256_cmp_ps(dataPointsVal, vMeanAmplitudeVector, 18);
+    compareMask = _mm256_cmp_ps(dataPointsVal, vMeanAmplitudeVector, _CMP_LE_OQ);
 
     // Mask off the items that exceed the mean amplitude and add the avg Points that do not exceed the mean amplitude
     avgPointsVal = _mm256_add_ps(avgPointsVal, _mm256_and_ps(compareMask, dataPointsVal));
@@ -149,7 +149,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_a_avx(float* noiseFloorAmplitude,
   sumMean += avgPointsVector[6];
   sumMean += avgPointsVector[7];
 
-  // Calculate the number of valid bins from the remaning count
+  // Calculate the number of valid bins from the remaining count
   __VOLK_ATTR_ALIGNED(32) float validBinCountVector[8];
   _mm256_store_ps(validBinCountVector, vValidBinCount);
 
@@ -261,7 +261,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_a_sse(float* noiseFloorAmplitude,
   sumMean += avgPointsVector[2];
   sumMean += avgPointsVector[3];
 
-  // Calculate the number of valid bins from the remaning count
+  // Calculate the number of valid bins from the remaining count
   __VOLK_ATTR_ALIGNED(16) float validBinCountVector[4];
   _mm_store_ps(validBinCountVector, vValidBinCount);
 
@@ -407,7 +407,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_u_avx(float* noiseFloorAmplitude,
     dataPointsPtr += 8;
 
     // Identify which items do not exceed the mean amplitude
-    compareMask = _mm256_cmp_ps(dataPointsVal, vMeanAmplitudeVector, 18);
+    compareMask = _mm256_cmp_ps(dataPointsVal, vMeanAmplitudeVector, _CMP_LE_OQ);
 
     // Mask off the items that exceed the mean amplitude and add the avg Points that do not exceed the mean amplitude
     avgPointsVal = _mm256_add_ps(avgPointsVal, _mm256_and_ps(compareMask, dataPointsVal));
@@ -429,7 +429,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_u_avx(float* noiseFloorAmplitude,
   sumMean += avgPointsVector[6];
   sumMean += avgPointsVector[7];
 
-  // Calculate the number of valid bins from the remaning count
+  // Calculate the number of valid bins from the remaining count
   __VOLK_ATTR_ALIGNED(16) float validBinCountVector[8];
   _mm256_storeu_ps(validBinCountVector, vValidBinCount);
 

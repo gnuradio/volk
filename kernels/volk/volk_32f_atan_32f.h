@@ -102,10 +102,10 @@ volk_32f_atan_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int 
   for(;number < eighthPoints; number++){
     aVal = _mm256_load_ps(aPtr);
     z = aVal;
-    condition = _mm256_cmp_ps(z, fzeroes,1);
+    condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
     x = z;
-    condition = _mm256_cmp_ps(z, fones,1);
+    condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
     x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
@@ -118,11 +118,11 @@ volk_32f_atan_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int 
     }
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
-    condition = _mm256_cmp_ps(z, fones,14);
+    condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
 
     y = _mm256_add_ps(y, _mm256_and_ps(_mm256_fnmadd_ps(y,ftwos,pio2), condition));
     arctangent = y;
-    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    condition = _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS);
     arctangent = _mm256_sub_ps(arctangent, _mm256_and_ps(_mm256_mul_ps(arctangent, ftwos), condition));
 
     _mm256_store_ps(bPtr, arctangent);
@@ -164,10 +164,10 @@ volk_32f_atan_32f_a_avx(float* bVector, const float* aVector, unsigned int num_p
   for(;number < eighthPoints; number++){
     aVal = _mm256_load_ps(aPtr);
     z = aVal;
-    condition = _mm256_cmp_ps(z, fzeroes,1);
+    condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
     x = z;
-    condition = _mm256_cmp_ps(z, fones,1);
+    condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
     x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
@@ -180,11 +180,11 @@ volk_32f_atan_32f_a_avx(float* bVector, const float* aVector, unsigned int num_p
     }
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
-    condition = _mm256_cmp_ps(z, fones,14);
+    condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
 
     y = _mm256_add_ps(y, _mm256_and_ps(_mm256_sub_ps(pio2, _mm256_mul_ps(y, ftwos)), condition));
     arctangent = y;
-    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    condition = _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS);
     arctangent = _mm256_sub_ps(arctangent, _mm256_and_ps(_mm256_mul_ps(arctangent, ftwos), condition));
 
     _mm256_store_ps(bPtr, arctangent);
@@ -291,10 +291,10 @@ volk_32f_atan_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int 
   for(;number < eighthPoints; number++){
     aVal = _mm256_loadu_ps(aPtr);
     z = aVal;
-    condition = _mm256_cmp_ps(z, fzeroes,1);
+    condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
     x = z;
-    condition = _mm256_cmp_ps(z, fones,1);
+    condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
     x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
@@ -307,11 +307,11 @@ volk_32f_atan_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int 
     }
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
-    condition = _mm256_cmp_ps(z, fones,14);
+    condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
 
     y = _mm256_add_ps(y, _mm256_and_ps(_mm256_fnmadd_ps(y,ftwos,pio2), condition));
     arctangent = y;
-    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    condition = _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS);
     arctangent = _mm256_sub_ps(arctangent, _mm256_and_ps(_mm256_mul_ps(arctangent, ftwos), condition));
 
     _mm256_storeu_ps(bPtr, arctangent);
@@ -353,10 +353,10 @@ volk_32f_atan_32f_u_avx(float* bVector, const float* aVector, unsigned int num_p
   for(;number < eighthPoints; number++){
     aVal = _mm256_loadu_ps(aPtr);
     z = aVal;
-    condition = _mm256_cmp_ps(z, fzeroes,1);
+    condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
     x = z;
-    condition = _mm256_cmp_ps(z, fones,1);
+    condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
     x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
@@ -369,11 +369,11 @@ volk_32f_atan_32f_u_avx(float* bVector, const float* aVector, unsigned int num_p
     }
 
     y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
-    condition = _mm256_cmp_ps(z, fones,14);
+    condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
 
     y = _mm256_add_ps(y, _mm256_and_ps(_mm256_sub_ps(pio2, _mm256_mul_ps(y, ftwos)), condition));
     arctangent = y;
-    condition = _mm256_cmp_ps(aVal, fzeroes,1);
+    condition = _mm256_cmp_ps(aVal, fzeroes, _CMP_LT_OS);
     arctangent = _mm256_sub_ps(arctangent, _mm256_and_ps(_mm256_mul_ps(arctangent, ftwos), condition));
 
     _mm256_storeu_ps(bPtr, arctangent);

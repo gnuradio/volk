@@ -103,9 +103,9 @@ static inline void volk_32f_s32f_32f_fm_detect_32f_a_avx(float* outputVector, co
     // Subtract and store:
     next3old1 = _mm256_sub_ps(next4, next3old1);
     // Bound:
-    boundAdjust = _mm256_cmp_ps(next3old1, upperBound, 14);
+    boundAdjust = _mm256_cmp_ps(next3old1, upperBound, _CMP_GT_OS);
     boundAdjust = _mm256_and_ps(boundAdjust, posBoundAdjust);
-    next4 = _mm256_cmp_ps(next3old1, lowerBound, 1);
+    next4 = _mm256_cmp_ps(next3old1, lowerBound, _CMP_LT_OS);
     next4 = _mm256_and_ps(next4, negBoundAdjust);
     boundAdjust = _mm256_or_ps(next4, boundAdjust);
     // Make sure we're in the bounding interval:
@@ -279,9 +279,9 @@ static inline void volk_32f_s32f_32f_fm_detect_32f_u_avx(float* outputVector, co
     // Subtract and store:
     next3old1 = _mm256_sub_ps(next4, next3old1);
     // Bound:
-    boundAdjust = _mm256_cmp_ps(next3old1, upperBound, 14);
+    boundAdjust = _mm256_cmp_ps(next3old1, upperBound, _CMP_GT_OS);
     boundAdjust = _mm256_and_ps(boundAdjust, posBoundAdjust);
-    next4 = _mm256_cmp_ps(next3old1, lowerBound, 1);
+    next4 = _mm256_cmp_ps(next3old1, lowerBound, _CMP_LT_OS);
     next4 = _mm256_and_ps(next4, negBoundAdjust);
     boundAdjust = _mm256_or_ps(next4, boundAdjust);
     // Make sure we're in the bounding interval:

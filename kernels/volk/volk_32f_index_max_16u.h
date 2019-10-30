@@ -26,7 +26,7 @@
  * \b Overview
  *
  * Returns Argmax_i x[i]. Finds and returns the index which contains
- * the maximum value in the given vector.
+ * the fist maximum value in the given vector.
  *
  * Note that num_points is a uint32_t, but the return value is
  * uint16_t. Providing a vector larger than the max of a uint16_t
@@ -44,7 +44,7 @@
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li target: The index of the maximum value in the input buffer.
+ * \li target: The index of the fist maximum value in the input buffer.
  *
  * \b Example
  * \code
@@ -82,7 +82,7 @@
 
 static inline void
 volk_32f_index_max_16u_a_avx(uint16_t* target, const float* src0,
-                                uint32_t num_points)
+                             uint32_t num_points)
 {
   num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
 
@@ -109,10 +109,10 @@ volk_32f_index_max_16u_a_avx(uint16_t* target, const float* src0,
     currentValues  = _mm256_load_ps(inputPtr); inputPtr += 8;
     currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
 
-    compareResults = _mm256_cmp_ps(maxValues, currentValues,14);
+    compareResults = _mm256_cmp_ps(currentValues, maxValues, _CMP_GT_OS);
 
-    maxValuesIndex = _mm256_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
-    maxValues      = _mm256_blendv_ps(currentValues, maxValues, compareResults);
+    maxValuesIndex = _mm256_blendv_ps(maxValuesIndex, currentIndexes, compareResults);
+    maxValues      = _mm256_blendv_ps(maxValues, currentValues, compareResults);
   }
 
   // Calculate the largest value from the remaining 4 points
@@ -123,6 +123,9 @@ volk_32f_index_max_16u_a_avx(uint16_t* target, const float* src0,
     if(maxValuesBuffer[number] > max){
       index = maxIndexesBuffer[number];
       max = maxValuesBuffer[number];
+    } else if(maxValuesBuffer[number] == max){
+      if (index > maxIndexesBuffer[number])
+        index = maxIndexesBuffer[number];
     }
   }
 
@@ -170,10 +173,10 @@ volk_32f_index_max_16u_a_sse4_1(uint16_t* target, const float* src0,
     currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
     currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-    compareResults = _mm_cmpgt_ps(maxValues, currentValues);
+    compareResults = _mm_cmpgt_ps(currentValues, maxValues);
 
-    maxValuesIndex = _mm_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
-    maxValues      = _mm_blendv_ps(currentValues, maxValues, compareResults);
+    maxValuesIndex = _mm_blendv_ps(maxValuesIndex, currentIndexes, compareResults);
+    maxValues      = _mm_blendv_ps(maxValues, currentValues, compareResults);
   }
 
   // Calculate the largest value from the remaining 4 points
@@ -184,6 +187,9 @@ volk_32f_index_max_16u_a_sse4_1(uint16_t* target, const float* src0,
     if(maxValuesBuffer[number] > max){
       index = maxIndexesBuffer[number];
       max = maxValuesBuffer[number];
+    } else if(maxValuesBuffer[number] == max){
+      if (index > maxIndexesBuffer[number])
+        index = maxIndexesBuffer[number];
     }
   }
 
@@ -233,11 +239,12 @@ volk_32f_index_max_16u_a_sse(uint16_t* target, const float* src0,
     currentValues  = _mm_load_ps(inputPtr); inputPtr += 4;
     currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-    compareResults = _mm_cmpgt_ps(maxValues, currentValues);
+    compareResults = _mm_cmpgt_ps(currentValues, maxValues);
 
-    maxValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, maxValuesIndex) , _mm_andnot_ps(compareResults, currentIndexes));
-
-    maxValues      = _mm_or_ps(_mm_and_ps(compareResults, maxValues) , _mm_andnot_ps(compareResults, currentValues));
+    maxValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, currentIndexes),
+                               _mm_andnot_ps(compareResults, maxValuesIndex));
+    maxValues      = _mm_or_ps(_mm_and_ps(compareResults, currentValues),
+                               _mm_andnot_ps(compareResults, maxValues));
   }
 
   // Calculate the largest value from the remaining 4 points
@@ -248,6 +255,9 @@ volk_32f_index_max_16u_a_sse(uint16_t* target, const float* src0,
     if(maxValuesBuffer[number] > max){
       index = maxIndexesBuffer[number];
       max = maxValuesBuffer[number];
+    } else if(maxValuesBuffer[number] == max){
+      if (index > maxIndexesBuffer[number])
+        index = maxIndexesBuffer[number];
     }
   }
 
@@ -334,10 +344,10 @@ volk_32f_index_max_16u_u_avx(uint16_t* target, const float* src0,
     currentValues  = _mm256_loadu_ps(inputPtr); inputPtr += 8;
     currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
 
-    compareResults = _mm256_cmp_ps(maxValues, currentValues,14);
+    compareResults = _mm256_cmp_ps(currentValues, maxValues, _CMP_GT_OS);
 
-    maxValuesIndex = _mm256_blendv_ps(currentIndexes, maxValuesIndex, compareResults);
-    maxValues      = _mm256_blendv_ps(currentValues, maxValues, compareResults);
+    maxValuesIndex = _mm256_blendv_ps(maxValuesIndex, currentIndexes, compareResults);
+    maxValues      = _mm256_blendv_ps(maxValues, currentValues, compareResults);
   }
 
   // Calculate the largest value from the remaining 4 points
@@ -348,6 +358,9 @@ volk_32f_index_max_16u_u_avx(uint16_t* target, const float* src0,
     if(maxValuesBuffer[number] > max){
       index = maxIndexesBuffer[number];
       max = maxValuesBuffer[number];
+    } else if(maxValuesBuffer[number] == max){
+      if (index > maxIndexesBuffer[number])
+        index = maxIndexesBuffer[number];
     }
   }
 

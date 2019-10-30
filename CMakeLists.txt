@@ -18,7 +18,7 @@
 ########################################################################
 # Project setup
 ########################################################################
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.8)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose build type: None Debug Release RelWithDebInfo MinSizeRel")
 project(volk)
 
@@ -52,9 +52,9 @@ VOLK_CHECK_BUILD_TYPE(${CMAKE_BUILD_TYPE})
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 
-set(VERSION_INFO_MAJOR_VERSION 1)
-set(VERSION_INFO_MINOR_VERSION 4)
-set(VERSION_INFO_MAINT_VERSION 1git)
+set(VERSION_INFO_MAJOR_VERSION 2)
+set(VERSION_INFO_MINOR_VERSION 0)
+set(VERSION_INFO_MAINT_VERSION 0)
 include(VolkVersion) #setup version info
 
 ########################################################################
@@ -200,6 +200,7 @@ install(
 
 install(FILES
     ${CMAKE_SOURCE_DIR}/include/volk/volk_prefs.h
+    ${CMAKE_SOURCE_DIR}/include/volk/volk_alloc.hh
     ${CMAKE_SOURCE_DIR}/include/volk/volk_complex.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_common.h
     ${CMAKE_SOURCE_DIR}/include/volk/saturation_arithmetic.h
@@ -213,6 +214,7 @@ install(FILES
     ${CMAKE_BINARY_DIR}/include/volk/volk_config_fixed.h
     ${CMAKE_BINARY_DIR}/include/volk/volk_typedefs.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_malloc.h
+    ${CMAKE_SOURCE_DIR}/include/volk/constants.h
     DESTINATION include/volk
     COMPONENT "volk_devel"
 )

@@ -161,7 +161,7 @@ volk_32f_x2_pow_32f_a_avx2_fma(float* cVector, const float* bVector,
     emm0 = _mm256_cvttps_epi32(fx);
     tmp = _mm256_cvtepi32_ps(emm0);
 
-    mask = _mm256_and_ps(_mm256_cmp_ps(tmp, fx, 14), one);
+    mask = _mm256_and_ps(_mm256_cmp_ps(tmp, fx, _CMP_GT_OS), one);
     fx = _mm256_sub_ps(tmp, mask);
 
     tmp = _mm256_fnmadd_ps(fx, exp_C1, bVal);
@@ -279,7 +279,7 @@ volk_32f_x2_pow_32f_a_avx2(float* cVector, const float* bVector,
     emm0 = _mm256_cvttps_epi32(fx);
     tmp = _mm256_cvtepi32_ps(emm0);
 
-    mask = _mm256_and_ps(_mm256_cmp_ps(tmp, fx, 14), one);
+    mask = _mm256_and_ps(_mm256_cmp_ps(tmp, fx, _CMP_GT_OS), one);
     fx = _mm256_sub_ps(tmp, mask);
 
     tmp = _mm256_sub_ps(bVal, _mm256_mul_ps(fx, exp_C1));
@@ -665,7 +665,7 @@ volk_32f_x2_pow_32f_u_avx2_fma(float* cVector, const float* bVector,
     emm0 = _mm256_cvttps_epi32(fx);
     tmp = _mm256_cvtepi32_ps(emm0);
 
-    mask = _mm256_and_ps(_mm256_cmp_ps(tmp, fx, 14), one);
+    mask = _mm256_and_ps(_mm256_cmp_ps(tmp, fx, _CMP_GT_OS), one);
     fx = _mm256_sub_ps(tmp, mask);
 
     tmp = _mm256_fnmadd_ps(fx, exp_C1, bVal);
@@ -783,7 +783,7 @@ volk_32f_x2_pow_32f_u_avx2(float* cVector, const float* bVector,
     emm0 = _mm256_cvttps_epi32(fx);
     tmp = _mm256_cvtepi32_ps(emm0);
 
-    mask = _mm256_and_ps(_mm256_cmp_ps(tmp, fx, 14), one);
+    mask = _mm256_and_ps(_mm256_cmp_ps(tmp, fx, _CMP_GT_OS), one);
     fx = _mm256_sub_ps(tmp, mask);
 
     tmp = _mm256_sub_ps(bVal, _mm256_mul_ps(fx, exp_C1));

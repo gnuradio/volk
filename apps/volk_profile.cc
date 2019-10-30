@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
     profile_options.add((option_t("json", "j", "Write results to JSON file named as argument value", set_json)));
     profile_options.add((option_t("path", "p", "Specify the volk_config path", set_volk_config)));
     profile_options.parse(argc, argv);
-    
+
     if (profile_options.present("help")) {
         return 0;
     }
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
 void read_results(std::vector<volk_test_results_t> *results)
 {
     char path[1024];
-    volk_get_config_path(path);
+    volk_get_config_path(path, true);
 
     read_results(results, std::string(path));
 }
@@ -228,7 +228,7 @@ void read_results(std::vector<volk_test_results_t> *results, std::string path)
 void write_results(const std::vector<volk_test_results_t> *results, bool update_result)
 {
     char path[1024];
-    volk_get_config_path(path);
+    volk_get_config_path(path, false);
 
     write_results( results, update_result, std::string(path));
 }
@@ -323,5 +323,3 @@ void write_json(std::ofstream &json_file, std::vector<volk_test_results_t> resul
     json_file << " ]" << std::endl;
     json_file << "}" << std::endl;
 }
-
-

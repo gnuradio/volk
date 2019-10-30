@@ -302,6 +302,14 @@ bool ccompare(t *in1, t *in2, unsigned int vlen, float tol, bool absolute_mode) 
     bool fail = false;
     int print_max_errs = 10;
     for(unsigned int i=0; i<2*vlen; i+=2) {
+        if (std::isnan(in1[i]) || std::isnan(in1[i+1]) || std::isnan(in2[i]) || std::isnan(in2[i+1])
+                || std::isinf(in1[i]) || std::isinf(in1[i+1]) || std::isinf(in2[i]) || std::isinf(in2[i+1])) {
+            fail=true;
+            if(print_max_errs-- > 0) {
+                std::cout << "offset " << i/2 << " in1: " << in1[i] << " + " << in1[i+1] << "j  in2: " << in2[i] << " + " << in2[i+1] << "j";
+                std::cout << " tolerance was: " << tol << std::endl;
+            }
+        }
         t diff[2] = { in1[i] - in2[i], in1[i+1] - in2[i+1] };
         t err  = std::sqrt(diff[0] * diff[0] + diff[1] * diff[1]);
         t norm = std::sqrt(in1[i] * in1[i] + in1[i+1] * in1[i+1]);

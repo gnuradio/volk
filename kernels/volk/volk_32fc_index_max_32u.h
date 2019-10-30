@@ -121,8 +121,8 @@ volk_32fc_index_max_32u_a_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -144,8 +144,8 @@ volk_32fc_index_max_32u_a_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -171,8 +171,8 @@ volk_32fc_index_max_32u_a_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -438,8 +438,8 @@ volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -461,8 +461,8 @@ volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -488,8 +488,8 @@ volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
 
     xmm3 = _mm256_max_ps(xmm1, xmm3);
 
-    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, 1);
-    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, 0);
+    xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
+    xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
 
     xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
     xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
@@ -522,5 +522,67 @@ volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
 }
 
 #endif /*LV_HAVE_AVX2*/
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+#include <volk/volk_neon_intrinsics.h>
+
+static inline void volk_32fc_index_max_32u_neon(uint32_t* target, lv_32fc_t* src0, uint32_t num_points)
+{
+    unsigned int number = 0;
+    const uint32_t quarter_points = num_points / 4;
+    const lv_32fc_t* src0Ptr = src0;
+    
+    uint32_t indices[4] = {0, 1, 2, 3};
+    const uint32x4_t vec_indices_incr = vdupq_n_u32(4);
+    uint32x4_t vec_indices = vld1q_u32(indices);
+    uint32x4_t vec_max_indices = vec_indices;
+    
+    if(num_points)
+    {
+        float max = *src0Ptr;
+        uint32_t index = 0;
+        
+        float32x4_t vec_max = vdupq_n_f32(*src0Ptr);
+        
+        for(;number < quarter_points; number++)
+        {
+            // Load complex and compute magnitude squared
+            const float32x4_t vec_mag2 = _vmagnitudesquaredq_f32(vld2q_f32((float*)src0Ptr));
+            __VOLK_PREFETCH(src0Ptr+=4);
+            // a > b?
+            const uint32x4_t gt_mask = vcgtq_f32(vec_mag2, vec_max);
+            vec_max = vbslq_f32(gt_mask, vec_mag2, vec_max);
+            vec_max_indices = vbslq_u32(gt_mask, vec_indices, vec_max_indices);
+            vec_indices = vaddq_u32(vec_indices, vec_indices_incr);
+        }
+        uint32_t tmp_max_indices[4];
+        float tmp_max[4];
+        vst1q_u32(tmp_max_indices, vec_max_indices);
+        vst1q_f32(tmp_max, vec_max);
+        
+        for (int i = 0; i < 4; i++) {
+            if (tmp_max[i] > max) {
+                max = tmp_max[i];
+                index = tmp_max_indices[i];
+            }
+        }
+        
+        // Deal with the rest
+        for(number = quarter_points * 4;number < num_points; number++)
+        {
+            const float re = lv_creal(*src0Ptr);
+            const float im = lv_cimag(*src0Ptr);
+            if ((re*re+im*im) > max) {
+                max = *src0Ptr;
+                index = number;
+            }
+            src0Ptr++;
+        }
+        *target = index;
+    }
+}
+
+#endif /*LV_HAVE_NEON*/
 
 #endif /*INCLUDED_volk_32fc_index_max_32u_u_H*/

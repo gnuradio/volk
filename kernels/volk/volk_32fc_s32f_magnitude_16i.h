@@ -70,6 +70,25 @@
  * \endcode
  */
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_32fc_s32f_magnitude_16i_generic(int16_t* magnitudeVector, const lv_32fc_t* complexVector,
+                                     const float scalar, unsigned int num_points)
+{
+  const float* complexVectorPtr = (float*)complexVector;
+  int16_t* magnitudeVectorPtr = magnitudeVector;
+  unsigned int number = 0;
+  for(number = 0; number < num_points; number++){
+    volatile float real = *complexVectorPtr++;
+    volatile float imag = *complexVectorPtr++;
+    real *= real;
+    imag *= imag;
+    *magnitudeVectorPtr++ = (int16_t)rintf(scalar*sqrtf(real + imag));
+  }
+}
+#endif /* LV_HAVE_GENERIC */
+
 #ifndef INCLUDED_volk_32fc_s32f_magnitude_16i_a_H
 #define INCLUDED_volk_32fc_s32f_magnitude_16i_a_H
 
@@ -122,12 +141,7 @@ volk_32fc_s32f_magnitude_16i_a_avx2(int16_t* magnitudeVector, const lv_32fc_t* c
   }
 
   number = eighthPoints * 8;
-  magnitudeVectorPtr = &magnitudeVector[number];
-  for(; number < num_points; number++){
-    float val1Real = *complexVectorPtr++;
-    float val1Imag = *complexVectorPtr++;
-    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
-  }
+  volk_32fc_s32f_magnitude_16i_generic(magnitudeVector+number, complexVector+number, scalar, num_points-number);
 }
 #endif /* LV_HAVE_AVX2 */
 
@@ -174,12 +188,7 @@ volk_32fc_s32f_magnitude_16i_a_sse3(int16_t* magnitudeVector, const lv_32fc_t* c
   }
 
   number = quarterPoints * 4;
-  magnitudeVectorPtr = &magnitudeVector[number];
-  for(; number < num_points; number++){
-    float val1Real = *complexVectorPtr++;
-    float val1Imag = *complexVectorPtr++;
-    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
-  }
+  volk_32fc_s32f_magnitude_16i_generic(magnitudeVector+number, complexVector+number, scalar, num_points-number);
 }
 #endif /* LV_HAVE_SSE3 */
 
@@ -199,7 +208,8 @@ volk_32fc_s32f_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_32fc_t* co
 
   __m128 vScalar = _mm_set_ps1(scalar);
 
-  __m128 cplxValue1, cplxValue2, iValue, qValue, result;
+  __m128 cplxValue1, cplxValue2, result;
+  __m128 iValue, qValue;
 
   __VOLK_ATTR_ALIGNED(16) float floatBuffer[4];
 
@@ -215,10 +225,10 @@ volk_32fc_s32f_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_32fc_t* co
     // Arrange in q1q2q3q4 format
     qValue = _mm_shuffle_ps(cplxValue1, cplxValue2, _MM_SHUFFLE(3,1,3,1));
 
-    iValue = _mm_mul_ps(iValue, iValue); // Square the I values
-    qValue = _mm_mul_ps(qValue, qValue); // Square the Q Values
+    volatile __m128 iValue2 = _mm_mul_ps(iValue, iValue); // Square the I values
+    volatile __m128 qValue2 = _mm_mul_ps(qValue, qValue); // Square the Q Values
 
-    result = _mm_add_ps(iValue, qValue); // Add the I2 and Q2 values
+    result = _mm_add_ps(iValue2, qValue2); // Add the I2 and Q2 values
 
     result = _mm_sqrt_ps(result);
 
@@ -232,31 +242,9 @@ volk_32fc_s32f_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_32fc_t* co
   }
 
   number = quarterPoints * 4;
-  magnitudeVectorPtr = &magnitudeVector[number];
-  for(; number < num_points; number++){
-    float val1Real = *complexVectorPtr++;
-    float val1Imag = *complexVectorPtr++;
-    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
-  }
+  volk_32fc_s32f_magnitude_16i_generic(magnitudeVector+number, complexVector+number, scalar, num_points-number);
 }
 #endif /* LV_HAVE_SSE */
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void
-volk_32fc_s32f_magnitude_16i_generic(int16_t* magnitudeVector, const lv_32fc_t* complexVector,
-                                     const float scalar, unsigned int num_points)
-{
-  const float* complexVectorPtr = (float*)complexVector;
-  int16_t* magnitudeVectorPtr = magnitudeVector;
-  unsigned int number = 0;
-  for(number = 0; number < num_points; number++){
-    const float real = *complexVectorPtr++;
-    const float imag = *complexVectorPtr++;
-    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((real*real) + (imag*imag)) * scalar);
-  }
-}
-#endif /* LV_HAVE_GENERIC */
 
 
 #endif /* INCLUDED_volk_32fc_s32f_magnitude_16i_a_H */
@@ -313,12 +301,7 @@ volk_32fc_s32f_magnitude_16i_u_avx2(int16_t* magnitudeVector, const lv_32fc_t* c
   }
 
   number = eighthPoints * 8;
-  magnitudeVectorPtr = &magnitudeVector[number];
-  for(; number < num_points; number++){
-    float val1Real = *complexVectorPtr++;
-    float val1Imag = *complexVectorPtr++;
-    *magnitudeVectorPtr++ = (int16_t)rintf(sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * scalar);
-  }
+  volk_32fc_s32f_magnitude_16i_generic(magnitudeVector+number, complexVector+number, scalar, num_points-number);
 }
 #endif /* LV_HAVE_AVX2 */
 
