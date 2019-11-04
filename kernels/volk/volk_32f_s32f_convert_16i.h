@@ -70,6 +70,7 @@
 #define INCLUDED_volk_32f_s32f_convert_16i_u_H
 
 #include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -87,8 +88,8 @@ volk_32f_s32f_convert_16i_u_avx2(int16_t* outputVector, const float* inputVector
   const float* inputVectorPtr = (const float*)inputVector;
   int16_t* outputVectorPtr = outputVector;
 
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   __m256 vScalar = _mm256_set1_ps(scalar);
@@ -143,8 +144,8 @@ volk_32f_s32f_convert_16i_u_avx(int16_t* outputVector, const float* inputVector,
   const float* inputVectorPtr = (const float*)inputVector;
   int16_t* outputVectorPtr = outputVector;
 
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   __m256 vScalar = _mm256_set1_ps(scalar);
@@ -198,8 +199,8 @@ volk_32f_s32f_convert_16i_u_sse2(int16_t* outputVector, const float* inputVector
   const float* inputVectorPtr = (const float*)inputVector;
   int16_t* outputVectorPtr = outputVector;
 
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   __m128 vScalar = _mm_set_ps1(scalar);
@@ -253,8 +254,8 @@ volk_32f_s32f_convert_16i_u_sse(int16_t* outputVector, const float* inputVector,
   const float* inputVectorPtr = (const float*)inputVector;
   int16_t* outputVectorPtr = outputVector;
 
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   __m128 vScalar = _mm_set_ps1(scalar);
@@ -300,8 +301,8 @@ volk_32f_s32f_convert_16i_generic(int16_t* outputVector, const float* inputVecto
   int16_t* outputVectorPtr = outputVector;
   const float* inputVectorPtr = inputVector;
   unsigned int number = 0;
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   for(number = 0; number < num_points; number++){
@@ -339,8 +340,8 @@ volk_32f_s32f_convert_16i_a_avx2(int16_t* outputVector, const float* inputVector
   const float* inputVectorPtr = (const float*)inputVector;
   int16_t* outputVectorPtr = outputVector;
 
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   __m256 vScalar = _mm256_set1_ps(scalar);
@@ -395,8 +396,8 @@ volk_32f_s32f_convert_16i_a_avx(int16_t* outputVector, const float* inputVector,
   const float* inputVectorPtr = (const float*)inputVector;
   int16_t* outputVectorPtr = outputVector;
 
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   __m256 vScalar = _mm256_set1_ps(scalar);
@@ -449,8 +450,8 @@ volk_32f_s32f_convert_16i_a_sse2(int16_t* outputVector, const float* inputVector
   const float* inputVectorPtr = (const float*)inputVector;
   int16_t* outputVectorPtr = outputVector;
 
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   __m128 vScalar = _mm_set_ps1(scalar);
@@ -504,8 +505,8 @@ volk_32f_s32f_convert_16i_a_sse(int16_t* outputVector, const float* inputVector,
   const float* inputVectorPtr = (const float*)inputVector;
   int16_t* outputVectorPtr = outputVector;
 
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   __m128 vScalar = _mm_set_ps1(scalar);
@@ -551,8 +552,8 @@ volk_32f_s32f_convert_16i_a_generic(int16_t* outputVector, const float* inputVec
   int16_t* outputVectorPtr = outputVector;
   const float* inputVectorPtr = inputVector;
   unsigned int number = 0;
-  float min_val = -32768;
-  float max_val = 32767;
+  float min_val = SHRT_MIN;
+  float max_val = SHRT_MAX;
   float r;
 
   for(number = 0; number < num_points; number++){
