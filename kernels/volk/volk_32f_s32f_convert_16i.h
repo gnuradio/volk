@@ -70,9 +70,8 @@
 #define INCLUDED_volk_32f_s32f_convert_16i_u_H
 
 #include <inttypes.h>
-#include <stdint.h>
+#include <limits.h>
 #include <stdio.h>
-#include <math.h>
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
