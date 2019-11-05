@@ -150,7 +150,7 @@ static inline void volk_32f_sin_32f_a_avx512f(float* sinVector,
       condition1 = _mm512_cmpneq_epi32_mask(
           _mm512_and_si512(_mm512_add_epi32(q, ones), twos), zeros);
       ltZero = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OS);
-      condition2 = _kxor_mask16(
+      condition2 = _mm512_kxor(
           _mm512_cmpneq_epi32_mask(_mm512_and_epi32(q, fours), zeros), ltZero);
 
       sine = _mm512_mask_blend_ps(condition1, sine, cosine);
@@ -543,7 +543,7 @@ static inline void volk_32f_sin_32f_u_avx512f(float* sinVector,
       condition1 = _mm512_cmpneq_epi32_mask(
           _mm512_and_si512(_mm512_add_epi32(q, ones), twos), zeros);
       ltZero = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OS);
-      condition2 = _kxor_mask16(
+      condition2 = _mm512_kxor(
           _mm512_cmpneq_epi32_mask(_mm512_and_epi32(q, fours), zeros), ltZero);
 
       sine = _mm512_mask_blend_ps(condition1, sine, cosine);
