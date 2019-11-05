@@ -115,7 +115,7 @@ volk_32f_cos_32f_a_avx512f(float* cosVector, const float* inVector, unsigned int
 
       aVal = _mm512_load_ps(inPtr);
       // s = fabs(aVal)
-      s = _mm512_abs_ps(aVal);
+      s = _mm512_castsi512_ps(_mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffffff)));;
       // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
       q = _mm512_cvtps_epi32(_mm512_floor_ps(_mm512_mul_ps(s, m4pi)));
       // r = q + q&1, q indicates quadrant, r gives
@@ -466,7 +466,7 @@ volk_32f_cos_32f_u_avx512f(float* cosVector, const float* inVector, unsigned int
 
       aVal = _mm512_loadu_ps(inPtr);
       // s = fabs(aVal)
-      s = _mm512_abs_ps(aVal);
+      s = _mm512_castsi512_ps(_mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffffff)));;
       // q = (int) (s * (4/pi)), floor(aVal / (pi/4))
       q = _mm512_cvtps_epi32(_mm512_floor_ps(_mm512_mul_ps(s, m4pi)));
       // r = q + q&1, q indicates quadrant, r gives
