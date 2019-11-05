@@ -76,8 +76,8 @@
 
 static inline void
 volk_32f_s32f_convert_8i_single(int8_t* out, const float in){
-  float min_val = -128;
-  float max_val = 127;
+  float min_val = CHAR_MIN;
+  float max_val = CHAR_MAX;
   if(in > max_val){
     *out = (int8_t)(max_val);
   }else if(in < min_val){
@@ -101,8 +101,8 @@ volk_32f_s32f_convert_8i_u_avx2(int8_t* outputVector, const float* inputVector,
   const float* inputVectorPtr = (const float*)inputVector;
   int8_t* outputVectorPtr = outputVector;
 
-  float min_val = -128;
-  float max_val = 127;
+  float min_val = CHAR_MIN;
+  float max_val = CHAR_MAX;
   float r;
 
   __m256 vScalar = _mm256_set1_ps(scalar);
@@ -164,8 +164,8 @@ volk_32f_s32f_convert_8i_u_sse2(int8_t* outputVector, const float* inputVector,
   const float* inputVectorPtr = (const float*)inputVector;
   int8_t* outputVectorPtr = outputVector;
 
-  float min_val = -128;
-  float max_val = 127;
+  float min_val = CHAR_MIN;
+  float max_val = CHAR_MAX;
   float r;
 
   __m128 vScalar = _mm_set_ps1(scalar);
@@ -224,8 +224,8 @@ volk_32f_s32f_convert_8i_u_sse(int8_t* outputVector, const float* inputVector,
   const float* inputVectorPtr = (const float*)inputVector;
   int8_t* outputVectorPtr = outputVector;
 
-  float min_val = -128;
-  float max_val = 127;
+  float min_val = CHAR_MIN;
+  float max_val = CHAR_MAX;
   float r;
 
   __m128 vScalar = _mm_set_ps1(scalar);
@@ -298,8 +298,8 @@ volk_32f_s32f_convert_8i_a_avx2(int8_t* outputVector, const float* inputVector,
   const float* inputVectorPtr = (const float*)inputVector;
   int8_t* outputVectorPtr = outputVector;
 
-  float min_val = -128;
-  float max_val = 127;
+  float min_val = CHAR_MIN;
+  float max_val = CHAR_MAX;
   float r;
 
   __m256 vScalar = _mm256_set1_ps(scalar);
@@ -361,8 +361,8 @@ volk_32f_s32f_convert_8i_a_sse2(int8_t* outputVector, const float* inputVector,
   const float* inputVectorPtr = (const float*)inputVector;
   int8_t* outputVectorPtr = outputVector;
 
-  float min_val = -128;
-  float max_val = 127;
+  float min_val = CHAR_MIN;
+  float max_val = CHAR_MAX;
   float r;
 
   __m128 vScalar = _mm_set_ps1(scalar);
@@ -419,8 +419,8 @@ volk_32f_s32f_convert_8i_a_sse(int8_t* outputVector, const float* inputVector,
 
   const float* inputVectorPtr = (const float*)inputVector;
 
-  float min_val = -128;
-  float max_val = 127;
+  float min_val = CHAR_MIN;
+  float max_val = CHAR_MAX;
   float r;
 
   int8_t* outputVectorPtr = outputVector;

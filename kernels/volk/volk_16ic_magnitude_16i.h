@@ -58,6 +58,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <math.h>
+#include <limits.h>
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
@@ -71,8 +72,8 @@ volk_16ic_magnitude_16i_a_avx2(int16_t* magnitudeVector, const lv_16sc_t* comple
   const int16_t* complexVectorPtr = (const int16_t*)complexVector;
   int16_t* magnitudeVectorPtr = magnitudeVector;
 
-  __m256 vScalar = _mm256_set1_ps(32768.0);
-  __m256 invScalar = _mm256_set1_ps(1.0/32768.0);
+  __m256 vScalar = _mm256_set1_ps(SHRT_MAX);
+  __m256 invScalar = _mm256_set1_ps(1.0f/SHRT_MAX);
   __m256i int1, int2;
   __m128i short1, short2;
   __m256 cplxValue1, cplxValue2, result;
@@ -114,9 +115,9 @@ volk_16ic_magnitude_16i_a_avx2(int16_t* magnitudeVector, const lv_16sc_t* comple
   magnitudeVectorPtr = &magnitudeVector[number];
   complexVectorPtr = (const int16_t*)&complexVector[number];
   for(; number < num_points; number++){
-    const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
-    const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
-    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
+    const float val1Real = (float)(*complexVectorPtr++) / SHRT_MAX;
+    const float val1Imag = (float)(*complexVectorPtr++) / SHRT_MAX;
+    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * SHRT_MAX;
     *magnitudeVectorPtr++ = (int16_t)rintf(val1Result);
   }
 }
@@ -134,8 +135,8 @@ volk_16ic_magnitude_16i_a_sse3(int16_t* magnitudeVector, const lv_16sc_t* comple
   const int16_t* complexVectorPtr = (const int16_t*)complexVector;
   int16_t* magnitudeVectorPtr = magnitudeVector;
 
-  __m128 vScalar = _mm_set_ps1(32768.0);
-  __m128 invScalar = _mm_set_ps1(1.0/32768.0);
+  __m128 vScalar = _mm_set_ps1(SHRT_MAX);
+  __m128 invScalar = _mm_set_ps1(1.0f/SHRT_MAX);
 
   __m128 cplxValue1, cplxValue2, result;
 
@@ -182,9 +183,9 @@ volk_16ic_magnitude_16i_a_sse3(int16_t* magnitudeVector, const lv_16sc_t* comple
   magnitudeVectorPtr = &magnitudeVector[number];
   complexVectorPtr = (const int16_t*)&complexVector[number];
   for(; number < num_points; number++){
-    const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
-    const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
-    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
+    const float val1Real = (float)(*complexVectorPtr++) / SHRT_MAX;
+    const float val1Imag = (float)(*complexVectorPtr++) / SHRT_MAX;
+    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * SHRT_MAX;
     *magnitudeVectorPtr++ = (int16_t)rintf(val1Result);
   }
 }
@@ -202,8 +203,8 @@ volk_16ic_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_16sc_t* complex
   const int16_t* complexVectorPtr = (const int16_t*)complexVector;
   int16_t* magnitudeVectorPtr = magnitudeVector;
 
-  __m128 vScalar = _mm_set_ps1(32768.0);
-  __m128 invScalar = _mm_set_ps1(1.0/32768.0);
+  __m128 vScalar = _mm_set_ps1(SHRT_MAX);
+  __m128 invScalar = _mm_set_ps1(1.0f/SHRT_MAX);
 
   __m128 cplxValue1, cplxValue2, iValue, qValue, result;
 
@@ -256,9 +257,9 @@ volk_16ic_magnitude_16i_a_sse(int16_t* magnitudeVector, const lv_16sc_t* complex
   magnitudeVectorPtr = &magnitudeVector[number];
   complexVectorPtr = (const int16_t*)&complexVector[number];
   for(; number < num_points; number++){
-    const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
-    const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
-    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
+    const float val1Real = (float)(*complexVectorPtr++) / SHRT_MAX;
+    const float val1Imag = (float)(*complexVectorPtr++) / SHRT_MAX;
+    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * SHRT_MAX;
     *magnitudeVectorPtr++ = (int16_t)rintf(val1Result);
   }
 }
@@ -272,7 +273,7 @@ volk_16ic_magnitude_16i_generic(int16_t* magnitudeVector, const lv_16sc_t* compl
   const int16_t* complexVectorPtr = (const int16_t*)complexVector;
   int16_t* magnitudeVectorPtr = magnitudeVector;
   unsigned int number = 0;
-  const float scalar = 32768.0;
+  const float scalar = SHRT_MAX;
   for(number = 0; number < num_points; number++){
     float real = ((float)(*complexVectorPtr++)) / scalar;
     float imag = ((float)(*complexVectorPtr++)) / scalar;
@@ -288,7 +289,7 @@ volk_16ic_magnitude_16i_a_orc_impl(int16_t* magnitudeVector, const lv_16sc_t* co
 static inline void
 volk_16ic_magnitude_16i_u_orc(int16_t* magnitudeVector, const lv_16sc_t* complexVector, unsigned int num_points)
 {
-    volk_16ic_magnitude_16i_a_orc_impl(magnitudeVector, complexVector, 32768.0, num_points);
+    volk_16ic_magnitude_16i_a_orc_impl(magnitudeVector, complexVector, SHRT_MAX, num_points);
 }
 #endif /* LV_HAVE_ORC */
 
@@ -316,8 +317,8 @@ volk_16ic_magnitude_16i_u_avx2(int16_t* magnitudeVector, const lv_16sc_t* comple
   const int16_t* complexVectorPtr = (const int16_t*)complexVector;
   int16_t* magnitudeVectorPtr = magnitudeVector;
 
-  __m256 vScalar = _mm256_set1_ps(32768.0);
-  __m256 invScalar = _mm256_set1_ps(1.0/32768.0);
+  __m256 vScalar = _mm256_set1_ps(SHRT_MAX);
+  __m256 invScalar = _mm256_set1_ps(1.0f/SHRT_MAX);
   __m256i int1, int2;
   __m128i short1, short2;
   __m256 cplxValue1, cplxValue2, result;
@@ -359,9 +360,9 @@ volk_16ic_magnitude_16i_u_avx2(int16_t* magnitudeVector, const lv_16sc_t* comple
   magnitudeVectorPtr = &magnitudeVector[number];
   complexVectorPtr = (const int16_t*)&complexVector[number];
   for(; number < num_points; number++){
-    const float val1Real = (float)(*complexVectorPtr++) / 32768.0;
-    const float val1Imag = (float)(*complexVectorPtr++) / 32768.0;
-    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * 32768.0;
+    const float val1Real = (float)(*complexVectorPtr++) / SHRT_MAX;
+    const float val1Imag = (float)(*complexVectorPtr++) / SHRT_MAX;
+    const float val1Result = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag)) * SHRT_MAX;
     *magnitudeVectorPtr++ = (int16_t)rintf(val1Result);
   }
 }
@@ -377,8 +378,8 @@ volk_16ic_magnitude_16i_neonv7(int16_t* magnitudeVector, const lv_16sc_t* comple
     unsigned int number = 0;
     unsigned int quarter_points = num_points / 4;
     
-    const float scalar = 32768.0;
-    const float inv_scalar = 1. / scalar;
+    const float scalar = SHRT_MAX;
+    const float inv_scalar = 1.0f / scalar;
     
     int16_t* magnitudeVectorPtr = magnitudeVector;
     const lv_16sc_t* complexVectorPtr = complexVector;
