@@ -115,6 +115,8 @@ static inline void volk_32f_64f_add_64f_neon(double *cVector,
     bVal = vld1q_f64(bPtr);
     __VOLK_PREFETCH(aPtr + 2);
     __VOLK_PREFETCH(bPtr + 2);
+    aPtr += 2; // q uses quadwords, 4 floats per vadd
+    bPtr += 2;
 
     // Vector conversion
     aVal = vcvt_f64_f32(aVal1);
@@ -123,8 +125,6 @@ static inline void volk_32f_64f_add_64f_neon(double *cVector,
     // Store the results back into the C container
     vst1q_f64(cPtr, cVal);
 
-    aPtr += 2; // q uses quadwords, 4 floats per vadd
-    bPtr += 2;
     cPtr += 2;
   }
 
