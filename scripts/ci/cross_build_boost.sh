@@ -2,6 +2,8 @@
 # fail script immediately on any errors in external commands
 set -e
 
+set -x
+
 ## arguments
 ##   for NEONv7: "arm"     "linux-gnueabihf-g++"
 ##   for NEONv8: "aarch64" "linux-gnu-g++"

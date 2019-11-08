@@ -11,14 +11,25 @@ addons:
       - libboost-system-dev
       - libboost-filesystem-dev
 
+env:
+  global:
+    - SDE_VERSION=sde-external-8.35.0-2019-03-11-lin
+    - SDE_URL1=https://software.intel.com/protected-download/267266/144917
+    - SDE_URL2=https://software.intel.com/system/files/managed/32/db
+
 matrix:
   include:
     # Job 1 ... gcc-4.8 (default GCC version)
     - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
       addons: {apt: {packages: [*common_packages]}}
     # Job 2 ... gcc-4.9
-    - env: MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+    - env: MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/intel-sde.cmake"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-4.9]}}
+      cache:
+        directories:
+          - ${TRAVIS_BUILD_DIR}/cache
+      before_script:
+        - cd ${TRAVIS_BUILD_DIR} && ./scripts/ci/download_intel_sde.sh
     # Job 3 ... gcc-5
     - env: MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-5]}}
@@ -35,7 +46,7 @@ matrix:
         directories:
           - ${TRAVIS_BUILD_DIR}/cache
       before_script:
-        - cd ${TRAVIS_BUILD_DIR} && ./cross_build_boost.sh "arm" "linux-gnueabihf-g++"
+        - cd ${TRAVIS_BUILD_DIR} && ./scripts/ci/cross_build_boost.sh "arm" "linux-gnueabihf-g++"
     # Job 6 ... ARMv8 (aarch64) cross compile (gcc-4.8)
     - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8 && BOOST_ROOT=$TRAVIS_BUILD_DIR/cache/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/aarch64-linux-gnu.cmake"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-aarch64-linux-gnu, qemu-user]}}
@@ -43,7 +54,7 @@ matrix:
         directories:
           - ${TRAVIS_BUILD_DIR}/cache
       before_script:
-        - cd ${TRAVIS_BUILD_DIR} && ./cross_build_boost.sh "aarch64" "linux-gnu-g++"
+        - cd ${TRAVIS_BUILD_DIR} && ./scripts/ci/cross_build_boost.sh "aarch64" "linux-gnu-g++"
     # Job 7 .. clang
     - env: MATRIX_EVAL="CC=\"clang -fprofile-instr-generate -fcoverage-mapping\" && CXX=\"clang++ -fprofile-instr-generate -fcoverage-mapping\""
       addons: {apt: {packages: [*common_packages]}}
