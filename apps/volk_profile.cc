@@ -157,6 +157,10 @@ void read_results(std::vector<volk_test_results_t> *results)
 {
     char path[1024];
     volk_get_config_path(path, true);
+    if(path[0] == 0){
+        std::cout << "No prior test results found ..." << std::endl;
+        return;
+    }
 
     read_results(results, std::string(path));
 }
@@ -214,6 +218,10 @@ void write_results(const std::vector<volk_test_results_t> *results, bool update_
 {
     char path[1024];
     volk_get_config_path(path, false);
+    if(path[0] == 0){
+        std::cout << "Aborting 'No config save path found' ..." << std::endl;
+        return;
+    }
 
     write_results( results, update_result, std::string(path));
 }
