@@ -21,7 +21,7 @@
  */
 
 /*!
- * \page volk_32fc_x2_s32fc_multiply_conjugate_32fc
+ * \page volk_32fc_x2_s32fc_multiply_conjugate_add_32fc
  *
  * \b Overview
  *
@@ -32,7 +32,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_x2_s32fc_multiply_conjugate_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points);
+ * void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points);
  * \endcode
  *
  * \b Inputs
@@ -81,8 +81,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_32fc_H
-#define INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_32fc_H
+#ifndef INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_H
+#define INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_H
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -92,7 +92,7 @@
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points){
+static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points){
     const lv_32fc_t* aPtr = aVector;
     const lv_32fc_t* bPtr = bVector;
     lv_32fc_t* cPtr = cVector;
@@ -123,7 +123,7 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_generic(lv_32fc_t*
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
+static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
     unsigned int number = 0;
     unsigned int i = 0;
     const unsigned int quarterPoints = num_points / 4;
@@ -162,7 +162,7 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_u_avx(lv_32fc_t* c
 #include <pmmintrin.h>
 #include <volk/volk_sse3_intrinsics.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
+static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
     unsigned int number = 0;
     const unsigned int halfPoints = num_points / 2;
 
@@ -199,7 +199,7 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_u_sse3(lv_32fc_t* 
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
+static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
     unsigned int number = 0;
     unsigned int i = 0;
     const unsigned int quarterPoints = num_points / 4;
@@ -238,7 +238,7 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_a_avx(lv_32fc_t* c
 #include <pmmintrin.h>
 #include <volk/volk_sse3_intrinsics.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
+static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
     unsigned int number = 0;
     const unsigned int halfPoints = num_points / 2;
 
@@ -274,7 +274,7 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_a_sse3(lv_32fc_t* 
 #ifdef LV_HAVE_NEON
 #include  <arm_neon.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points){
+static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points){
     const lv_32fc_t* bPtr = bVector;
     const lv_32fc_t* aPtr = aVector;
     lv_32fc_t* cPtr = cVector;
@@ -316,4 +316,4 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_32fc_neon(lv_32fc_t* cV
 }
 #endif /* LV_HAVE_NEON */
 
-#endif /* INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_32fc_H */
+#endif /* INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_H */
