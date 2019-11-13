@@ -69,7 +69,7 @@
  * // update weight using output.
  * float real = lv_creal(output) * (1.0 - std::norm(output)) * MU;
  * lv_32fc_t factor = lv_cmake(real, 0.f);
- * volk_32fc_x2_s32fc_multiply_conjugate(next, weight, state, factor, n_filter);
+ * volk_32fc_x2_s32fc_multiply_conjugate_add_32fc(next, weight, state, factor, n_filter);
  * lv_32fc_t *tmp = next;
  * next = weight;
  * weight = tmp;
