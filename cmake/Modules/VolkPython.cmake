@@ -36,12 +36,16 @@ if(PYTHON_EXECUTABLE)
 else(PYTHON_EXECUTABLE)
 
     #use the built-in find script
-    set(Python_ADDITIONAL_VERSIONS 3.4 3.5 3.6)
-    find_package(PythonInterp 2)
+    set(Python_ADDITIONAL_VERSIONS 3.4 3.5 3.6 3.7 3.8)
+    find_package(PythonInterp 3)
+
+    if(NOT PYTHONINTERP_FOUND)
+        find_package(PythonInterp 2)
+    endif(NOT PYTHONINTERP_FOUND)
 
     #and if that fails use the find program routine
     if(NOT PYTHONINTERP_FOUND)
-        find_program(PYTHON_EXECUTABLE NAMES python python2 python2.7 python3)
+        find_program(PYTHON_EXECUTABLE NAMES python3 python python2 python2.7)
         if(PYTHON_EXECUTABLE)
             set(PYTHONINTERP_FOUND TRUE)
         endif(PYTHON_EXECUTABLE)
