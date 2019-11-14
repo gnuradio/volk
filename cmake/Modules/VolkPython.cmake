@@ -40,7 +40,7 @@ else(PYTHON_EXECUTABLE)
     find_package(PythonInterp 3)
 
     if(NOT PYTHONINTERP_FOUND)
-        find_package(PythonInterp 2)
+        find_package(PythonInterp 2.7)
     endif(NOT PYTHONINTERP_FOUND)
 
     #and if that fails use the find program routine
@@ -56,17 +56,6 @@ endif(PYTHON_EXECUTABLE)
 #make the path to the executable appear in the cmake gui
 set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE} CACHE FILEPATH "python interpreter")
 
-#make sure we can use -B with python (introduced in 2.6)
-if(PYTHON_EXECUTABLE)
-    execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -B -c ""
-        OUTPUT_QUIET ERROR_QUIET
-        RESULT_VARIABLE PYTHON_HAS_DASH_B_RESULT
-    )
-    if(PYTHON_HAS_DASH_B_RESULT EQUAL 0)
-        set(PYTHON_DASH_B "-B")
-    endif()
-endif(PYTHON_EXECUTABLE)
 
 ########################################################################
 # Check for the existence of a python module:
