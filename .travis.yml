@@ -1,5 +1,6 @@
 language: cpp
 
+os: linux
 dist: trusty
 sudo: false
 
@@ -61,6 +62,39 @@ matrix:
     # Job 8 .. gcc-7 py3
     - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-7, python3, python3-mako, python3-six]}}
+    - name: Linux arm64 GCC
+      arch: arm64
+      dist: bionic
+      env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+    - name: Linux arm64 Clang
+      dist: bionic
+      arch: arm64
+      env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+    - name: Linux ppc64le GCC
+      dist: bionic
+      arch: ppc64le
+      env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+    - name: Linux ppc64le Clang
+      dist: bionic
+      arch: ppc64le
+      env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+    - name: Linux s390x GCC
+      dist: bionic
+      arch: s390x
+      env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+    - name: Linux s390x Clang
+      dist: bionic
+      arch: s390x
+      env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+  allow_failures:
+    - arch: s390x
+    - arch: ppc64le
 
 #      before_install:
 #        - pip install --user codecov
@@ -69,4 +103,5 @@ matrix:
 
 script:
   - eval "${MATRIX_EVAL}"
+  - lscpu
   - mkdir build && cd build && BOOST_ROOT=$BOOST_ROOT cmake ${CMAKE_ARG} ../ && make && ctest -V && cd ..
