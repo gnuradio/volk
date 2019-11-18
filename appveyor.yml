@@ -31,11 +31,13 @@ before_build:
         -DBoost_SYSTEM_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_system-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_system-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \
         -DBoost_UNIT_TEST_FRAMEWORK_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_unit_test_framework-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_unit_test_framework-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \
         -DBoost_INCLUDE_DIR:PATH=%CD%/packages/boost.%BOOST_VERSION%.0/lib/native/include \
-        -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=OFF \
+        -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=ON \
         .
 build_script:
     - cmake --build . --config Release --target INSTALL
-after_build:
+test_script:
+    - ctest --output-on-failure -C Release
+after_test:
     - cd "c:\Program Files"
     - 7z a "c:\libvolk-x64-%VC_VERSION%.zip" volk
     - mkdir dlls
