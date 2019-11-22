@@ -141,6 +141,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32u_reverse_32u,                            test_params))
     QA(VOLK_INIT_TEST(volk_32f_tanh_32f,                              test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_s32f_mod_rangepuppet_32f,              test_params))
+    QA(VOLK_INIT_TEST(volk_32fc_x2_s32fc_multiply_conjugate_add_32fc, test_params))
     QA(VOLK_INIT_PUPP(volk_8u_x3_encodepolarpuppet_8u, volk_8u_x3_encodepolar_8u_x2, test_params))
     QA(VOLK_INIT_PUPP(volk_32f_8u_polarbutterflypuppet_32f, volk_32f_8u_polarbutterfly_32f, test_params))
     // no one uses these, so don't test them
