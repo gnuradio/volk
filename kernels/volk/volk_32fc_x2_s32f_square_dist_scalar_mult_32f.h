@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2012, 2014 Free Software Foundation, Inc.
+ * Copyright 2012, 2014, 2019 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -79,18 +79,32 @@
 #ifndef INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_H
 #define INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_H
 
-#include<inttypes.h>
-#include<stdio.h>
 #include<volk/volk_complex.h>
-#include <string.h>
+
+
+static inline void
+calculate_scaled_distances(float* target, const lv_32fc_t symbol, const lv_32fc_t* points,
+                           const float scalar, const unsigned int num_points)
+{
+  lv_32fc_t diff;
+  for(unsigned int i = 0; i < num_points; ++i) {
+    /*
+     * Calculate: |y - x|^2 * SNR_lin
+     * Compare C++: *target++ = scalar * std::norm(symbol - *constellation++);
+     */
+    diff = symbol - *points++;
+    *target++ = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
+  }
+}
 
 
 #ifdef LV_HAVE_AVX2
 #include<immintrin.h>
 
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* src0, lv_32fc_t* points,
-                                                     float scalar, unsigned int num_points)
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* src0, 
+                                                     lv_32fc_t* points, float scalar, 
+                                                     unsigned int num_points)
 {
   const unsigned int num_bytes = num_points*8;
   __m128 xmm0, xmm9, xmm10, xmm11;
@@ -99,7 +113,6 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
   lv_32fc_t diff;
   memset(&diff, 0x0, 2*sizeof(float));
 
-  float sq_dist = 0.0;
   int bound = num_bytes >> 6;
   int leftovers0 = (num_bytes >> 5) & 1;
   int leftovers1 = (num_bytes >> 4) & 1;
@@ -176,14 +189,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
     target += 2;
   }
 
-  for(i = 0; i < leftovers2; ++i) {
-
-    diff = src0[0] - points[0];
-
-    sq_dist = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
-
-    target[0] = sq_dist;
-  }
+  calculate_scaled_distances(target, src0[0], points, scalar, leftovers2);
 }
 
 #endif /*LV_HAVE_AVX2*/
@@ -193,14 +199,13 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
 #include <immintrin.h>
 
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(
-        float *target, lv_32fc_t *src0, lv_32fc_t *points,
-        float scalar, unsigned int num_points) {
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(float *target, lv_32fc_t *src0, 
+                                                    lv_32fc_t *points, float scalar, 
+                                                    unsigned int num_points) {
   static const unsigned int work_size = 8;
   unsigned int avx_work_size = num_points / work_size * work_size;
-  int i = 0;
 
-  for (; i < avx_work_size; i += work_size) {
+  for (int i = 0; i < avx_work_size; i += work_size) {
     lv_32fc_t src = *src0;
     float src_real = lv_creal(src);
     float src_imag = lv_cimag(src);
@@ -236,13 +241,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(
     target += work_size;
     points += work_size;
   }
-  for (; i < num_points; ++i) {
-    lv_32fc_t diff = src0[0] - *points;
 
-    *target = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
-    ++target;
-    ++points;
-  }
+  calculate_scaled_distances(target, src0[0], points, scalar, num_points - avx_work_size);
 }
 
 #endif /* LV_HAVE_AVX */
@@ -253,21 +253,17 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(
 #include<pmmintrin.h>
 
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* src0, lv_32fc_t* points,
-                                                     float scalar, unsigned int num_points)
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* src0, 
+                                                     lv_32fc_t* points, float scalar, 
+                                                     unsigned int num_points)
 {
   const unsigned int num_bytes = num_points*8;
 
   __m128 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8;
 
-  lv_32fc_t diff;
-  memset(&diff, 0x0, 2*sizeof(float));
-
-  float sq_dist = 0.0;
   int bound = num_bytes >> 5;
   int leftovers0 = (num_bytes >> 4) & 1;
   int leftovers1 = (num_bytes >> 3) & 1;
-  int i = 0;
 
   xmm1 = _mm_setzero_ps();
   xmm1 = _mm_loadl_pi(xmm1, (__m64*)src0);
@@ -276,7 +272,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* s
   xmm1 = _mm_movelh_ps(xmm1, xmm1);
   xmm3 = _mm_load_ps((float*)&points[2]);
 
-  for(; i < bound - 1; ++i) {
+  for(int i = 0; i < bound - 1; ++i) {
     xmm4 = _mm_sub_ps(xmm1, xmm2);
     xmm5 = _mm_sub_ps(xmm1, xmm3);
     points += 4;
@@ -311,7 +307,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* s
 
   target += 4;
 
-  for(i = 0; i < leftovers0; ++i) {
+  for(int i = 0; i < leftovers0; ++i) {
     xmm2 = _mm_load_ps((float*)&points[0]);
 
     xmm4 = _mm_sub_ps(xmm1, xmm2);
@@ -329,14 +325,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* s
     target += 2;
   }
 
-  for(i = 0; i < leftovers1; ++i) {
-
-    diff = src0[0] - points[0];
-
-    sq_dist = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
-
-    target[0] = sq_dist;
-  }
+  calculate_scaled_distances(target, src0[0], points, scalar, leftovers1);
 }
 
 #endif /*LV_HAVE_SSE3*/
@@ -344,20 +333,12 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* s
 
 #ifdef LV_HAVE_GENERIC
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target, lv_32fc_t* src0, lv_32fc_t* points,
-                                                      float scalar, unsigned int num_points)
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target, lv_32fc_t* src0, 
+                                                      lv_32fc_t* points, float scalar, 
+                                                      unsigned int num_points)
 {
-  lv_32fc_t diff;
-  float sq_dist;
-  unsigned int i = 0;
-
-  for(; i < num_points; ++i) {
-    diff = src0[0] - points[i];
-
-    sq_dist = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
-
-    target[i] = sq_dist;
-  }
+  const lv_32fc_t symbol = *src0;
+  calculate_scaled_distances(target, symbol, points, scalar, num_points);
 }
 
 #endif /*LV_HAVE_GENERIC*/
@@ -377,17 +358,14 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target, lv_32fc_t* 
 #include<immintrin.h>
 
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* src0, lv_32fc_t* points,
-                                                     float scalar, unsigned int num_points)
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* src0, 
+                                                     lv_32fc_t* points, float scalar, 
+                                                     unsigned int num_points)
 {
   const unsigned int num_bytes = num_points*8;
   __m128 xmm0, xmm9;
   __m256 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8;
 
-  lv_32fc_t diff;
-  memset(&diff, 0x0, 2*sizeof(float));
-
-  float sq_dist = 0.0;
   int bound = num_bytes >> 6;
   int leftovers0 = (num_bytes >> 5) & 1;
   int leftovers1 = (num_bytes >> 3) & 0b11;
@@ -444,16 +422,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* s
     target += 4;
   }
 
-  for(i = 0; i < leftovers1; ++i) {
-
-    diff = src0[0] - points[0];
-    points += 1;
-
-    sq_dist = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
-
-    target[0] = sq_dist;
-    target += 1;
-  }
+  calculate_scaled_distances(target, src0[0], points, scalar, leftovers1);
 }
 
 #endif /*LV_HAVE_AVX2*/

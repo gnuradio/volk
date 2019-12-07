@@ -69,6 +69,19 @@ _mm256_magnitude_ps(__m256 cplxValue1, __m256 cplxValue2){
 }
 
 static inline __m256
+_mm256_scaled_norm_dist_ps(const __m256 symbols0, const __m256 symbols1, const __m256 points0, const __m256 points1, const __m256 scalar){
+  /*
+   * Calculate: |y - x|^2 * SNR_lin
+   * Consider 'symbolsX' and 'pointsX' to be complex float
+   * 'symbolsX' are 'y' and 'pointsX' are 'x'
+   */
+  const __m256 diff0 = _mm256_sub_ps(symbols0, points0);
+  const __m256 diff1 = _mm256_sub_ps(symbols1, points1);
+  const __m256 norms = _mm256_magnitudesquared_ps(diff0, diff1);
+  return _mm256_mul_ps(norms, scalar);
+}
+
+static inline __m256
 _mm256_polar_sign_mask(__m128i fbits){
   __m256 sign_mask_dummy = _mm256_setzero_ps();
   const __m128i zeros = _mm_set1_epi8(0x00);
