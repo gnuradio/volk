@@ -31,7 +31,6 @@ class volk_modtool(object):
         self.volk = re.compile('volk')
         self.remove_after_underscore = re.compile("_.*")
         self.volk_included = re.compile('INCLUDED_VOLK')
-        self.volk_run_tests = re.compile(r'^\s*VOLK_RUN_TESTS.*\n', re.MULTILINE)
         self.volk_profile = re.compile(r'^\s*(VOLK_PROFILE|VOLK_PUPPET_PROFILE).*\n', re.MULTILINE)
         self.volk_kernel_tests = re.compile(r'^\s*\((VOLK_INIT_TEST|VOLK_INIT_PUPP).*\n', re.MULTILINE)
         self.volk_null_kernel = re.compile(r'^\s*;\n', re.MULTILINE)
