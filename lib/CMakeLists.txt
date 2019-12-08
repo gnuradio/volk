@@ -604,7 +604,7 @@ if(ENABLE_TESTING)
 
     make_directory(${CMAKE_CURRENT_BINARY_DIR}/.unittest)
     include(VolkAddTest)
-    VOLK_GEN_TEST("volk_test_all"
+    VOLK_GEN_TEST(volk_test_all
         SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
         TARGET_DEPS volk
