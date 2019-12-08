@@ -107,54 +107,52 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
                                                      unsigned int num_points)
 {
   const unsigned int num_bytes = num_points*8;
-  __m128 xmm0, xmm9, xmm10, xmm11;
-  __m256 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8;
-
-  lv_32fc_t diff;
-  memset(&diff, 0x0, 2*sizeof(float));
+  __m128 xmm9, xmm10;
+  __m256 xmm4, xmm5, xmm6, xmm7;
+  __m256 xmm_points0, xmm_points1, xmm_result;
 
   int bound = num_bytes >> 6;
   int leftovers0 = (num_bytes >> 5) & 1;
   int leftovers1 = (num_bytes >> 4) & 1;
   int leftovers2 = (num_bytes >> 3) & 1;
-  int i = 0;
+  
+  // load complex value into all parts of the register.
+  const __m256 xmm_symbol = _mm256_castpd_ps(_mm256_broadcast_sd((const double*)src0));
+  const __m128 xmm128_symbol = _mm256_extractf128_ps(xmm_symbol, 1);
+  
+  // Load scalar into all 8 parts of the register
+  const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
+  const __m128 xmm128_scalar = _mm256_extractf128_ps(xmm_scalar, 1);
 
-  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
-  xmm1 = _mm256_setzero_ps();
-  xmm2 = _mm256_load_ps((float*)&points[0]);
-  xmm8 = _mm256_set1_ps(scalar);
-  xmm11 = _mm256_extractf128_ps(xmm8,1);
-  xmm0 = _mm_load_ps((float*)src0);
-  xmm0 = _mm_permute_ps(xmm0, 0b01000100);
-  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
-  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 1);
-  xmm3 = _mm256_load_ps((float*)&points[4]);
+  // Set permutation constant
+  const __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+  
+  xmm_points0 = _mm256_load_ps((float*)points);
+  xmm_points1 = _mm256_load_ps((float*)(points + 4));
 
-  for(; i < bound; ++i) {
-    xmm4 = _mm256_sub_ps(xmm1, xmm2);
-    xmm5 = _mm256_sub_ps(xmm1, xmm3);
+  for(int i = 0; i < bound; ++i) {
+    xmm4 = _mm256_sub_ps(xmm_symbol, xmm_points0);
+    xmm5 = _mm256_sub_ps(xmm_symbol, xmm_points1);
     points += 8;
     xmm6 = _mm256_mul_ps(xmm4, xmm4);
     xmm7 = _mm256_mul_ps(xmm5, xmm5);
 
-    xmm2 = _mm256_load_ps((float*)&points[0]);
+    xmm_points0 = _mm256_load_ps((float*)points);
+    xmm_points1 = _mm256_load_ps((float*)(points + 4));
 
     xmm4 = _mm256_hadd_ps(xmm6, xmm7);
     xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
 
-    xmm3 = _mm256_load_ps((float*)&points[4]);
+    xmm_result = _mm256_mul_ps(xmm4, xmm_scalar);
 
-    xmm4 = _mm256_mul_ps(xmm4, xmm8);
-
-    _mm256_store_ps(target, xmm4);
-
+    _mm256_store_ps(target, xmm_result);
     target += 8;
   }
 
-  for(i = 0; i < leftovers0; ++i) {
-    xmm2 = _mm256_load_ps((float*)&points[0]);
+  for(int i = 0; i < leftovers0; ++i) {
+    xmm_points0 = _mm256_load_ps((float*)points);
 
-    xmm4 = _mm256_sub_ps(xmm1, xmm2);
+    xmm4 = _mm256_sub_ps(xmm_symbol, xmm_points0);
 
     points += 4;
 
@@ -163,18 +161,17 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
     xmm4 = _mm256_hadd_ps(xmm6, xmm6);
     xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
 
-    xmm4 = _mm256_mul_ps(xmm4, xmm8);
+    xmm_result = _mm256_mul_ps(xmm4, xmm_scalar);
 
-    xmm9 = _mm256_extractf128_ps(xmm4,1);
+    xmm9 = _mm256_extractf128_ps(xmm_result, 1);
     _mm_store_ps(target,xmm9);
-
     target += 4;
   }
 
-  for(i = 0; i < leftovers1; ++i) {
+  for(int i = 0; i < leftovers1; ++i) {
     xmm9 = _mm_load_ps((float*)&points[0]);
 
-    xmm10 = _mm_sub_ps(xmm0, xmm9);
+    xmm10 = _mm_sub_ps(xmm128_symbol, xmm9);
 
     points += 2;
 
@@ -182,10 +179,9 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
 
     xmm10 = _mm_hadd_ps(xmm9, xmm9);
 
-    xmm10 = _mm_mul_ps(xmm10, xmm11);
+    xmm10 = _mm_mul_ps(xmm10, xmm128_scalar);
 
     _mm_storeh_pi((__m64*)target, xmm10);
-
     target += 2;
   }
 
@@ -208,22 +204,22 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(float *target, lv_32fc_t *sr
   
   __m256 xmm_points0, xmm_points1, xmm_result;
 
-  // load complex value into both parts of the register.
+  // load complex value into all parts of the register.
   const __m256 xmm_symbol = _mm256_castpd_ps(_mm256_broadcast_sd((const double*)src0));
   
-  // Load scalar into all 4 parts of the register
+  // Load scalar into all 8 parts of the register
   const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
   
-
-  int i = 0;
-  for(i = 0; i < eightsPoints; ++i){
+  for(int i = 0; i < eightsPoints; ++i){
     xmm_points0 = _mm256_load_ps((float*)points);
     xmm_points1 = _mm256_load_ps((float*)(points + 4));
     points += 8;
-    xmm_result = _mm256_scaled_norm_dist_ps(xmm_symbol, xmm_symbol, xmm_points0, xmm_points1, xmm_scalar);
+    
+    xmm_result = _mm256_scaled_norm_dist_ps(xmm_symbol, xmm_symbol, xmm_points0, 
+                                            xmm_points1, xmm_scalar);
+    
     _mm256_store_ps(target, xmm_result);
     target += 8;
-    
   }
   
   const lv_32fc_t symbol = *src0;
