@@ -18,19 +18,6 @@
 ########################################################################
 # Setup profiler
 ########################################################################
-if(MSVC)
-    include_directories(${PROJECT_SOURCE_DIR}/cmake/msvc)
-endif(MSVC)
-
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/include
-    ${PROJECT_SOURCE_DIR}/lib
-    ${PROJECT_BINARY_DIR}/lib
-    ${Boost_INCLUDE_DIRS}
-)
 
 # MAKE volk_profile
 add_executable(volk_profile
@@ -39,7 +26,29 @@ add_executable(volk_profile
     ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc
 )
 
-if(${FILESYSTEM_FOUND})
+target_include_directories(volk_profile
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/lib>
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib>
+    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC $<INSTALL_INTERFACE:include>
+)
+
+if(NOT FILESYSTEM_FOUND)
+    target_include_directories(volk_profile
+        PUBLIC ${Boost_INCLUDE_DIRS}
+    )
+endif()
+
+if(MSVC)
+    target_include_directories(volk_profile
+        PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/cmake/msvc>
+    )
+endif(MSVC)
+
+if(FILESYSTEM_FOUND)
     add_definitions(-DHAS_STD_FILESYSTEM=1)
     if(${find_experimental})
         add_definitions(-DHAS_STD_FILESYSTEM_EXPERIMENTAL=1)
