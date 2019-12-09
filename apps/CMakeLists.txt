@@ -26,6 +26,12 @@ add_executable(volk_profile
     ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc
 )
 
+if(MSVC)
+    target_include_directories(volk_profile
+        PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/cmake/msvc>
+    )
+endif(MSVC)
+
 target_include_directories(volk_profile
     PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -33,20 +39,14 @@ target_include_directories(volk_profile
     PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib>
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-    PUBLIC $<INSTALL_INTERFACE:include>
 )
 
 if(NOT FILESYSTEM_FOUND)
     target_include_directories(volk_profile
         PUBLIC ${Boost_INCLUDE_DIRS}
     )
+    target_link_libraries(volk_profile PRIVATE ${Boost_LIBRARIES})
 endif()
-
-if(MSVC)
-    target_include_directories(volk_profile
-        PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/cmake/msvc>
-    )
-endif(MSVC)
 
 if(FILESYSTEM_FOUND)
     add_definitions(-DHAS_STD_FILESYSTEM=1)
@@ -57,10 +57,10 @@ if(FILESYSTEM_FOUND)
 endif()
 
 if(ENABLE_STATIC_LIBS)
-    target_link_libraries(volk_profile PRIVATE volk_static ${Boost_LIBRARIES})
+    target_link_libraries(volk_profile PRIVATE volk_static)
     set_target_properties(volk_profile PROPERTIES LINK_FLAGS "-static")
 else()
-    target_link_libraries(volk_profile PRIVATE volk ${Boost_LIBRARIES})
+    target_link_libraries(volk_profile PRIVATE volk)
 endif()
 
 install(
