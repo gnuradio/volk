@@ -33,29 +33,29 @@
  * \endcode
  *
  * \b Inputs
- * \li inputBuffer The buffer of data to be accumulated
+ * \li inputBuffer: The buffer of data to be accumulated
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li result The accumulated result.
+ * \li result: The accumulated result.
  *
  * \b Example
  * Calculate the sum of numbers  0 through 99
  * \code
  *   int N = 100;
  *   unsigned int alignment = volk_get_alignment();
- *   lv_32fc_t* increasing = (lv_32fc_t*) volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   lv_32fc_t* vec = (lv_32fc_t*) volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *   lv_32fc_t* out = (lv_32fc_t*) volk_malloc(sizeof(lv_32fc_t), alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       increasing[ii] = lv_cmake( (float) ii, (float) -ii );
+ *       vec[ii] = lv_cmake( (float) ii, (float) -ii );
  *   }
  *
- *   volk_32fc_accumulator_s32fc(out, increasing, N);
+ *   volk_32fc_accumulator_s32fc(out, vec, N);
  *
- *   printf("sum(1..100) = %1.2f\n", std::real(out[0]) , std::imag(out[0]) );
+ *   printf("sum(0..99)+1j*sum(0..-99) = %1.2f %1.2f \n", lv_creal(*out) , lv_cimag(*out) );
  *
- *   volk_free(increasing);
+ *   volk_free(vec);
  *   volk_free(out);
  * \endcode
  */
