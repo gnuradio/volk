@@ -28,6 +28,18 @@ set(__INCLUDED_VOLK_PYTHON_CMAKE TRUE)
 # or finds the interpreter via the built-in cmake module.
 ########################################################################
 #this allows the user to override PYTHON_EXECUTABLE
+
+# FUTURE TODO: With CMake 3.12+ we can simply do:
+#if(PYTHON_EXECUTABLE)
+#    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+#else(PYTHON_EXECUTABLE)
+#    find_package(Python COMPONENTS Interpreter)
+#endif(PYTHON_EXECUTABLE)
+#
+##make the path to the executable appear in the cmake gui
+#set(PYTHON_EXECUTABLE ${Python_EXECUTABLE} CACHE FILEPATH "python interpreter")
+# END FUTURE TODO: Stick with following version as long as we set CMake 3.8 minimum.
+
 if(PYTHON_EXECUTABLE)
 
     set(PYTHONINTERP_FOUND TRUE)
@@ -36,12 +48,16 @@ if(PYTHON_EXECUTABLE)
 else(PYTHON_EXECUTABLE)
 
     #use the built-in find script
-    set(Python_ADDITIONAL_VERSIONS 3.4 3.5 3.6)
-    find_package(PythonInterp 2)
+    set(Python_ADDITIONAL_VERSIONS 3.4 3.5 3.6 3.7 3.8)
+    find_package(PythonInterp 3)
+
+    if(NOT PYTHONINTERP_FOUND)
+        find_package(PythonInterp 2.7)
+    endif(NOT PYTHONINTERP_FOUND)
 
     #and if that fails use the find program routine
     if(NOT PYTHONINTERP_FOUND)
-        find_program(PYTHON_EXECUTABLE NAMES python python2 python2.7 python3)
+        find_program(PYTHON_EXECUTABLE NAMES python3 python python2 python2.7)
         if(PYTHON_EXECUTABLE)
             set(PYTHONINTERP_FOUND TRUE)
         endif(PYTHON_EXECUTABLE)
@@ -52,17 +68,6 @@ endif(PYTHON_EXECUTABLE)
 #make the path to the executable appear in the cmake gui
 set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE} CACHE FILEPATH "python interpreter")
 
-#make sure we can use -B with python (introduced in 2.6)
-if(PYTHON_EXECUTABLE)
-    execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -B -c ""
-        OUTPUT_QUIET ERROR_QUIET
-        RESULT_VARIABLE PYTHON_HAS_DASH_B_RESULT
-    )
-    if(PYTHON_HAS_DASH_B_RESULT EQUAL 0)
-        set(PYTHON_DASH_B "-B")
-    endif()
-endif(PYTHON_EXECUTABLE)
 
 ########################################################################
 # Check for the existence of a python module:
