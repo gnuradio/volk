@@ -533,37 +533,51 @@ if(MSVC)
     set_source_files_properties(${volk_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
-#Create a volk object library
+#Create an object to reference Volk source and object files.
+#
+#NOTE: This object cannot be used to propagate include directories or
+#library linkage, but we have to define them here for compiling to
+#work. There are options starting with CMake 3.13 for using the OBJECT
+#to propagate this information.
 add_library(volk_obj OBJECT ${volk_sources})
 target_include_directories(volk_obj
-  PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
-  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-  PUBLIC $<INSTALL_INTERFACE:include>
-  PRIVATE ${PROJECT_SOURCE_DIR}/kernels
-  PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/kernels>
+    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+#Configure object target properties
+if(NOT MSVC)
+  set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
+endif()
 
 #Add dynamic library
+#
+#NOTE: The PUBLIC include directories and library linkage will be
+#propagated when this target is used to build other targets. Also, the
+#PUBLIC library linkage and include directories INSTALL_INTERFACE will
+#be used to create the target import information. Ordering of the
+#include directories is taken as provided; it -might- matter, but
+#probably doesn't.
 add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
-target_link_libraries(volk ${volk_libraries})
+target_link_libraries(volk PUBLIC ${volk_libraries})
 target_include_directories(volk
-  PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
-  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-  PUBLIC $<INSTALL_INTERFACE:include>
-  PRIVATE ${PROJECT_SOURCE_DIR}/kernels
-  PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/kernels>
+    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC $<INSTALL_INTERFACE:include>
+)
 
 #Configure target properties
 if(NOT MSVC)
-  set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
-  target_link_libraries(volk m)
+  target_link_libraries(volk PUBLIC m)
 endif()
 set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
 set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
-
 
 #Install locations
 install(TARGETS volk
@@ -574,20 +588,27 @@ install(TARGETS volk
   )
 
 #Configure static library
+#
+#NOTE: The PUBLIC include directories and library linkage will be
+#propagated when this target is used to build other targets. Also, the
+#PUBLIC library linkage and include directories INSTALL_INTERFACE will
+#be used to create the target import information. Ordering of the
+#include directories is taken as provided; it -might- matter, but
+#probably doesn't.
 if(ENABLE_STATIC_LIBS)
   add_library(volk_static STATIC $<TARGET_OBJECTS:volk_obj>)
-  target_link_libraries(volk_static ${volk_libraries} pthread)
+  target_link_libraries(volk_static PUBLIC ${volk_libraries} pthread)
   if(NOT MSVC)
-    target_link_libraries(volk_static m)
+    target_link_libraries(volk_static PUBLIC m)
   endif()
   target_include_directories(volk_static
     PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    PUBLIC $<INSTALL_INTERFACE:include>
-    PRIVATE ${PROJECT_SOURCE_DIR}/kernels
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/kernels>
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+    PUBLIC $<INSTALL_INTERFACE:include>
+  )
 
   set_target_properties(volk_static PROPERTIES OUTPUT_NAME volk)
 
@@ -602,16 +623,9 @@ endif(ENABLE_STATIC_LIBS)
 ########################################################################
 if(ENABLE_TESTING)
 
-    #include Boost headers
-    include_directories(${Boost_INCLUDE_DIRS})
     make_directory(${CMAKE_CURRENT_BINARY_DIR}/.unittest)
-    set_source_files_properties(
-        ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc PROPERTIES
-        COMPILE_DEFINITIONS "BOOST_TEST_DYN_LINK;BOOST_TEST_MAIN"
-    )
-
     include(VolkAddTest)
-    VOLK_GEN_TEST("volk_test_all"
+    VOLK_GEN_TEST(volk_test_all
         SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
         TARGET_DEPS volk
@@ -619,7 +633,7 @@ if(ENABLE_TESTING)
     foreach(kernel ${h_files})
       get_filename_component(kernel ${kernel} NAME)
       string(REPLACE ".h" "" kernel ${kernel})
-      VOLK_ADD_TEST(${kernel} "volk_test_all")
+      VOLK_ADD_TEST(${kernel} volk_test_all)
     endforeach()
 
 endif(ENABLE_TESTING)
