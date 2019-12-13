@@ -28,6 +28,18 @@ set(__INCLUDED_VOLK_PYTHON_CMAKE TRUE)
 # or finds the interpreter via the built-in cmake module.
 ########################################################################
 #this allows the user to override PYTHON_EXECUTABLE
+
+# FUTURE TODO: With CMake 3.12+ we can simply do:
+#if(PYTHON_EXECUTABLE)
+#    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+#else(PYTHON_EXECUTABLE)
+#    find_package(Python COMPONENTS Interpreter)
+#endif(PYTHON_EXECUTABLE)
+#
+##make the path to the executable appear in the cmake gui
+#set(PYTHON_EXECUTABLE ${Python_EXECUTABLE} CACHE FILEPATH "python interpreter")
+# END FUTURE TODO: Stick with following version as long as we set CMake 3.8 minimum.
+
 if(PYTHON_EXECUTABLE)
 
     set(PYTHONINTERP_FOUND TRUE)
