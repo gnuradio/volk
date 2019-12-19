@@ -371,27 +371,23 @@ volk_32f_stddev_and_mean_32f_x2_generic(float* stddev, float* mean,
                                         const float* inputBuffer,
                                         unsigned int num_points)
 {
-  float returnValue = 0;
-  float newMean = 0;
-  if(num_points > 0){
-    const float* aPtr = inputBuffer;
-    unsigned int number = 0;
+  // Welford's Algorithm for calculating std and mean
+  const float* aPtr = inputBuffer;
+  float LinearSum = (*aPtr++);
+  float SquareSum = 0.f;
+  unsigned int number = 1;
 
-    for(number = 0; number < num_points; number++){
-      returnValue += (*aPtr) * (*aPtr);
-      newMean += *aPtr++;
-    }
-    newMean /= num_points;
-    returnValue /= num_points;
-    returnValue -= (newMean * newMean);
-    returnValue = sqrtf(returnValue);
+  for (;number < num_points; number++)
+  {
+    float LinearSum_old = LinearSum;
+    float val = (*aPtr++);
+    LinearSum += (val - LinearSum)/( number + 1 );
+    SquareSum += (val - LinearSum)*( val - LinearSum_old );
   }
-  *stddev = returnValue;
-  *mean = newMean;
+  *mean = LinearSum;
+  *stddev = sqrtf( SquareSum/num_points );
+
 }
 #endif /* LV_HAVE_GENERIC */
-
-
-
 
 #endif /* INCLUDED_volk_32f_stddev_and_mean_32f_x2_a_H */
