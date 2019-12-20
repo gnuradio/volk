@@ -367,26 +367,53 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32f_stddev_and_mean_32f_x2_generic(float* stddev, float* mean,
-                                        const float* inputBuffer,
-                                        unsigned int num_points)
+volk_32f_stddev_and_mean_32f_x2_generic_welford(float* stddev, float* mean,
+                                                  const float* inputBuffer,
+                                                  unsigned int num_points)
 {
   // Welford's Algorithm for calculating std and mean
-  const float* aPtr = inputBuffer;
-  float LinearSum = (*aPtr++);
-  float SquareSum = 0.f;
-  unsigned int number = 1;
+  const float* in_ptr = inputBuffer;
+  float T = (*in_ptr++);
+  float S = 0.f;
+  uint32_t number = 1;
 
   for (;number < num_points; number++)
   {
-    float LinearSum_old = LinearSum;
-    float val = (*aPtr++);
-    LinearSum += (val - LinearSum)/( number + 1 );
-    SquareSum += (val - LinearSum)*( val - LinearSum_old );
+    float T_old = T;
+    float v = (*in_ptr++);
+    T += (v - T)/( number + 1);
+    S += (v - T)*( v - T_old );
   }
-  *mean = LinearSum;
-  *stddev = sqrtf( SquareSum/num_points );
 
+  *mean = T;
+  *stddev = sqrtf( S/num_points );
+}
+#endif /* LV_HAVE_GENERIC */
+
+
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_32f_stddev_and_mean_32f_x2_generic_youngscramer(float* stddev, float* mean,
+                                                      const float* inputBuffer,
+                                                      unsigned int num_points)
+{
+  // Youngs and Cramer's Algorithm for calculating std and mean  
+  const float* in_ptr = inputBuffer;
+
+  float T = (*in_ptr++);
+  float S = 0.f;
+  uint32_t number = 1;
+
+  for (; number < num_points; number++)
+  {
+    float v = (*in_ptr++);
+    T += v;
+    S += 1.f/( number*(number + 1) )*( (number+1)*v - T )*( (number+1)*v - T ); 
+  }
+
+  *mean = T/num_points;
+  *stddev  = sqrtf( S/num_points );
 }
 #endif /* LV_HAVE_GENERIC */
 
