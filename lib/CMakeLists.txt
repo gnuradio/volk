@@ -255,9 +255,9 @@ check_c_source_compiles("#include <arm_neon.h>\nint main(){ uint8_t *dest; uint8
 	                neon_compile_result)
 
 if(neon_compile_result)
-    check_c_source_compiles("int main(){asm volatile(\"vrev32.8 q0, q0\");}"
+    check_c_source_compiles("int main(){__asm__ volatile(\"vrev32.8 q0, q0\");}"
                             have_neonv7_result )
-    check_c_source_compiles("int main(){asm volatile(\"sub v1.4s,v1.4s,v1.4s\");}"
+    check_c_source_compiles("int main(){__asm__ volatile(\"sub v1.4s,v1.4s,v1.4s\");}"
                             have_neonv8_result )
 
     if (have_neonv7_result)
