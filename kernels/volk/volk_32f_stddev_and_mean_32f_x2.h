@@ -76,6 +76,8 @@
 #include <stdio.h>
 #include <math.h>
 
+
+/*
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -157,6 +159,7 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
 #endif /* LV_HAVE_AVX */
 
 
+/*
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -237,7 +240,7 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
 }
 #endif /* LV_HAVE_AVX */
 
-
+/*
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 static inline void
@@ -308,7 +311,7 @@ volk_32f_stddev_and_mean_32f_x2_a_sse4_1(float* stddev, float* mean,
 }
 #endif /* LV_HAVE_SSE4_1 */
 
-
+/*
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
@@ -364,6 +367,8 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
 #endif /* LV_HAVE_SSE */
 
 
+
+/*
 #ifdef LV_HAVE_GENERIC
 
 static inline void
@@ -394,7 +399,7 @@ volk_32f_stddev_and_mean_32f_x2_generic_welford(float* stddev, float* mean,
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32f_stddev_and_mean_32f_x2_generic_youngscramer(float* stddev, float* mean,
+volk_32f_stddev_and_mean_32f_x2_generic(float* stddev, float* mean,
                                                       const float* inputBuffer,
                                                       unsigned int num_points)
 {
@@ -421,7 +426,7 @@ volk_32f_stddev_and_mean_32f_x2_generic_youngscramer(float* stddev, float* mean,
 #include <xmmintrin.h>
 
 static inline void
-volk_32f_stddev_and_mean_32f_x2_a_sse_yc(float* stddev, float* mean,
+volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
                                       const float* inputBuffer,
                                       unsigned int num_points)
 {
@@ -433,30 +438,33 @@ volk_32f_stddev_and_mean_32f_x2_a_sse_yc(float* stddev, float* mean,
   __VOLK_ATTR_ALIGNED(16) float T[4];
   __VOLK_ATTR_ALIGNED(16) float S[4];
 
-  __m128 T_accu = _mm_load_ps(in_ptr);
-  __m128 S_accu = _mm_setzero_ps();
-  __m128 vals_reg  = _mm_setzero_ps();
-  __m128 x_reg = _mm_setzero_ps();
-  __m128 factor_reg = _mm_setzero_ps();
+  __m128 T_acc = _mm_load_ps(in_ptr);
+  __m128 S_acc = _mm_setzero_ps();
+  __m128 v_reg;
+  __m128 x_reg;
+  __m128 f_reg;
+
+  in_ptr += 4; // First load into T_accu
 
   for(;number < qtr_points; number++) {
-    factor_reg = _mm_set_ps1(  1.f/( number*(number + 1.f) ) );
-    
-    vals_reg = _mm_load_ps(in_ptr);
-    T_accu = _mm_add_ps(T_accu, vals_reg);
-
-    x_reg = _mm_set_ps1(number+1.f);
-    x_reg = _mm_mul_ps(x_reg, vals_reg);
-    x_reg = _mm_sub_ps(x_reg, T_accu);
-    x_reg = _mm_mul_ps(x_reg, x_reg);
-    x_reg = _mm_mul_ps(x_reg, factor_reg);
-    S_accu = _mm_add_ps(S_accu, x_reg);
-
+    v_reg = _mm_load_ps(in_ptr);        // v <- x0 x1 x2 x3
     in_ptr += 4;
+
+    float np1 = number + 1.f;
+    f_reg = _mm_set_ps1(  1.f/( number*np1 ) );
+    
+    T_acc = _mm_add_ps(T_acc, v_reg);   // T += v
+
+    x_reg = _mm_set_ps1(np1);           // x  = number+1
+    x_reg = _mm_mul_ps(x_reg, v_reg);   // x  = (number+1)*v
+    x_reg = _mm_sub_ps(x_reg, T_acc);   // x  = (number+1)*v - T_acc
+    x_reg = _mm_mul_ps(x_reg, x_reg);   // x  = ((number+1)*v - T_acc)**2
+    x_reg = _mm_mul_ps(x_reg, f_reg);   // x  = 1/(n*n(n+1))*((number+1)*v - T_acc)**2
+    S_acc = _mm_add_ps(S_acc, x_reg);   // S += x
   }
 
-  _mm_store_ps(T, T_accu);
-  _mm_store_ps(S, S_accu);
+  _mm_store_ps(T, T_acc);
+  _mm_store_ps(S, S_acc);
 
   float T_tot = (T[0] + T[1]) + (T[2] + T[3]);
   float S01 = S[0] + S[1] + 1.f/(2*qtr_points)*( T[0] - T[1] )*( T[0] - T[1] );
@@ -467,5 +475,68 @@ volk_32f_stddev_and_mean_32f_x2_a_sse_yc(float* stddev, float* mean,
   *mean = T_tot/num_points;
 }
 #endif /* LV_HAVE_SSE */
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
+                                         const float* inputBuffer,
+                                         unsigned int num_points)
+{
+  const float* in_ptr = inputBuffer;
+
+  unsigned int number = 1;
+  const unsigned int eigth_points = num_points / 8;
+
+  __VOLK_ATTR_ALIGNED(32) float T[8];
+  __VOLK_ATTR_ALIGNED(32) float S[8];
+
+  __m256 T_acc = _mm256_load_ps(in_ptr);
+  __m256 S_acc = _mm256_setzero_ps();
+  __m256 v_reg;
+  __m256 x_reg;
+  __m256 f_reg;
+
+  in_ptr += 8; // First load into T_accu  
+
+  for(;number < eigth_points; number++) {
+    v_reg = _mm256_load_ps(in_ptr);        // v <- x0 x1 x2 x3
+    in_ptr += 8;
+    
+    float np1 = number + 1.f;
+    f_reg = _mm256_set1_ps(  1.f/( number*np1 ) );
+    
+    T_acc = _mm256_add_ps(T_acc, v_reg);   // T += v
+
+    x_reg = _mm256_set1_ps(np1);           // x  = number+1
+    x_reg = _mm256_mul_ps(x_reg, v_reg);   // x  = (number+1)*v
+    x_reg = _mm256_sub_ps(x_reg, T_acc);   // x  = (number+1)*v - T_acc
+    x_reg = _mm256_mul_ps(x_reg, x_reg);   // x  = ((number+1)*v - T_acc)**2
+    x_reg = _mm256_mul_ps(x_reg, f_reg);   // x  = 1/(n*n(n+1))*((number+1)*v - T_acc)**2
+    S_acc = _mm256_add_ps(S_acc, x_reg);   // S += x
+  }  
+
+  _mm256_store_ps(T, T_acc);
+  _mm256_store_ps(S, S_acc);  
+
+  float T_tot = ((T[0] + T[1]) + (T[2] + T[3])) + ((T[4] + T[5]) + (T[6] + T[7]));
+  float S01 = S[0] + S[1] + 1.f/(2*eigth_points)*( T[0] - T[1] )*( T[0] - T[1] );
+  float S23 = S[2] + S[3] + 1.f/(2*eigth_points)*( T[2] - T[3] )*( T[2] - T[3] );
+  float S45 = S[4] + S[5] + 1.f/(2*eigth_points)*( T[4] - T[5] )*( T[4] - T[5] );
+  float S67 = S[6] + S[7] + 1.f/(2*eigth_points)*( T[6] - T[7] )*( T[6] - T[7] );
+
+  float S0123 = S01 + S23 + 
+    1.f/(4*eigth_points)*( (T[0]+T[1]) - (T[2]+T[3]) )*( (T[0]+T[1]) - (T[2]+T[3]) );
+  float S4567 = S45 + S67 + 
+    1.f/(4*eigth_points)*( (T[4]+T[5]) - (T[6]+T[7]) )*( (T[4]+T[5]) - (T[6]+T[7]) );  
+
+  float S_tot = S0123 + S4567 + 1.f/num_points*
+    ( (T[0]+T[1]+T[2]+T[3]) - (T[4]+T[5]+T[6]+T[7]) )*( (T[0]+T[1]+T[2]+T[3]) - (T[4]+T[5]+T[6]+T[7]) );
+
+  *stddev = sqrtf( S_tot/num_points );
+  *mean = T_tot/num_points;
+}
+#endif /* LV_HAVE_AVX */
 
 #endif /* INCLUDED_volk_32f_stddev_and_mean_32f_x2_a_H */
