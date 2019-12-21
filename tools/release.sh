@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 setopt ERR_EXIT #exit on error
 #Project name
 project=volk
@@ -12,7 +12,7 @@ changelog="CHANGELOG.md"
 lastreleasefile=".lastrelease"
 
 #use your $EDITOR, unless unset, in which case: do the obvious
-EDITOR="${EDITOR:=emacs}"
+EDITOR="${EDITOR:=vim}"
 
 tempdir="$(mktemp -d)"
 deltafile="${tempdir}/delta.md"
@@ -47,7 +47,7 @@ echo "appending git shortlog to CHANGELOG:"
 shortlog="
 ## [${version}] - $(date +'%Y-%m-%d')
 
-$(git shortlog ${last_release}..HEAD)
+$(git shortlog -e ${last_release}..HEAD)
 "
 echo "${shortlog}"
 
@@ -68,9 +68,9 @@ cat "${deltafile}" > ${annotationfile}
 # Append the HEAD commit hash to the annotation
 echo "git-describes-hash: $(git rev-parse --verify HEAD)" >> "${annotationfile}"
 
-if type 'signify' > /dev/null; then
+if type 'signify-openbsd' > /dev/null; then
     signaturefile="${tempdir}/annotationfile.sig"
-    signify -S -x "${signaturefile}" -s "${seckey}" -m "${annotationfile}"
+    signify-openbsd -S -x "${signaturefile}" -s "${seckey}" -m "${annotationfile}"
     echo "-----BEGIN SIGNIFY SIGNATURE-----" >> "${annotationfile}"
     cat "${signaturefile}" >> "${annotationfile}"
     echo "-----END SIGNIFY SIGNATURE-----" >> "${annotationfile}"
@@ -102,9 +102,9 @@ echo "signing file list…"
 filelist="${tempdir}/${version}.sha256"
 pushd "${tempdir}"
 sha256sum --tag *.tar.* > "${filelist}"
-signify -S -e -s "${seckey}" -m "${filelist}"
+signify-openbsd -S -e -s "${seckey}" -m "${filelist}"
 echo "…signed. Check with 'signify -C -p \"${pubkey}\" -x \"${filelist}\"'."
-signify -C -p "${pubkey}" -x "${filelist}.sig"
+signify-openbsd -C -p "${pubkey}" -x "${filelist}.sig"
 popd
 echo "checked."
 
