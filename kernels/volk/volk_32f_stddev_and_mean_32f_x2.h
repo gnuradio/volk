@@ -156,7 +156,7 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
   *mean = newMean;
 
 }
-#endif /* LV_HAVE_AVX */
+#endif*/ /* LV_HAVE_AVX */
 
 
 /*
@@ -238,7 +238,7 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
   *mean = newMean;
 
 }
-#endif /* LV_HAVE_AVX */
+#endif */ /* LV_HAVE_AVX */
 
 /*
 #ifdef LV_HAVE_SSE4_1
@@ -309,7 +309,7 @@ volk_32f_stddev_and_mean_32f_x2_a_sse4_1(float* stddev, float* mean,
   *stddev = returnValue;
   *mean = newMean;
 }
-#endif /* LV_HAVE_SSE4_1 */
+#endif */ /* LV_HAVE_SSE4_1 */
 
 /*
 #ifdef LV_HAVE_SSE
@@ -364,7 +364,7 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
   *stddev = returnValue;
   *mean = newMean;
 }
-#endif /* LV_HAVE_SSE */
+#endif */ /* LV_HAVE_SSE */
 
 
 
@@ -393,7 +393,9 @@ volk_32f_stddev_and_mean_32f_x2_generic_welford(float* stddev, float* mean,
   *mean = T;
   *stddev = sqrtf( S/num_points );
 }
-#endif /* LV_HAVE_GENERIC */
+#endif */ /* LV_HAVE_GENERIC */
+
+/*
 
 static inline void
 partitioned_squaresum(float *S_total, float* S0, float* T0, uint32_t N0, 
@@ -418,6 +420,25 @@ equal_sized_squaresum(float *S_total, float* S0, float* T0, float* S1, float* T1
   *S_total += (*S1);
   *S_total += 0.5f/N*( (*T0) - (*T1) )*( (*T0) - (*T1) );
   return;
+}
+
+*/
+
+static inline float
+square_sum_update_1(float* S_tot, float* T_tot, uint32_t* N, const float* val){
+  float ret = 0.f;
+  ret += (*S_tot);
+  ret += 1.f/((*N)*((*N)+1))*( (*N)*(*val) - (*T_tot) )*( (*N)*(*val) - (*T_tot) );
+  return ret;
+}
+
+static inline float
+square_sum_update_equal_N(float* S0, float* T0, float* S1, float* T1, uint32_t N){
+  float ret = 0.f;
+  ret += (*S0);
+  ret += (*S1);
+  ret += 1.f/(2*N)*( (*T0) - (*T1) )*( (*T0) - (*T1) );
+  return ret;
 }
 
 
@@ -492,55 +513,23 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
   _mm_store_ps(S, S_acc);
 
   float T01, T23, T_tot;
+  float S01, S23, S_tot;
+  
   T01 = T[0] + T[1];
   T23 = T[2] + T[3];
   T_tot = T01 + T23;
 
-  float S01 = S[0] + S[1] + 1.f/(2*qtr_points)*( T[0] - T[1] )*( T[0] - T[1] );
-  float S23 = S[2] + S[3] + 1.f/(2*qtr_points)*( T[2] - T[3] )*( T[2] - T[3] );
-  float S_tot = S01 + S23 + 1.f/(4*qtr_points)*( (T[0]+T[1]) - (T[2]+T[3]) )*( (T[0]+T[1]) - (T[2]+T[3]) );  
+  S01   = square_sum_update_equal_N(&S[0], &T[0], &S[1], &T[1], qtr_points);
+  S23   = square_sum_update_equal_N(&S[2], &T[2], &S[3], &T[3], qtr_points);
+  S_tot = square_sum_update_equal_N(&S01 , &T01 , &S23 , &T23 , 2*qtr_points);
 
-  /*
-  float S01, S23, S_tot;
-  equal_sized_squaresum(&S01, &S[0], &T[0], &S[1], &T[1], qtr_points);
-  equal_sized_squaresum(&S23, &S[2], &T[3], &S[2], &T[3], qtr_points);
-  equal_sized_squaresum(&S_tot, &S01, &T01, &S23, &T23, 2*qtr_points);
-  */
-
-  // Only have 3 cases
-  if (num_points%4 == 1) {
-    number = 4*qtr_points;
-
-    S_tot += 1.f/(number*(number+1))*( number*(*in_ptr) - T_tot)*( number*(*in_ptr) - T_tot);
-    T_tot += (*in_ptr);
-  }
-  else if (num_points%4 == 2) {
-    number = 4*qtr_points;
-
-    S_tot += 1.f/(number*(number+1))*( number*(*in_ptr) - T_tot)*( number*(*in_ptr) - T_tot);
-    T_tot += (*in_ptr);
-    in_ptr++;
-    number++;
-
-    S_tot += 1.f/(number*(number+1))*( number*(*in_ptr) - T_tot)*( number*(*in_ptr) - T_tot);
+  number = qtr_points << 2;
+  for (; number < num_points; number++)
+  {
+    S_tot = square_sum_update_1(&S_tot, &T_tot, &number, in_ptr);
     T_tot += (*in_ptr);    
+    in_ptr++;
   }
-  else if (num_points%4 == 3) {
-    number = 4*qtr_points;
-
-    S_tot += 1.f/(number*(number+1))*( number*(*in_ptr) - T_tot)*( number*(*in_ptr) - T_tot);
-    T_tot += (*in_ptr);
-    in_ptr++;
-    number++;
-
-    S_tot += 1.f/(number*(number+1))*( number*(*in_ptr) - T_tot)*( number*(*in_ptr) - T_tot);
-    T_tot += (*in_ptr); 
-    in_ptr++;
-    number++;
-
-    S_tot += 1.f/(number*(number+1))*( number*(*in_ptr) - T_tot)*( number*(*in_ptr) - T_tot);
-    T_tot += (*in_ptr);     
-  }  
 
   *stddev = sqrtf( S_tot/num_points );
   *mean = T_tot/num_points;
@@ -605,6 +594,14 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
 
   float S_tot = S0123 + S4567 + 1.f/num_points*
     ( (T[0]+T[1]+T[2]+T[3]) - (T[4]+T[5]+T[6]+T[7]) )*( (T[0]+T[1]+T[2]+T[3]) - (T[4]+T[5]+T[6]+T[7]) );
+
+  number = eigth_points*8;
+  for (; number < num_points; number++)
+  {
+    S_tot = square_sum_update_1(&S_tot, &T_tot, &number, in_ptr);
+    T_tot += (*in_ptr);    
+    in_ptr++;
+  }    
 
   *stddev = sqrtf( S_tot/num_points );
   *mean = T_tot/num_points;
