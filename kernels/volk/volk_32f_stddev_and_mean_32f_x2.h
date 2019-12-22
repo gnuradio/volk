@@ -76,354 +76,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
-/*
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void
-volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
-                                         const float* inputBuffer,
-                                         unsigned int num_points)
-{
-  float stdDev = 0;
-  float newMean = 0;
-  if(num_points > 0){
-    unsigned int number = 0;
-    const unsigned int thirtySecondthPoints = num_points / 32;
-
-    const float* aPtr = inputBuffer;
-    __VOLK_ATTR_ALIGNED(32) float meanBuffer[8];
-    __VOLK_ATTR_ALIGNED(32) float squareBuffer[8];
-
-    __m256 accumulator = _mm256_setzero_ps();
-    __m256 squareAccumulator = _mm256_setzero_ps();
-    __m256 aVal1, aVal2, aVal3, aVal4;
-    __m256 cVal1, cVal2, cVal3, cVal4;
-    for(;number < thirtySecondthPoints; number++) {
-      aVal1 = _mm256_load_ps(aPtr); aPtr += 8;
-      cVal1 = _mm256_dp_ps(aVal1, aVal1, 0xF1);
-      accumulator = _mm256_add_ps(accumulator, aVal1);  // accumulator += x
-
-      aVal2 = _mm256_load_ps(aPtr); aPtr += 8;
-      cVal2 = _mm256_dp_ps(aVal2, aVal2, 0xF2);
-      accumulator = _mm256_add_ps(accumulator, aVal2);  // accumulator += x
-
-      aVal3 = _mm256_load_ps(aPtr); aPtr += 8;
-      cVal3 = _mm256_dp_ps(aVal3, aVal3, 0xF4);
-      accumulator = _mm256_add_ps(accumulator, aVal3);  // accumulator += x
-
-      aVal4 = _mm256_load_ps(aPtr); aPtr += 8;
-      cVal4 = _mm256_dp_ps(aVal4, aVal4, 0xF8);
-      accumulator = _mm256_add_ps(accumulator, aVal4);  // accumulator += x
-
-      cVal1 = _mm256_or_ps(cVal1, cVal2);
-      cVal3 = _mm256_or_ps(cVal3, cVal4);
-      cVal1 = _mm256_or_ps(cVal1, cVal3);
-
-      squareAccumulator = _mm256_add_ps(squareAccumulator, cVal1); // squareAccumulator += x^2
-    }
-    _mm256_store_ps(meanBuffer,accumulator); // Store the results back into the C container
-    _mm256_store_ps(squareBuffer,squareAccumulator); // Store the results back into the C container
-    newMean = meanBuffer[0];
-    newMean += meanBuffer[1];
-    newMean += meanBuffer[2];
-    newMean += meanBuffer[3];
-    newMean += meanBuffer[4];
-    newMean += meanBuffer[5];
-    newMean += meanBuffer[6];
-    newMean += meanBuffer[7];
-    stdDev = squareBuffer[0];
-    stdDev += squareBuffer[1];
-    stdDev += squareBuffer[2];
-    stdDev += squareBuffer[3];
-    stdDev += squareBuffer[4];
-    stdDev += squareBuffer[5];
-    stdDev += squareBuffer[6];
-    stdDev += squareBuffer[7];
-
-    number = thirtySecondthPoints * 32;
-    for(;number < num_points; number++){
-      stdDev += (*aPtr) * (*aPtr);
-      newMean += *aPtr++;
-    }
-    newMean /= num_points;
-    stdDev /= num_points;
-    stdDev -= (newMean * newMean);
-    stdDev = sqrtf(stdDev);
-  }
-  *stddev = stdDev;
-  *mean = newMean;
-
-}
-#endif*/ /* LV_HAVE_AVX */
-
-
-/*
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void
-volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
-                                         const float* inputBuffer,
-                                         unsigned int num_points)
-{
-  float stdDev = 0;
-  float newMean = 0;
-  if(num_points > 0){
-    unsigned int number = 0;
-    const unsigned int thirtySecondthPoints = num_points / 32;
-
-    const float* aPtr = inputBuffer;
-    __VOLK_ATTR_ALIGNED(32) float meanBuffer[8];
-    __VOLK_ATTR_ALIGNED(32) float squareBuffer[8];
-
-    __m256 accumulator = _mm256_setzero_ps();
-    __m256 squareAccumulator = _mm256_setzero_ps();
-    __m256 aVal1, aVal2, aVal3, aVal4;
-    __m256 cVal1, cVal2, cVal3, cVal4;
-    for(;number < thirtySecondthPoints; number++) {
-      aVal1 = _mm256_loadu_ps(aPtr); aPtr += 8;
-      cVal1 = _mm256_dp_ps(aVal1, aVal1, 0xF1);
-      accumulator = _mm256_add_ps(accumulator, aVal1);  // accumulator += x
-
-      aVal2 = _mm256_loadu_ps(aPtr); aPtr += 8;
-      cVal2 = _mm256_dp_ps(aVal2, aVal2, 0xF2);
-      accumulator = _mm256_add_ps(accumulator, aVal2);  // accumulator += x
-
-      aVal3 = _mm256_loadu_ps(aPtr); aPtr += 8;
-      cVal3 = _mm256_dp_ps(aVal3, aVal3, 0xF4);
-      accumulator = _mm256_add_ps(accumulator, aVal3);  // accumulator += x
-
-      aVal4 = _mm256_loadu_ps(aPtr); aPtr += 8;
-      cVal4 = _mm256_dp_ps(aVal4, aVal4, 0xF8);
-      accumulator = _mm256_add_ps(accumulator, aVal4);  // accumulator += x
-
-      cVal1 = _mm256_or_ps(cVal1, cVal2);
-      cVal3 = _mm256_or_ps(cVal3, cVal4);
-      cVal1 = _mm256_or_ps(cVal1, cVal3);
-
-      squareAccumulator = _mm256_add_ps(squareAccumulator, cVal1); // squareAccumulator += x^2
-    }
-    _mm256_store_ps(meanBuffer,accumulator); // Store the results back into the C container
-    _mm256_store_ps(squareBuffer,squareAccumulator); // Store the results back into the C container
-    newMean = meanBuffer[0];
-    newMean += meanBuffer[1];
-    newMean += meanBuffer[2];
-    newMean += meanBuffer[3];
-    newMean += meanBuffer[4];
-    newMean += meanBuffer[5];
-    newMean += meanBuffer[6];
-    newMean += meanBuffer[7];
-    stdDev = squareBuffer[0];
-    stdDev += squareBuffer[1];
-    stdDev += squareBuffer[2];
-    stdDev += squareBuffer[3];
-    stdDev += squareBuffer[4];
-    stdDev += squareBuffer[5];
-    stdDev += squareBuffer[6];
-    stdDev += squareBuffer[7];
-
-    number = thirtySecondthPoints * 32;
-    for(;number < num_points; number++){
-      stdDev += (*aPtr) * (*aPtr);
-      newMean += *aPtr++;
-    }
-    newMean /= num_points;
-    stdDev /= num_points;
-    stdDev -= (newMean * newMean);
-    stdDev = sqrtf(stdDev);
-  }
-  *stddev = stdDev;
-  *mean = newMean;
-
-}
-#endif */ /* LV_HAVE_AVX */
-
-/*
-#ifdef LV_HAVE_SSE4_1
-#include <smmintrin.h>
-static inline void
-volk_32f_stddev_and_mean_32f_x2_a_sse4_1(float* stddev, float* mean,
-                                         const float* inputBuffer,
-                                         unsigned int num_points)
-{
-  float returnValue = 0;
-  float newMean = 0;
-  if(num_points > 0){
-    unsigned int number = 0;
-    const unsigned int sixteenthPoints = num_points / 16;
-
-    const float* aPtr = inputBuffer;
-    __VOLK_ATTR_ALIGNED(16) float meanBuffer[4];
-    __VOLK_ATTR_ALIGNED(16) float squareBuffer[4];
-
-    __m128 accumulator = _mm_setzero_ps();
-    __m128 squareAccumulator = _mm_setzero_ps();
-    __m128 aVal1, aVal2, aVal3, aVal4;
-    __m128 cVal1, cVal2, cVal3, cVal4;
-    for(;number < sixteenthPoints; number++) {
-      aVal1 = _mm_load_ps(aPtr); aPtr += 4;
-      cVal1 = _mm_dp_ps(aVal1, aVal1, 0xF1);
-      accumulator = _mm_add_ps(accumulator, aVal1);  // accumulator += x
-
-      aVal2 = _mm_load_ps(aPtr); aPtr += 4;
-      cVal2 = _mm_dp_ps(aVal2, aVal2, 0xF2);
-      accumulator = _mm_add_ps(accumulator, aVal2);  // accumulator += x
-
-      aVal3 = _mm_load_ps(aPtr); aPtr += 4;
-      cVal3 = _mm_dp_ps(aVal3, aVal3, 0xF4);
-      accumulator = _mm_add_ps(accumulator, aVal3);  // accumulator += x
-
-      aVal4 = _mm_load_ps(aPtr); aPtr += 4;
-      cVal4 = _mm_dp_ps(aVal4, aVal4, 0xF8);
-      accumulator = _mm_add_ps(accumulator, aVal4);  // accumulator += x
-
-      cVal1 = _mm_or_ps(cVal1, cVal2);
-      cVal3 = _mm_or_ps(cVal3, cVal4);
-      cVal1 = _mm_or_ps(cVal1, cVal3);
-
-      squareAccumulator = _mm_add_ps(squareAccumulator, cVal1); // squareAccumulator += x^2
-    }
-    _mm_store_ps(meanBuffer,accumulator); // Store the results back into the C container
-    _mm_store_ps(squareBuffer,squareAccumulator); // Store the results back into the C container
-    newMean = meanBuffer[0];
-    newMean += meanBuffer[1];
-    newMean += meanBuffer[2];
-    newMean += meanBuffer[3];
-    returnValue = squareBuffer[0];
-    returnValue += squareBuffer[1];
-    returnValue += squareBuffer[2];
-    returnValue += squareBuffer[3];
-
-    number = sixteenthPoints * 16;
-    for(;number < num_points; number++){
-      returnValue += (*aPtr) * (*aPtr);
-      newMean += *aPtr++;
-    }
-    newMean /= num_points;
-    returnValue /= num_points;
-    returnValue -= (newMean * newMean);
-    returnValue = sqrtf(returnValue);
-  }
-  *stddev = returnValue;
-  *mean = newMean;
-}
-#endif */ /* LV_HAVE_SSE4_1 */
-
-/*
-#ifdef LV_HAVE_SSE
-#include <xmmintrin.h>
-
-static inline void
-volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
-                                      const float* inputBuffer,
-                                      unsigned int num_points)
-{
-  float returnValue = 0;
-  float newMean = 0;
-  if(num_points > 0){
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
-
-    const float* aPtr = inputBuffer;
-    __VOLK_ATTR_ALIGNED(16) float meanBuffer[4];
-    __VOLK_ATTR_ALIGNED(16) float squareBuffer[4];
-
-    __m128 accumulator = _mm_setzero_ps();
-    __m128 squareAccumulator = _mm_setzero_ps();
-    __m128 aVal = _mm_setzero_ps();
-    for(;number < quarterPoints; number++) {
-      aVal = _mm_load_ps(aPtr);                     // aVal = x
-      accumulator = _mm_add_ps(accumulator, aVal);  // accumulator += x
-      aVal = _mm_mul_ps(aVal, aVal);                // squareAccumulator += x^2
-      squareAccumulator = _mm_add_ps(squareAccumulator, aVal);
-      aPtr += 4;
-    }
-    _mm_store_ps(meanBuffer,accumulator); // Store the results back into the C container
-    _mm_store_ps(squareBuffer,squareAccumulator); // Store the results back into the C container
-    newMean = meanBuffer[0];
-    newMean += meanBuffer[1];
-    newMean += meanBuffer[2];
-    newMean += meanBuffer[3];
-    returnValue = squareBuffer[0];
-    returnValue += squareBuffer[1];
-    returnValue += squareBuffer[2];
-    returnValue += squareBuffer[3];
-
-    number = quarterPoints * 4;
-    for(;number < num_points; number++){
-      returnValue += (*aPtr) * (*aPtr);
-      newMean += *aPtr++;
-    }
-    newMean /= num_points;
-    returnValue /= num_points;
-    returnValue -= (newMean * newMean);
-    returnValue = sqrtf(returnValue);
-  }
-  *stddev = returnValue;
-  *mean = newMean;
-}
-#endif */ /* LV_HAVE_SSE */
-
-
-
-/*
-#ifdef LV_HAVE_GENERIC
-
-static inline void
-volk_32f_stddev_and_mean_32f_x2_generic_welford(float* stddev, float* mean,
-                                                  const float* inputBuffer,
-                                                  unsigned int num_points)
-{
-  // Welford's Algorithm for calculating std and mean
-  const float* in_ptr = inputBuffer;
-  float T = (*in_ptr++);
-  float S = 0.f;
-  uint32_t number = 1;
-
-  for (;number < num_points; number++)
-  {
-    float T_old = T;
-    float v = (*in_ptr++);
-    T += (v - T)/( number + 1);
-    S += (v - T)*( v - T_old );
-  }
-
-  *mean = T;
-  *stddev = sqrtf( S/num_points );
-}
-#endif */ /* LV_HAVE_GENERIC */
-
-/*
-
-static inline void
-partitioned_squaresum(float *S_total, float* S0, float* T0, uint32_t N0, 
-                                      float* S1, float* T1, uint32_t N1)
-{
-  // Return the total square sum from two sub sets.
-  // S_total = S0 + S1 + m/(n*(m+n)) * ( n/m*T0 - T1 )**2
-  float N0_f = (float) N0;
-  float N1_f = (float) N1;
-
-  *S_total  = (*S0);
-  *S_total += (*S1);
-  *S_total += N1_f/( N0_f*( N1_f + N0_f)  )*
-               ( N0_f/N1_f*(*T0) + (*T1) )*
-               ( N0_f/N1_f*(*T0) + (*T1) );
-  return;
-}
-
-static inline void
-equal_sized_squaresum(float *S_total, float* S0, float* T0, float* S1, float* T1, uint32_t N){
-  *S_total  = (*S0);
-  *S_total += (*S1);
-  *S_total += 0.5f/N*( (*T0) - (*T1) )*( (*T0) - (*T1) );
-  return;
-}
-
-*/
-
 static inline float
 square_sum_update_1(float* S_tot, float* T_tot, uint32_t* N, const float* val){
   float ret = 0.f;
@@ -440,7 +92,6 @@ square_sum_update_equal_N(float* S0, float* T0, float* S1, float* T1, uint32_t N
   ret += 1.f/(2*N)*( (*T0) - (*T1) )*( (*T0) - (*T1) );
   return ret;
 }
-
 
 #ifdef LV_HAVE_GENERIC
 
@@ -523,7 +174,7 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
   S23   = square_sum_update_equal_N(&S[2], &T[2], &S[3], &T[3], qtr_points);
   S_tot = square_sum_update_equal_N(&S01 , &T01 , &S23 , &T23 , 2*qtr_points);
 
-  number = qtr_points << 2;
+  number = qtr_points*4;
   for (; number < num_points; number++)
   {
     S_tot = square_sum_update_1(&S_tot, &T_tot, &number, in_ptr);
@@ -535,6 +186,75 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
   *mean = T_tot/num_points;
 }
 #endif /* LV_HAVE_SSE */
+
+#ifdef LV_HAVE_SSE
+#include <xmmintrin.h>
+
+static inline void
+volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev, float* mean,
+                                      const float* inputBuffer,
+                                      unsigned int num_points)
+{
+  const float* in_ptr = inputBuffer;
+
+  unsigned int number = 1;
+  const unsigned int qtr_points = num_points / 4;
+
+  __VOLK_ATTR_ALIGNED(16) float T[4];
+  __VOLK_ATTR_ALIGNED(16) float S[4];
+
+  __m128 T_acc = _mm_load_ps(in_ptr);
+  __m128 S_acc = _mm_setzero_ps();
+  __m128 v_reg;
+  __m128 x_reg;
+  __m128 f_reg;
+
+  in_ptr += 4; // First load into T_accu
+
+  for(;number < qtr_points; number++) {
+    v_reg = _mm_load_ps(in_ptr);        // v <- x0 x1 x2 x3
+    in_ptr += 4;
+
+    float np1 = number + 1.f;
+    f_reg = _mm_set_ps1(  1.f/( number*np1 ) );
+    
+    T_acc = _mm_add_ps(T_acc, v_reg);   // T += v
+
+    x_reg = _mm_set_ps1(np1);           // x  = number+1
+    x_reg = _mm_mul_ps(x_reg, v_reg);   // x  = (number+1)*v
+    x_reg = _mm_sub_ps(x_reg, T_acc);   // x  = (number+1)*v - T_acc
+    x_reg = _mm_mul_ps(x_reg, x_reg);   // x  = ((number+1)*v - T_acc)**2
+    x_reg = _mm_mul_ps(x_reg, f_reg);   // x  = 1/(n*n(n+1))*((number+1)*v - T_acc)**2
+    S_acc = _mm_add_ps(S_acc, x_reg);   // S += x
+  }
+
+  _mm_store_ps(T, T_acc);
+  _mm_store_ps(S, S_acc);
+
+  float T01, T23, T_tot;
+  float S01, S23, S_tot;
+  
+  T01 = T[0] + T[1];
+  T23 = T[2] + T[3];
+  T_tot = T01 + T23;
+
+  S01   = square_sum_update_equal_N(&S[0], &T[0], &S[1], &T[1], qtr_points);
+  S23   = square_sum_update_equal_N(&S[2], &T[2], &S[3], &T[3], qtr_points);
+  S_tot = square_sum_update_equal_N(&S01 , &T01 , &S23 , &T23 , 2*qtr_points);
+
+  number = qtr_points*4;
+  for (; number < num_points; number++)
+  {
+    S_tot = square_sum_update_1(&S_tot, &T_tot, &number, in_ptr);
+    T_tot += (*in_ptr);    
+    in_ptr++;
+  }
+
+  *stddev = sqrtf( S_tot/num_points );
+  *mean = T_tot/num_points;
+}
+#endif /* LV_HAVE_SSE */
+
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -580,20 +300,26 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
   _mm256_store_ps(T, T_acc);
   _mm256_store_ps(S, S_acc);  
 
-  float T_tot = ((T[0] + T[1]) + (T[2] + T[3])) + ((T[4] + T[5]) + (T[6] + T[7]));
+  float T01, T23, T45, T67, T0123, T4567, T_tot;
+  float S01, S23, S45, S67, S0123, S4567, S_tot;
+  
+  T01 = T[0] + T[1];
+  T23 = T[2] + T[3];
+  T45 = T[4] + T[5];
+  T67 = T[6] + T[7];
+  T0123 = T01 + T23;
+  T4567 = T45 + T67;
+  T_tot = T0123 + T4567;
 
-  float S01 = S[0] + S[1] + 1.f/(2*eigth_points)*( T[0] - T[1] )*( T[0] - T[1] );
-  float S23 = S[2] + S[3] + 1.f/(2*eigth_points)*( T[2] - T[3] )*( T[2] - T[3] );
-  float S45 = S[4] + S[5] + 1.f/(2*eigth_points)*( T[4] - T[5] )*( T[4] - T[5] );
-  float S67 = S[6] + S[7] + 1.f/(2*eigth_points)*( T[6] - T[7] )*( T[6] - T[7] );
+  S01   = square_sum_update_equal_N(&S[0], &T[0], &S[1], &T[1], eigth_points);
+  S23   = square_sum_update_equal_N(&S[2], &T[2], &S[3], &T[3], eigth_points);
+  S45   = square_sum_update_equal_N(&S[4], &T[4], &S[5], &T[5], eigth_points);
+  S67   = square_sum_update_equal_N(&S[6], &T[6], &S[7], &T[7], eigth_points);
 
-  float S0123 = S01 + S23 + 
-    1.f/(4*eigth_points)*( (T[0]+T[1]) - (T[2]+T[3]) )*( (T[0]+T[1]) - (T[2]+T[3]) );
-  float S4567 = S45 + S67 + 
-    1.f/(4*eigth_points)*( (T[4]+T[5]) - (T[6]+T[7]) )*( (T[4]+T[5]) - (T[6]+T[7]) );  
+  S0123 = square_sum_update_equal_N(&S01 , &T01 , &S23 , &T23 , 2*eigth_points);  
+  S4567 = square_sum_update_equal_N(&S45 , &T45 , &S67 , &T67 , 2*eigth_points);  
 
-  float S_tot = S0123 + S4567 + 1.f/num_points*
-    ( (T[0]+T[1]+T[2]+T[3]) - (T[4]+T[5]+T[6]+T[7]) )*( (T[0]+T[1]+T[2]+T[3]) - (T[4]+T[5]+T[6]+T[7]) );
+  S_tot = square_sum_update_equal_N(&S0123 , &T0123 , &S4567 , &T4567 , 4*eigth_points);  
 
   number = eigth_points*8;
   for (; number < num_points; number++)
@@ -607,5 +333,84 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
   *mean = T_tot/num_points;
 }
 #endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
+                                         const float* inputBuffer,
+                                         unsigned int num_points)
+{
+  const float* in_ptr = inputBuffer;
+
+  unsigned int number = 1;
+  const unsigned int eigth_points = num_points / 8;
+
+  __VOLK_ATTR_ALIGNED(32) float T[8];
+  __VOLK_ATTR_ALIGNED(32) float S[8];
+
+  __m256 T_acc = _mm256_load_ps(in_ptr);
+  __m256 S_acc = _mm256_setzero_ps();
+  __m256 v_reg;
+  __m256 x_reg;
+  __m256 f_reg;
+
+  in_ptr += 8; // First load into T_accu  
+
+  for(;number < eigth_points; number++) {
+    v_reg = _mm256_load_ps(in_ptr);        // v <- x0 x1 x2 x3
+    in_ptr += 8;
+    
+    float np1 = number + 1.f;
+    f_reg = _mm256_set1_ps(  1.f/( number*np1 ) );
+    
+    T_acc = _mm256_add_ps(T_acc, v_reg);   // T += v
+
+    x_reg = _mm256_set1_ps(np1);           // x  = number+1
+    x_reg = _mm256_mul_ps(x_reg, v_reg);   // x  = (number+1)*v
+    x_reg = _mm256_sub_ps(x_reg, T_acc);   // x  = (number+1)*v - T_acc
+    x_reg = _mm256_mul_ps(x_reg, x_reg);   // x  = ((number+1)*v - T_acc)**2
+    x_reg = _mm256_mul_ps(x_reg, f_reg);   // x  = 1/(n*n(n+1))*((number+1)*v - T_acc)**2
+    S_acc = _mm256_add_ps(S_acc, x_reg);   // S += x
+  }  
+
+  _mm256_store_ps(T, T_acc);
+  _mm256_store_ps(S, S_acc);  
+
+  float T01, T23, T45, T67, T0123, T4567, T_tot;
+  float S01, S23, S45, S67, S0123, S4567, S_tot;
+  
+  T01 = T[0] + T[1];
+  T23 = T[2] + T[3];
+  T45 = T[4] + T[5];
+  T67 = T[6] + T[7];
+  T0123 = T01 + T23;
+  T4567 = T45 + T67;
+  T_tot = T0123 + T4567;
+
+  S01   = square_sum_update_equal_N(&S[0], &T[0], &S[1], &T[1], eigth_points);
+  S23   = square_sum_update_equal_N(&S[2], &T[2], &S[3], &T[3], eigth_points);
+  S45   = square_sum_update_equal_N(&S[4], &T[4], &S[5], &T[5], eigth_points);
+  S67   = square_sum_update_equal_N(&S[6], &T[6], &S[7], &T[7], eigth_points);
+
+  S0123 = square_sum_update_equal_N(&S01 , &T01 , &S23 , &T23 , 2*eigth_points);  
+  S4567 = square_sum_update_equal_N(&S45 , &T45 , &S67 , &T67 , 2*eigth_points);  
+
+  S_tot = square_sum_update_equal_N(&S0123 , &T0123 , &S4567 , &T4567 , 4*eigth_points);  
+
+  number = eigth_points*8;
+  for (; number < num_points; number++)
+  {
+    S_tot = square_sum_update_1(&S_tot, &T_tot, &number, in_ptr);
+    T_tot += (*in_ptr);    
+    in_ptr++;
+  }    
+
+  *stddev = sqrtf( S_tot/num_points );
+  *mean = T_tot/num_points;
+}
+#endif /* LV_HAVE_AVX */
+
 
 #endif /* INCLUDED_volk_32f_stddev_and_mean_32f_x2_a_H */
