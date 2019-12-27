@@ -79,8 +79,10 @@
 static inline float
 square_sum_update_1(float* S_tot, float* T_tot, uint32_t* N, const float* val){
   float ret = 0.f;
+  float N_f = (float) (*N);
   ret += (*S_tot);
-  ret += 1.f/((*N)*((*N)+1))*( (*N)*(*val) - (*T_tot) )*( (*N)*(*val) - (*T_tot) );
+  //ret += 1.f/((*N)*((*N)+1))*( (*N)*(*val) - (*T_tot) )*( (*N)*(*val) - (*T_tot) );
+  ret += 1.f/(N_f*(N_f+1.f))*( N_f*(*val) - (*T_tot) )*( N_f*(*val) - (*T_tot) );
   return ret;
 }
 
@@ -89,7 +91,7 @@ square_sum_update_equal_N(float* S0, float* T0, float* S1, float* T1, uint32_t N
   float ret = 0.f;
   ret += (*S0);
   ret += (*S1);
-  ret += 1.f/(2*N)*( (*T0) - (*T1) )*( (*T0) - (*T1) );
+  ret += 1.f/(2.f*N)*( (*T0) - (*T1) )*( (*T0) - (*T1) );
   return ret;
 }
 
@@ -110,8 +112,9 @@ volk_32f_stddev_and_mean_32f_x2_generic(float* stddev, float* mean,
   for (; number < num_points; number++)
   {
     float v = (*in_ptr++);
+    float n = (float) number;
     T += v;
-    S += 1.f/( number*(number + 1) )*( (number+1)*v - T )*( (number+1)*v - T ); 
+    S += 1.f/( n*(n + 1.f) )*( (n + 1.f)*v - T )*( (n + 1.f)*v - T ); 
   }
 
   *mean = T/num_points;
@@ -147,8 +150,9 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
     v_reg = _mm_load_ps(in_ptr);        // v <- x0 x1 x2 x3
     in_ptr += 4;
 
-    float np1 = number + 1.f;
-    f_reg = _mm_set_ps1(  1.f/( number*np1 ) );
+    float n   = (float) number;
+    float np1 = n + 1.f;
+    f_reg = _mm_set_ps1(  1.f/( n*np1 ) );
     
     T_acc = _mm_add_ps(T_acc, v_reg);   // T += v
 
@@ -215,8 +219,9 @@ volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev, float* mean,
     v_reg = _mm_load_ps(in_ptr);        // v <- x0 x1 x2 x3
     in_ptr += 4;
 
-    float np1 = number + 1.f;
-    f_reg = _mm_set_ps1(  1.f/( number*np1 ) );
+    float n   = (float) number;
+    float np1 = n + 1.f;
+    f_reg = _mm_set_ps1(  1.f/( n*np1 ) );
     
     T_acc = _mm_add_ps(T_acc, v_reg);   // T += v
 
@@ -283,9 +288,10 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
   for(;number < eigth_points; number++) {
     v_reg = _mm256_load_ps(in_ptr);        // v <- x0 x1 x2 x3
     in_ptr += 8;
-    
+
+    float n   = (float) number;
     float np1 = number + 1.f;
-    f_reg = _mm256_set1_ps(  1.f/( number*np1 ) );
+    f_reg = _mm256_set1_ps(  1.f/( n*np1 ) );
     
     T_acc = _mm256_add_ps(T_acc, v_reg);   // T += v
 
@@ -350,20 +356,20 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
   __VOLK_ATTR_ALIGNED(32) float T[8];
   __VOLK_ATTR_ALIGNED(32) float S[8];
 
-  __m256 T_acc = _mm256_load_ps(in_ptr);
+  __m256 T_acc = _mm256_loadu_ps(in_ptr);
+  in_ptr += 8;
   __m256 S_acc = _mm256_setzero_ps();
   __m256 v_reg;
   __m256 x_reg;
   __m256 f_reg;
 
-  in_ptr += 8; // First load into T_accu  
-
   for(;number < eigth_points; number++) {
-    v_reg = _mm256_load_ps(in_ptr);        // v <- x0 x1 x2 x3
+    v_reg = _mm256_loadu_ps(in_ptr);        // v <- x0 x1 x2 x3
     in_ptr += 8;
-    
+
+    float n   = (float) number;
     float np1 = number + 1.f;
-    f_reg = _mm256_set1_ps(  1.f/( number*np1 ) );
+    f_reg = _mm256_set1_ps(  1.f/( n*np1 ) );    
     
     T_acc = _mm256_add_ps(T_acc, v_reg);   // T += v
 
