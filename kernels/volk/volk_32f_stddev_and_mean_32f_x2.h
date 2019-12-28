@@ -348,6 +348,138 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
 #include <immintrin.h>
 
 static inline void
+volk_32f_stddev_and_mean_32f_x2_a_avx_2(float* stddev, float* mean,
+                                         const float* inputBuffer,
+                                         unsigned int num_points)
+{
+  const float* in_ptr = inputBuffer;
+
+  unsigned int number = 1;
+  const unsigned int sixteenth_points = num_points / 16;
+  const unsigned int eigth_points     = 2 * sixteenth_points;
+  const unsigned int qtr_points       = 2 * eigth_points;
+  const unsigned int half_points      = 2 * qtr_points;
+
+  __VOLK_ATTR_ALIGNED(32) float T[16];
+  __VOLK_ATTR_ALIGNED(32) float S[16];
+
+  __m256 T0_acc = _mm256_load_ps(in_ptr);
+  in_ptr += 8;
+  __m256 T1_acc = _mm256_load_ps(in_ptr);
+  in_ptr += 8;
+
+  __m256 S0_acc = _mm256_setzero_ps();
+  __m256 S1_acc = _mm256_setzero_ps();
+  __m256 v0_reg, v1_reg;
+  __m256 x0_reg, x1_reg;
+  __m256 f0_reg, f1_reg;
+
+  for(;number < sixteenth_points; number++) {
+    v0_reg = _mm256_load_ps(in_ptr);
+    in_ptr += 8;
+
+    v1_reg = _mm256_load_ps(in_ptr);
+    in_ptr += 8;
+
+    float n   = (float) number;
+    float np1 = number + 1.f;
+
+    f0_reg = _mm256_set1_ps(  1.f/( n*np1 ) );
+    f1_reg = _mm256_set1_ps(  1.f/( n*np1 ) );
+    
+    T0_acc = _mm256_add_ps(T0_acc, v0_reg);
+    T1_acc = _mm256_add_ps(T1_acc, v1_reg);
+
+    x0_reg = _mm256_set1_ps(np1);
+    x1_reg = _mm256_set1_ps(np1);
+
+    x0_reg = _mm256_mul_ps(x0_reg, v0_reg);
+    x1_reg = _mm256_mul_ps(x1_reg, v1_reg);
+
+    x0_reg = _mm256_sub_ps(x0_reg, T0_acc);
+    x1_reg = _mm256_sub_ps(x1_reg, T1_acc);
+
+    x0_reg = _mm256_mul_ps(x0_reg, x0_reg);
+    x1_reg = _mm256_mul_ps(x1_reg, x1_reg);
+
+    x0_reg = _mm256_mul_ps(x0_reg, f0_reg);
+    x1_reg = _mm256_mul_ps(x1_reg, f1_reg);
+
+    S0_acc = _mm256_add_ps(S0_acc, x0_reg);
+    S1_acc = _mm256_add_ps(S1_acc, x1_reg);
+  }  
+
+  _mm256_store_ps(&T[0], T0_acc);
+  _mm256_store_ps(&T[8], T1_acc);
+  _mm256_store_ps(&S[0], S0_acc);  
+  _mm256_store_ps(&S[8], S1_acc);  
+
+  float T01, T23, T45, T67, T0123, T4567, T_tot0;
+  float S01 = 0.f, S23 = 0.f, S45 = 0.f, S67 = 0.f, S0123 = 0.f, S4567 = 0.f, S_tot0 = 0.f;
+  
+  T01 = T[0] + T[1];
+  T23 = T[2] + T[3];
+  T45 = T[4] + T[5];
+  T67 = T[6] + T[7];
+  T0123 = T01 + T23;
+  T4567 = T45 + T67;
+  T_tot0 = T0123 + T4567;
+
+  update_square_sum_equal_N(&S01, &S[0], &T[0], &S[1], &T[1], &sixteenth_points);
+  update_square_sum_equal_N(&S23, &S[2], &T[2], &S[3], &T[3], &sixteenth_points);
+  update_square_sum_equal_N(&S45, &S[4], &T[4], &S[5], &T[5], &sixteenth_points);
+  update_square_sum_equal_N(&S67, &S[6], &T[6], &S[7], &T[7], &sixteenth_points);
+
+  update_square_sum_equal_N(&S0123, &S01 , &T01 , &S23 , &T23 , &eigth_points);  
+  update_square_sum_equal_N(&S4567, &S45 , &T45 , &S67 , &T67 , &eigth_points);  
+
+  update_square_sum_equal_N(&S_tot0, &S0123 , &T0123 , &S4567 , &T4567 , &qtr_points);  
+
+  float S_tot1 = 0.f;
+  S01 = 0.f; S23 = 0.f; S45 = 0.f; S67 = 0.f; S0123 = 0.f; S4567 = 0.f;
+
+  T01 = T[8] + T[9];
+  T23 = T[10] + T[11];
+  T45 = T[12] + T[13];
+  T67 = T[14] + T[15];
+  T0123 = T01 + T23;
+  T4567 = T45 + T67;
+  float T_tot1 = T0123 + T4567;
+
+  update_square_sum_equal_N(&S01, &S[8], &T[8], &S[9], &T[9], &sixteenth_points);
+  update_square_sum_equal_N(&S23, &S[10], &T[10], &S[11], &T[11], &sixteenth_points);
+  update_square_sum_equal_N(&S45, &S[12], &T[12], &S[13], &T[13], &sixteenth_points);
+  update_square_sum_equal_N(&S67, &S[14], &T[14], &S[15], &T[15], &sixteenth_points);
+
+  update_square_sum_equal_N(&S0123, &S01 , &T01 , &S23 , &T23 , &eigth_points);  
+  update_square_sum_equal_N(&S4567, &S45 , &T45 , &S67 , &T67 , &eigth_points);    
+
+  update_square_sum_equal_N(&S_tot1, &S0123 , &T0123 , &S4567 , &T4567 , &qtr_points); 
+
+  float S_tot = 0.f;
+  float T_tot = 0.f;
+  T_tot  = T_tot0 + T_tot1;
+
+  update_square_sum_equal_N(&S_tot, &S_tot0 , &T_tot0 , &S_tot1 , &T_tot1 , &half_points);
+
+  number = sixteenth_points*16;
+
+  for (; number < num_points; number++) {
+    update_square_sum_1_val(&S_tot, &T_tot, &number, in_ptr);
+    T_tot += (*in_ptr++);
+  }    
+
+  *stddev = sqrtf( S_tot / num_points );
+  *mean   = T_tot / num_points;
+}
+#endif /* LV_HAVE_AVX */
+
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
 volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
                                          const float* inputBuffer,
                                          unsigned int num_points)
@@ -416,6 +548,136 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
 
   for (; number < num_points; number++) {
     update_square_sum_1_val( &S_tot, &T_tot, &number, in_ptr );
+    T_tot += (*in_ptr++);
+  }    
+
+  *stddev = sqrtf( S_tot / num_points );
+  *mean   = T_tot / num_points;
+}
+#endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_stddev_and_mean_32f_x2_u_avx_2(float* stddev, float* mean,
+                                         const float* inputBuffer,
+                                         unsigned int num_points)
+{
+  const float* in_ptr = inputBuffer;
+
+  unsigned int number = 1;
+  const unsigned int sixteenth_points = num_points / 16;
+  const unsigned int eigth_points     = 2 * sixteenth_points;
+  const unsigned int qtr_points       = 2 * eigth_points;
+  const unsigned int half_points      = 2 * qtr_points;
+
+  __VOLK_ATTR_ALIGNED(32) float T[16];
+  __VOLK_ATTR_ALIGNED(32) float S[16];
+
+  __m256 T0_acc = _mm256_loadu_ps(in_ptr);
+  in_ptr += 8;
+  __m256 T1_acc = _mm256_loadu_ps(in_ptr);
+  in_ptr += 8;
+
+  __m256 S0_acc = _mm256_setzero_ps();
+  __m256 S1_acc = _mm256_setzero_ps();
+  __m256 v0_reg, v1_reg;
+  __m256 x0_reg, x1_reg;
+  __m256 f0_reg, f1_reg;
+
+  for(;number < sixteenth_points; number++) {
+    v0_reg = _mm256_loadu_ps(in_ptr);
+    in_ptr += 8;
+
+    v1_reg = _mm256_loadu_ps(in_ptr);
+    in_ptr += 8;
+
+    float n   = (float) number;
+    float np1 = number + 1.f;
+
+    f0_reg = _mm256_set1_ps(  1.f/( n*np1 ) );
+    f1_reg = _mm256_set1_ps(  1.f/( n*np1 ) );
+    
+    T0_acc = _mm256_add_ps(T0_acc, v0_reg);
+    T1_acc = _mm256_add_ps(T1_acc, v1_reg);
+
+    x0_reg = _mm256_set1_ps(np1);
+    x1_reg = _mm256_set1_ps(np1);
+
+    x0_reg = _mm256_mul_ps(x0_reg, v0_reg);
+    x1_reg = _mm256_mul_ps(x1_reg, v1_reg);
+
+    x0_reg = _mm256_sub_ps(x0_reg, T0_acc);
+    x1_reg = _mm256_sub_ps(x1_reg, T1_acc);
+
+    x0_reg = _mm256_mul_ps(x0_reg, x0_reg);
+    x1_reg = _mm256_mul_ps(x1_reg, x1_reg);
+
+    x0_reg = _mm256_mul_ps(x0_reg, f0_reg);
+    x1_reg = _mm256_mul_ps(x1_reg, f1_reg);
+
+    S0_acc = _mm256_add_ps(S0_acc, x0_reg);
+    S1_acc = _mm256_add_ps(S1_acc, x1_reg);
+  }  
+
+  _mm256_store_ps(&T[0], T0_acc);
+  _mm256_store_ps(&T[8], T1_acc);
+  _mm256_store_ps(&S[0], S0_acc);  
+  _mm256_store_ps(&S[8], S1_acc);  
+
+  float T01, T23, T45, T67, T0123, T4567, T_tot0;
+  float S01 = 0.f, S23 = 0.f, S45 = 0.f, S67 = 0.f, S0123 = 0.f, S4567 = 0.f, S_tot0 = 0.f;
+  
+  T01 = T[0] + T[1];
+  T23 = T[2] + T[3];
+  T45 = T[4] + T[5];
+  T67 = T[6] + T[7];
+  T0123 = T01 + T23;
+  T4567 = T45 + T67;
+  T_tot0 = T0123 + T4567;
+
+  update_square_sum_equal_N(&S01, &S[0], &T[0], &S[1], &T[1], &sixteenth_points);
+  update_square_sum_equal_N(&S23, &S[2], &T[2], &S[3], &T[3], &sixteenth_points);
+  update_square_sum_equal_N(&S45, &S[4], &T[4], &S[5], &T[5], &sixteenth_points);
+  update_square_sum_equal_N(&S67, &S[6], &T[6], &S[7], &T[7], &sixteenth_points);
+
+  update_square_sum_equal_N(&S0123, &S01 , &T01 , &S23 , &T23 , &eigth_points);  
+  update_square_sum_equal_N(&S4567, &S45 , &T45 , &S67 , &T67 , &eigth_points);  
+
+  update_square_sum_equal_N(&S_tot0, &S0123 , &T0123 , &S4567 , &T4567 , &qtr_points);  
+
+  float S_tot1 = 0.f;
+  S01 = 0.f; S23 = 0.f; S45 = 0.f; S67 = 0.f; S0123 = 0.f; S4567 = 0.f;
+
+  T01 = T[8] + T[9];
+  T23 = T[10] + T[11];
+  T45 = T[12] + T[13];
+  T67 = T[14] + T[15];
+  T0123 = T01 + T23;
+  T4567 = T45 + T67;
+  float T_tot1 = T0123 + T4567;
+
+  update_square_sum_equal_N(&S01, &S[8], &T[8], &S[9], &T[9], &sixteenth_points);
+  update_square_sum_equal_N(&S23, &S[10], &T[10], &S[11], &T[11], &sixteenth_points);
+  update_square_sum_equal_N(&S45, &S[12], &T[12], &S[13], &T[13], &sixteenth_points);
+  update_square_sum_equal_N(&S67, &S[14], &T[14], &S[15], &T[15], &sixteenth_points);
+
+  update_square_sum_equal_N(&S0123, &S01 , &T01 , &S23 , &T23 , &eigth_points);  
+  update_square_sum_equal_N(&S4567, &S45 , &T45 , &S67 , &T67 , &eigth_points);    
+
+  update_square_sum_equal_N(&S_tot1, &S0123 , &T0123 , &S4567 , &T4567 , &qtr_points); 
+
+  float S_tot = 0.f;
+  float T_tot = 0.f;
+  T_tot  = T_tot0 + T_tot1;
+
+  update_square_sum_equal_N(&S_tot, &S_tot0 , &T_tot0 , &S_tot1 , &T_tot1 , &half_points);
+
+  number = sixteenth_points*16;
+
+  for (; number < num_points; number++) {
+    update_square_sum_1_val(&S_tot, &T_tot, &number, in_ptr);
     T_tot += (*in_ptr++);
   }    
 
