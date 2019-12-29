@@ -76,6 +76,30 @@
 #include <stdio.h>
 #include <math.h>
 
+/*
+static uint32_t 
+local_log2(uint32_t val) {
+  if      (val ==  8) { return 3; }
+  else if (val ==  4) { return 2; }
+  else if (val ==  2) { return 1; }
+  else if (val == 16) { return 4; }
+  else if (val == 32) { return 5; }
+  else if (val == 64) { return 6; }
+  return 0;
+}
+*/
+
+static inline uint32_t
+local_log2(uint32_t val){
+  uint32_t ret = 0;
+
+  while (val >>= 1) {
+    ret++;
+  }
+  return ret;
+}
+
+
 static inline void
 update_square_sum_1_val(float* S, const float* T, const uint32_t* N, const float* val){
   float n = (float) (*N);
@@ -90,6 +114,44 @@ update_square_sum_equal_N(float* S, const float* S0, const float* T0,
   (*S)  = (*S0);  
   (*S) += (*S1);
   (*S) += .5f/n*( (*T0) - (*T1) )*( (*T0) - (*T1) );
+  return;
+}
+
+static inline void
+local_sqaure_add(float* S,  const float* T0, const float* S1, const float* T1, const uint32_t* N){
+  float n = (float) (*N);
+  (*S) += (*S1);
+  (*S) += .5f/n*( (*T0) - (*T1) )*( (*T0) - (*T1) );
+  return;
+}
+
+static inline void
+accrue_square_sum( float* S, float* T, const uint32_t N_accumulators, const uint32_t N_partition){
+  // Accrue pairwise
+  uint32_t stages = local_log2(N_accumulators);
+  uint32_t accs   = N_accumulators;
+  uint32_t m = 1;
+  uint32_t partition_size = N_partition;
+
+  for (uint32_t s = 0; s < stages; s++ ) {
+    accs /= 2;
+    uint32_t idx = 0;
+    for (uint32_t a = 0; a < accs; a++)  {
+      local_sqaure_add( &S[idx] , &T[idx] , &S[idx+m], &T[idx+m], &partition_size);
+      idx += 2*m;
+    }
+    m *= 2;
+    partition_size *= 2;
+  }
+  return;
+}
+
+static inline void
+accrue_sum( float* T, const uint32_t N_accumulators) {
+  for (uint32_t i = 1; i < N_accumulators; i++)
+  {
+    T[0] += T[i];
+  }
   return;
 }
 
@@ -239,6 +301,7 @@ volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev, float* mean,
   _mm_store_ps(T, T_acc);
   _mm_store_ps(S, S_acc);
 
+
   float T01, T23, T_tot;
   float S01 = 0.f, S23 = 0.f, S_tot = 0.f;
   
@@ -250,15 +313,23 @@ volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev, float* mean,
   update_square_sum_equal_N(&S23,   &S[2], &T[2], &S[3], &T[3],  &qtr_points);
   update_square_sum_equal_N(&S_tot,  &S01,  &T01,  &S23,  &T23, &half_points);
 
+  S[0] = S_tot;
+  T[0] = T_tot;
+
+  /*
+  accrue_square_sum( S, T, 4, qtr_points);
+  accrue_sum( T , 4);
+  */
+
   number = qtr_points*4;
 
   for (; number < num_points; number++) {
-    update_square_sum_1_val(&S_tot, &T_tot, &number, in_ptr);
-    T_tot += (*in_ptr++);
+    update_square_sum_1_val(&S[0], &T[0], &number, in_ptr);
+    T[0] += (*in_ptr++);
   }
 
-  *stddev = sqrtf( S_tot / num_points );
-  *mean   = T_tot / num_points;
+  *stddev = sqrtf( S[0] / num_points );
+  *mean   = T[0] / num_points;
 }
 #endif /* LV_HAVE_SSE */
 
@@ -488,8 +559,8 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
 
   unsigned int number = 1;
   const unsigned int eigth_points = num_points / 8;
-  const unsigned int qtr_points = 2 * eigth_points;
-  const unsigned int half_points = 2 * qtr_points;  
+  //const unsigned int qtr_points = 2 * eigth_points;
+  //const unsigned int half_points = 2 * qtr_points;  
 
   __VOLK_ATTR_ALIGNED(32) float T[8];
   __VOLK_ATTR_ALIGNED(32) float S[8];
@@ -523,6 +594,8 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
   _mm256_store_ps(T, T_acc);
   _mm256_store_ps(S, S_acc);  
 
+  /*
+
   float T01, T23, T45, T67, T0123, T4567, T_tot;
   float S01 = 0.f, S23 = 0.f, S45 = 0.f, S67 = 0.f, S0123 = 0.f, S4567 = 0.f, S_tot = 0.f;
   
@@ -544,15 +617,30 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
 
   update_square_sum_equal_N(&S_tot, &S0123 , &T0123 , &S4567 , &T4567 , &half_points);
 
+  */
+  accrue_square_sum( S, T, 8, eigth_points);
+  accrue_sum( T, 8);
+
+  /*
+
+  T[0] += T[1];
+  T[0] += T[2];
+  T[0] += T[3];
+  T[0] += T[4];
+  T[0] += T[5];
+  T[0] += T[6];
+  T[0] += T[7];
+  */
+
   number = eigth_points*8;
 
   for (; number < num_points; number++) {
-    update_square_sum_1_val( &S_tot, &T_tot, &number, in_ptr );
-    T_tot += (*in_ptr++);
+    update_square_sum_1_val( &S[0], &T[0], &number, in_ptr );
+    T[0] += (*in_ptr++);
   }    
 
-  *stddev = sqrtf( S_tot / num_points );
-  *mean   = T_tot / num_points;
+  *stddev = sqrtf( S[0] / num_points );
+  *mean   = T[0] / num_points;
 }
 #endif /* LV_HAVE_AVX */
 
