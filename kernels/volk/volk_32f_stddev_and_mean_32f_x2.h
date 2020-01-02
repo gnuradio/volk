@@ -185,33 +185,29 @@ volk_32f_stddev_and_mean_32f_x2_neon(float* stddev, float* mean,
   for(;number < eigth_points; number++) {
     v0_reg = vld1q_f32( in_ptr );
     in_ptr += 4;
+    __VOLK_PREFETCH(in_ptr + 4);
 
     v1_reg = vld1q_f32( in_ptr );
     in_ptr += 4;
-
+    __VOLK_PREFETCH(in_ptr + 4);
 
     float n   = (float) number;
     float np1 = n + 1.f;
     f_reg = vdupq_n_f32(  1.f/( n*np1 ) );
-    
-    T0_acc = vaddq_f32(T0_acc, v0_reg);
 
-    x0_reg = vdupq_n_f32(np1);
-    x0_reg = vmulq_f32(x0_reg, v0_reg);
-    x0_reg = vsubq_f32(x0_reg, T0_acc);
-    x0_reg = vmulq_f32(x0_reg, x0_reg);
-    x0_reg = vmulq_f32(x0_reg, f_reg);
-    S0_acc = vaddq_f32(S0_acc, x0_reg);
+    T0_acc = vaddq_f32(T0_acc, v0_reg); // T = T + v  |
+    x0_reg = vdupq_n_f32(np1);          // x = n + 1  | n+1
+    x0_reg = vmulq_f32(x0_reg, v0_reg); // x = x * v  | (n+1)*v
+    x0_reg = vsubq_f32(x0_reg, T0_acc); // x = x - T  | (n+1)*v - T
+    x0_reg = vmulq_f32(x0_reg, x0_reg); // x = x * x  | ( (n+1)*v - T )**2
+    S0_acc = vfmaq_f32(S0_acc, x0_reg, f_reg); // S = S + inv(n*(n+1)*x
 
-    
     T1_acc = vaddq_f32(T1_acc, v1_reg);
-
     x1_reg = vdupq_n_f32(np1);
     x1_reg = vmulq_f32(x1_reg, v1_reg);
     x1_reg = vsubq_f32(x1_reg, T1_acc);
     x1_reg = vmulq_f32(x1_reg, x1_reg);
-    x1_reg = vmulq_f32(x1_reg, f_reg);
-    S1_acc = vaddq_f32(S1_acc, x1_reg);
+    S1_acc = vfmaq_f32(S1_acc, x1_reg, f_reg);
   }
 
   vst1q_f32(&T[0], T0_acc);
