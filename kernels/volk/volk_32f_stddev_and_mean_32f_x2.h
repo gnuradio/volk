@@ -51,7 +51,7 @@
  *
  *   // Use a normal generator with 0 mean, stddev 1
  *   std::default_random_engine generator;
- *   std::normal_distribution<float> distribution(0,1);
+ *   std::normal_distribution<float> distribution(0,1000);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
  *       rand_numbers[ii] =  distribution(generator);
@@ -122,6 +122,8 @@ volk_32f_stddev_and_mean_32f_x2_generic(float* stddev, float* mean,
   // Youngs and Cramer's Algorithm for calculating std and mean
   //   T is the running sum of values
   //   S is the running square sum of values
+  //   Using the methods discussed here:
+  //   https://doi.org/10.1145/3221269.3223036
   if (num_points == 0) { return; }
 
   const float* in_ptr = inputBuffer;
@@ -195,12 +197,12 @@ volk_32f_stddev_and_mean_32f_x2_neon(float* stddev, float* mean,
     float np1 = n + 1.f;
     f_reg = vdupq_n_f32(  1.f/( n*np1 ) );
 
-    T0_acc = vaddq_f32(T0_acc, v0_reg); // T = T + v  |
-    x0_reg = vdupq_n_f32(np1);          // x = n + 1  | n+1
-    x0_reg = vmulq_f32(x0_reg, v0_reg); // x = x * v  | (n+1)*v
-    x0_reg = vsubq_f32(x0_reg, T0_acc); // x = x - T  | (n+1)*v - T
-    x0_reg = vmulq_f32(x0_reg, x0_reg); // x = x * x  | ( (n+1)*v - T )**2
-    S0_acc = vfmaq_f32(S0_acc, x0_reg, f_reg); // S = S + inv(n*(n+1)*x
+    T0_acc = vaddq_f32(T0_acc, v0_reg);
+    x0_reg = vdupq_n_f32(np1);
+    x0_reg = vmulq_f32(x0_reg, v0_reg);
+    x0_reg = vsubq_f32(x0_reg, T0_acc);
+    x0_reg = vmulq_f32(x0_reg, x0_reg);
+    S0_acc = vfmaq_f32(S0_acc, x0_reg, f_reg);
 
     T1_acc = vaddq_f32(T1_acc, v1_reg);
     x1_reg = vdupq_n_f32(np1);
