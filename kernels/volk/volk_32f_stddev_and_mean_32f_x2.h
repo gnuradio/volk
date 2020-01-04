@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2019 Free Software Foundation, Inc.
+ * Copyright 2012, 2014, 2019 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -25,7 +25,8 @@
  *
  * \b Overview
  *
- * Computes the standard deviation and mean of the input buffer.
+ * Computes the standard deviation and mean of the input buffer by means of
+ * Youngs and Cramer's Algorithm
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -75,40 +76,50 @@
 #include <inttypes.h>
 #include <math.h>
 
+// Youngs and Cramer's Algorithm for calculating std and mean
+//   Using the methods discussed here:
+//   https://doi.org/10.1145/3221269.3223036
 
-static inline void
-update_square_sum_1_val(float* S, const float* T, const uint32_t* N, const float* val){
-  float n = (float) (*N);
-  (*S) += 1.f/( n*(n + 1.f) ) * ( n*(*val) - (*T) ) * ( n*(*val) - (*T) );
+
+static inline float
+update_square_sum_1_val(const float SquareSum, const float Sum, const size_t len, const float val){
+  // Updates a sum of squares calculated over len values with the value val
+  float n = (float) len;
+  return SquareSum + 1.f/( n * (n + 1.f) ) * ( n*val - Sum ) * ( n*val - Sum );
+}
+
+static inline float
+add_square_sums(const float SquareSum0, const float Sum0, 
+                const float SquareSum1, const float Sum1, const size_t len){
+  // Add two sums of squares calculated over the same number of values, len
+  float n = (float) len;
+  return SquareSum0 + SquareSum1 + .5f / n * ( Sum0 - Sum1 )*( Sum0 - Sum1 );
 }
 
 static inline void
-square_add(float* S,  const float* T0, const float* S1, const float* T1, const uint32_t* N){
-  float n = (float) (*N);
-  (*S) += (*S1);
-  (*S) += .5f/n*( (*T0) - (*T1) )*( (*T0) - (*T1) );
-}
+accrue_result( float* PartialSquareSums, float* PartialSums, 
+               const size_t NumberOfPartitions, const size_t PartitionLen) {
+  // Add all partial sums and square sums into the first element of the arays
+  size_t accumulators = NumberOfPartitions;
+  size_t stages = 0;
+  size_t offset = 1;
+  size_t partition_len = PartitionLen;
 
-static inline void
-accrue_result( float* S, float* T, const uint32_t N_accumulators, const uint32_t N_partition) {
-  uint32_t accumulators = N_accumulators;
-  uint32_t stages = 0;
-  uint32_t m = 1;
-  uint32_t partition_size = N_partition;
+  while (accumulators >>= 1) { stages++; } // Integer log2
+  accumulators = NumberOfPartitions;
 
-  while (accumulators >>= 1) { stages++; }
-  accumulators = N_accumulators;
-
-  for (uint32_t s = 0; s < stages; s++ ) {
+  for (size_t s = 0; s < stages; s++ ) {
     accumulators /= 2;
-    uint32_t idx = 0;
-    for (uint32_t a = 0; a < accumulators; a++)  {
-      square_add( &S[idx] , &T[idx] , &S[idx+m], &T[idx+m], &partition_size);
-      T[idx] += T[idx+m];
-      idx += 2*m;
+    size_t idx = 0;
+    for (size_t a = 0; a < accumulators; a++)  {
+      PartialSquareSums[idx] = add_square_sums(PartialSquareSums[idx], PartialSums[idx], 
+                               PartialSquareSums[idx + offset], PartialSums[idx + offset], 
+                               partition_len);
+      PartialSums[idx] += PartialSums[idx + offset];
+      idx += 2*offset;
     }
-    m *= 2;
-    partition_size *= 2;
+    offset *= 2;
+    partition_len *= 2;
   }
 }
 
@@ -119,29 +130,23 @@ volk_32f_stddev_and_mean_32f_x2_generic(float* stddev, float* mean,
                                                       const float* inputBuffer,
                                                       unsigned int num_points)
 {
-  // Youngs and Cramer's Algorithm for calculating std and mean
-  //   T is the running sum of values
-  //   S is the running square sum of values
-  //   Using the methods discussed here:
-  //   https://doi.org/10.1145/3221269.3223036
   if (num_points == 0) { return; }
 
   const float* in_ptr = inputBuffer;
 
-  float T = (*in_ptr++);
-  float S = 0.f;
+  float Sum = (*in_ptr++);
+  float SquareSum = 0.f;
   uint32_t number = 1;
 
   for (; number < num_points; number++) {
-    float v = (*in_ptr++);
+    float val = (*in_ptr++);
     float n = (float) number;
     float np1 = n + 1.f;
-    T += v;
-    S += 1.f/( n*np1 )*powf( np1*v - T , 2);
+    Sum += val;
+    SquareSum += 1.f/( n * np1 ) * powf( np1 * val - Sum , 2);
   }
-
-  *stddev = sqrtf( S / num_points );
-  *mean   = T / num_points;
+  *stddev = sqrtf( SquareSum / num_points );
+  *mean   = Sum / num_points;
 }
 #endif /* LV_HAVE_GENERIC */
 
@@ -154,17 +159,16 @@ volk_32f_stddev_and_mean_32f_x2_neon(float* stddev, float* mean,
                                       unsigned int num_points)
 {
   if (num_points == 0) { return; }
+  if (num_points < 8) {  
+       volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
+       return;
+  }
 
   const float* in_ptr = inputBuffer;
 
-  unsigned int number = 1;
+  __VOLK_ATTR_ALIGNED(16) float PSumsLoc[8] = {0.f};      // Store partial results from
+  __VOLK_ATTR_ALIGNED(16) float PSquareSumLoc[8] = {0.f}; // accumulators
 
-  __VOLK_ATTR_ALIGNED(16) float T[8] = {0.f};
-  __VOLK_ATTR_ALIGNED(16) float S[8] = {0.f};
-
-  if (num_points < 8) {   
-    T[0] = (*in_ptr++);
-    goto FINALIZE; }
 
   const unsigned int eigth_points = num_points / 8;
 
@@ -184,7 +188,7 @@ volk_32f_stddev_and_mean_32f_x2_neon(float* stddev, float* mean,
   float32x4_t x0_reg, x1_reg;
   float32x4_t f_reg;
 
-  for(;number < eigth_points; number++) {
+  for(size_t number = 1; number < eigth_points; number++) {
     v0_reg = vld1q_f32( in_ptr );
     in_ptr += 4;
     __VOLK_PREFETCH(in_ptr + 4);
@@ -212,24 +216,25 @@ volk_32f_stddev_and_mean_32f_x2_neon(float* stddev, float* mean,
     S1_acc = vfmaq_f32(S1_acc, x1_reg, f_reg);
   }
 
-  vst1q_f32(&T[0], T0_acc);
-  vst1q_f32(&T[4], T1_acc);
+  vst1q_f32(&PSumsLoc[0], T0_acc);
+  vst1q_f32(&PSumsLoc[4], T1_acc);
 
-  vst1q_f32(&S[0], S0_acc);
-  vst1q_f32(&S[4], S1_acc);
+  vst1q_f32(&PSquareSumLoc[0], S0_acc);
+  vst1q_f32(&PSquareSumLoc[4], S1_acc);
 
-  accrue_result( S, T, 8, eigth_points);
+  accrue_result( PSquareSumLoc, PSumsLoc, 8, eigth_points);
 
-  number = eigth_points*8;
+  size_t points_done = eigth_points*8;
 
-  FINALIZE:
-  for (; number < num_points; number++) {
-    update_square_sum_1_val(&S[0], &T[0], &number, in_ptr);
-    T[0] += (*in_ptr++);
+  for (; points_done < num_points; points_done++) {
+    float val = (*in_ptr);
+    PSquareSumLoc[0] = update_square_sum_1_val(PSquareSumLoc[0], PSumsLoc[0], points_done, val);
+    PSumsLoc[0]     += val;
+    in_ptr++;
   }
 
-  *stddev = sqrtf( S[0] / num_points );
-  *mean   = T[0] / num_points;
+  *stddev = sqrtf( PSquareSumLoc[0] / num_points );
+  *mean   = PSumsLoc[0] / num_points;
 }
 #endif /* LV_HAVE_NEON */
 
@@ -242,17 +247,16 @@ volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev, float* mean,
                                       unsigned int num_points)
 {
   if (num_points == 0) { return; }
+  if (num_points < 8) {  
+       volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
+       return;
+  }
 
   const float* in_ptr = inputBuffer;
-
-  unsigned int number = 1;
 
   __VOLK_ATTR_ALIGNED(16) float T[8] = {0.f};
   __VOLK_ATTR_ALIGNED(16) float S[8] = {0.f};
 
-  if (num_points < 8) {   
-    T[0] = (*in_ptr++);
-    goto FINALIZE; }
 
   const unsigned int eigth_points = num_points / 8;
 
@@ -267,7 +271,7 @@ volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev, float* mean,
   __m128 f_reg;
 
 
-  for(;number < eigth_points; number++) {
+  for(size_t number = 1; number < eigth_points; number++) {
     v0_reg = _mm_loadu_ps(in_ptr);
     in_ptr += 4;
     __VOLK_PREFETCH(in_ptr + 4);
@@ -306,12 +310,13 @@ volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev, float* mean,
 
   accrue_result( S, T, 8, eigth_points);
 
-  number = eigth_points*8;
+  size_t points_done = eigth_points*8;
 
-  FINALIZE:
-  for (; number < num_points; number++) {
-    update_square_sum_1_val(&S[0], &T[0], &number, in_ptr);
-    T[0] += (*in_ptr++);
+  for (; points_done < num_points; points_done++) {
+    float val = (*in_ptr);
+    S[0] = update_square_sum_1_val(S[0], T[0], points_done, val);
+    T[0] += val;
+    in_ptr++;
   }
 
   *stddev = sqrtf( S[0] / num_points );
@@ -329,6 +334,10 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
                                          unsigned int num_points)
 {
   if (num_points == 0) { return; }
+  if (num_points < 16) {  
+       volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
+       return;
+  }
 
   const float* in_ptr = inputBuffer;
 
@@ -337,10 +346,6 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
   __VOLK_ATTR_ALIGNED(32) float T[16] = {0.f};
   __VOLK_ATTR_ALIGNED(32) float S[16] = {0.f};
   
-  if (num_points < 16) {   
-    T[0] = (*in_ptr++);
-    goto FINALIZE; }
-
   const unsigned int sixteenth_points = num_points / 16;
 
   __m256 T0_acc = _mm256_loadu_ps(in_ptr);
@@ -397,11 +402,10 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
 
   number = sixteenth_points*16;
 
-  FINALIZE:
   for (; number < num_points; number++) {
-    update_square_sum_1_val(&S[0], &T[0], &number, in_ptr);
+    S[0] = update_square_sum_1_val(S[0], T[0], number, *in_ptr);
     T[0] += (*in_ptr++);
-  }    
+  }
 
   *stddev = sqrtf( S[0] / num_points );
   *mean   = T[0] / num_points;
@@ -417,6 +421,10 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
                                       unsigned int num_points)
 {
   if (num_points == 0) { return; }
+  if (num_points < 8) {  
+       volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
+       return;
+  }
 
   const float* in_ptr = inputBuffer;
 
@@ -425,9 +433,6 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
   __VOLK_ATTR_ALIGNED(16) float T[8] = {0.f};
   __VOLK_ATTR_ALIGNED(16) float S[8] = {0.f};
 
-  if (num_points < 8) {   
-    T[0] = (*in_ptr++);
-    goto FINALIZE; }
 
   const unsigned int eigth_points = num_points / 8;
 
@@ -483,9 +488,8 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
 
   number = eigth_points*8;
 
-  FINALIZE:
   for (; number < num_points; number++) {
-    update_square_sum_1_val(&S[0], &T[0], &number, in_ptr);
+    S[0] = update_square_sum_1_val(S[0], T[0], number, *in_ptr);
     T[0] += (*in_ptr++);
   }
 
@@ -505,15 +509,16 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
   if (num_points == 0) { return; }
 
   const float* in_ptr = inputBuffer;
+  if (num_points < 16) {  
+       volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
+       return;
+  }
 
   unsigned int number = 1;
 
   __VOLK_ATTR_ALIGNED(32) float T[16] = {0.f};
   __VOLK_ATTR_ALIGNED(32) float S[16] = {0.f};
 
-  if (num_points < 16) {   
-    T[0] = (*in_ptr++);
-    goto FINALIZE; }
 
   const unsigned int sixteenth_points = num_points / 16;
 
@@ -570,11 +575,10 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
 
   number = sixteenth_points*16;
 
-  FINALIZE:
   for (; number < num_points; number++) {
-    update_square_sum_1_val(&S[0], &T[0], &number, in_ptr);
+    S[0] = update_square_sum_1_val(S[0], T[0], number, *in_ptr);
     T[0] += (*in_ptr++);
-  }    
+  }
 
   *stddev = sqrtf( S[0] / num_points );
   *mean   = T[0] / num_points;
