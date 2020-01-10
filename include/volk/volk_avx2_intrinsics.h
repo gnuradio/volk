@@ -60,4 +60,27 @@ _mm256_polar_fsign_add_llrs_avx2(__m256 src0, __m256 src1, __m128i fbits){
     __m256 dst = _mm256_add_ps(llr0, llr1);
     return dst;
 }
+
+static inline __m256
+_mm256_magnitudesquared_ps_avx2(const __m256 cplxValue0, const __m256 cplxValue1){
+  const __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+  const __m256 squared0 = _mm256_mul_ps(cplxValue0, cplxValue0); // Square the values
+  const __m256 squared1 = _mm256_mul_ps(cplxValue1, cplxValue1); // Square the Values
+  const __m256 complex_result = _mm256_hadd_ps(squared0, squared1);
+  return _mm256_permutevar8x32_ps(complex_result, idx);
+}
+
+static inline __m256
+_mm256_scaled_norm_dist_ps_avx2(const __m256 symbols0, const __m256 symbols1, const __m256 points0, const __m256 points1, const __m256 scalar){
+  /*
+   * Calculate: |y - x|^2 * SNR_lin
+   * Consider 'symbolsX' and 'pointsX' to be complex float
+   * 'symbolsX' are 'y' and 'pointsX' are 'x'
+   */
+  const __m256 diff0 = _mm256_sub_ps(symbols0, points0);
+  const __m256 diff1 = _mm256_sub_ps(symbols1, points1);
+  const __m256 norms = _mm256_magnitudesquared_ps_avx2(diff0, diff1);
+  return _mm256_mul_ps(norms, scalar);
+}
+
 #endif /* INCLUDE_VOLK_VOLK_AVX2_INTRINSICS_H_ */
