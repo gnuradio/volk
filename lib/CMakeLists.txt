@@ -260,19 +260,11 @@ if(neon_compile_result)
     check_c_source_compiles("#include <volk/volk_common.h>\n int main(){__VOLK_ASM volatile(\"sub v1.4s,v1.4s,v1.4s\");}"
                             have_neonv8_result )
 
-    # if both are supported we let VOLK choose the preferred one
-    if (NOT (have_neonv7_result EQUAL have_neonv8_result))
-        if (have_neonv7_result)
-            OVERRULE_ARCH(neonv8 "CPU is armv7")
-        endif()
-
-        if (have_neonv8_result)
-            OVERRULE_ARCH(neonv7 "CPU is armv8")
-        endif()
+    if (NOT have_neonv7_result)
+        OVERRULE_ARCH(neonv7 "Compiler doesn't support neonv7")
     endif()
 
-    if ((NOT have_neonv8_result) AND (NOT have_neonv7_result))
-        OVERRULE_ARCH(neonv7 "Compiler doesn't support neonv7")
+    if (NOT have_neonv8_result)
         OVERRULE_ARCH(neonv8 "Compiler doesn't support neonv8")
     endif()
 else(neon_compile_result)
