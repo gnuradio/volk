@@ -125,4 +125,14 @@ _mm256_polar_fsign_add_llrs(__m256 src0, __m256 src1, __m128i fbits){
     return dst;
 }
 
+static inline __m256
+_mm256_accumulate_square_sum(__m256 sq_acc, __m256 acc, __m256 val, __m256 rec, __m256 aux)
+{
+  aux = _mm256_mul_ps(aux, val);
+  aux = _mm256_sub_ps(aux, acc);
+  aux = _mm256_mul_ps(aux, aux);
+  aux = _mm256_mul_ps(aux, rec);
+  return _mm256_add_ps(sq_acc, aux);
+}
+
 #endif /* INCLUDE_VOLK_VOLK_AVX_INTRINSICS_H_ */
