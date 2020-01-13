@@ -147,4 +147,13 @@ static inline float32x4_t _vlogq_f32(float32x4_t x)
     return poly;
 }
 
+static inline float32x4_t 
+_neon_accumulate_square_sum(float32x4_t sq_acc, float32x4_t acc, float32x4_t val, 
+                       float32x4_t rec, float32x4_t aux){
+    aux = vmulq_f32(aux, val);
+    aux = vsubq_f32(aux, acc);
+    aux = vmulq_f32(aux, aux);
+    return vfmaq_f32(sq_acc, aux, rec);
+}
+
 #endif /* INCLUDE_VOLK_VOLK_NEON_INTRINSICS_H_ */
