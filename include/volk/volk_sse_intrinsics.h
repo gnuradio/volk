@@ -55,12 +55,5 @@ _mm_accumulate_square_sum(__m128 sq_acc, __m128 acc, __m128 val, __m128 rec, __m
   aux = _mm_mul_ps(aux, rec);
   return _mm_add_ps(sq_acc, aux);
 }
-/*
-
-static inline __m128
-magnus(__m128 x){
-	return x;
-}
-*/
 
 #endif /* INCLUDE_VOLK_VOLK_SSE_INTRINSICS_H_ */
