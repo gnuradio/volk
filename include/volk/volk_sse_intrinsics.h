@@ -47,7 +47,7 @@ _mm_magnitude_ps(__m128 cplxValue1, __m128 cplxValue2){
 }
 
 static inline __m128
-_mm_accumulate_square_sum(__m128 sq_acc, __m128 acc, __m128 val, __m128 rec, __m128 aux)
+_mm_accumulate_square_sum_ps(__m128 sq_acc, __m128 acc, __m128 val, __m128 rec, __m128 aux)
 {
   aux = _mm_mul_ps(aux, val);
   aux = _mm_sub_ps(aux, acc);
