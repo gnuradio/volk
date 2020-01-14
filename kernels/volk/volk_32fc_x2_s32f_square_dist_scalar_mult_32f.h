@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2012, 2014 Free Software Foundation, Inc.
+ * Copyright 2012, 2014, 2019 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -79,69 +79,73 @@
 #ifndef INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_H
 #define INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_H
 
-#include<inttypes.h>
-#include<stdio.h>
 #include<volk/volk_complex.h>
-#include <string.h>
+
+
+static inline void
+calculate_scaled_distances(float* target, const lv_32fc_t symbol, const lv_32fc_t* points,
+                           const float scalar, const unsigned int num_points)
+{
+  lv_32fc_t diff;
+  for(unsigned int i = 0; i < num_points; ++i) {
+    /*
+     * Calculate: |y - x|^2 * SNR_lin
+     * Compare C++: *target++ = scalar * std::norm(symbol - *constellation++);
+     */
+    diff = symbol - *points++;
+    *target++ = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
+  }
+}
 
 
 #ifdef LV_HAVE_AVX2
 #include<immintrin.h>
+#include<volk/volk_avx2_intrinsics.h>
 
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* src0, lv_32fc_t* points,
-                                                     float scalar, unsigned int num_points)
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* src0, 
+                                                     lv_32fc_t* points, float scalar, 
+                                                     unsigned int num_points)
 {
   const unsigned int num_bytes = num_points*8;
-  __m128 xmm0, xmm9, xmm10, xmm11;
-  __m256 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8;
+  __m128 xmm9, xmm10;
+  __m256 xmm4, xmm6;
+  __m256 xmm_points0, xmm_points1, xmm_result;
 
-  lv_32fc_t diff;
-  memset(&diff, 0x0, 2*sizeof(float));
+  const unsigned int bound = num_bytes >> 6;
+  const unsigned int leftovers0 = (num_bytes >> 5) & 1;
+  const unsigned int leftovers1 = (num_bytes >> 4) & 1;
+  const unsigned int leftovers2 = (num_bytes >> 3) & 1;
+  
+  // load complex value into all parts of the register.
+  const __m256 xmm_symbol = _mm256_castpd_ps(_mm256_broadcast_sd((const double*)src0));
+  const __m128 xmm128_symbol = _mm256_extractf128_ps(xmm_symbol, 1);
+  
+  // Load scalar into all 8 parts of the register
+  const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
+  const __m128 xmm128_scalar = _mm256_extractf128_ps(xmm_scalar, 1);
 
-  float sq_dist = 0.0;
-  int bound = num_bytes >> 6;
-  int leftovers0 = (num_bytes >> 5) & 1;
-  int leftovers1 = (num_bytes >> 4) & 1;
-  int leftovers2 = (num_bytes >> 3) & 1;
-  int i = 0;
-
-  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
-  xmm1 = _mm256_setzero_ps();
-  xmm2 = _mm256_load_ps((float*)&points[0]);
-  xmm8 = _mm256_set1_ps(scalar);
-  xmm11 = _mm256_extractf128_ps(xmm8,1);
-  xmm0 = _mm_load_ps((float*)src0);
-  xmm0 = _mm_permute_ps(xmm0, 0b01000100);
-  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
-  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 1);
-  xmm3 = _mm256_load_ps((float*)&points[4]);
-
-  for(; i < bound; ++i) {
-    xmm4 = _mm256_sub_ps(xmm1, xmm2);
-    xmm5 = _mm256_sub_ps(xmm1, xmm3);
+  // Set permutation constant
+  const __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+  
+  for(unsigned int i = 0; i < bound; ++i) {
+    xmm_points0 = _mm256_load_ps((float*)points);
+    xmm_points1 = _mm256_load_ps((float*)(points + 4));
     points += 8;
-    xmm6 = _mm256_mul_ps(xmm4, xmm4);
-    xmm7 = _mm256_mul_ps(xmm5, xmm5);
+    __VOLK_PREFETCH(points);
 
-    xmm2 = _mm256_load_ps((float*)&points[0]);
-
-    xmm4 = _mm256_hadd_ps(xmm6, xmm7);
-    xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
-
-    xmm3 = _mm256_load_ps((float*)&points[4]);
-
-    xmm4 = _mm256_mul_ps(xmm4, xmm8);
-
-    _mm256_store_ps(target, xmm4);
-
+    xmm_result = _mm256_scaled_norm_dist_ps_avx2(xmm_symbol, xmm_symbol,
+                                                 xmm_points0, xmm_points1, 
+                                                 xmm_scalar);
+    
+    _mm256_store_ps(target, xmm_result);
     target += 8;
   }
 
-  for(i = 0; i < leftovers0; ++i) {
-    xmm2 = _mm256_load_ps((float*)&points[0]);
+  for(unsigned int i = 0; i < leftovers0; ++i) {
+    xmm_points0 = _mm256_load_ps((float*)points);
 
-    xmm4 = _mm256_sub_ps(xmm1, xmm2);
+    xmm4 = _mm256_sub_ps(xmm_symbol, xmm_points0);
 
     points += 4;
 
@@ -150,18 +154,17 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
     xmm4 = _mm256_hadd_ps(xmm6, xmm6);
     xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
 
-    xmm4 = _mm256_mul_ps(xmm4, xmm8);
+    xmm_result = _mm256_mul_ps(xmm4, xmm_scalar);
 
-    xmm9 = _mm256_extractf128_ps(xmm4,1);
+    xmm9 = _mm256_extractf128_ps(xmm_result, 1);
     _mm_store_ps(target,xmm9);
-
     target += 4;
   }
 
-  for(i = 0; i < leftovers1; ++i) {
-    xmm9 = _mm_load_ps((float*)&points[0]);
+  for(unsigned int i = 0; i < leftovers1; ++i) {
+    xmm9 = _mm_load_ps((float*)points);
 
-    xmm10 = _mm_sub_ps(xmm0, xmm9);
+    xmm10 = _mm_sub_ps(xmm128_symbol, xmm9);
 
     points += 2;
 
@@ -169,21 +172,13 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
 
     xmm10 = _mm_hadd_ps(xmm9, xmm9);
 
-    xmm10 = _mm_mul_ps(xmm10, xmm11);
+    xmm10 = _mm_mul_ps(xmm10, xmm128_scalar);
 
     _mm_storeh_pi((__m64*)target, xmm10);
-
     target += 2;
   }
 
-  for(i = 0; i < leftovers2; ++i) {
-
-    diff = src0[0] - points[0];
-
-    sq_dist = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
-
-    target[0] = sq_dist;
-  }
+  calculate_scaled_distances(target, src0[0], points, scalar, leftovers2);
 }
 
 #endif /*LV_HAVE_AVX2*/
@@ -191,152 +186,96 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
 
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(
-        float *target, lv_32fc_t *src0, lv_32fc_t *points,
-        float scalar, unsigned int num_points) {
-  static const unsigned int work_size = 8;
-  unsigned int avx_work_size = num_points / work_size * work_size;
-  int i = 0;
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(float *target, lv_32fc_t *src0, 
+                                                    lv_32fc_t *points, float scalar, 
+                                                    unsigned int num_points) {
+  const int eightsPoints = num_points / 8;
+  const int remainder = num_points - 8 * eightsPoints;
+  
+  __m256 xmm_points0, xmm_points1, xmm_result;
 
-  for (; i < avx_work_size; i += work_size) {
-    lv_32fc_t src = *src0;
-    float src_real = lv_creal(src);
-    float src_imag = lv_cimag(src);
-    __m256 source = _mm256_setr_ps(src_real, src_imag, src_real, src_imag, src_real, src_imag, src_real, src_imag);
-    __m256 points_low = _mm256_load_ps((const float *) points);
-    __m256 points_high = _mm256_load_ps((const float *) (points + work_size / 2));
-    __m256 difference_low = _mm256_sub_ps(source, points_low);
-    __m256 difference_high = _mm256_sub_ps(source, points_high);
-
-    difference_low = _mm256_mul_ps(difference_low, difference_low);
-    difference_high = _mm256_mul_ps(difference_high, difference_high);
-
-    __m256 magnitudes_squared = _mm256_hadd_ps(difference_low, difference_high);
-    __m128 lower_magnitudes_squared_bottom = _mm256_extractf128_ps(magnitudes_squared, 0);
-    __m128 upper_magnitudes_squared_top = _mm256_extractf128_ps(magnitudes_squared, 1);
-    __m256 lower_magnitudes_squared = _mm256_castps128_ps256(lower_magnitudes_squared_bottom);
-
-    lower_magnitudes_squared = _mm256_insertf128_ps(
-            lower_magnitudes_squared, _mm_permute_ps(lower_magnitudes_squared_bottom, 0x4E), 1
-    );
-
-    __m256 upper_magnitudes_squared = _mm256_castps128_ps256(upper_magnitudes_squared_top);
-
-    upper_magnitudes_squared = _mm256_insertf128_ps(upper_magnitudes_squared, upper_magnitudes_squared_top, 1);
-    upper_magnitudes_squared_top = _mm_permute_ps(upper_magnitudes_squared_top, 0x4E);
-    upper_magnitudes_squared = _mm256_insertf128_ps(upper_magnitudes_squared, upper_magnitudes_squared_top, 0);
-
-    __m256 ordered_magnitudes_squared = _mm256_blend_ps(lower_magnitudes_squared, upper_magnitudes_squared, 0xCC);
-    __m256 scalars = _mm256_set1_ps(scalar);
-    __m256 output = _mm256_mul_ps(ordered_magnitudes_squared, scalars);
-
-    _mm256_store_ps(target, output);
-    target += work_size;
-    points += work_size;
+  // load complex value into all parts of the register.
+  const __m256 xmm_symbol = _mm256_castpd_ps(_mm256_broadcast_sd((const double*)src0));
+  
+  // Load scalar into all 8 parts of the register
+  const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
+  
+  for(int i = 0; i < eightsPoints; ++i){
+    xmm_points0 = _mm256_load_ps((float*)points);
+    xmm_points1 = _mm256_load_ps((float*)(points + 4));
+    points += 8;
+    
+    xmm_result = _mm256_scaled_norm_dist_ps(xmm_symbol, xmm_symbol, xmm_points0, 
+                                            xmm_points1, xmm_scalar);
+    
+    _mm256_store_ps(target, xmm_result);
+    target += 8;
   }
-  for (; i < num_points; ++i) {
-    lv_32fc_t diff = src0[0] - *points;
-
-    *target = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
-    ++target;
-    ++points;
-  }
+  
+  const lv_32fc_t symbol = *src0;
+  calculate_scaled_distances(target, symbol, points, scalar, remainder);
 }
 
 #endif /* LV_HAVE_AVX */
 
 
 #ifdef LV_HAVE_SSE3
-#include<xmmintrin.h>
 #include<pmmintrin.h>
+#include<volk/volk_sse3_intrinsics.h>
 
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* src0, lv_32fc_t* points,
-                                                     float scalar, unsigned int num_points)
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* src0, 
+                                                     lv_32fc_t* points, float scalar, 
+                                                     unsigned int num_points)
 {
-  const unsigned int num_bytes = num_points*8;
+  __m128 xmm_points0, xmm_points1, xmm_result;
 
-  __m128 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8;
+  /*
+   * First do 4 values in every loop iteration.
+   * There may be up to 3 values left.
+   * leftovers0 indicates if at least 2 more are available for SSE execution.
+   * leftovers1 indicates if there is a single element left.
+   */
+  const int quarterPoints = num_points / 4;
+  const int leftovers0 = (num_points / 2) - 2 * quarterPoints;
+  const int leftovers1 = num_points % 2;
 
-  lv_32fc_t diff;
-  memset(&diff, 0x0, 2*sizeof(float));
+  // load complex value into both parts of the register.
+  const __m128 xmm_symbol = _mm_castpd_ps(_mm_load1_pd((const double*)src0));
+  
+  // Load scalar into all 4 parts of the register
+  const __m128 xmm_scalar = _mm_load1_ps(&scalar);
 
-  float sq_dist = 0.0;
-  int bound = num_bytes >> 5;
-  int leftovers0 = (num_bytes >> 4) & 1;
-  int leftovers1 = (num_bytes >> 3) & 1;
-  int i = 0;
-
-  xmm1 = _mm_setzero_ps();
-  xmm1 = _mm_loadl_pi(xmm1, (__m64*)src0);
-  xmm2 = _mm_load_ps((float*)&points[0]);
-  xmm8 = _mm_load1_ps(&scalar);
-  xmm1 = _mm_movelh_ps(xmm1, xmm1);
-  xmm3 = _mm_load_ps((float*)&points[2]);
-
-  for(; i < bound - 1; ++i) {
-    xmm4 = _mm_sub_ps(xmm1, xmm2);
-    xmm5 = _mm_sub_ps(xmm1, xmm3);
+  for(int i = 0; i < quarterPoints; ++i) {
+    xmm_points0 = _mm_load_ps((float*)points);
+    xmm_points1 = _mm_load_ps((float*)(points + 2));
     points += 4;
-    xmm6 = _mm_mul_ps(xmm4, xmm4);
-    xmm7 = _mm_mul_ps(xmm5, xmm5);
+    __VOLK_PREFETCH(points);
+    // calculate distances
+    xmm_result = _mm_scaled_norm_dist_ps_sse3(xmm_symbol, xmm_symbol, xmm_points0, 
+                                              xmm_points1, xmm_scalar);
 
-    xmm2 = _mm_load_ps((float*)&points[0]);
-
-    xmm4 = _mm_hadd_ps(xmm6, xmm7);
-
-    xmm3 = _mm_load_ps((float*)&points[2]);
-
-    xmm4 = _mm_mul_ps(xmm4, xmm8);
-
-    _mm_store_ps(target, xmm4);
-
+    _mm_store_ps(target, xmm_result);
     target += 4;
   }
 
-  xmm4 = _mm_sub_ps(xmm1, xmm2);
-  xmm5 = _mm_sub_ps(xmm1, xmm3);
-
-  points += 4;
-  xmm6 = _mm_mul_ps(xmm4, xmm4);
-  xmm7 = _mm_mul_ps(xmm5, xmm5);
-
-  xmm4 = _mm_hadd_ps(xmm6, xmm7);
-
-  xmm4 = _mm_mul_ps(xmm4, xmm8);
-
-  _mm_store_ps(target, xmm4);
-
-  target += 4;
-
-  for(i = 0; i < leftovers0; ++i) {
-    xmm2 = _mm_load_ps((float*)&points[0]);
-
-    xmm4 = _mm_sub_ps(xmm1, xmm2);
-
+  for(int i = 0; i < leftovers0; ++i) {
+    xmm_points0 = _mm_load_ps((float*)points);
     points += 2;
+    
+    xmm_points0 = _mm_sub_ps(xmm_symbol, xmm_points0);
+    xmm_points0 = _mm_mul_ps(xmm_points0, xmm_points0);
+    xmm_points0 = _mm_hadd_ps(xmm_points0, xmm_points0);
+    xmm_result = _mm_mul_ps(xmm_points0, xmm_scalar);
 
-    xmm6 = _mm_mul_ps(xmm4, xmm4);
-
-    xmm4 = _mm_hadd_ps(xmm6, xmm6);
-
-    xmm4 = _mm_mul_ps(xmm4, xmm8);
-
-    _mm_storeh_pi((__m64*)target, xmm4);
-
+    _mm_storeh_pi((__m64*)target, xmm_result);
     target += 2;
   }
 
-  for(i = 0; i < leftovers1; ++i) {
-
-    diff = src0[0] - points[0];
-
-    sq_dist = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
-
-    target[0] = sq_dist;
-  }
+  calculate_scaled_distances(target, src0[0], points, scalar, leftovers1);
 }
 
 #endif /*LV_HAVE_SSE3*/
@@ -344,20 +283,12 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* s
 
 #ifdef LV_HAVE_GENERIC
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target, lv_32fc_t* src0, lv_32fc_t* points,
-                                                      float scalar, unsigned int num_points)
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target, lv_32fc_t* src0, 
+                                                      lv_32fc_t* points, float scalar, 
+                                                      unsigned int num_points)
 {
-  lv_32fc_t diff;
-  float sq_dist;
-  unsigned int i = 0;
-
-  for(; i < num_points; ++i) {
-    diff = src0[0] - points[i];
-
-    sq_dist = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
-
-    target[i] = sq_dist;
-  }
+  const lv_32fc_t symbol = *src0;
+  calculate_scaled_distances(target, symbol, points, scalar, num_points);
 }
 
 #endif /*LV_HAVE_GENERIC*/
@@ -368,66 +299,57 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target, lv_32fc_t* 
 #ifndef INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_H
 #define INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_H
 
-#include<inttypes.h>
-#include<stdio.h>
 #include<volk/volk_complex.h>
-#include <string.h>
+
 
 #ifdef LV_HAVE_AVX2
 #include<immintrin.h>
+#include <volk/volk_avx2_intrinsics.h>
 
 static inline void
-volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* src0, lv_32fc_t* points,
-                                                     float scalar, unsigned int num_points)
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* src0, 
+                                                     lv_32fc_t* points, float scalar, 
+                                                     unsigned int num_points)
 {
   const unsigned int num_bytes = num_points*8;
-  __m128 xmm0, xmm9;
-  __m256 xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8;
+  __m128 xmm9, xmm10;
+  __m256 xmm4, xmm6;
+  __m256 xmm_points0, xmm_points1, xmm_result;
 
-  lv_32fc_t diff;
-  memset(&diff, 0x0, 2*sizeof(float));
+  const unsigned int bound = num_bytes >> 6;
+  const unsigned int leftovers0 = (num_bytes >> 5) & 1;
+  const unsigned int leftovers1 = (num_bytes >> 4) & 1;
+  const unsigned int leftovers2 = (num_bytes >> 3) & 1;
+  
+  // load complex value into all parts of the register.
+  const __m256 xmm_symbol = _mm256_castpd_ps(_mm256_broadcast_sd((const double*)src0));
+  const __m128 xmm128_symbol = _mm256_extractf128_ps(xmm_symbol, 1);
+  
+  // Load scalar into all 8 parts of the register
+  const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
+  const __m128 xmm128_scalar = _mm256_extractf128_ps(xmm_scalar, 1);
 
-  float sq_dist = 0.0;
-  int bound = num_bytes >> 6;
-  int leftovers0 = (num_bytes >> 5) & 1;
-  int leftovers1 = (num_bytes >> 3) & 0b11;
-  int i = 0;
-
-  __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
-  xmm1 = _mm256_setzero_ps();
-  xmm2 = _mm256_loadu_ps((float*)&points[0]);
-  xmm8 = _mm256_set1_ps(scalar);
-  xmm0 = _mm_loadu_ps((float*)src0);
-  xmm0 = _mm_permute_ps(xmm0, 0b01000100);
-  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
-  xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 1);
-  xmm3 = _mm256_loadu_ps((float*)&points[4]);
-
-  for(; i < bound; ++i) {
-    xmm4 = _mm256_sub_ps(xmm1, xmm2);
-    xmm5 = _mm256_sub_ps(xmm1, xmm3);
+  // Set permutation constant
+  const __m256i idx = _mm256_set_epi32(7,6,3,2,5,4,1,0);
+  
+  for(unsigned int i = 0; i < bound; ++i) {
+    xmm_points0 = _mm256_loadu_ps((float*)points);
+    xmm_points1 = _mm256_loadu_ps((float*)(points + 4));
     points += 8;
-    xmm6 = _mm256_mul_ps(xmm4, xmm4);
-    xmm7 = _mm256_mul_ps(xmm5, xmm5);
+    __VOLK_PREFETCH(points);
 
-    xmm2 = _mm256_loadu_ps((float*)&points[0]);
-
-    xmm4 = _mm256_hadd_ps(xmm6, xmm7);
-    xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
-
-    xmm3 = _mm256_loadu_ps((float*)&points[4]);
-
-    xmm4 = _mm256_mul_ps(xmm4, xmm8);
-
-    _mm256_storeu_ps(target, xmm4);
-
+    xmm_result = _mm256_scaled_norm_dist_ps_avx2(xmm_symbol, xmm_symbol,
+                                                 xmm_points0, xmm_points1, 
+                                                 xmm_scalar);
+    
+    _mm256_storeu_ps(target, xmm_result);
     target += 8;
   }
 
-  for(i = 0; i < leftovers0; ++i) {
-    xmm2 = _mm256_loadu_ps((float*)&points[0]);
+  for(unsigned int i = 0; i < leftovers0; ++i) {
+    xmm_points0 = _mm256_loadu_ps((float*)points);
 
-    xmm4 = _mm256_sub_ps(xmm1, xmm2);
+    xmm4 = _mm256_sub_ps(xmm_symbol, xmm_points0);
 
     points += 4;
 
@@ -436,26 +358,131 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* s
     xmm4 = _mm256_hadd_ps(xmm6, xmm6);
     xmm4 = _mm256_permutevar8x32_ps(xmm4, idx);
 
-    xmm4 = _mm256_mul_ps(xmm4, xmm8);
+    xmm_result = _mm256_mul_ps(xmm4, xmm_scalar);
 
-    xmm9 = _mm256_extractf128_ps(xmm4,1);
+    xmm9 = _mm256_extractf128_ps(xmm_result, 1);
     _mm_storeu_ps(target,xmm9);
-
     target += 4;
   }
 
-  for(i = 0; i < leftovers1; ++i) {
+  for(unsigned int i = 0; i < leftovers1; ++i) {
+    xmm9 = _mm_loadu_ps((float*)points);
 
-    diff = src0[0] - points[0];
-    points += 1;
+    xmm10 = _mm_sub_ps(xmm128_symbol, xmm9);
 
-    sq_dist = scalar * (lv_creal(diff) * lv_creal(diff) + lv_cimag(diff) * lv_cimag(diff));
+    points += 2;
 
-    target[0] = sq_dist;
-    target += 1;
+    xmm9 = _mm_mul_ps(xmm10, xmm10);
+
+    xmm10 = _mm_hadd_ps(xmm9, xmm9);
+
+    xmm10 = _mm_mul_ps(xmm10, xmm128_scalar);
+
+    _mm_storeh_pi((__m64*)target, xmm10);
+    target += 2;
   }
+
+  calculate_scaled_distances(target, src0[0], points, scalar, leftovers2);
 }
 
 #endif /*LV_HAVE_AVX2*/
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
+
+static inline void
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx(float *target, lv_32fc_t *src0, 
+                                                    lv_32fc_t *points, float scalar, 
+                                                    unsigned int num_points) {
+  const int eightsPoints = num_points / 8;
+  const int remainder = num_points - 8 * eightsPoints;
+  
+  __m256 xmm_points0, xmm_points1, xmm_result;
+
+  // load complex value into all parts of the register.
+  const __m256 xmm_symbol = _mm256_castpd_ps(_mm256_broadcast_sd((const double*)src0));
+  
+  // Load scalar into all 8 parts of the register
+  const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
+  
+  for(int i = 0; i < eightsPoints; ++i){
+    xmm_points0 = _mm256_loadu_ps((float*)points);
+    xmm_points1 = _mm256_loadu_ps((float*)(points + 4));
+    points += 8;
+    
+    xmm_result = _mm256_scaled_norm_dist_ps(xmm_symbol, xmm_symbol, xmm_points0, 
+                                            xmm_points1, xmm_scalar);
+    
+    _mm256_storeu_ps(target, xmm_result);
+    target += 8;
+  }
+  
+  const lv_32fc_t symbol = *src0;
+  calculate_scaled_distances(target, symbol, points, scalar, remainder);
+}
+
+#endif /* LV_HAVE_AVX */
+
+
+#ifdef LV_HAVE_SSE3
+#include<pmmintrin.h>
+#include<volk/volk_sse3_intrinsics.h>
+
+static inline void
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse3(float* target, lv_32fc_t* src0, 
+                                                     lv_32fc_t* points, float scalar, 
+                                                     unsigned int num_points)
+{
+  __m128 xmm_points0, xmm_points1, xmm_result;
+
+  /*
+   * First do 4 values in every loop iteration.
+   * There may be up to 3 values left.
+   * leftovers0 indicates if at least 2 more are available for SSE execution.
+   * leftovers1 indicates if there is a single element left.
+   */
+  const int quarterPoints = num_points / 4;
+  const int leftovers0 = (num_points / 2) - 2 * quarterPoints;
+  const int leftovers1 = num_points % 2;
+
+  // load complex value into both parts of the register.
+  const __m128 xmm_symbol = _mm_castpd_ps(_mm_load1_pd((const double*)src0));
+  
+  // Load scalar into all 4 parts of the register
+  const __m128 xmm_scalar = _mm_load1_ps(&scalar);
+  
+  for(int i = 0; i < quarterPoints; ++i) {
+    xmm_points0 = _mm_loadu_ps((float*)points);
+    xmm_points1 = _mm_loadu_ps((float*)(points + 2));
+    points += 4;
+    __VOLK_PREFETCH(points);
+    // calculate distances
+    xmm_result = _mm_scaled_norm_dist_ps_sse3(xmm_symbol, xmm_symbol, xmm_points0, 
+                                              xmm_points1, xmm_scalar);
+    
+    _mm_storeu_ps(target, xmm_result);
+    target += 4;
+  }
+
+  for(int i = 0; i < leftovers0; ++i) {
+    xmm_points0 = _mm_loadu_ps((float*)points);
+    points += 2;
+    
+    xmm_points0 = _mm_sub_ps(xmm_symbol, xmm_points0);
+    xmm_points0 = _mm_mul_ps(xmm_points0, xmm_points0);
+    xmm_points0 = _mm_hadd_ps(xmm_points0, xmm_points0);
+    xmm_result = _mm_mul_ps(xmm_points0, xmm_scalar);
+
+    _mm_storeh_pi((__m64*)target, xmm_result);
+    target += 2;
+  }
+
+  calculate_scaled_distances(target, src0[0], points, scalar, leftovers1);
+}
+
+#endif /*LV_HAVE_SSE3*/
+
 
 #endif /*INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_H*/
