@@ -353,7 +353,7 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
 
   for (;points_done < num_points; points_done++) {
     float val = (*in_ptr);
-    SquareSumLocal[0] = update_square_sum_1_val(SquareSumLocal[0], SumLocal[0], points_done, *in_ptr);
+    SquareSumLocal[0] = update_square_sum_1_val(SquareSumLocal[0], SumLocal[0], points_done, val);
     SumLocal[0] += val;
     in_ptr++;
   }
@@ -492,7 +492,7 @@ volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
 
   for (;points_done < num_points; points_done++) {
     float val = (*in_ptr);
-    SquareSumLocal[0] = update_square_sum_1_val(SquareSumLocal[0], SumLocal[0], points_done, *in_ptr);
+    SquareSumLocal[0] = update_square_sum_1_val(SquareSumLocal[0], SumLocal[0], points_done, val);
     SumLocal[0] += val;
     in_ptr++;
   }
