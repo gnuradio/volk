@@ -46,4 +46,14 @@ _mm_magnitude_ps(__m128 cplxValue1, __m128 cplxValue2){
   return _mm_sqrt_ps(_mm_magnitudesquared_ps(cplxValue1, cplxValue2));
 }
 
+static inline __m128
+_mm_scaled_norm_dist_ps_sse(const __m128 symbols0, const __m128 symbols1, const __m128 points0, const __m128 points1, const __m128 scalar)
+{
+  // calculate scalar * |x - y|^2
+  const __m128 diff0 = _mm_sub_ps(symbols0, points0);
+  const __m128 diff1 = _mm_sub_ps(symbols1, points1);
+  const __m128 norms = _mm_magnitudesquared_ps(diff0, diff1);
+  return _mm_mul_ps(norms, scalar);
+}
+
 #endif /* INCLUDE_VOLK_VOLK_SSE_INTRINSICS_H_ */
