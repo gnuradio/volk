@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/gnuradio/volk.svg?branch=master)](https://travis-ci.org/gnuradio/volk) [![Build status](https://ci.appveyor.com/api/projects/status/5o56mgw0do20jlh3/branch/master?svg=true)](https://ci.appveyor.com/project/gnuradio/volk/branch/master)
 
+![VOLK Logo](/docs/volk_logo.png)
+
 # Welcome to VOLK!
 
 VOLK is a sub-project of GNU Radio. Please see http://libvolk.org for bug
