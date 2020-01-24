@@ -280,6 +280,31 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target, lv_32fc_t* s
 
 #endif /*LV_HAVE_SSE3*/
 
+#ifdef LV_HAVE_SSE
+#include <xmmintrin.h>
+#include <volk/volk_sse_intrinsics.h>
+static inline void
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse(float* target, lv_32fc_t* src0,
+                                                    lv_32fc_t* points, float scalar,
+                                                    unsigned int num_points)
+{
+  const __m128 xmm_scalar = _mm_set1_ps(scalar);
+  const __m128 xmm_symbol = _mm_castpd_ps(_mm_load1_pd((const double*)src0));
+
+  for (unsigned i = 0; i < num_points / 4; ++i) {
+    __m128 xmm_points0 = _mm_load_ps((float *) points);
+    __m128 xmm_points1 = _mm_load_ps((float *) (points + 2));
+    points += 4;
+    __m128 xmm_result = _mm_scaled_norm_dist_ps_sse(xmm_symbol, xmm_symbol,
+                                                    xmm_points0, xmm_points1,
+                                                    xmm_scalar);
+    _mm_store_ps((float *) target, xmm_result);
+    target += 4;
+  }
+
+  calculate_scaled_distances(target, src0[0], points, scalar, num_points % 4);
+}
+#endif // LV_HAVE_SSE
 
 #ifdef LV_HAVE_GENERIC
 static inline void
@@ -484,5 +509,30 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse3(float* target, lv_32fc_t* s
 
 #endif /*LV_HAVE_SSE3*/
 
+#ifdef LV_HAVE_SSE
+#include <xmmintrin.h>
+#include <volk/volk_sse_intrinsics.h>
+static inline void
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse(float* target, lv_32fc_t* src0,
+                                                    lv_32fc_t* points, float scalar,
+                                                    unsigned int num_points)
+{
+  const __m128 xmm_scalar = _mm_set1_ps(scalar);
+  const __m128 xmm_symbol = _mm_castpd_ps(_mm_load1_pd((const double*)src0));
+
+  for (unsigned i = 0; i < num_points / 4; ++i) {
+    __m128 xmm_points0 = _mm_loadu_ps((float *) points);
+    __m128 xmm_points1 = _mm_loadu_ps((float *) (points + 2));
+    points += 4;
+    __m128 xmm_result = _mm_scaled_norm_dist_ps_sse(xmm_symbol, xmm_symbol,
+                                                    xmm_points0, xmm_points1,
+                                                    xmm_scalar);
+    _mm_storeu_ps((float *) target, xmm_result);
+    target += 4;
+  }
+
+  calculate_scaled_distances(target, src0[0], points, scalar, num_points % 4);
+}
+#endif // LV_HAVE_SSE
 
 #endif /*INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_H*/
