@@ -17,7 +17,6 @@
 
 from __future__ import print_function
 
-import six
 
 from volk_arch_defs import arch_dict
 
@@ -70,8 +69,6 @@ for machine_xml in machines_xml:
             kwargs[name] = val
         except: pass
     kwargs['archs'] = kwargs['archs'].split()
-    #force kwargs keys to be of type str, not unicode for py25
-    kwargs = dict((str(k), v) for k, v in six.iteritems(kwargs))
     register_machine(**kwargs)
 
 if __name__ == '__main__':
