@@ -15,9 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import print_function
-
-
 from volk_arch_defs import arch_dict
 
 machines = list()
