@@ -32,22 +32,8 @@ __VOLK_DECL_BEGIN
  * \brief Allocate \p size bytes of data aligned to \p alignment.
  *
  * \details
- * Because we don't have a standard method to allocate buffers in
- * memory that are guaranteed to be on an alignment, VOLK handles this
- * itself. The volk_malloc function behaves like malloc in that it
- * returns a pointer to the allocated memory. However, it also takes
- * in an alignment specification, which is usually something like 16 or
- * 32 to ensure that the aligned memory is located on a particular
- * byte boundary for use with SIMD.
- *
- * Internally, the volk_malloc first checks if the compiler is C11
- * compliant and uses the new aligned_alloc method. If not, it checks
- * if the system is POSIX compliant and uses posix_memalign. If that
- * fails, volk_malloc handles the memory allocation and alignment
- * internally.
- *
- * Because of the ways in which volk_malloc may allocate memory, it is
- * important to always free volk_malloc pointers using volk_free.
+ * Internally, we use C11 `aligned_alloc` to allocate aligned memory.
+ * Thus, we rely on C11 syntax and compilers.
  *
  * \param size The number of bytes to allocate.
  * \param alignment The byte alignment of the allocated memory.
@@ -57,7 +43,13 @@ VOLK_API void *volk_malloc(size_t size, size_t alignment);
 
 /*!
  * \brief Free's memory allocated by volk_malloc.
- * \param aptr The aligned pointer allocaed by volk_malloc.
+ *
+ * \details
+ * We rely on C11 syntax and compilers and just call `free`
+ * on memory that was allocated with `aligned_alloc`.
+ * Thus, `volk_free` inherits the same behavoir `free` exhibits.
+ *
+ * \param aptr The aligned pointer allocated by volk_malloc.
  */
 VOLK_API void volk_free(void *aptr);
 
