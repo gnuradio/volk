@@ -148,7 +148,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* syms, unsig
     /*  Initialize the branch table */
     for(state=0;state < d_numstates/2;state++){
       for(i=0; i<rate; i++){
-        Branchtab[i*d_numstates/2+state] = (d_polys[i] < 0) ^ parity((2*state) & abs(d_polys[i]), Partab) ? 255 : 0;
+        Branchtab[i*d_numstates/2+state] = parity((2*state) & d_polys[i], Partab) ? 255 : 0;
       }
     }
 
@@ -224,7 +224,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_avx2(unsigned char* syms, unsigne
     /*  Initialize the branch table */
     for(state=0;state < d_numstates/2;state++){
       for(i=0; i<rate; i++){
-        Branchtab[i*d_numstates/2+state] = (d_polys[i] < 0) ^ parity((2*state) & abs(d_polys[i]), Partab) ? 255 : 0;
+        Branchtab[i*d_numstates/2+state] = parity((2*state) & d_polys[i], Partab) ? 255 : 0;
       }
     }
 
@@ -301,7 +301,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_generic(unsigned char* syms, unsi
     /*  Initialize the branch table */
     for(state=0;state < d_numstates/2;state++){
       for(i=0; i<rate; i++){
-        Branchtab[i*d_numstates/2+state] = (d_polys[i] < 0) ^ parity((2*state) & abs(d_polys[i]), Partab) ? 255 : 0;
+        Branchtab[i*d_numstates/2+state] = parity((2*state) & d_polys[i], Partab) ? 255 : 0;
       }
     }
 
