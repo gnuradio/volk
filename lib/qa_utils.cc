@@ -621,7 +621,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                 }
                 if(fail) {
                     volk_test_time_t *result = &results->back().results[arch_list[i]];
-                    result->pass = !fail;
+                    result->pass = false;
                     fail_global = true;
                     std::cout << name << ": fail on arch " << arch_list[i] << std::endl;
                 }
