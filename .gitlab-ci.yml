@@ -9,7 +9,7 @@ build:
   # instead of calling g++ directly you can also use some build toolkit like make
   # install the necessary build tools when needed
   before_script:
-     - apt update && apt -y install make cmake python python-pip libboost-all-dev && pip install six mako
+     - apt update && apt -y install make cmake python python-pip libboost-all-dev && pip install mako
   script:
     - mkdir build && cd build && cmake .. && make -j
   artifacts:
@@ -24,7 +24,7 @@ build:
 test:
   stage: test
   before_script:
-    - apt update && apt -y install cmake python python-pip libboost-all-dev && pip install six mako
+    - apt update && apt -y install cmake python python-pip libboost-all-dev && pip install mako
   script:
     - cd build && ctest -V
 

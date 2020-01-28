@@ -32,7 +32,6 @@ install:
       print(sys.platform, platform.machine(), struct.calcsize('P')*8)"
     - pip --version
     - pip install mako
-    - pip install six
 before_build:
     - cmake -G "%CMAKE_GENERATOR% Win64" \
         -DBoost_CHRONO_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_chrono-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_chrono-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \

@@ -82,7 +82,6 @@ endif(MSVC)
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
 VOLK_PYTHON_CHECK_MODULE("python >= 3.4" sys "sys.version.split()[0] >= '3.4'" PYTHON_MIN_VER_FOUND)
 VOLK_PYTHON_CHECK_MODULE("mako >= 0.4.2" mako "mako.__version__ >= '0.4.2'" MAKO_FOUND)
-VOLK_PYTHON_CHECK_MODULE("six - python 2 and 3 compatibility library" six "True" SIX_FOUND)
 
 if(NOT PYTHON_MIN_VER_FOUND)
     message(FATAL_ERROR "Python 3.4 or greater required to build VOLK")
@@ -93,10 +92,6 @@ if(NOT MAKO_FOUND)
     message(FATAL_ERROR "Mako templates required to build VOLK")
 endif()
 
-# Six
-if(NOT SIX_FOUND)
-    message(FATAL_ERROR "six - python 2 and 3 compatibility library required to build VOLK")
-endif()
 
 # Boost
 if(MSVC)

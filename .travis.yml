@@ -9,7 +9,6 @@ addons:
     packages: &common_packages
       - python-mako
       - python3-mako
-      - python3-six
       - liborc-dev
       - libboost-system-dev
       - libboost-filesystem-dev
@@ -63,37 +62,37 @@ matrix:
       addons: {apt: {packages: [*common_packages]}}
     # Job 8 .. gcc-7 py3
     - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-7, python3, python3-mako, python3-six]}}
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-7, python3, python3-mako]}}
     - name: Linux arm64 GCC
       arch: arm64
       dist: bionic
       env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
     - name: Linux arm64 Clang
       dist: bionic
       arch: arm64
       env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
     - name: Linux ppc64le GCC
       dist: bionic
       arch: ppc64le
       env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
     - name: Linux ppc64le Clang
       dist: bionic
       arch: ppc64le
       env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
     - name: Linux s390x GCC
       dist: bionic
       arch: s390x
       env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
     - name: Linux s390x Clang
       dist: bionic
       arch: s390x
       env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako, python3-six]}}
+      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
   allow_failures:
     - arch: s390x
     - arch: ppc64le
