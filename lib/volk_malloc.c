@@ -27,32 +27,45 @@
 #include <volk/volk_malloc.h>
 
 /*
- * For #defines used to determine support for allocation functions,
- * see: http://linux.die.net/man/3/aligned_alloc
- *
  * C11 features:
  * see: https://en.cppreference.com/w/c/memory/aligned_alloc
-*/
+ *
+ * MSVC is broken
+ * see: https://docs.microsoft.com/en-us/cpp/overview/visual-cpp-language-conformance?view=vs-2019
+ * This section:
+ * C11 The Universal CRT implemented the parts of the 
+ * C11 Standard Library that are required by C++17, 
+ * with the exception of C99 strftime() E/O alternative
+ * conversion specifiers, C11 fopen() exclusive mode, 
+ * and C11 aligned_alloc(). The latter is unlikely to 
+ * be implemented, because C11 specified aligned_alloc() 
+ * in a way that's incompatible with the Microsoft 
+ * implementation of free(): 
+ * namely, that free() must be able to handle highly aligned allocations.
+ *
+ * We must work around this problem because MSVC is non-compliant!
+ */
 
 
 void *volk_malloc(size_t size, size_t alignment)
 {
-  if (alignment == 1){
-    return malloc(size);
-  }
-
+#if defined(_MSC_VER)
+  void *ptr = _aligned_malloc(size, alignment);
+#else
   void *ptr = aligned_alloc(alignment, size);
+#endif
   if(ptr == NULL) {
-    fprintf(stderr, "VOLK: Error allocating memory (aligned_alloc was POSIX)\n");
+    fprintf(stderr, "VOLK: Error allocating memory (aligned_alloc/_aligned_malloc)\n");
   }
   return ptr;
 }
 
 void volk_free(void *ptr)
 {
-  free(ptr);
+#if defined(_MSC_VER)
+  _aligned_free(ptr);
+#else
+  free(ptr);  
+#endif
 }
 
-
-
-//#endif // _ISOC11_SOURCE
