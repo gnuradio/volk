@@ -113,9 +113,6 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
   __m256 xmm_points0, xmm_points1, xmm_result;
 
   const unsigned int bound = num_bytes >> 6;
-  const unsigned int leftovers0 = (num_bytes >> 5) & 1;
-  const unsigned int leftovers1 = (num_bytes >> 4) & 1;
-  const unsigned int leftovers2 = (num_bytes >> 3) & 1;
   
   // load complex value into all parts of the register.
   const __m256 xmm_symbol = _mm256_castpd_ps(_mm256_broadcast_sd((const double*)src0));
@@ -142,7 +139,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
     target += 8;
   }
 
-  for(unsigned int i = 0; i < leftovers0; ++i) {
+  if (num_bytes >> 5 & 1) {
     xmm_points0 = _mm256_load_ps((float*)points);
 
     xmm4 = _mm256_sub_ps(xmm_symbol, xmm_points0);
@@ -161,7 +158,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
     target += 4;
   }
 
-  for(unsigned int i = 0; i < leftovers1; ++i) {
+  if (num_bytes >> 4 & 1) {
     xmm9 = _mm_load_ps((float*)points);
 
     xmm10 = _mm_sub_ps(xmm128_symbol, xmm9);
@@ -178,7 +175,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target, lv_32fc_t* s
     target += 2;
   }
 
-  calculate_scaled_distances(target, src0[0], points, scalar, leftovers2);
+  calculate_scaled_distances(target, src0[0], points, scalar, (num_bytes >> 3) & 1);
 }
 
 #endif /*LV_HAVE_AVX2*/
@@ -342,9 +339,6 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* s
   __m256 xmm_points0, xmm_points1, xmm_result;
 
   const unsigned int bound = num_bytes >> 6;
-  const unsigned int leftovers0 = (num_bytes >> 5) & 1;
-  const unsigned int leftovers1 = (num_bytes >> 4) & 1;
-  const unsigned int leftovers2 = (num_bytes >> 3) & 1;
   
   // load complex value into all parts of the register.
   const __m256 xmm_symbol = _mm256_castpd_ps(_mm256_broadcast_sd((const double*)src0));
@@ -371,7 +365,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* s
     target += 8;
   }
 
-  for(unsigned int i = 0; i < leftovers0; ++i) {
+  if (num_bytes >> 5 & 1) {
     xmm_points0 = _mm256_loadu_ps((float*)points);
 
     xmm4 = _mm256_sub_ps(xmm_symbol, xmm_points0);
@@ -390,7 +384,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* s
     target += 4;
   }
 
-  for(unsigned int i = 0; i < leftovers1; ++i) {
+  if (num_bytes >> 4 & 1) {
     xmm9 = _mm_loadu_ps((float*)points);
 
     xmm10 = _mm_sub_ps(xmm128_symbol, xmm9);
@@ -407,7 +401,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target, lv_32fc_t* s
     target += 2;
   }
 
-  calculate_scaled_distances(target, src0[0], points, scalar, leftovers2);
+  calculate_scaled_distances(target, src0[0], points, scalar, (num_bytes >> 3) & 1);
 }
 
 #endif /*LV_HAVE_AVX2*/

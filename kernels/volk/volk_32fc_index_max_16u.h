@@ -109,8 +109,6 @@ volk_32fc_index_max_16u_a_avx2(uint16_t* target, lv_32fc_t* src0,
   holderi.int_vec = holder1 = _mm256_setzero_si256();
 
   int bound = num_bytes >> 6;
-  int leftovers0 = (num_bytes >> 5) & 1;
-  int leftovers1 = (num_bytes >> 4) & 1;
   int i = 0;
 
   xmm8 = _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0);
@@ -144,7 +142,7 @@ volk_32fc_index_max_16u_a_avx2(uint16_t* target, lv_32fc_t* src0,
     xmm8 = _mm256_add_epi32(xmm8, xmm10);
   }
   xmm10 = _mm256_set1_epi32(4);
-  for(; i < leftovers0; ++i) {
+  if (num_bytes >> 5 & 1) {
     xmm1 = _mm256_load_ps((float*)src0);
 
     src0 += 4;
@@ -169,7 +167,7 @@ volk_32fc_index_max_16u_a_avx2(uint16_t* target, lv_32fc_t* src0,
 
   idx = _mm256_set_epi32(1,0,1,0,1,0,1,0);
   xmm10 = _mm256_set1_epi32(2);
-  for(i = 0; i < leftovers1; ++i) {
+  if (num_bytes >> 4 & 1) {
       xmm2 = _mm256_load_ps((float*)src0);
 
       xmm1 = _mm256_permutevar8x32_ps(bit256_p(&xmm8)->float_vec, idx);
@@ -273,8 +271,6 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
   holderi.int_vec = holder1 = _mm_setzero_si128();
 
   int bound = num_bytes >> 5;
-  int leftovers0 = (num_bytes >> 4) & 1;
-  int leftovers1 = (num_bytes >> 3) & 1;
   int i = 0;
 
   xmm8 = _mm_set_epi32(3, 2, 1, 0);//remember the crazy reverse order!
@@ -311,7 +307,7 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
   }
 
 
-  for(i = 0; i < leftovers0; ++i) {
+  if (num_bytes >> 4 & 1) {
     xmm2 = _mm_load_ps((float*)src0);
 
     xmm1 = _mm_movelh_ps(bit128_p(&xmm8)->float_vec, bit128_p(&xmm8)->float_vec);
@@ -339,7 +335,7 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0,
     //printf("egads%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
   }
 
-  for(i = 0; i < leftovers1; ++i) {
+  if (num_bytes >> 3 & 1) {
     //printf("%u, %u, %u, %u\n", ((uint32_t*)&xmm9)[0], ((uint32_t*)&xmm9)[1], ((uint32_t*)&xmm9)[2], ((uint32_t*)&xmm9)[3]);
 
     sq_dist = lv_creal(src0[0]) * lv_creal(src0[0]) + lv_cimag(src0[0]) * lv_cimag(src0[0]);
@@ -464,8 +460,6 @@ volk_32fc_index_max_16u_u_avx2(uint16_t* target, lv_32fc_t* src0,
   holderi.int_vec = holder1 = _mm256_setzero_si256();
 
   int bound = num_bytes >> 6;
-  int leftovers0 = (num_bytes >> 5) & 1;
-  int leftovers1 = (num_bytes >> 4) & 1;
   int i = 0;
 
   xmm8 = _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0);
@@ -499,7 +493,7 @@ volk_32fc_index_max_16u_u_avx2(uint16_t* target, lv_32fc_t* src0,
     xmm8 = _mm256_add_epi32(xmm8, xmm10);
   }
   xmm10 = _mm256_set1_epi32(4);
-  for(; i < leftovers0; ++i) {
+  if (num_bytes >> 5 & 1) {
     xmm1 = _mm256_loadu_ps((float*)src0);
 
     src0 += 4;
@@ -524,7 +518,7 @@ volk_32fc_index_max_16u_u_avx2(uint16_t* target, lv_32fc_t* src0,
 
   idx = _mm256_set_epi32(1,0,1,0,1,0,1,0);
   xmm10 = _mm256_set1_epi32(2);
-  for(i = 0; i < leftovers1; ++i) {
+  if (num_bytes >> 4 & 1) {
       xmm2 = _mm256_loadu_ps((float*)src0);
 
       xmm1 = _mm256_permutevar8x32_ps(bit256_p(&xmm8)->float_vec, idx);

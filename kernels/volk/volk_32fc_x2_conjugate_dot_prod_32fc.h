@@ -73,7 +73,6 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_generic(lv_32fc_t* resul
   float * in = (float*) input;
   float * tp = (float*) taps;
   unsigned int n_2_ccomplex_blocks = num_bytes >> 4;
-  unsigned int isodd = (num_bytes >> 3) &1;
 
   float sum0[2] = {0,0};
   float sum1[2] = {0,0};
@@ -92,7 +91,7 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_generic(lv_32fc_t* resul
   res[0] = sum0[0] + sum1[0];
   res[1] = sum0[1] + sum1[1];
 
-  for(i = 0; i < isodd; ++i) {
+  if (num_bytes >> 3 & 1) {
     *result += input[(num_bytes >> 3) - 1] * lv_conj(taps[(num_bytes >> 3) - 1]);
   }
 }
@@ -399,7 +398,6 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_generic(lv_32fc_t* res
   float * in = (float*) input;
   float * tp = (float*) taps;
   unsigned int n_2_ccomplex_blocks = num_bytes >> 4;
-  unsigned int isodd = (num_bytes >> 3) &1;
 
   float sum0[2] = {0,0};
   float sum1[2] = {0,0};
@@ -418,7 +416,7 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_generic(lv_32fc_t* res
   res[0] = sum0[0] + sum1[0];
   res[1] = sum0[1] + sum1[1];
 
-  for(i = 0; i < isodd; ++i) {
+  if (num_bytes >> 3 & 1) {
     *result += input[(num_bytes >> 3) - 1] * lv_conj(taps[(num_bytes >> 3) - 1]);
   }
 }

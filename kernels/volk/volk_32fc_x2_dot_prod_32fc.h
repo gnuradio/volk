@@ -73,7 +73,6 @@ static inline void volk_32fc_x2_dot_prod_32fc_generic(lv_32fc_t* result, const l
   float * in = (float*) input;
   float * tp = (float*) taps;
   unsigned int n_2_ccomplex_blocks = num_points/2;
-  unsigned int isodd = num_points & 1;
 
   float sum0[2] = {0,0};
   float sum1[2] = {0,0};
@@ -93,7 +92,7 @@ static inline void volk_32fc_x2_dot_prod_32fc_generic(lv_32fc_t* result, const l
   res[1] = sum0[1] + sum1[1];
 
   // Cleanup if we had an odd number of points
-  for(i = 0; i < isodd; ++i) {
+  if (num_points & 1) {
     *result += input[num_points - 1] * taps[num_points - 1];
   }
 }
@@ -509,7 +508,6 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_generic(lv_32fc_t* result, const
   float * in = (float*) input;
   float * tp = (float*) taps;
   unsigned int n_2_ccomplex_blocks = num_bytes >> 4;
-  unsigned int isodd = num_points & 1;
 
   float sum0[2] = {0,0};
   float sum1[2] = {0,0};
@@ -528,7 +526,7 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_generic(lv_32fc_t* result, const
   res[0] = sum0[0] + sum1[0];
   res[1] = sum0[1] + sum1[1];
 
-  for(i = 0; i < isodd; ++i) {
+  if (num_points & 1) {
     *result += input[num_points - 1] * taps[num_points - 1];
   }
 }

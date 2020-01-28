@@ -77,10 +77,6 @@ volk_16i_branch_4_state_8_a_ssse3(short* target, short* src0, char** permuters, 
   p_cntl3 = (__m128i*)cntl3;
   p_scalars = (__m128i*)scalars;
 
-  int i = 0;
-
-  int bound = 1;
-
   xmm0 = _mm_load_si128(p_scalars);
 
   xmm1 = _mm_shufflelo_epi16(xmm0, 0);
@@ -98,73 +94,67 @@ volk_16i_branch_4_state_8_a_ssse3(short* target, short* src0, char** permuters, 
   xmm8 = _mm_load_si128((__m128i*)permuters[2]);
   xmm10 = _mm_load_si128((__m128i*)permuters[3]);
 
-  for(; i < bound; ++i) {
-    xmm5 = _mm_load_si128(p_src0);
-    xmm0 = _mm_shuffle_epi8(xmm5, xmm0);
-    xmm6 = _mm_shuffle_epi8(xmm5, xmm6);
-    xmm8 = _mm_shuffle_epi8(xmm5, xmm8);
-    xmm10 = _mm_shuffle_epi8(xmm5, xmm10);
+  xmm5 = _mm_load_si128(p_src0);
+  xmm0 = _mm_shuffle_epi8(xmm5, xmm0);
+  xmm6 = _mm_shuffle_epi8(xmm5, xmm6);
+  xmm8 = _mm_shuffle_epi8(xmm5, xmm8);
+  xmm10 = _mm_shuffle_epi8(xmm5, xmm10);
 
-    p_src0 += 4;
+  xmm5 = _mm_add_epi16(xmm1, xmm2);
 
-    xmm5 = _mm_add_epi16(xmm1, xmm2);
+  xmm6 = _mm_add_epi16(xmm2, xmm6);
+  xmm8 = _mm_add_epi16(xmm1, xmm8);
 
-    xmm6 = _mm_add_epi16(xmm2, xmm6);
-    xmm8 = _mm_add_epi16(xmm1, xmm8);
+  xmm7 = _mm_load_si128(p_cntl2);
+  xmm9 = _mm_load_si128(p_cntl3);
 
-    xmm7 = _mm_load_si128(p_cntl2);
-    xmm9 = _mm_load_si128(p_cntl3);
+  xmm0 = _mm_add_epi16(xmm5, xmm0);
 
-    xmm0 = _mm_add_epi16(xmm5, xmm0);
+  xmm7 = _mm_and_si128(xmm7, xmm3);
+  xmm9 = _mm_and_si128(xmm9, xmm4);
 
-    xmm7 = _mm_and_si128(xmm7, xmm3);
-    xmm9 = _mm_and_si128(xmm9, xmm4);
+  xmm5 = _mm_load_si128(&p_cntl2[1]);
+  xmm11 = _mm_load_si128(&p_cntl3[1]);
 
-    xmm5 = _mm_load_si128(&p_cntl2[1]);
-    xmm11 = _mm_load_si128(&p_cntl3[1]);
+  xmm7 = _mm_add_epi16(xmm7, xmm9);
 
-    xmm7 = _mm_add_epi16(xmm7, xmm9);
+  xmm5 = _mm_and_si128(xmm5, xmm3);
+  xmm11 = _mm_and_si128(xmm11, xmm4);
 
-    xmm5 = _mm_and_si128(xmm5, xmm3);
-    xmm11 = _mm_and_si128(xmm11, xmm4);
-
-    xmm0 = _mm_add_epi16(xmm0, xmm7);
+  xmm0 = _mm_add_epi16(xmm0, xmm7);
 
 
-    xmm7 = _mm_load_si128(&p_cntl2[2]);
-    xmm9 = _mm_load_si128(&p_cntl3[2]);
+  xmm7 = _mm_load_si128(&p_cntl2[2]);
+  xmm9 = _mm_load_si128(&p_cntl3[2]);
 
-    xmm5 = _mm_add_epi16(xmm5, xmm11);
+  xmm5 = _mm_add_epi16(xmm5, xmm11);
 
-    xmm7 = _mm_and_si128(xmm7, xmm3);
-    xmm9 = _mm_and_si128(xmm9, xmm4);
+  xmm7 = _mm_and_si128(xmm7, xmm3);
+  xmm9 = _mm_and_si128(xmm9, xmm4);
 
-    xmm6 = _mm_add_epi16(xmm6, xmm5);
+  xmm6 = _mm_add_epi16(xmm6, xmm5);
 
 
-    xmm5 = _mm_load_si128(&p_cntl2[3]);
-    xmm11 = _mm_load_si128(&p_cntl3[3]);
+  xmm5 = _mm_load_si128(&p_cntl2[3]);
+  xmm11 = _mm_load_si128(&p_cntl3[3]);
 
-    xmm7 = _mm_add_epi16(xmm7, xmm9);
+  xmm7 = _mm_add_epi16(xmm7, xmm9);
 
-    xmm5 = _mm_and_si128(xmm5, xmm3);
-    xmm11 = _mm_and_si128(xmm11, xmm4);
+  xmm5 = _mm_and_si128(xmm5, xmm3);
+  xmm11 = _mm_and_si128(xmm11, xmm4);
 
-    xmm8 = _mm_add_epi16(xmm8, xmm7);
+  xmm8 = _mm_add_epi16(xmm8, xmm7);
 
-    xmm5 = _mm_add_epi16(xmm5, xmm11);
+  xmm5 = _mm_add_epi16(xmm5, xmm11);
 
-    _mm_store_si128(p_target, xmm0);
-    _mm_store_si128(&p_target[1], xmm6);
+  _mm_store_si128(p_target, xmm0);
+  _mm_store_si128(&p_target[1], xmm6);
 
-    xmm10 = _mm_add_epi16(xmm5, xmm10);
+  xmm10 = _mm_add_epi16(xmm5, xmm10);
 
-    _mm_store_si128(&p_target[2], xmm8);
+  _mm_store_si128(&p_target[2], xmm8);
 
-    _mm_store_si128(&p_target[3], xmm10);
-
-    p_target += 3;
-  }
+  _mm_store_si128(&p_target[3], xmm10);
 }
 
 

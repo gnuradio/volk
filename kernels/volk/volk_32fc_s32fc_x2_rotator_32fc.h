@@ -299,7 +299,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_sse4_1(lv_32fc_t* outVector
     }
 
     _mm_storeu_ps((float*)phase_Ptr, phase_Val);
-    for(i = 0; i < num_points%2; ++i) {
+    if (num_points & 1) {
         *cPtr++ = *aPtr++ * phase_Ptr[0];
         phase_Ptr[0] *= (phase_inc);
     }
@@ -404,7 +404,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_sse4_1(lv_32fc_t* outVector
     }
 
     _mm_storeu_ps((float*)phase_Ptr, phase_Val);
-    for(i = 0; i < num_points%2; ++i) {
+    if (num_points & 1) {
         *cPtr++ = *aPtr++ * phase_Ptr[0];
         phase_Ptr[0] *= (phase_inc);
     }

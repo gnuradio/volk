@@ -191,8 +191,6 @@ volk_32fc_x2_square_dist_32f_a_sse3(float* target, lv_32fc_t* src0, lv_32fc_t* p
   lv_32fc_t diff;
   float sq_dist;
   int bound = num_bytes >> 5;
-  int leftovers0 = (num_bytes >> 4) & 1;
-  int leftovers1 = (num_bytes >> 3) & 1;
   int i = 0;
 
   xmm1 = _mm_setzero_ps();
@@ -232,7 +230,7 @@ volk_32fc_x2_square_dist_32f_a_sse3(float* target, lv_32fc_t* src0, lv_32fc_t* p
 
   target += 4;
 
-  for(i = 0; i < leftovers0; ++i) {
+  if (num_bytes >> 4 & 1) {
 
     xmm2 = _mm_load_ps((float*)&points[0]);
 
@@ -249,7 +247,7 @@ volk_32fc_x2_square_dist_32f_a_sse3(float* target, lv_32fc_t* src0, lv_32fc_t* p
     target += 2;
   }
 
-  for(i = 0; i < leftovers1; ++i) {
+  if (num_bytes >> 3 & 1) {
 
     diff = src0[0] - points[0];
 
@@ -341,7 +339,6 @@ volk_32fc_x2_square_dist_32f_u_avx2(float* target, lv_32fc_t* src0, lv_32fc_t* p
   lv_32fc_t diff;
   float sq_dist;
   int bound = num_bytes >> 6;
-  int leftovers0 = (num_bytes >> 5) & 1;
   int leftovers1 = (num_bytes >> 3) & 0b11;
   int i = 0;
 
@@ -373,7 +370,7 @@ volk_32fc_x2_square_dist_32f_u_avx2(float* target, lv_32fc_t* src0, lv_32fc_t* p
     target += 8;
   }
 
-  for(i = 0; i < leftovers0; ++i) {
+  if (num_bytes >> 5 & 1) {
 
     xmm2 = _mm256_loadu_ps((float*)&points[0]);
 
