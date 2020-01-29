@@ -20,16 +20,15 @@
 # Boston, MA 02110-1301, USA.
 #
 
-from __future__ import print_function
-
 import os
 import re
 import sys
-import optparse
+import argparse
 import volk_arch_defs
 import volk_machine_defs
 import volk_kernel_defs
 from mako.template import Template
+
 
 def __parse_tmpl(_tmpl, **kwargs):
     defs = {
@@ -47,14 +46,18 @@ def __parse_tmpl(_tmpl, **kwargs):
 """ + _tmpl
     return str(Template(_tmpl).render(**defs))
 
-def main():
-    parser = optparse.OptionParser()
-    parser.add_option('--input', type='string')
-    parser.add_option('--output', type='string')
-    (opts, args) = parser.parse_args()
 
-    output = __parse_tmpl(open(opts.input).read(), args=args)
-    if opts.output: open(opts.output, 'w').write(output)
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', type=str)
+    parser.add_argument('--output', type=str)
+    args, extras = parser.parse_known_args()
+
+    output = __parse_tmpl(open(args.input).read(), args=extras)
+    if args.output: open(args.output, 'w').write(output)
     else: print(output)
 
-if __name__ == '__main__': main()
+
+if __name__ == '__main__': 
+    main()
+    

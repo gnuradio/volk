@@ -7,12 +7,16 @@ environment:
   BOOST_VERSION: 1.59.0
   environment:
   matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - job_name: VS 12 2013 / python 3.4
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GENERATOR: Visual Studio 12 2013
       VC_VERSION: vc120
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      PYTHON: "C:\\Python34-x64"
+    - job_name: VS 14 2015 / python 3.8
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GENERATOR: Visual Studio 14 2015
       VC_VERSION: vc140
+      PYTHON: "C:\\Python38-x64"
 
 install:
     - nuget install boost_system-%VC_VERSION% -Version %BOOST_VERSION% -OutputDirectory %CD%/packages
@@ -20,9 +24,14 @@ install:
     - nuget install boost_chrono-%VC_VERSION% -Version %BOOST_VERSION% -OutputDirectory %CD%/packages
     - nuget install boost_program_options-%VC_VERSION% -Version %BOOST_VERSION% -OutputDirectory %CD%/packages
     - nuget install boost_unit_test_framework-%VC_VERSION% -Version %BOOST_VERSION% -OutputDirectory %CD%/packages
-    - pip install Cheetah
+    # Prepend the selected Python to the PATH of this build
+    - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+    # Display version information about selected python and pip
+    - python --version
+    - python -c "import sys, platform, struct;
+      print(sys.platform, platform.machine(), struct.calcsize('P')*8)"
+    - pip --version
     - pip install mako
-    - pip install six
 before_build:
     - cmake -G "%CMAKE_GENERATOR% Win64" \
         -DBoost_CHRONO_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_chrono-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_chrono-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \
@@ -36,7 +45,7 @@ before_build:
 build_script:
     - cmake --build . --config Release --target INSTALL
 test_script:
-    - ctest --output-on-failure -C Release
+    - ctest -V --output-on-failure -C Release
 after_test:
     - cd "c:\Program Files"
     - 7z a "c:\libvolk-x64-%VC_VERSION%.zip" volk

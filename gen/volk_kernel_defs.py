@@ -19,8 +19,6 @@
 # Boston, MA 02110-1301, USA.
 #
 
-from __future__ import print_function
-
 import os
 import re
 import sys
@@ -209,3 +207,4 @@ kernels = list(map(kernel_class, kernel_files))
 
 if __name__ == '__main__':
     print(kernels)
+    

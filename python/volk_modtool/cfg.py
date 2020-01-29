@@ -20,13 +20,10 @@
 # Boston, MA 02110-1301, USA.
 #
 
-from __future__ import print_function
-
+import configparser
 import sys
 import os
 import re
-
-from six.moves import configparser, input
 
 
 class volk_modtool_config(object):

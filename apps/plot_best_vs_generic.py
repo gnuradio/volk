@@ -47,9 +47,11 @@ with open(filename) as json_file:
                 generic_time = test['results']['u_generic']['time']
             metrics.append(extension_performance[np.argmin(extension_performance)]/generic_time)
 
+
 plt.bar(np.arange(len(metrics)), metrics)
 plt.hlines(1.0, -1, len(metrics), colors='r', linestyles='dashed')
 plt.axis([-1, len(metrics), 0, 2])
 plt.xticks(np.arange(len(operations)), operations, rotation=90)
 plt.ylabel('Time taken of fastest kernel relative to generic kernel')
+plt.tight_layout()
 plt.show()
