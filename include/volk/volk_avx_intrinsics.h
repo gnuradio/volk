@@ -42,19 +42,22 @@ _mm256_complexmul_ps(__m256 x, __m256 y)
 }
 
 static inline __m256
-_mm256_conjugate_ps(__m256 x){
+_mm256_conjugate_ps(__m256 x)
+{
   const __m256 conjugator = _mm256_setr_ps(0, -0.f, 0, -0.f, 0, -0.f, 0, -0.f);
   return _mm256_xor_ps(x, conjugator); // conjugate y
 }
 
 static inline __m256
-_mm256_complexconjugatemul_ps(__m256 x, __m256 y){
+_mm256_complexconjugatemul_ps(__m256 x, __m256 y)
+{
   y = _mm256_conjugate_ps(y);
   return _mm256_complexmul_ps(x, y);
 }
 
 static inline __m256
-_mm256_magnitudesquared_ps(__m256 cplxValue1, __m256 cplxValue2){
+_mm256_magnitudesquared_ps(__m256 cplxValue1, __m256 cplxValue2)
+{
   __m256 complex1, complex2;
   cplxValue1 = _mm256_mul_ps(cplxValue1, cplxValue1); // Square the values
   cplxValue2 = _mm256_mul_ps(cplxValue2, cplxValue2); // Square the Values
@@ -64,12 +67,14 @@ _mm256_magnitudesquared_ps(__m256 cplxValue1, __m256 cplxValue2){
 }
 
 static inline __m256
-_mm256_magnitude_ps(__m256 cplxValue1, __m256 cplxValue2){
+_mm256_magnitude_ps(__m256 cplxValue1, __m256 cplxValue2)
+{
   return _mm256_sqrt_ps(_mm256_magnitudesquared_ps(cplxValue1, cplxValue2));
 }
 
 static inline __m256
-_mm256_polar_sign_mask(__m128i fbits){
+_mm256_polar_sign_mask(__m128i fbits)
+{
   __m256 sign_mask_dummy = _mm256_setzero_ps();
   const __m128i zeros = _mm_set1_epi8(0x00);
   const __m128i sign_extract = _mm_set1_epi8(0x80);
@@ -89,7 +94,8 @@ _mm256_polar_sign_mask(__m128i fbits){
 }
 
 static inline void
-_mm256_polar_deinterleave(__m256 *llr0, __m256 *llr1, __m256 src0, __m256 src1){
+_mm256_polar_deinterleave(__m256 *llr0, __m256 *llr1, __m256 src0, __m256 src1)
+{
     // deinterleave values
     __m256 part0 = _mm256_permute2f128_ps(src0, src1, 0x20);
     __m256 part1 = _mm256_permute2f128_ps(src0, src1, 0x31);
@@ -98,7 +104,8 @@ _mm256_polar_deinterleave(__m256 *llr0, __m256 *llr1, __m256 src0, __m256 src1){
 }
 
 static inline __m256
-_mm256_polar_minsum_llrs(__m256 src0, __m256 src1){
+_mm256_polar_minsum_llrs(__m256 src0, __m256 src1)
+{
     const __m256 sign_mask = _mm256_set1_ps(-0.0f);
     const __m256 abs_mask = _mm256_andnot_ps(sign_mask, _mm256_castsi256_ps(_mm256_set1_epi8(0xff)));
 
@@ -112,7 +119,8 @@ _mm256_polar_minsum_llrs(__m256 src0, __m256 src1){
 }
 
 static inline __m256
-_mm256_polar_fsign_add_llrs(__m256 src0, __m256 src1, __m128i fbits){
+_mm256_polar_fsign_add_llrs(__m256 src0, __m256 src1, __m128i fbits)
+{
     // prepare sign mask for correct +-
     __m256 sign_mask = _mm256_polar_sign_mask(fbits);
 
