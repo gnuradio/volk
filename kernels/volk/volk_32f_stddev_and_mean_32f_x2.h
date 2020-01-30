@@ -84,7 +84,8 @@
 static inline void
 volk_32f_stddev_and_mean_32f_x2_generic(float* stddev, float* mean,
                                                       const float* inputBuffer,
-                                                      unsigned int num_points) {
+                                                      unsigned int num_points) 
+{
   if (num_points == 0) { return; }
 
   const float* in_ptr = inputBuffer;
@@ -105,7 +106,8 @@ volk_32f_stddev_and_mean_32f_x2_generic(float* stddev, float* mean,
 #endif /* LV_HAVE_GENERIC */
 
 static inline float
-update_square_sum_1_val(const float SquareSum, const float Sum, const uint32_t len, const float val) {
+update_square_sum_1_val(const float SquareSum, const float Sum, const uint32_t len, const float val) 
+{
   // Updates a sum of squares calculated over len values with the value val
   float n = (float) len;
   return SquareSum + 1.f/( n * (n + 1.f) ) * ( n*val - Sum ) * ( n*val - Sum );
@@ -113,7 +115,8 @@ update_square_sum_1_val(const float SquareSum, const float Sum, const uint32_t l
 
 static inline float
 add_square_sums(const float SquareSum0, const float Sum0, 
-                const float SquareSum1, const float Sum1, const uint32_t len) {
+                const float SquareSum1, const float Sum1, const uint32_t len) 
+{
   // Add two sums of squares calculated over the same number of values, len
   float n = (float) len;
   return SquareSum0 + SquareSum1 + .5f / n * ( Sum0 - Sum1 )*( Sum0 - Sum1 );
@@ -121,7 +124,8 @@ add_square_sums(const float SquareSum0, const float Sum0,
 
 static inline void
 accrue_result( float* PartialSquareSums, float* PartialSums, 
-               const uint32_t NumberOfPartitions, const uint32_t PartitionLen) {
+               const uint32_t NumberOfPartitions, const uint32_t PartitionLen) 
+{
   // Add all partial sums and square sums into the first element of the arrays
   uint32_t accumulators = NumberOfPartitions;
   uint32_t stages = 0;
@@ -153,7 +157,8 @@ accrue_result( float* PartialSquareSums, float* PartialSums,
 static inline void
 volk_32f_stddev_and_mean_32f_x2_neon(float* stddev, float* mean,
                                       const float* inputBuffer,
-                                      unsigned int num_points) {
+                                      unsigned int num_points) 
+{
   if (num_points < 8) {  
        volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
        return;
@@ -229,7 +234,8 @@ volk_32f_stddev_and_mean_32f_x2_neon(float* stddev, float* mean,
 static inline void
 volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev, float* mean,
                                       const float* inputBuffer,
-                                      unsigned int num_points) {
+                                      unsigned int num_points) 
+{
   if (num_points < 8) {  
    volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
    return;
@@ -299,7 +305,8 @@ volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev, float* mean,
 static inline void
 volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
                                          const float* inputBuffer,
-                                         unsigned int num_points) {
+                                         unsigned int num_points) 
+{
   if (num_points < 16) {  
        volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
        return;
@@ -369,7 +376,8 @@ volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev, float* mean,
 static inline void
 volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
                                       const float* inputBuffer,
-                                      unsigned int num_points) {
+                                      unsigned int num_points) 
+{
   if (num_points < 8) {  
    volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
    return;
@@ -438,7 +446,8 @@ volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev, float* mean,
 static inline void
 volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev, float* mean,
                                          const float* inputBuffer,
-                                         unsigned int num_points) {
+                                         unsigned int num_points) 
+{
   if (num_points < 16) {  
        volk_32f_stddev_and_mean_32f_x2_generic(stddev,  mean, inputBuffer, num_points);
        return;
