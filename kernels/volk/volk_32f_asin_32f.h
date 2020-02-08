@@ -105,9 +105,8 @@ volk_32f_asin_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int 
     z = aVal;
     condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
-    x = z;
     condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
-    x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+    x = _mm256_add_ps(z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
       x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_fmadd_ps(x,x,fones)));
@@ -168,9 +167,8 @@ volk_32f_asin_32f_a_avx(float* bVector, const float* aVector, unsigned int num_p
     z = aVal;
     condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
-    x = z;
     condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
-    x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+    x = _mm256_add_ps(z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
       x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_add_ps(fones, _mm256_mul_ps(x, x))));
@@ -230,9 +228,8 @@ volk_32f_asin_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
     z = aVal;
     condition = _mm_cmplt_ps(z, fzeroes);
     z = _mm_sub_ps(z, _mm_and_ps(_mm_mul_ps(z, ftwos), condition));
-    x = z;
     condition = _mm_cmplt_ps(z, fones);
-    x = _mm_add_ps(x, _mm_and_ps(_mm_sub_ps(_mm_div_ps(fones, z), z), condition));
+    x = _mm_add_ps(z, _mm_and_ps(_mm_sub_ps(_mm_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
       x = _mm_add_ps(x, _mm_sqrt_ps(_mm_add_ps(fones, _mm_mul_ps(x, x))));
@@ -297,9 +294,8 @@ volk_32f_asin_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int 
     z = aVal;
     condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
-    x = z;
     condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
-    x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+    x = _mm256_add_ps(z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
       x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_fmadd_ps(x,x,fones)));
@@ -360,9 +356,8 @@ volk_32f_asin_32f_u_avx(float* bVector, const float* aVector, unsigned int num_p
     z = aVal;
     condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
     z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
-    x = z;
     condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
-    x = _mm256_add_ps(x, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+    x = _mm256_add_ps(z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
       x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_add_ps(fones, _mm256_mul_ps(x, x))));
@@ -423,9 +418,8 @@ volk_32f_asin_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
     z = aVal;
     condition = _mm_cmplt_ps(z, fzeroes);
     z = _mm_sub_ps(z, _mm_and_ps(_mm_mul_ps(z, ftwos), condition));
-    x = z;
     condition = _mm_cmplt_ps(z, fones);
-    x = _mm_add_ps(x, _mm_and_ps(_mm_sub_ps(_mm_div_ps(fones, z), z), condition));
+    x = _mm_add_ps(z, _mm_and_ps(_mm_sub_ps(_mm_div_ps(fones, z), z), condition));
 
     for(i = 0; i < 2; i++){
       x = _mm_add_ps(x, _mm_sqrt_ps(_mm_add_ps(fones, _mm_mul_ps(x, x))));
