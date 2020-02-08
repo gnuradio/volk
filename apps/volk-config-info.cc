@@ -41,7 +41,9 @@ void print_malloc()
   // You don't want to change the volk_malloc code, so just copy the if/else
   // structure from there and give an explanation for the implementations
   std::cout << "Used malloc implementation: ";
-  #if defined(_MSC_VER)
+  #if HAVE_POSIX_MEMALIGN
+  std::cout << "posix_memalign" << std::endl;
+  #elif defined(_MSC_VER)
   std::cout << "_aligned_malloc" << std::endl;
   #else
   std::cout << "C11 aligned_alloc" << std::endl;

@@ -49,7 +49,22 @@
 
 void *volk_malloc(size_t size, size_t alignment)
 {
-#if defined(_MSC_VER)
+#if HAVE_POSIX_MEMALIGN
+  // quoting posix_memalign() man page:
+  // "alignment must be a power of two and a multiple of sizeof(void *)"
+  // volk_get_alignment() could return 1 for some machines (e.g. generic_orc)
+  if (alignment == 1){
+    return malloc(size);
+  }
+  void *ptr;
+  int err = posix_memalign(&ptr, alignment, size);
+  if(err != 0) {
+    ptr = NULL;
+    fprintf(stderr,
+            "VOLK: Error allocating memory "
+            "(posix_memalign: error %d: %s)\n", err, strerror(err));
+  }
+#elif defined(_MSC_VER)
   void *ptr = _aligned_malloc(size, alignment);
 #else
   void *ptr = aligned_alloc(alignment, size);

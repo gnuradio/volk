@@ -123,7 +123,20 @@ else()
     endif()
 endif()
 
-# Orc
+########################################################################
+# check for aligned_alloc, since some compilers lack this C11 feature.
+# For Apple-clang use `posix_memalign`
+# For MSVC use `_aligned_malloc`.
+########################################################################
+include(CheckSymbolExists)
+CHECK_SYMBOL_EXISTS(aligned_alloc stdlib.h USE_ALIGNED_ALLOC)
+if(NOT USE_ALIGNED_ALLOC)
+    CHECK_SYMBOL_EXISTS(posix_memalign stdlib.h HAVE_POSIX_MEMALIGN)
+endif(USE_ALIGNED_ALLOC)
+
+########################################################################
+# Check if Orc is available
+########################################################################
 option(ENABLE_ORC "Enable Orc" True)
 if(ENABLE_ORC)
   find_package(ORC)

@@ -66,6 +66,15 @@ if(COMPILER_NAME MATCHES "GNU")
 endif()
 
 ########################################################################
+# POSIX_MEMALIGN: If we have to fall back to `posix_memalign`,
+# make it known to the compiler.
+########################################################################
+if(HAVE_POSIX_MEMALIGN)
+    message(STATUS "Use `posix_memalign` for aligned malloc!")
+    add_definitions(-DHAVE_POSIX_MEMALIGN)
+endif(HAVE_POSIX_MEMALIGN)
+
+########################################################################
 # detect x86 flavor of CPU
 ########################################################################
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "^(i.86|x86|x86_64|amd64|AMD64)$")
