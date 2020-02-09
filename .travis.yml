@@ -1,8 +1,7 @@
 language: cpp
 
 os: linux
-dist: trusty
-sudo: false
+dist: bionic
 
 addons:
   apt:
@@ -23,10 +22,12 @@ matrix:
   include:
     # Job 1 ... gcc-4.8 (default GCC version)
     - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
+      name: Linux x86 GCC 4.8
       addons: {apt: {packages: [*common_packages]}}
-    # Job 2 ... gcc-4.9
-    - env: MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/intel-sde.cmake"
-      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-4.9]}}
+    # Job 2 ... gcc-7 with Intel SDE
+    - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/intel-sde.cmake"
+      name: Linux x86 Intel SDE GCC 7
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages]}}
       cache:
         directories:
           - ${TRAVIS_BUILD_DIR}/cache
@@ -34,15 +35,19 @@ matrix:
         - cd ${TRAVIS_BUILD_DIR} && ./scripts/ci/download_intel_sde.sh
     # Job 3 ... gcc-5
     - env: MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+      name: Linux x86 GCC 5
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-5]}}
     # Job 4 ... gcc-6
     - env: MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+      name: Linux x86 GCC 6
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-6]}}
     # Job 5 ... gcc-7
     - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      name: Linux x86 GCC 7
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-7]}}
     # Job 6 ... ARMv7 cross compile (gcc-4.8)
-    - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8 && BOOST_ROOT=$TRAVIS_BUILD_DIR/cache/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm-linux-gnueabihf.cmake"
+    - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && BOOST_ROOT=$TRAVIS_BUILD_DIR/cache/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm-linux-gnueabihf.cmake"
+      name: Linux ARMv7 Qemu GCC 7
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-arm-linux-gnueabihf, qemu-user]}}
       cache:
         directories:
@@ -50,7 +55,8 @@ matrix:
       before_script:
         - cd ${TRAVIS_BUILD_DIR} && ./scripts/ci/cross_build_boost.sh "arm" "linux-gnueabihf-g++"
     # Job 6 ... ARMv8 (aarch64) cross compile (gcc-4.8)
-    - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8 && BOOST_ROOT=$TRAVIS_BUILD_DIR/cache/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/aarch64-linux-gnu.cmake"
+    - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && BOOST_ROOT=$TRAVIS_BUILD_DIR/cache/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/aarch64-linux-gnu.cmake"
+      name: Linux ARMv8 (aarch64) Qemu GCC 7
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-aarch64-linux-gnu, qemu-user]}}
       cache:
         directories:
@@ -59,48 +65,41 @@ matrix:
         - cd ${TRAVIS_BUILD_DIR} && ./scripts/ci/cross_build_boost.sh "aarch64" "linux-gnu-g++"
     # Job 7 .. clang
     - env: MATRIX_EVAL="CC=\"clang -fprofile-instr-generate -fcoverage-mapping\" && CXX=\"clang++ -fprofile-instr-generate -fcoverage-mapping\""
-      addons: {apt: {packages: [*common_packages]}}
-    # Job 8 .. gcc-7 py3
-    - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-7, python3, python3-mako]}}
-    - name: Linux arm64 GCC
+      name: Linux x86 Clang 6
+      addons: {apt: {packages: [*common_packages, ]}}
+    - name: Linux ARMv8 (aarch64) GCC 7 
       arch: arm64
       dist: bionic
-      env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
-    - name: Linux arm64 Clang
+      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      addons: {apt: {packages: [*common_packages, ]}}
+    - name: Linux ARMv8 (aarch64) Clang 6
       dist: bionic
       arch: arm64
-      env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
+      env: MATRIX_EVAL="CC=clang && CXX=clang++"
+      addons: {apt: {packages: [*common_packages, ]}}
     - name: Linux ppc64le GCC
       dist: bionic
       arch: ppc64le
       env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
+      addons: {apt: {packages: [*common_packages, ]}}
     - name: Linux ppc64le Clang
       dist: bionic
       arch: ppc64le
       env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
+      addons: {apt: {packages: [*common_packages,]}}
     - name: Linux s390x GCC
       dist: bionic
       arch: s390x
       env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
+      addons: {apt: {packages: [*common_packages, ]}}
     - name: Linux s390x Clang
       dist: bionic
       arch: s390x
       env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
-      addons: {apt: {packages: [*common_packages, python3, python3-distutils, python3-mako]}}
+      addons: {apt: {packages: [*common_packages, ]}}
   allow_failures:
     - arch: s390x
     - arch: ppc64le
-
-#      before_install:
-#        - pip install --user codecov
-#      after_success:
-#        - bash <(curl -s https://codecov.io/bash)
 
 script:
   - eval "${MATRIX_EVAL}"
