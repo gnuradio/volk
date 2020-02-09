@@ -20,10 +20,10 @@ env:
 
 matrix:
   include:
-    # Job 1 ... gcc-4.8 (default GCC version)
+    # Job 1 ... gcc-4.8
     - env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
       name: Linux x86 GCC 4.8
-      addons: {apt: {packages: [*common_packages]}}
+      addons: {apt: {packages: [*common_packages, gcc-4.8, g++4.8]}}
     # Job 2 ... gcc-7 with Intel SDE
     - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/intel-sde.cmake"
       name: Linux x86 Intel SDE GCC 7
@@ -45,6 +45,9 @@ matrix:
     - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
       name: Linux x86 GCC 7
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-7]}}
+    - env: MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+      name: Linux x86 GCC 8
+      addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-8]}}
     # Job 6 ... ARMv7 cross compile (gcc-4.8)
     - env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && BOOST_ROOT=$TRAVIS_BUILD_DIR/cache/boost_1_66_0 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm-linux-gnueabihf.cmake"
       name: Linux ARMv7 Qemu GCC 7
@@ -80,22 +83,22 @@ matrix:
     - name: Linux ppc64le GCC
       dist: bionic
       arch: ppc64le
-      env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
       addons: {apt: {packages: [*common_packages, ]}}
     - name: Linux ppc64le Clang
       dist: bionic
       arch: ppc64le
-      env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      env: MATRIX_EVAL="CC=clang && CXX=clang++"
       addons: {apt: {packages: [*common_packages,]}}
     - name: Linux s390x GCC
       dist: bionic
       arch: s390x
-      env: MATRIX_EVAL="CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
       addons: {apt: {packages: [*common_packages, ]}}
     - name: Linux s390x Clang
       dist: bionic
       arch: s390x
-      env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DPYTHON_EXECUTABLE=/usr/bin/python3"
+      env: MATRIX_EVAL="CC=clang && CXX=clang++"
       addons: {apt: {packages: [*common_packages, ]}}
   allow_failures:
     - arch: s390x
@@ -104,4 +107,7 @@ matrix:
 script:
   - eval "${MATRIX_EVAL}"
   - lscpu
-  - mkdir build && cd build && BOOST_ROOT=$BOOST_ROOT cmake ${CMAKE_ARG} ../ && make && ctest -V && cd ..
+  - mkdir build && cd build && BOOST_ROOT=$BOOST_ROOT cmake ${CMAKE_ARG} ../ 
+  - make
+  - ctest -V
+  - cd ..
