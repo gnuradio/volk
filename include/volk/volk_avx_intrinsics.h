@@ -56,12 +56,11 @@ _mm256_complexconjugatemul_ps(__m256 x, __m256 y){
 static inline __m256
 _mm256_normalize_ps(__m256 val)
 {
-  __m256 tmp1, tmp2;
-  tmp1 = _mm256_mul_ps(val, val);
-  tmp2 = _mm256_hadd_ps(tmp1, tmp1);
-  tmp1 = _mm256_shuffle_ps(tmp2, tmp2, 0xD8);
-  tmp2 = _mm256_sqrt_ps(tmp1);
-  return _mm256_div_ps(val, tmp2);
+  __m256 tmp1 = _mm256_mul_ps(val, val);
+  tmp1 = _mm256_hadd_ps(tmp1, tmp1);
+  tmp1 = _mm256_shuffle_ps(tmp1, tmp1, _MM_SHUFFLE(3, 1, 2, 0)); // equals 0xD8
+  tmp1 = _mm256_sqrt_ps(tmp1);
+  return _mm256_div_ps(val, tmp1);
 }
 
 static inline __m256
