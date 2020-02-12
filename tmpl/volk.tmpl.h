@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 Free Software Foundation, Inc.
+ * Copyright 2011-2020 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -27,6 +27,7 @@
 #include <volk/volk_common.h>
 #include <volk/volk_complex.h>
 #include <volk/volk_malloc.h>
+#include <volk/volk_version.h>
 
 #include <stdlib.h>
 #include <stdbool.h>
