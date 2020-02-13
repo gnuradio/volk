@@ -141,7 +141,7 @@ volk_type_t volk_type_from_string(std::string name) {
             type.is_signed = false;
             break;
         default:
-            throw;
+            throw std::string("Error: no such type: '") + name[i] + "'";
         }
     }
 
