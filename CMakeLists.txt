@@ -30,6 +30,19 @@ set(CMAKE_CXX_STANDARD 11)
 
 enable_testing()
 
+# Disable complex math NaN/INFO range checking for performance
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag(-fcx-limited-range HAVE_CX_LIMITED_RANGE)
+if(HAVE_CX_LIMITED_RANGE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcx-limited-range")
+endif(HAVE_CX_LIMITED_RANGE)
+
+include(CheckCCompilerFlag)
+check_c_compiler_flag(-fcx-limited-range HAVE_C_LIMITED_RANGE)
+if(HAVE_C_LIMITED_RANGE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcx-limited-range")
+endif(HAVE_C_LIMITED_RANGE)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
