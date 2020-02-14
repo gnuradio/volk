@@ -128,7 +128,7 @@ volk_16i_max_star_horizontal_16i_a_ssse3(int16_t* target, int16_t* src0, unsigne
     p_target += 1;
   }
 
-  for(i = 0; i < intermediate; ++i) {
+  if (intermediate) {
     xmm0 = _mm_load_si128(p_src0);
 
     xmm2 = _mm_xor_si128(xmm2, xmm2);

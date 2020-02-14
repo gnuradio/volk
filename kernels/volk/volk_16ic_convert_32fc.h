@@ -106,7 +106,7 @@ static inline void volk_16ic_convert_32fc_a_sse2(lv_32fc_t* outputVector, const 
     const lv_16sc_t* _in = inputVector;
     lv_32fc_t* _out = outputVector;
     __m128 a;
-    unsigned int i, number;
+    unsigned int number;
 
     for(number = 0; number < sse_iters; number++)
         {
@@ -115,7 +115,7 @@ static inline void volk_16ic_convert_32fc_a_sse2(lv_32fc_t* outputVector, const 
             _in += 2;
             _out += 2;
         }
-    for (i = 0; i < (num_points % 2); ++i)
+    if (num_points & 1)
         {
             *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
             _in++;
@@ -239,7 +239,7 @@ static inline void volk_16ic_convert_32fc_u_sse2(lv_32fc_t* outputVector, const 
     const lv_16sc_t* _in = inputVector;
     lv_32fc_t* _out = outputVector;
     __m128 a;
-    unsigned int i, number;
+    unsigned int number;
 
     for(number = 0; number < sse_iters; number++)
         {
@@ -248,7 +248,7 @@ static inline void volk_16ic_convert_32fc_u_sse2(lv_32fc_t* outputVector, const 
             _in += 2;
             _out += 2;
         }
-    for (i = 0; i < (num_points % 2); ++i)
+    if (num_points & 1)
         {
             *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
             _in++;

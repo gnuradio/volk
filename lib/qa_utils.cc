@@ -141,7 +141,7 @@ volk_type_t volk_type_from_string(std::string name) {
             type.is_signed = false;
             break;
         default:
-            throw;
+            throw std::string("Error: no such type: '") + name[i] + "'";
         }
     }
 
@@ -189,7 +189,7 @@ static void get_signatures_from_name(std::vector<volk_type_t> &inputsig,
             if(side == SIDE_INPUT) inputsig.push_back(type);
             else outputsig.push_back(type);
         } catch (...){
-            if(token[0] == 'x' && (token.size() > 1) && (token[1] > '0' || token[1] < '9')) { //it's a multiplier
+            if(token[0] == 'x' && (token.size() > 1) && (token[1] > '0' && token[1] < '9')) { //it's a multiplier
                 if(side == SIDE_INPUT) assert(inputsig.size() > 0);
                 else assert(outputsig.size() > 0);
                 int multiplier = volk_lexical_cast<int>(token.substr(1, token.size()-1)); //will throw if invalid
@@ -621,7 +621,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                 }
                 if(fail) {
                     volk_test_time_t *result = &results->back().results[arch_list[i]];
-                    result->pass = !fail;
+                    result->pass = false;
                     fail_global = true;
                     std::cout << name << ": fail on arch " << arch_list[i] << std::endl;
                 }

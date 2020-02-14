@@ -152,8 +152,6 @@ volk_32f_x2_pow_32f_a_avx2_fma(float* cVector, const float* bVector,
     bVal = _mm256_mul_ps(bVal, logarithm);
 
     // Now compute exp(b*lna)
-    tmp = _mm256_setzero_ps();
-
     bVal = _mm256_max_ps(_mm256_min_ps(bVal, exp_hi), exp_lo);
 
     fx = _mm256_fmadd_ps(bVal, log2EF, half);
@@ -270,8 +268,6 @@ volk_32f_x2_pow_32f_a_avx2(float* cVector, const float* bVector,
     bVal = _mm256_mul_ps(bVal, logarithm);
 
     // Now compute exp(b*lna)
-    tmp = _mm256_setzero_ps();
-
     bVal = _mm256_max_ps(_mm256_min_ps(bVal, exp_hi), exp_lo);
 
     fx = _mm256_add_ps(_mm256_mul_ps(bVal, log2EF), half);
@@ -390,8 +386,6 @@ volk_32f_x2_pow_32f_a_sse4_1(float* cVector, const float* bVector,
     bVal = _mm_mul_ps(bVal, logarithm);
 
     // Now compute exp(b*lna)
-    tmp = _mm_setzero_ps();
-
     bVal = _mm_max_ps(_mm_min_ps(bVal, exp_hi), exp_lo);
 
     fx = _mm_add_ps(_mm_mul_ps(bVal, log2EF), half);
@@ -538,8 +532,6 @@ volk_32f_x2_pow_32f_u_sse4_1(float* cVector, const float* bVector,
     bVal = _mm_mul_ps(bVal, logarithm);
 
     // Now compute exp(b*lna)
-    tmp = _mm_setzero_ps();
-
     bVal = _mm_max_ps(_mm_min_ps(bVal, exp_hi), exp_lo);
 
     fx = _mm_add_ps(_mm_mul_ps(bVal, log2EF), half);
@@ -656,8 +648,6 @@ volk_32f_x2_pow_32f_u_avx2_fma(float* cVector, const float* bVector,
     bVal = _mm256_mul_ps(bVal, logarithm);
 
     // Now compute exp(b*lna)
-    tmp = _mm256_setzero_ps();
-
     bVal = _mm256_max_ps(_mm256_min_ps(bVal, exp_hi), exp_lo);
 
     fx = _mm256_fmadd_ps(bVal, log2EF, half);
@@ -774,8 +764,6 @@ volk_32f_x2_pow_32f_u_avx2(float* cVector, const float* bVector,
     bVal = _mm256_mul_ps(bVal, logarithm);
 
     // Now compute exp(b*lna)
-    tmp = _mm256_setzero_ps();
-
     bVal = _mm256_max_ps(_mm256_min_ps(bVal, exp_hi), exp_lo);
 
     fx = _mm256_add_ps(_mm256_mul_ps(bVal, log2EF), half);
