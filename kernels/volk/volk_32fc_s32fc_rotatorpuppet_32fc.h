@@ -34,7 +34,9 @@
 
 static inline void volk_32fc_s32fc_rotatorpuppet_32fc_generic(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
     lv_32fc_t phase[1] = {lv_cmake(.3, 0.95393)};
-    volk_32fc_s32fc_x2_rotator_32fc_generic(outVector, inVector, phase_inc, phase, num_points);
+    (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
+    const lv_32fc_t phase_inc_n = phase_inc / hypotf(lv_creal(phase_inc), lv_cimag(phase_inc));
+    volk_32fc_s32fc_x2_rotator_32fc_generic(outVector, inVector, phase_inc_n, phase, num_points);
 
 }
 
@@ -47,7 +49,9 @@ static inline void volk_32fc_s32fc_rotatorpuppet_32fc_generic(lv_32fc_t* outVect
 
 static inline void volk_32fc_s32fc_rotatorpuppet_32fc_neon(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
     lv_32fc_t phase[1] = {lv_cmake(.3, 0.95393)};
-    volk_32fc_s32fc_x2_rotator_32fc_neon(outVector, inVector, phase_inc, phase, num_points);
+    (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
+    const lv_32fc_t phase_inc_n = phase_inc / hypotf(lv_creal(phase_inc), lv_cimag(phase_inc));
+    volk_32fc_s32fc_x2_rotator_32fc_neon(outVector, inVector, phase_inc_n, phase, num_points);
     
 }
 
@@ -59,7 +63,9 @@ static inline void volk_32fc_s32fc_rotatorpuppet_32fc_neon(lv_32fc_t* outVector,
 
 static inline void volk_32fc_s32fc_rotatorpuppet_32fc_a_sse4_1(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
     lv_32fc_t phase[1] = {lv_cmake(.3, .95393)};
-    volk_32fc_s32fc_x2_rotator_32fc_a_sse4_1(outVector, inVector, phase_inc, phase, num_points);
+    (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
+    const lv_32fc_t phase_inc_n = phase_inc / hypotf(lv_creal(phase_inc), lv_cimag(phase_inc));
+    volk_32fc_s32fc_x2_rotator_32fc_a_sse4_1(outVector, inVector, phase_inc_n, phase, num_points);
 
 }
 
@@ -70,7 +76,9 @@ static inline void volk_32fc_s32fc_rotatorpuppet_32fc_a_sse4_1(lv_32fc_t* outVec
 #include <smmintrin.h>
 static inline void volk_32fc_s32fc_rotatorpuppet_32fc_u_sse4_1(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
     lv_32fc_t phase[1] = {lv_cmake(.3, .95393)};
-    volk_32fc_s32fc_x2_rotator_32fc_u_sse4_1(outVector, inVector, phase_inc, phase, num_points);
+    (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
+    const lv_32fc_t phase_inc_n = phase_inc / hypotf(lv_creal(phase_inc), lv_cimag(phase_inc));
+    volk_32fc_s32fc_x2_rotator_32fc_u_sse4_1(outVector, inVector, phase_inc_n, phase, num_points);
 
 }
 
@@ -82,7 +90,9 @@ static inline void volk_32fc_s32fc_rotatorpuppet_32fc_u_sse4_1(lv_32fc_t* outVec
 
 static inline void volk_32fc_s32fc_rotatorpuppet_32fc_a_avx(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
     lv_32fc_t phase[1] = {lv_cmake(.3, .95393)};
-    volk_32fc_s32fc_x2_rotator_32fc_a_avx(outVector, inVector, phase_inc, phase, num_points);
+    (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
+    const lv_32fc_t phase_inc_n = phase_inc / hypotf(lv_creal(phase_inc), lv_cimag(phase_inc));
+    volk_32fc_s32fc_x2_rotator_32fc_a_avx(outVector, inVector, phase_inc_n, phase, num_points);
 }
 
 #endif /* LV_HAVE_AVX */
@@ -93,7 +103,9 @@ static inline void volk_32fc_s32fc_rotatorpuppet_32fc_a_avx(lv_32fc_t* outVector
 
 static inline void volk_32fc_s32fc_rotatorpuppet_32fc_u_avx(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
     lv_32fc_t phase[1] = {lv_cmake(.3, .95393)};
-    volk_32fc_s32fc_x2_rotator_32fc_u_avx(outVector, inVector, phase_inc, phase, num_points);
+    (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
+    const lv_32fc_t phase_inc_n = phase_inc / hypotf(lv_creal(phase_inc), lv_cimag(phase_inc));
+    volk_32fc_s32fc_x2_rotator_32fc_u_avx(outVector, inVector, phase_inc_n, phase, num_points);
 }
 
 #endif /* LV_HAVE_AVX */
@@ -103,7 +115,9 @@ static inline void volk_32fc_s32fc_rotatorpuppet_32fc_u_avx(lv_32fc_t* outVector
 
 static inline void volk_32fc_s32fc_rotatorpuppet_32fc_a_avx_fma(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
     lv_32fc_t phase[1] = {lv_cmake(.3, .95393)};
-    volk_32fc_s32fc_x2_rotator_32fc_a_avx_fma(outVector, inVector, phase_inc, phase, num_points);
+    (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
+    const lv_32fc_t phase_inc_n = phase_inc / hypotf(lv_creal(phase_inc), lv_cimag(phase_inc));
+    volk_32fc_s32fc_x2_rotator_32fc_a_avx_fma(outVector, inVector, phase_inc_n, phase, num_points);
 }
 
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA*/
@@ -114,7 +128,9 @@ static inline void volk_32fc_s32fc_rotatorpuppet_32fc_a_avx_fma(lv_32fc_t* outVe
 
 static inline void volk_32fc_s32fc_rotatorpuppet_32fc_u_avx_fma(lv_32fc_t* outVector, const lv_32fc_t* inVector, const lv_32fc_t phase_inc, unsigned int num_points){
     lv_32fc_t phase[1] = {lv_cmake(.3, .95393)};
-    volk_32fc_s32fc_x2_rotator_32fc_u_avx_fma(outVector, inVector, phase_inc, phase, num_points);
+    (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
+    const lv_32fc_t phase_inc_n = phase_inc / hypotf(lv_creal(phase_inc), lv_cimag(phase_inc));
+    volk_32fc_s32fc_x2_rotator_32fc_u_avx_fma(outVector, inVector, phase_inc_n, phase, num_points);
 }
 
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA*/
