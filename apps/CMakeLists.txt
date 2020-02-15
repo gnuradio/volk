@@ -19,6 +19,12 @@
 # Setup profiler
 ########################################################################
 
+# POSIX_MEMALIGN: If we have to fall back to `posix_memalign`.
+if(HAVE_POSIX_MEMALIGN)
+    message(STATUS "Use `posix_memalign` for aligned malloc!")
+    add_definitions(-DHAVE_POSIX_MEMALIGN)
+endif(HAVE_POSIX_MEMALIGN)
+
 # MAKE volk_profile
 add_executable(volk_profile
     ${CMAKE_CURRENT_SOURCE_DIR}/volk_profile.cc
