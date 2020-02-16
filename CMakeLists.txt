@@ -1,5 +1,5 @@
 #
-# Copyright 2011,2018,2019 Free Software Foundation, Inc.
+# Copyright 2011-2020 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -61,10 +61,33 @@ VOLK_CHECK_BUILD_TYPE(${CMAKE_BUILD_TYPE})
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 
+########################################################################
+# Version setup
+########################################################################
+
 set(VERSION_INFO_MAJOR_VERSION 2)
 set(VERSION_INFO_MINOR_VERSION 1)
 set(VERSION_INFO_MAINT_VERSION 0)
 include(VolkVersion) #setup version info
+
+macro(set_version_str VAR)
+  set(IN_VER ${VERSION_INFO_${VAR}_VERSION})
+  string(LENGTH "${IN_VER}" VER_LEN)
+  if(${VER_LEN} EQUAL 1)
+    set(VOLK_VERSION_${VAR} "0${IN_VER}")
+  else()
+    set(VOLK_VERSION_${VAR} "${IN_VER}")
+  endif()
+endmacro()
+
+set_version_str(MAJOR)
+set_version_str(MINOR)
+set_version_str(MAINT)
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/include/volk/volk_version.h.in
+    ${CMAKE_BINARY_DIR}/include/volk/volk_version.h
+@ONLY)
 
 ########################################################################
 # Environment setup
@@ -225,6 +248,7 @@ install(FILES
     ${CMAKE_BINARY_DIR}/include/volk/volk_config_fixed.h
     ${CMAKE_BINARY_DIR}/include/volk/volk_typedefs.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_malloc.h
+    ${CMAKE_BINARY_DIR}/include/volk/volk_version.h
     ${CMAKE_SOURCE_DIR}/include/volk/constants.h
     DESTINATION include/volk
     COMPONENT "volk_devel"
