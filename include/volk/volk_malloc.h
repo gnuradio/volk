@@ -1,6 +1,6 @@
 /* -*- c -*- */
 /*
- * Copyright 2014 Free Software Foundation, Inc.
+ * Copyright 2014, 2020 Free Software Foundation, Inc.
  *
  * This file is part of GNU Radio
  *
@@ -57,9 +57,12 @@ VOLK_API void *volk_malloc(size_t size, size_t alignment);
  * \brief Free's memory allocated by volk_malloc.
  *
  * \details
- * We rely on C11 syntax and compilers and just call `free`
- * on memory that was allocated with `aligned_alloc`.
- * Thus, `volk_free` inherits the same behavoir `free` exhibits.
+ * We rely on C11 syntax and compilers and just call `free` in case
+ * memory was allocated with `aligned_alloc` or `posix_memalign`.
+ * Thus, in this case `volk_free` inherits the same behavior `free` exhibits.
+ * see: https://en.cppreference.com/w/c/memory/free
+ * In case `_aligned_malloc` was used, we call `_aligned_free`.
+ * see: https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-free?view=vs-2019
  *
  * \param aptr The aligned pointer allocated by volk_malloc.
  */
