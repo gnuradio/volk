@@ -673,4 +673,41 @@ volk_32f_cos_32f_generic(float* bVector, const float* aVector, unsigned int num_
 
 #endif /* LV_HAVE_GENERIC */
 
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+#include <volk/volk_neon_intrinsics.h>
+
+static inline void
+volk_32f_cos_32f_neon(float* bVector, const float* aVector,
+                      unsigned int num_points)
+{
+    unsigned int number = 0;
+    unsigned int quarter_points = num_points / 4;
+    float* bVectorPtr = bVector;
+    const float* aVectorPtr = aVector;
+    
+    float32x4_t b_vec;
+    float32x4_t a_vec;
+    
+    for(number = 0; number < quarter_points; number++) {
+        a_vec = vld1q_f32(aVectorPtr);
+        // Prefetch next one, speeds things up
+        __VOLK_PREFETCH(aVectorPtr+4);
+        b_vec = _vcosq_f32(a_vec);
+        vst1q_f32(bVectorPtr, b_vec);
+        // move pointers ahead
+        bVectorPtr+=4;
+        aVectorPtr+=4;
+    }
+    
+    // Deal with the rest
+    for(number = quarter_points * 4; number < num_points; number++) {
+        *bVectorPtr++ = cosf(*aVectorPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEON */
+
+
 #endif /* INCLUDED_volk_32f_cos_32f_u_H */
