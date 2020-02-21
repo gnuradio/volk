@@ -50,12 +50,12 @@
  *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *   lv_32fc_t* increasing = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
- *   lv_32fc_t* decreasing = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *   float* decreasing = (float*)volk_malloc(sizeof(float)*N, alignment);
  *   lv_32fc_t* out = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
  *       increasing[ii] = (lv_32fc_t)ii;
- *       decreasing[ii] = 10.f - (lv_32fc_t)ii;
+ *       decreasing[ii] = 10.f - (float)ii;
  *   }
  *
  *   volk_32fc_32f_add_32fc(out, increasing, decreasing, N);
