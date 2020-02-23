@@ -33,19 +33,18 @@
  * MSVC is broken
  * see: https://docs.microsoft.com/en-us/cpp/overview/visual-cpp-language-conformance?view=vs-2019
  * This section:
- * C11 The Universal CRT implemented the parts of the 
- * C11 Standard Library that are required by C++17, 
+ * C11 The Universal CRT implemented the parts of the
+ * C11 Standard Library that are required by C++17,
  * with the exception of C99 strftime() E/O alternative
- * conversion specifiers, C11 fopen() exclusive mode, 
- * and C11 aligned_alloc(). The latter is unlikely to 
- * be implemented, because C11 specified aligned_alloc() 
- * in a way that's incompatible with the Microsoft 
- * implementation of free(): 
+ * conversion specifiers, C11 fopen() exclusive mode,
+ * and C11 aligned_alloc(). The latter is unlikely to
+ * be implemented, because C11 specified aligned_alloc()
+ * in a way that's incompatible with the Microsoft
+ * implementation of free():
  * namely, that free() must be able to handle highly aligned allocations.
  *
  * We must work around this problem because MSVC is non-compliant!
  */
-
 
 void *volk_malloc(size_t size, size_t alignment)
 {
@@ -80,7 +79,6 @@ void volk_free(void *ptr)
 #if defined(_MSC_VER)
   _aligned_free(ptr);
 #else
-  free(ptr);  
+  free(ptr);
 #endif
 }
-
