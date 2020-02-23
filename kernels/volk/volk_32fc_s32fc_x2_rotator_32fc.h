@@ -527,7 +527,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx(lv_32fc_t* outVector, c
         
     }
     
-    for(i = 0; i < num_points%ROTATOR_RELOAD; ++i) {
+    for(i = 0; i < fourthPoints%ROTATOR_RELOAD; ++i) {
         aVal = _mm256_loadu_ps((float*)aPtr);
 
         z = _mm256_complexmul_ps(aVal, phase_Val);
