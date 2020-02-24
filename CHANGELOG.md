@@ -194,3 +194,26 @@ VOLK v2.2.0 updates our build tools and adds support functionality to make it ea
     - Improve performance of generic kernels with complex multiply
     - square_dist_scalar_mult: Add SSE version
     - Adds NEON versions of cos, sin and tan
+
+## [2.2.1] - 2020-02-24
+
+Hi everyone,
+
+with VOLK 2.2.0, we introduced another AVX rotator bug which is fixed with this release.
+In the process 2 more bugs were identified and fixed. Further, we saw some documentation improvements.
+
+
+### Contributors
+
+*  Clayton Smith <argilo@gmail.com>
+*  Michael Dickens <michael.dickens@ettus.com>
+
+
+### Changes
+
+
+* Fix loop bound in AVX rotator
+* Fix out-of-bounds read in AVX2 square dist kernel
+* Fix length checks in AVX2 index max kernels
+* includes: rearrange attributes to simplify macros Whitespace
+* kernels: fix usage in header comments
