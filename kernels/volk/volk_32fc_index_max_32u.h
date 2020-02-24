@@ -132,7 +132,7 @@ volk_32fc_index_max_32u_a_avx2(uint32_t* target, lv_32fc_t* src0,
   }
 
   xmm10 = _mm256_set1_epi32(4);
-  if (num_bytes >> 4 & 1) {
+  if (num_bytes >> 5 & 1) {
     xmm1 = _mm256_load_ps((float*)src0);
 
     xmm1 = _mm256_mul_ps(xmm1, xmm1);
@@ -446,7 +446,7 @@ volk_32fc_index_max_32u_u_avx2(uint32_t* target, lv_32fc_t* src0,
   }
 
   xmm10 = _mm256_set1_epi32(4);
-  if (num_bytes >> 4 & 1) {
+  if (num_bytes >> 5 & 1) {
     xmm1 = _mm256_loadu_ps((float*)src0);
 
     xmm1 = _mm256_mul_ps(xmm1, xmm1);
