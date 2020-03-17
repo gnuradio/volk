@@ -2,6 +2,8 @@ name: Check PR Formatting
 
 on:
   push:
+    paths-ignore:
+      - 'tmpl/'
   pull_request:
     paths-ignore:
       - 'tmpl/'
@@ -15,5 +17,5 @@ jobs:
     - uses: gnuradio/clang-format-lint-action@v0.5-4
       with:
         source: '.'
-        exclude: './volk'
+        exclude: './tmpl'
         extensions: 'c,cc,cpp,cxx,h,hh'
