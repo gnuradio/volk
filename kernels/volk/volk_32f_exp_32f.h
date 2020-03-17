@@ -99,11 +99,11 @@
 #ifndef INCLUDED_volk_32f_exp_32f_a_H
 #define INCLUDED_volk_32f_exp_32f_a_H
 
-#ifdef LV_HAVE_SSE4_1
-#include <smmintrin.h>
+#ifdef LV_HAVE_SSE2
+#include <emmintrin.h>
 
 static inline void
-volk_32f_exp_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
+volk_32f_exp_32f_a_sse2(float* bVector, const float* aVector, unsigned int num_points)
 {
   float* bPtr = bVector;
   const float* aPtr = aVector;
@@ -175,7 +175,7 @@ volk_32f_exp_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num
   }
 }
 
-#endif /* LV_HAVE_SSE4_1 for aligned */
+#endif /* LV_HAVE_SSE2 for aligned */
 
 
 #ifdef LV_HAVE_GENERIC
@@ -199,11 +199,11 @@ volk_32f_exp_32f_a_generic(float* bVector, const float* aVector, unsigned int nu
 #ifndef INCLUDED_volk_32f_exp_32f_u_H
 #define INCLUDED_volk_32f_exp_32f_u_H
 
-#ifdef LV_HAVE_SSE4_1
-#include <smmintrin.h>
+#ifdef LV_HAVE_SSE2
+#include <emmintrin.h>
 
 static inline void
-volk_32f_exp_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
+volk_32f_exp_32f_u_sse2(float* bVector, const float* aVector, unsigned int num_points)
 {
   float* bPtr = bVector;
   const float* aPtr = aVector;
@@ -276,7 +276,7 @@ volk_32f_exp_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num
   }
 }
 
-#endif /* LV_HAVE_SSE4_1 for unaligned */
+#endif /* LV_HAVE_SSE2 for unaligned */
 
 
 #ifdef LV_HAVE_GENERIC
