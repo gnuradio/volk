@@ -69,7 +69,7 @@
 ////////////////////////////////////////////////////////////////////////
 #if defined(_MSC_VER)
 #pragma warning(disable : 4244) //'conversion' conversion from 'type1' to 'type2',
-                                //possible loss of data
+                                // possible loss of data
 #pragma warning(disable : 4305) //'identifier' : truncation from 'type1' to 'type2'
 #endif
 
