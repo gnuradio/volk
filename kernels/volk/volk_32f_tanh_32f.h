@@ -69,22 +69,21 @@
 #define INCLUDED_volk_32f_tanh_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32f_tanh_32f_generic(float* cVector, const float* aVector,
-                          unsigned int num_points)
+volk_32f_tanh_32f_generic(float* cVector, const float* aVector, unsigned int num_points)
 {
-  unsigned int number = 0;
-  float* cPtr = cVector;
-  const float* aPtr = aVector;
-  for(; number < num_points; number++) {
-    *cPtr++ = tanhf(*aPtr++);
-  }
+    unsigned int number = 0;
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    for (; number < num_points; number++) {
+        *cPtr++ = tanhf(*aPtr++);
+    }
 }
 
 #endif /* LV_HAVE_GENERIC */
@@ -93,81 +92,88 @@ volk_32f_tanh_32f_generic(float* cVector, const float* aVector,
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32f_tanh_32f_series(float* cVector, const float* aVector,
-                         unsigned int num_points)
+volk_32f_tanh_32f_series(float* cVector, const float* aVector, unsigned int num_points)
 {
-  unsigned int number = 0;
-  float* cPtr = cVector;
-  const float* aPtr = aVector;
-  for(; number < num_points; number++) {
-    if(*aPtr > 4.97)
-      *cPtr++ = 1;
-    else if(*aPtr <= -4.97)
-      *cPtr++ = -1;
-    else {
-      float x2 = (*aPtr) * (*aPtr);
-      float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-      float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-      *cPtr++ = a / b;
-      aPtr++;
+    unsigned int number = 0;
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    for (; number < num_points; number++) {
+        if (*aPtr > 4.97)
+            *cPtr++ = 1;
+        else if (*aPtr <= -4.97)
+            *cPtr++ = -1;
+        else {
+            float x2 = (*aPtr) * (*aPtr);
+            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
+            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
+            *cPtr++ = a / b;
+            aPtr++;
+        }
     }
-  }
 }
 
 #endif /* LV_HAVE_GENERIC */
-
 
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
 static inline void
-volk_32f_tanh_32f_a_sse(float* cVector, const float* aVector,
-                        unsigned int num_points)
+volk_32f_tanh_32f_a_sse(float* cVector, const float* aVector, unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int quarterPoints = num_points / 4;
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
 
-  float* cPtr = cVector;
-  const float* aPtr = aVector;
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
 
-  __m128 aVal, cVal, x2, a, b;
-  __m128 const1, const2, const3, const4, const5, const6;
-  const1 = _mm_set_ps1(135135.0f);
-  const2 = _mm_set_ps1(17325.0f);
-  const3 = _mm_set_ps1(378.0f);
-  const4 = _mm_set_ps1(62370.0f);
-  const5 = _mm_set_ps1(3150.0f);
-  const6 = _mm_set_ps1(28.0f);
-  for(;number < quarterPoints; number++){
+    __m128 aVal, cVal, x2, a, b;
+    __m128 const1, const2, const3, const4, const5, const6;
+    const1 = _mm_set_ps1(135135.0f);
+    const2 = _mm_set_ps1(17325.0f);
+    const3 = _mm_set_ps1(378.0f);
+    const4 = _mm_set_ps1(62370.0f);
+    const5 = _mm_set_ps1(3150.0f);
+    const6 = _mm_set_ps1(28.0f);
+    for (; number < quarterPoints; number++) {
 
-    aVal = _mm_load_ps(aPtr);
-    x2 = _mm_mul_ps(aVal, aVal);
-    a  = _mm_mul_ps(aVal, _mm_add_ps(const1, _mm_mul_ps(x2, _mm_add_ps(const2, _mm_mul_ps(x2, _mm_add_ps(const3, x2))))));
-    b  = _mm_add_ps(const1, _mm_mul_ps(x2, _mm_add_ps(const4, _mm_mul_ps(x2, _mm_add_ps(const5, _mm_mul_ps(x2, const6))))));
+        aVal = _mm_load_ps(aPtr);
+        x2 = _mm_mul_ps(aVal, aVal);
+        a = _mm_mul_ps(
+            aVal,
+            _mm_add_ps(
+                const1,
+                _mm_mul_ps(x2,
+                           _mm_add_ps(const2, _mm_mul_ps(x2, _mm_add_ps(const3, x2))))));
+        b = _mm_add_ps(
+            const1,
+            _mm_mul_ps(
+                x2,
+                _mm_add_ps(const4,
+                           _mm_mul_ps(x2, _mm_add_ps(const5, _mm_mul_ps(x2, const6))))));
 
-    cVal = _mm_div_ps(a, b);
+        cVal = _mm_div_ps(a, b);
 
-    _mm_store_ps(cPtr, cVal); // Store the results back into the C container
+        _mm_store_ps(cPtr, cVal); // Store the results back into the C container
 
-    aPtr += 4;
-    cPtr += 4;
-  }
-
-  number = quarterPoints * 4;
-  for(;number < num_points; number++) {
-    if(*aPtr > 4.97)
-      *cPtr++ = 1;
-    else if(*aPtr <= -4.97)
-      *cPtr++ = -1;
-    else {
-      float x2 = (*aPtr) * (*aPtr);
-      float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-      float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-      *cPtr++ = a / b;
-      aPtr++;
+        aPtr += 4;
+        cPtr += 4;
     }
-  }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        if (*aPtr > 4.97)
+            *cPtr++ = 1;
+        else if (*aPtr <= -4.97)
+            *cPtr++ = -1;
+        else {
+            float x2 = (*aPtr) * (*aPtr);
+            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
+            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
+            *cPtr++ = a / b;
+            aPtr++;
+        }
+    }
 }
 #endif /* LV_HAVE_SSE */
 
@@ -176,52 +182,65 @@ volk_32f_tanh_32f_a_sse(float* cVector, const float* aVector,
 #include <immintrin.h>
 
 static inline void
-volk_32f_tanh_32f_a_avx(float* cVector, const float* aVector,
-                        unsigned int num_points)
+volk_32f_tanh_32f_a_avx(float* cVector, const float* aVector, unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int eighthPoints = num_points / 8;
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
 
-  float* cPtr = cVector;
-  const float* aPtr = aVector;
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
 
-  __m256 aVal, cVal, x2, a, b;
-  __m256 const1, const2, const3, const4, const5, const6;
-  const1 = _mm256_set1_ps(135135.0f);
-  const2 = _mm256_set1_ps(17325.0f);
-  const3 = _mm256_set1_ps(378.0f);
-  const4 = _mm256_set1_ps(62370.0f);
-  const5 = _mm256_set1_ps(3150.0f);
-  const6 = _mm256_set1_ps(28.0f);
-  for(;number < eighthPoints; number++){
+    __m256 aVal, cVal, x2, a, b;
+    __m256 const1, const2, const3, const4, const5, const6;
+    const1 = _mm256_set1_ps(135135.0f);
+    const2 = _mm256_set1_ps(17325.0f);
+    const3 = _mm256_set1_ps(378.0f);
+    const4 = _mm256_set1_ps(62370.0f);
+    const5 = _mm256_set1_ps(3150.0f);
+    const6 = _mm256_set1_ps(28.0f);
+    for (; number < eighthPoints; number++) {
 
-    aVal = _mm256_load_ps(aPtr);
-    x2 = _mm256_mul_ps(aVal, aVal);
-    a  = _mm256_mul_ps(aVal, _mm256_add_ps(const1, _mm256_mul_ps(x2, _mm256_add_ps(const2, _mm256_mul_ps(x2, _mm256_add_ps(const3, x2))))));
-    b  = _mm256_add_ps(const1, _mm256_mul_ps(x2, _mm256_add_ps(const4, _mm256_mul_ps(x2, _mm256_add_ps(const5, _mm256_mul_ps(x2, const6))))));
+        aVal = _mm256_load_ps(aPtr);
+        x2 = _mm256_mul_ps(aVal, aVal);
+        a = _mm256_mul_ps(
+            aVal,
+            _mm256_add_ps(
+                const1,
+                _mm256_mul_ps(
+                    x2,
+                    _mm256_add_ps(const2,
+                                  _mm256_mul_ps(x2, _mm256_add_ps(const3, x2))))));
+        b = _mm256_add_ps(
+            const1,
+            _mm256_mul_ps(
+                x2,
+                _mm256_add_ps(
+                    const4,
+                    _mm256_mul_ps(x2,
+                                  _mm256_add_ps(const5, _mm256_mul_ps(x2, const6))))));
 
-    cVal = _mm256_div_ps(a, b);
+        cVal = _mm256_div_ps(a, b);
 
-    _mm256_store_ps(cPtr, cVal); // Store the results back into the C container
+        _mm256_store_ps(cPtr, cVal); // Store the results back into the C container
 
-    aPtr += 8;
-    cPtr += 8;
-  }
-
-  number = eighthPoints * 8;
-  for(;number < num_points; number++) {
-    if(*aPtr > 4.97)
-      *cPtr++ = 1;
-    else if(*aPtr <= -4.97)
-      *cPtr++ = -1;
-    else {
-      float x2 = (*aPtr) * (*aPtr);
-      float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-      float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-      *cPtr++ = a / b;
-      aPtr++;
+        aPtr += 8;
+        cPtr += 8;
     }
-  }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        if (*aPtr > 4.97)
+            *cPtr++ = 1;
+        else if (*aPtr <= -4.97)
+            *cPtr++ = -1;
+        else {
+            float x2 = (*aPtr) * (*aPtr);
+            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
+            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
+            *cPtr++ = a / b;
+            aPtr++;
+        }
+    }
 }
 #endif /* LV_HAVE_AVX */
 
@@ -229,52 +248,55 @@ volk_32f_tanh_32f_a_avx(float* cVector, const float* aVector,
 #include <immintrin.h>
 
 static inline void
-volk_32f_tanh_32f_a_avx_fma(float* cVector, const float* aVector,
-                        unsigned int num_points)
+volk_32f_tanh_32f_a_avx_fma(float* cVector, const float* aVector, unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int eighthPoints = num_points / 8;
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
 
-  float* cPtr = cVector;
-  const float* aPtr = aVector;
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
 
-  __m256 aVal, cVal, x2, a, b;
-  __m256 const1, const2, const3, const4, const5, const6;
-  const1 = _mm256_set1_ps(135135.0f);
-  const2 = _mm256_set1_ps(17325.0f);
-  const3 = _mm256_set1_ps(378.0f);
-  const4 = _mm256_set1_ps(62370.0f);
-  const5 = _mm256_set1_ps(3150.0f);
-  const6 = _mm256_set1_ps(28.0f);
-  for(;number < eighthPoints; number++){
+    __m256 aVal, cVal, x2, a, b;
+    __m256 const1, const2, const3, const4, const5, const6;
+    const1 = _mm256_set1_ps(135135.0f);
+    const2 = _mm256_set1_ps(17325.0f);
+    const3 = _mm256_set1_ps(378.0f);
+    const4 = _mm256_set1_ps(62370.0f);
+    const5 = _mm256_set1_ps(3150.0f);
+    const6 = _mm256_set1_ps(28.0f);
+    for (; number < eighthPoints; number++) {
 
-    aVal = _mm256_load_ps(aPtr);
-    x2 = _mm256_mul_ps(aVal, aVal);
-    a  = _mm256_mul_ps(aVal, _mm256_fmadd_ps(x2, _mm256_fmadd_ps(x2, _mm256_add_ps(const3, x2), const2),const1));
-    b  = _mm256_fmadd_ps(x2, _mm256_fmadd_ps(x2, _mm256_fmadd_ps(x2, const6, const5), const4), const1);
+        aVal = _mm256_load_ps(aPtr);
+        x2 = _mm256_mul_ps(aVal, aVal);
+        a = _mm256_mul_ps(
+            aVal,
+            _mm256_fmadd_ps(
+                x2, _mm256_fmadd_ps(x2, _mm256_add_ps(const3, x2), const2), const1));
+        b = _mm256_fmadd_ps(
+            x2, _mm256_fmadd_ps(x2, _mm256_fmadd_ps(x2, const6, const5), const4), const1);
 
-    cVal = _mm256_div_ps(a, b);
+        cVal = _mm256_div_ps(a, b);
 
-    _mm256_store_ps(cPtr, cVal); // Store the results back into the C container
+        _mm256_store_ps(cPtr, cVal); // Store the results back into the C container
 
-    aPtr += 8;
-    cPtr += 8;
-  }
-
-  number = eighthPoints * 8;
-  for(;number < num_points; number++) {
-    if(*aPtr > 4.97)
-      *cPtr++ = 1;
-    else if(*aPtr <= -4.97)
-      *cPtr++ = -1;
-    else {
-      float x2 = (*aPtr) * (*aPtr);
-      float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-      float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-      *cPtr++ = a / b;
-      aPtr++;
+        aPtr += 8;
+        cPtr += 8;
     }
-  }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        if (*aPtr > 4.97)
+            *cPtr++ = 1;
+        else if (*aPtr <= -4.97)
+            *cPtr++ = -1;
+        else {
+            float x2 = (*aPtr) * (*aPtr);
+            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
+            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
+            *cPtr++ = a / b;
+            aPtr++;
+        }
+    }
 }
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 
@@ -285,8 +307,8 @@ volk_32f_tanh_32f_a_avx_fma(float* cVector, const float* aVector,
 #define INCLUDED_volk_32f_tanh_32f_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 
 
@@ -294,52 +316,61 @@ volk_32f_tanh_32f_a_avx_fma(float* cVector, const float* aVector,
 #include <xmmintrin.h>
 
 static inline void
-volk_32f_tanh_32f_u_sse(float* cVector, const float* aVector,
-                        unsigned int num_points)
+volk_32f_tanh_32f_u_sse(float* cVector, const float* aVector, unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int quarterPoints = num_points / 4;
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
 
-  float* cPtr = cVector;
-  const float* aPtr = aVector;
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
 
-  __m128 aVal, cVal, x2, a, b;
-  __m128 const1, const2, const3, const4, const5, const6;
-  const1 = _mm_set_ps1(135135.0f);
-  const2 = _mm_set_ps1(17325.0f);
-  const3 = _mm_set_ps1(378.0f);
-  const4 = _mm_set_ps1(62370.0f);
-  const5 = _mm_set_ps1(3150.0f);
-  const6 = _mm_set_ps1(28.0f);
-  for(;number < quarterPoints; number++){
+    __m128 aVal, cVal, x2, a, b;
+    __m128 const1, const2, const3, const4, const5, const6;
+    const1 = _mm_set_ps1(135135.0f);
+    const2 = _mm_set_ps1(17325.0f);
+    const3 = _mm_set_ps1(378.0f);
+    const4 = _mm_set_ps1(62370.0f);
+    const5 = _mm_set_ps1(3150.0f);
+    const6 = _mm_set_ps1(28.0f);
+    for (; number < quarterPoints; number++) {
 
-    aVal = _mm_loadu_ps(aPtr);
-    x2 = _mm_mul_ps(aVal, aVal);
-    a  = _mm_mul_ps(aVal, _mm_add_ps(const1, _mm_mul_ps(x2, _mm_add_ps(const2, _mm_mul_ps(x2, _mm_add_ps(const3, x2))))));
-    b  = _mm_add_ps(const1, _mm_mul_ps(x2, _mm_add_ps(const4, _mm_mul_ps(x2, _mm_add_ps(const5, _mm_mul_ps(x2, const6))))));
+        aVal = _mm_loadu_ps(aPtr);
+        x2 = _mm_mul_ps(aVal, aVal);
+        a = _mm_mul_ps(
+            aVal,
+            _mm_add_ps(
+                const1,
+                _mm_mul_ps(x2,
+                           _mm_add_ps(const2, _mm_mul_ps(x2, _mm_add_ps(const3, x2))))));
+        b = _mm_add_ps(
+            const1,
+            _mm_mul_ps(
+                x2,
+                _mm_add_ps(const4,
+                           _mm_mul_ps(x2, _mm_add_ps(const5, _mm_mul_ps(x2, const6))))));
 
-    cVal = _mm_div_ps(a, b);
+        cVal = _mm_div_ps(a, b);
 
-    _mm_storeu_ps(cPtr, cVal); // Store the results back into the C container
+        _mm_storeu_ps(cPtr, cVal); // Store the results back into the C container
 
-    aPtr += 4;
-    cPtr += 4;
-  }
-
-  number = quarterPoints * 4;
-  for(;number < num_points; number++) {
-    if(*aPtr > 4.97)
-      *cPtr++ = 1;
-    else if(*aPtr <= -4.97)
-      *cPtr++ = -1;
-    else {
-      float x2 = (*aPtr) * (*aPtr);
-      float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-      float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-      *cPtr++ = a / b;
-      aPtr++;
+        aPtr += 4;
+        cPtr += 4;
     }
-  }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        if (*aPtr > 4.97)
+            *cPtr++ = 1;
+        else if (*aPtr <= -4.97)
+            *cPtr++ = -1;
+        else {
+            float x2 = (*aPtr) * (*aPtr);
+            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
+            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
+            *cPtr++ = a / b;
+            aPtr++;
+        }
+    }
 }
 #endif /* LV_HAVE_SSE */
 
@@ -348,52 +379,65 @@ volk_32f_tanh_32f_u_sse(float* cVector, const float* aVector,
 #include <immintrin.h>
 
 static inline void
-volk_32f_tanh_32f_u_avx(float* cVector, const float* aVector,
-                        unsigned int num_points)
+volk_32f_tanh_32f_u_avx(float* cVector, const float* aVector, unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int eighthPoints = num_points / 8;
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
 
-  float* cPtr = cVector;
-  const float* aPtr = aVector;
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
 
-  __m256 aVal, cVal, x2, a, b;
-  __m256 const1, const2, const3, const4, const5, const6;
-  const1 = _mm256_set1_ps(135135.0f);
-  const2 = _mm256_set1_ps(17325.0f);
-  const3 = _mm256_set1_ps(378.0f);
-  const4 = _mm256_set1_ps(62370.0f);
-  const5 = _mm256_set1_ps(3150.0f);
-  const6 = _mm256_set1_ps(28.0f);
-  for(;number < eighthPoints; number++){
+    __m256 aVal, cVal, x2, a, b;
+    __m256 const1, const2, const3, const4, const5, const6;
+    const1 = _mm256_set1_ps(135135.0f);
+    const2 = _mm256_set1_ps(17325.0f);
+    const3 = _mm256_set1_ps(378.0f);
+    const4 = _mm256_set1_ps(62370.0f);
+    const5 = _mm256_set1_ps(3150.0f);
+    const6 = _mm256_set1_ps(28.0f);
+    for (; number < eighthPoints; number++) {
 
-    aVal = _mm256_loadu_ps(aPtr);
-    x2 = _mm256_mul_ps(aVal, aVal);
-    a  = _mm256_mul_ps(aVal, _mm256_add_ps(const1, _mm256_mul_ps(x2, _mm256_add_ps(const2, _mm256_mul_ps(x2, _mm256_add_ps(const3, x2))))));
-    b  = _mm256_add_ps(const1, _mm256_mul_ps(x2, _mm256_add_ps(const4, _mm256_mul_ps(x2, _mm256_add_ps(const5, _mm256_mul_ps(x2, const6))))));
+        aVal = _mm256_loadu_ps(aPtr);
+        x2 = _mm256_mul_ps(aVal, aVal);
+        a = _mm256_mul_ps(
+            aVal,
+            _mm256_add_ps(
+                const1,
+                _mm256_mul_ps(
+                    x2,
+                    _mm256_add_ps(const2,
+                                  _mm256_mul_ps(x2, _mm256_add_ps(const3, x2))))));
+        b = _mm256_add_ps(
+            const1,
+            _mm256_mul_ps(
+                x2,
+                _mm256_add_ps(
+                    const4,
+                    _mm256_mul_ps(x2,
+                                  _mm256_add_ps(const5, _mm256_mul_ps(x2, const6))))));
 
-    cVal = _mm256_div_ps(a, b);
+        cVal = _mm256_div_ps(a, b);
 
-    _mm256_storeu_ps(cPtr, cVal); // Store the results back into the C container
+        _mm256_storeu_ps(cPtr, cVal); // Store the results back into the C container
 
-    aPtr += 8;
-    cPtr += 8;
-  }
-
-  number = eighthPoints * 8;
-  for(;number < num_points; number++) {
-    if(*aPtr > 4.97)
-      *cPtr++ = 1;
-    else if(*aPtr <= -4.97)
-      *cPtr++ = -1;
-    else {
-      float x2 = (*aPtr) * (*aPtr);
-      float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-      float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-      *cPtr++ = a / b;
-      aPtr++;
+        aPtr += 8;
+        cPtr += 8;
     }
-  }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        if (*aPtr > 4.97)
+            *cPtr++ = 1;
+        else if (*aPtr <= -4.97)
+            *cPtr++ = -1;
+        else {
+            float x2 = (*aPtr) * (*aPtr);
+            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
+            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
+            *cPtr++ = a / b;
+            aPtr++;
+        }
+    }
 }
 #endif /* LV_HAVE_AVX */
 
@@ -401,52 +445,55 @@ volk_32f_tanh_32f_u_avx(float* cVector, const float* aVector,
 #include <immintrin.h>
 
 static inline void
-volk_32f_tanh_32f_u_avx_fma(float* cVector, const float* aVector,
-                        unsigned int num_points)
+volk_32f_tanh_32f_u_avx_fma(float* cVector, const float* aVector, unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int eighthPoints = num_points / 8;
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
 
-  float* cPtr = cVector;
-  const float* aPtr = aVector;
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
 
-  __m256 aVal, cVal, x2, a, b;
-  __m256 const1, const2, const3, const4, const5, const6;
-  const1 = _mm256_set1_ps(135135.0f);
-  const2 = _mm256_set1_ps(17325.0f);
-  const3 = _mm256_set1_ps(378.0f);
-  const4 = _mm256_set1_ps(62370.0f);
-  const5 = _mm256_set1_ps(3150.0f);
-  const6 = _mm256_set1_ps(28.0f);
-  for(;number < eighthPoints; number++){
+    __m256 aVal, cVal, x2, a, b;
+    __m256 const1, const2, const3, const4, const5, const6;
+    const1 = _mm256_set1_ps(135135.0f);
+    const2 = _mm256_set1_ps(17325.0f);
+    const3 = _mm256_set1_ps(378.0f);
+    const4 = _mm256_set1_ps(62370.0f);
+    const5 = _mm256_set1_ps(3150.0f);
+    const6 = _mm256_set1_ps(28.0f);
+    for (; number < eighthPoints; number++) {
 
-    aVal = _mm256_loadu_ps(aPtr);
-    x2 = _mm256_mul_ps(aVal, aVal);
-    a  = _mm256_mul_ps(aVal, _mm256_fmadd_ps(x2, _mm256_fmadd_ps(x2, _mm256_add_ps(const3, x2), const2),const1));
-    b  = _mm256_fmadd_ps(x2, _mm256_fmadd_ps(x2, _mm256_fmadd_ps(x2, const6, const5), const4), const1);
+        aVal = _mm256_loadu_ps(aPtr);
+        x2 = _mm256_mul_ps(aVal, aVal);
+        a = _mm256_mul_ps(
+            aVal,
+            _mm256_fmadd_ps(
+                x2, _mm256_fmadd_ps(x2, _mm256_add_ps(const3, x2), const2), const1));
+        b = _mm256_fmadd_ps(
+            x2, _mm256_fmadd_ps(x2, _mm256_fmadd_ps(x2, const6, const5), const4), const1);
 
-    cVal = _mm256_div_ps(a, b);
+        cVal = _mm256_div_ps(a, b);
 
-    _mm256_storeu_ps(cPtr, cVal); // Store the results back into the C container
+        _mm256_storeu_ps(cPtr, cVal); // Store the results back into the C container
 
-    aPtr += 8;
-    cPtr += 8;
-  }
-
-  number = eighthPoints * 8;
-  for(;number < num_points; number++) {
-    if(*aPtr > 4.97)
-      *cPtr++ = 1;
-    else if(*aPtr <= -4.97)
-      *cPtr++ = -1;
-    else {
-      float x2 = (*aPtr) * (*aPtr);
-      float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-      float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-      *cPtr++ = a / b;
-      aPtr++;
+        aPtr += 8;
+        cPtr += 8;
     }
-  }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        if (*aPtr > 4.97)
+            *cPtr++ = 1;
+        else if (*aPtr <= -4.97)
+            *cPtr++ = -1;
+        else {
+            float x2 = (*aPtr) * (*aPtr);
+            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
+            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
+            *cPtr++ = a / b;
+            aPtr++;
+        }
+    }
 }
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 

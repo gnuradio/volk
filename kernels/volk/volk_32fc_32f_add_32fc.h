@@ -31,8 +31,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_32f_add_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector, const float* bVector, unsigned int num_points)
- * \endcode
+ * void volk_32fc_32f_add_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector, const float*
+ * bVector, unsigned int num_points) \endcode
  *
  * \b Inputs
  * \li aVector: First vector of input points.
@@ -44,7 +44,8 @@
  *
  * \b Example
  *
- * The follow example adds the increasing and decreasing vectors such that the result of every summation pair is 10
+ * The follow example adds the increasing and decreasing vectors such that the result of
+ * every summation pair is 10
  *
  * \code
  *   int N = 10;
@@ -75,18 +76,19 @@
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void
-volk_32fc_32f_add_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector,
-                            const float* bVector, unsigned int num_points)
+static inline void volk_32fc_32f_add_32fc_generic(lv_32fc_t* cVector,
+                                                  const lv_32fc_t* aVector,
+                                                  const float* bVector,
+                                                  unsigned int num_points)
 {
-  lv_32fc_t* cPtr = cVector;
-  const lv_32fc_t* aPtr = aVector;
-  const float* bPtr=  bVector;
-  unsigned int number = 0;
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const float* bPtr = bVector;
+    unsigned int number = 0;
 
-  for(number = 0; number < num_points; number++){
-    *cPtr++ = (*aPtr++) + (*bPtr++);
-  }
+    for (number = 0; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) + (*bPtr++);
+    }
 }
 #endif /* LV_HAVE_GENERIC */
 
@@ -94,143 +96,150 @@ volk_32fc_32f_add_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector,
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
-static inline void
-volk_32fc_32f_add_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
-                          const float* bVector, unsigned int num_points)
+static inline void volk_32fc_32f_add_32fc_u_avx(lv_32fc_t* cVector,
+                                                const lv_32fc_t* aVector,
+                                                const float* bVector,
+                                                unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int eighthPoints = num_points / 8;
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
 
-  lv_32fc_t* cPtr = cVector;
-  const lv_32fc_t* aPtr = aVector;
-  const float* bPtr=  bVector;
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const float* bPtr = bVector;
 
-  __m256 aVal1, aVal2, bVal, cVal1, cVal2;
-  __m256 cpx_b1, cpx_b2;
-  __m256 zero;
-  zero = _mm256_setzero_ps();
-  __m256 tmp1, tmp2;
-  for(;number < eighthPoints; number++){
+    __m256 aVal1, aVal2, bVal, cVal1, cVal2;
+    __m256 cpx_b1, cpx_b2;
+    __m256 zero;
+    zero = _mm256_setzero_ps();
+    __m256 tmp1, tmp2;
+    for (; number < eighthPoints; number++) {
 
-    aVal1 = _mm256_loadu_ps((float *) aPtr);
-    aVal2 = _mm256_loadu_ps((float *) (aPtr+4));
-    bVal = _mm256_loadu_ps(bPtr);
-    cpx_b1 = _mm256_unpacklo_ps(bVal, zero); // b0, 0, b1, 0, b4, 0, b5, 0
-    cpx_b2 = _mm256_unpackhi_ps(bVal, zero); // b2, 0, b3, 0, b6, 0, b7, 0
+        aVal1 = _mm256_loadu_ps((float*)aPtr);
+        aVal2 = _mm256_loadu_ps((float*)(aPtr + 4));
+        bVal = _mm256_loadu_ps(bPtr);
+        cpx_b1 = _mm256_unpacklo_ps(bVal, zero); // b0, 0, b1, 0, b4, 0, b5, 0
+        cpx_b2 = _mm256_unpackhi_ps(bVal, zero); // b2, 0, b3, 0, b6, 0, b7, 0
 
-    tmp1 = _mm256_permute2f128_ps(cpx_b1, cpx_b2, 0x0+(0x2<<4));
-    tmp2 = _mm256_permute2f128_ps(cpx_b1, cpx_b2, 0x1+(0x3<<4));
+        tmp1 = _mm256_permute2f128_ps(cpx_b1, cpx_b2, 0x0 + (0x2 << 4));
+        tmp2 = _mm256_permute2f128_ps(cpx_b1, cpx_b2, 0x1 + (0x3 << 4));
 
-    cVal1 = _mm256_add_ps(aVal1, tmp1);
-    cVal2 = _mm256_add_ps(aVal2, tmp2);
+        cVal1 = _mm256_add_ps(aVal1, tmp1);
+        cVal2 = _mm256_add_ps(aVal2, tmp2);
 
-    _mm256_storeu_ps((float *) cPtr, cVal1); // Store the results back into the C container
-    _mm256_storeu_ps((float *) (cPtr+4), cVal2); // Store the results back into the C container
+        _mm256_storeu_ps((float*)cPtr,
+                         cVal1); // Store the results back into the C container
+        _mm256_storeu_ps((float*)(cPtr + 4),
+                         cVal2); // Store the results back into the C container
 
-    aPtr += 8;
-    bPtr += 8;
-    cPtr += 8;
-  }
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
 
-  number = eighthPoints * 8;
-  for(;number < num_points; number++){
-    *cPtr++ = (*aPtr++) + (*bPtr++);
-  }
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) + (*bPtr++);
+    }
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
-static inline void
-volk_32fc_32f_add_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector,
-                          const float* bVector, unsigned int num_points)
+static inline void volk_32fc_32f_add_32fc_a_avx(lv_32fc_t* cVector,
+                                                const lv_32fc_t* aVector,
+                                                const float* bVector,
+                                                unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int eighthPoints = num_points / 8;
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
 
-  lv_32fc_t* cPtr = cVector;
-  const lv_32fc_t* aPtr = aVector;
-  const float* bPtr=  bVector;
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const float* bPtr = bVector;
 
-  __m256 aVal1, aVal2, bVal, cVal1, cVal2;
-  __m256 cpx_b1, cpx_b2;
-  __m256 zero;
-  zero = _mm256_setzero_ps();
-  __m256 tmp1, tmp2;
-  for(;number < eighthPoints; number++){
+    __m256 aVal1, aVal2, bVal, cVal1, cVal2;
+    __m256 cpx_b1, cpx_b2;
+    __m256 zero;
+    zero = _mm256_setzero_ps();
+    __m256 tmp1, tmp2;
+    for (; number < eighthPoints; number++) {
 
-    aVal1 = _mm256_load_ps((float *) aPtr);
-    aVal2 = _mm256_load_ps((float *) (aPtr+4));
-    bVal = _mm256_load_ps(bPtr);
-    cpx_b1 = _mm256_unpacklo_ps(bVal, zero); // b0, 0, b1, 0, b4, 0, b5, 0
-    cpx_b2 = _mm256_unpackhi_ps(bVal, zero); // b2, 0, b3, 0, b6, 0, b7, 0
+        aVal1 = _mm256_load_ps((float*)aPtr);
+        aVal2 = _mm256_load_ps((float*)(aPtr + 4));
+        bVal = _mm256_load_ps(bPtr);
+        cpx_b1 = _mm256_unpacklo_ps(bVal, zero); // b0, 0, b1, 0, b4, 0, b5, 0
+        cpx_b2 = _mm256_unpackhi_ps(bVal, zero); // b2, 0, b3, 0, b6, 0, b7, 0
 
-    tmp1 = _mm256_permute2f128_ps(cpx_b1, cpx_b2, 0x0+(0x2<<4));
-    tmp2 = _mm256_permute2f128_ps(cpx_b1, cpx_b2, 0x1+(0x3<<4));
+        tmp1 = _mm256_permute2f128_ps(cpx_b1, cpx_b2, 0x0 + (0x2 << 4));
+        tmp2 = _mm256_permute2f128_ps(cpx_b1, cpx_b2, 0x1 + (0x3 << 4));
 
-    cVal1 = _mm256_add_ps(aVal1, tmp1);
-    cVal2 = _mm256_add_ps(aVal2, tmp2);
+        cVal1 = _mm256_add_ps(aVal1, tmp1);
+        cVal2 = _mm256_add_ps(aVal2, tmp2);
 
-    _mm256_store_ps((float *) cPtr, cVal1); // Store the results back into the C container
-    _mm256_store_ps((float *) (cPtr+4), cVal2); // Store the results back into the C container
+        _mm256_store_ps((float*)cPtr,
+                        cVal1); // Store the results back into the C container
+        _mm256_store_ps((float*)(cPtr + 4),
+                        cVal2); // Store the results back into the C container
 
-    aPtr += 8;
-    bPtr += 8;
-    cPtr += 8;
-  }
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
 
-  number = eighthPoints * 8;
-  for(;number < num_points; number++){
-    *cPtr++ = (*aPtr++) + (*bPtr++);
-  }
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) + (*bPtr++);
+    }
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
-static inline void
-volk_32fc_32f_add_32fc_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector,
-			    const float* bVector, unsigned int num_points)
+static inline void volk_32fc_32f_add_32fc_neon(lv_32fc_t* cVector,
+                                               const lv_32fc_t* aVector,
+                                               const float* bVector,
+                                               unsigned int num_points)
 {
-  lv_32fc_t* cPtr = cVector;
-  const lv_32fc_t* aPtr = aVector;
-  const float* bPtr = bVector;
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const float* bPtr = bVector;
 
-  float32x4x4_t aVal0, aVal1;
-  float32x4x2_t bVal0, bVal1;
+    float32x4x4_t aVal0, aVal1;
+    float32x4x2_t bVal0, bVal1;
 
-  const unsigned int sixteenthPoints = num_points / 16;
-  unsigned int number = 0;
-  for(; number < sixteenthPoints; number++){
-    aVal0 = vld4q_f32((const float*)aPtr);
-    aPtr += 8;
-    aVal1 = vld4q_f32((const float*)aPtr);
-    aPtr += 8;
-    __VOLK_PREFETCH(aPtr+16);
+    const unsigned int sixteenthPoints = num_points / 16;
+    unsigned int number = 0;
+    for (; number < sixteenthPoints; number++) {
+        aVal0 = vld4q_f32((const float*)aPtr);
+        aPtr += 8;
+        aVal1 = vld4q_f32((const float*)aPtr);
+        aPtr += 8;
+        __VOLK_PREFETCH(aPtr + 16);
 
-    bVal0 = vld2q_f32((const float*)bPtr);
-    bPtr += 8;
-    bVal1 = vld2q_f32((const float*)bPtr);
-    bPtr += 8;
-    __VOLK_PREFETCH(bPtr+16);
+        bVal0 = vld2q_f32((const float*)bPtr);
+        bPtr += 8;
+        bVal1 = vld2q_f32((const float*)bPtr);
+        bPtr += 8;
+        __VOLK_PREFETCH(bPtr + 16);
 
-    aVal0.val[0] = vaddq_f32(aVal0.val[0], bVal0.val[0]);
-    aVal0.val[2] = vaddq_f32(aVal0.val[2], bVal0.val[1]);
+        aVal0.val[0] = vaddq_f32(aVal0.val[0], bVal0.val[0]);
+        aVal0.val[2] = vaddq_f32(aVal0.val[2], bVal0.val[1]);
 
-    aVal1.val[2] = vaddq_f32(aVal1.val[2], bVal1.val[1]);
-    aVal1.val[0] = vaddq_f32(aVal1.val[0], bVal1.val[0]);
+        aVal1.val[2] = vaddq_f32(aVal1.val[2], bVal1.val[1]);
+        aVal1.val[0] = vaddq_f32(aVal1.val[0], bVal1.val[0]);
 
-    vst4q_f32((float*)(cPtr), aVal0);
-    cPtr += 8;
-    vst4q_f32((float*)(cPtr), aVal1);
-    cPtr += 8;
-  }
+        vst4q_f32((float*)(cPtr), aVal0);
+        cPtr += 8;
+        vst4q_f32((float*)(cPtr), aVal1);
+        cPtr += 8;
+    }
 
-  for(number = sixteenthPoints * 16; number < num_points; number++){
-    *cPtr++ = (*aPtr++) + (*bPtr++);
-  }
+    for (number = sixteenthPoints * 16; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) + (*bPtr++);
+    }
 }
 #endif /* LV_HAVE_NEON */
 

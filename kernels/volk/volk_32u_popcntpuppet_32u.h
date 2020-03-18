@@ -27,19 +27,25 @@
 #include <volk/volk_32u_popcnt.h>
 
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32u_popcntpuppet_32u_generic(uint32_t* outVector, const uint32_t* inVector, unsigned int num_points){
+static inline void volk_32u_popcntpuppet_32u_generic(uint32_t* outVector,
+                                                     const uint32_t* inVector,
+                                                     unsigned int num_points)
+{
     unsigned int ii;
-    for(ii=0; ii < num_points; ++ii) {
-        volk_32u_popcnt_generic(outVector+ii, *(inVector+ii) );
+    for (ii = 0; ii < num_points; ++ii) {
+        volk_32u_popcnt_generic(outVector + ii, *(inVector + ii));
     }
 }
 #endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_SSE4_2
-static inline void volk_32u_popcntpuppet_32u_a_sse4_2(uint32_t* outVector, const uint32_t* inVector, unsigned int num_points){
+static inline void volk_32u_popcntpuppet_32u_a_sse4_2(uint32_t* outVector,
+                                                      const uint32_t* inVector,
+                                                      unsigned int num_points)
+{
     unsigned int ii;
-    for(ii=0; ii < num_points; ++ii) {
-        volk_32u_popcnt_a_sse4_2(outVector+ii, *(inVector+ii) );
+    for (ii = 0; ii < num_points; ++ii) {
+        volk_32u_popcnt_a_sse4_2(outVector + ii, *(inVector + ii));
     }
 }
 #endif /* LV_HAVE_SSE4_2 */
