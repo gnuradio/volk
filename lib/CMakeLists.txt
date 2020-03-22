@@ -465,7 +465,6 @@ if(ORC_FOUND)
     #setup orc library usage
     include_directories(${ORC_INCLUDE_DIRS})
     link_directories(${ORC_LIBRARY_DIRS})
-    list(APPEND volk_libraries ${ORC_LIBRARIES})
 
     #setup orc functions
     file(GLOB orc_files ${PROJECT_SOURCE_DIR}/kernels/volk/asm/orc/*.orc)
@@ -572,6 +571,9 @@ target_include_directories(volk
 )
 
 #Configure target properties
+if(ORC_FOUND)
+  target_link_libraries(volk PRIVATE ${ORC_LIBRARIES})
+endif()
 if(NOT MSVC)
   target_link_libraries(volk PUBLIC m)
 endif()
@@ -597,6 +599,9 @@ install(TARGETS volk
 if(ENABLE_STATIC_LIBS)
   add_library(volk_static STATIC $<TARGET_OBJECTS:volk_obj>)
   target_link_libraries(volk_static PUBLIC ${volk_libraries} pthread)
+  if(ORC_FOUND)
+    target_link_libraries(volk_static PUBLIC ${ORC_LIBRARIES})
+  endif()
   if(NOT MSVC)
     target_link_libraries(volk_static PUBLIC m)
   endif()
