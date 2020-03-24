@@ -87,7 +87,6 @@
 #include <stdlib.h>
 #include <volk/volk_complex.h>
 #define ROTATOR_RELOAD 512
-#define ROTATOR_RELOAD 512
 #define ROTATOR_RELOAD_2 (ROTATOR_RELOAD / 2)
 #define ROTATOR_RELOAD_4 (ROTATOR_RELOAD / 4)
 
