@@ -31,7 +31,8 @@
  * see: https://en.cppreference.com/w/c/memory/aligned_alloc
  *
  * MSVC is broken
- * see: https://docs.microsoft.com/en-us/cpp/overview/visual-cpp-language-conformance?view=vs-2019
+ * see:
+ * https://docs.microsoft.com/en-us/cpp/overview/visual-cpp-language-conformance?view=vs-2019
  * This section:
  * C11 The Universal CRT implemented the parts of the
  * C11 Standard Library that are required by C++17,
@@ -46,39 +47,43 @@
  * We must work around this problem because MSVC is non-compliant!
  */
 
-void *volk_malloc(size_t size, size_t alignment)
+
+void* volk_malloc(size_t size, size_t alignment)
 {
 #if HAVE_POSIX_MEMALIGN
-  // quoting posix_memalign() man page:
-  // "alignment must be a power of two and a multiple of sizeof(void *)"
-  // volk_get_alignment() could return 1 for some machines (e.g. generic_orc)
-  if (alignment == 1){
-    return malloc(size);
-  }
-  void *ptr;
-  int err = posix_memalign(&ptr, alignment, size);
-  if(err != 0) {
-    ptr = NULL;
-    fprintf(stderr,
-            "VOLK: Error allocating memory "
-            "(posix_memalign: error %d: %s)\n", err, strerror(err));
-  }
+    // quoting posix_memalign() man page:
+    // "alignment must be a power of two and a multiple of sizeof(void *)"
+    // volk_get_alignment() could return 1 for some machines (e.g. generic_orc)
+    if (alignment == 1) {
+        return malloc(size);
+    }
+    void* ptr;
+    int err = posix_memalign(&ptr, alignment, size);
+    if (err != 0) {
+        ptr = NULL;
+        fprintf(stderr,
+                "VOLK: Error allocating memory "
+                "(posix_memalign: error %d: %s)\n",
+                err,
+                strerror(err));
+    }
 #elif defined(_MSC_VER)
-  void *ptr = _aligned_malloc(size, alignment);
+    void* ptr = _aligned_malloc(size, alignment);
 #else
-  void *ptr = aligned_alloc(alignment, size);
+    void* ptr = aligned_alloc(alignment, size);
 #endif
-  if(ptr == NULL) {
-    fprintf(stderr, "VOLK: Error allocating memory (aligned_alloc/_aligned_malloc)\n");
-  }
-  return ptr;
+    if (ptr == NULL) {
+        fprintf(stderr,
+                "VOLK: Error allocating memory (aligned_alloc/_aligned_malloc)\n");
+    }
+    return ptr;
 }
 
-void volk_free(void *ptr)
+void volk_free(void* ptr)
 {
 #if defined(_MSC_VER)
-  _aligned_free(ptr);
+    _aligned_free(ptr);
 #else
-  free(ptr);
+    free(ptr);
 #endif
 }

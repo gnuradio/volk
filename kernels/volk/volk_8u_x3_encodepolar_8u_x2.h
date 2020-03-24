@@ -29,9 +29,9 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_8u_x3_encodepolar_8u(unsigned char* frame, const unsigned char* frozen_bit_mask, const unsigned char* frozen_bits,
- *                                  const unsigned char* info_bits, unsigned int frame_size, unsigned int info_bit_size)
- * \endcode
+ * void volk_8u_x3_encodepolar_8u(unsigned char* frame, const unsigned char*
+ * frozen_bit_mask, const unsigned char* frozen_bits, const unsigned char* info_bits,
+ * unsigned int frame_size, unsigned int info_bit_size) \endcode
  *
  * \b Inputs
  * \li frame: buffer for encoded frame
@@ -55,14 +55,17 @@
  * unsigned char* frozen_bit_mask = get_frozen_bit_mask(frame_size, num_frozen_bits);
  *
  * // set elements to desired values. Typically all zero.
- * unsigned char* frozen_bits = (unsigned char) volk_malloc(sizeof(unsigned char) * num_frozen_bits, volk_get_alignment());
+ * unsigned char* frozen_bits = (unsigned char) volk_malloc(sizeof(unsigned char) *
+ * num_frozen_bits, volk_get_alignment());
  *
- * unsigned char* frame = (unsigned char) volk_malloc(sizeof(unsigned char) * frame_size, volk_get_alignment());
- * unsigned char* temp = (unsigned char) volk_malloc(sizeof(unsigned char) * frame_size, volk_get_alignment());
+ * unsigned char* frame = (unsigned char) volk_malloc(sizeof(unsigned char) * frame_size,
+ * volk_get_alignment()); unsigned char* temp = (unsigned char)
+ * volk_malloc(sizeof(unsigned char) * frame_size, volk_get_alignment());
  *
  * unsigned char* info_bits = get_info_bits_to_encode(num_info_bits);
  *
- * volk_8u_x3_encodepolar_8u_x2_generic(frame, temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+ * volk_8u_x3_encodepolar_8u_x2_generic(frame, temp, frozen_bit_mask, frozen_bits,
+ * info_bits, frame_size);
  *
  * volk_free(frozen_bit_mask);
  * volk_free(frozen_bits);
@@ -77,27 +80,32 @@
 #include <stdio.h>
 #include <volk/volk_8u_x2_encodeframepolar_8u.h>
 
-static inline void
-interleave_frozen_and_info_bits(unsigned char* target, const unsigned char* frozen_bit_mask,
-                                const unsigned char* frozen_bits, const unsigned char* info_bits,
-                                const unsigned int frame_size)
+static inline void interleave_frozen_and_info_bits(unsigned char* target,
+                                                   const unsigned char* frozen_bit_mask,
+                                                   const unsigned char* frozen_bits,
+                                                   const unsigned char* info_bits,
+                                                   const unsigned int frame_size)
 {
-  unsigned int bit;
-  for(bit = 0; bit < frame_size; ++bit){
-    *target++ = *frozen_bit_mask++ ? *frozen_bits++ : *info_bits++;
-  }
+    unsigned int bit;
+    for (bit = 0; bit < frame_size; ++bit) {
+        *target++ = *frozen_bit_mask++ ? *frozen_bits++ : *info_bits++;
+    }
 }
 
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_8u_x3_encodepolar_8u_x2_generic(unsigned char* frame, unsigned char* temp, const unsigned char* frozen_bit_mask,
-                                     const unsigned char* frozen_bits, const unsigned char* info_bits,
+volk_8u_x3_encodepolar_8u_x2_generic(unsigned char* frame,
+                                     unsigned char* temp,
+                                     const unsigned char* frozen_bit_mask,
+                                     const unsigned char* frozen_bits,
+                                     const unsigned char* info_bits,
                                      unsigned int frame_size)
 {
-  // interleave
-  interleave_frozen_and_info_bits(temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
-  volk_8u_x2_encodeframepolar_8u_generic(frame, temp, frame_size);
+    // interleave
+    interleave_frozen_and_info_bits(
+        temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+    volk_8u_x2_encodeframepolar_8u_generic(frame, temp, frame_size);
 }
 #endif /* LV_HAVE_GENERIC */
 
@@ -106,14 +114,17 @@ volk_8u_x3_encodepolar_8u_x2_generic(unsigned char* frame, unsigned char* temp, 
 #include <tmmintrin.h>
 
 static inline void
-volk_8u_x3_encodepolar_8u_x2_u_ssse3(unsigned char* frame, unsigned char* temp,
-                                   const unsigned char* frozen_bit_mask,
-                                   const unsigned char* frozen_bits, const unsigned char* info_bits,
-                                   unsigned int frame_size)
+volk_8u_x3_encodepolar_8u_x2_u_ssse3(unsigned char* frame,
+                                     unsigned char* temp,
+                                     const unsigned char* frozen_bit_mask,
+                                     const unsigned char* frozen_bits,
+                                     const unsigned char* info_bits,
+                                     unsigned int frame_size)
 {
-  // interleave
-  interleave_frozen_and_info_bits(temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
-  volk_8u_x2_encodeframepolar_8u_u_ssse3(frame, temp, frame_size);
+    // interleave
+    interleave_frozen_and_info_bits(
+        temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+    volk_8u_x2_encodeframepolar_8u_u_ssse3(frame, temp, frame_size);
 }
 
 #endif /* LV_HAVE_SSSE3 */
@@ -121,13 +132,16 @@ volk_8u_x3_encodepolar_8u_x2_u_ssse3(unsigned char* frame, unsigned char* temp,
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 static inline void
-volk_8u_x3_encodepolar_8u_x2_u_avx2(unsigned char* frame, unsigned char* temp,
-                                   const unsigned char* frozen_bit_mask,
-                                   const unsigned char* frozen_bits, const unsigned char* info_bits,
-                                   unsigned int frame_size)
+volk_8u_x3_encodepolar_8u_x2_u_avx2(unsigned char* frame,
+                                    unsigned char* temp,
+                                    const unsigned char* frozen_bit_mask,
+                                    const unsigned char* frozen_bits,
+                                    const unsigned char* info_bits,
+                                    unsigned int frame_size)
 {
-  interleave_frozen_and_info_bits(temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
-  volk_8u_x2_encodeframepolar_8u_u_avx2(frame, temp, frame_size);
+    interleave_frozen_and_info_bits(
+        temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+    volk_8u_x2_encodeframepolar_8u_u_avx2(frame, temp, frame_size);
 }
 #endif /* LV_HAVE_AVX2 */
 
@@ -139,26 +153,32 @@ volk_8u_x3_encodepolar_8u_x2_u_avx2(unsigned char* frame, unsigned char* temp,
 #ifdef LV_HAVE_SSSE3
 #include <tmmintrin.h>
 static inline void
-volk_8u_x3_encodepolar_8u_x2_a_ssse3(unsigned char* frame, unsigned char* temp,
-                                   const unsigned char* frozen_bit_mask,
-                                   const unsigned char* frozen_bits, const unsigned char* info_bits,
-                                   unsigned int frame_size)
+volk_8u_x3_encodepolar_8u_x2_a_ssse3(unsigned char* frame,
+                                     unsigned char* temp,
+                                     const unsigned char* frozen_bit_mask,
+                                     const unsigned char* frozen_bits,
+                                     const unsigned char* info_bits,
+                                     unsigned int frame_size)
 {
-  interleave_frozen_and_info_bits(temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
-  volk_8u_x2_encodeframepolar_8u_a_ssse3(frame, temp, frame_size);
+    interleave_frozen_and_info_bits(
+        temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+    volk_8u_x2_encodeframepolar_8u_a_ssse3(frame, temp, frame_size);
 }
 #endif /* LV_HAVE_SSSE3 */
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 static inline void
-volk_8u_x3_encodepolar_8u_x2_a_avx2(unsigned char* frame, unsigned char* temp,
-                                   const unsigned char* frozen_bit_mask,
-                                   const unsigned char* frozen_bits, const unsigned char* info_bits,
-                                   unsigned int frame_size)
+volk_8u_x3_encodepolar_8u_x2_a_avx2(unsigned char* frame,
+                                    unsigned char* temp,
+                                    const unsigned char* frozen_bit_mask,
+                                    const unsigned char* frozen_bits,
+                                    const unsigned char* info_bits,
+                                    unsigned int frame_size)
 {
-  interleave_frozen_and_info_bits(temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
-  volk_8u_x2_encodeframepolar_8u_a_avx2(frame, temp, frame_size);
+    interleave_frozen_and_info_bits(
+        temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+    volk_8u_x2_encodeframepolar_8u_a_avx2(frame, temp, frame_size);
 }
 #endif /* LV_HAVE_AVX2 */
 

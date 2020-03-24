@@ -29,8 +29,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_16i_convert_8i(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
- * \endcode
+ * void volk_16i_convert_8i(int8_t* outputVector, const int16_t* inputVector, unsigned int
+ * num_points) \endcode
  *
  * \b Inputs
  * \li inputVector: The input vector of 16-bit shorts.
@@ -59,39 +59,42 @@
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 
-static inline void
-volk_16i_convert_8i_u_avx2(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+static inline void volk_16i_convert_8i_u_avx2(int8_t* outputVector,
+                                              const int16_t* inputVector,
+                                              unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int thirtysecondPoints = num_points / 32;
+    unsigned int number = 0;
+    const unsigned int thirtysecondPoints = num_points / 32;
 
-  int8_t* outputVectorPtr = outputVector;
-  int16_t* inputPtr = (int16_t*)inputVector;
-  __m256i inputVal1;
-  __m256i inputVal2;
-  __m256i ret;
+    int8_t* outputVectorPtr = outputVector;
+    int16_t* inputPtr = (int16_t*)inputVector;
+    __m256i inputVal1;
+    __m256i inputVal2;
+    __m256i ret;
 
-  for(;number < thirtysecondPoints; number++){
+    for (; number < thirtysecondPoints; number++) {
 
-    // Load the 16 values
-    inputVal1 = _mm256_loadu_si256((__m256i*)inputPtr); inputPtr += 16;
-    inputVal2 = _mm256_loadu_si256((__m256i*)inputPtr); inputPtr += 16;
+        // Load the 16 values
+        inputVal1 = _mm256_loadu_si256((__m256i*)inputPtr);
+        inputPtr += 16;
+        inputVal2 = _mm256_loadu_si256((__m256i*)inputPtr);
+        inputPtr += 16;
 
-    inputVal1 = _mm256_srai_epi16(inputVal1, 8);
-    inputVal2 = _mm256_srai_epi16(inputVal2, 8);
+        inputVal1 = _mm256_srai_epi16(inputVal1, 8);
+        inputVal2 = _mm256_srai_epi16(inputVal2, 8);
 
-    ret = _mm256_packs_epi16(inputVal1, inputVal2);
-    ret = _mm256_permute4x64_epi64(ret, 0b11011000);
+        ret = _mm256_packs_epi16(inputVal1, inputVal2);
+        ret = _mm256_permute4x64_epi64(ret, 0b11011000);
 
-    _mm256_storeu_si256((__m256i*)outputVectorPtr, ret);
+        _mm256_storeu_si256((__m256i*)outputVectorPtr, ret);
 
-    outputVectorPtr += 32;
-  }
+        outputVectorPtr += 32;
+    }
 
-  number = thirtysecondPoints * 32;
-  for(; number < num_points; number++){
-    outputVector[number] =(int8_t)(inputVector[number] >> 8);
-  }
+    number = thirtysecondPoints * 32;
+    for (; number < num_points; number++) {
+        outputVector[number] = (int8_t)(inputVector[number] >> 8);
+    }
 }
 #endif /* LV_HAVE_AVX2 */
 
@@ -99,58 +102,60 @@ volk_16i_convert_8i_u_avx2(int8_t* outputVector, const int16_t* inputVector, uns
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-static inline void
-volk_16i_convert_8i_u_sse2(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+static inline void volk_16i_convert_8i_u_sse2(int8_t* outputVector,
+                                              const int16_t* inputVector,
+                                              unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int sixteenthPoints = num_points / 16;
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
 
-  int8_t* outputVectorPtr = outputVector;
-  int16_t* inputPtr = (int16_t*)inputVector;
-  __m128i inputVal1;
-  __m128i inputVal2;
-  __m128i ret;
+    int8_t* outputVectorPtr = outputVector;
+    int16_t* inputPtr = (int16_t*)inputVector;
+    __m128i inputVal1;
+    __m128i inputVal2;
+    __m128i ret;
 
-  for(;number < sixteenthPoints; number++){
+    for (; number < sixteenthPoints; number++) {
 
-    // Load the 16 values
-    inputVal1 = _mm_loadu_si128((__m128i*)inputPtr); inputPtr += 8;
-    inputVal2 = _mm_loadu_si128((__m128i*)inputPtr); inputPtr += 8;
+        // Load the 16 values
+        inputVal1 = _mm_loadu_si128((__m128i*)inputPtr);
+        inputPtr += 8;
+        inputVal2 = _mm_loadu_si128((__m128i*)inputPtr);
+        inputPtr += 8;
 
-    inputVal1 = _mm_srai_epi16(inputVal1, 8);
-    inputVal2 = _mm_srai_epi16(inputVal2, 8);
+        inputVal1 = _mm_srai_epi16(inputVal1, 8);
+        inputVal2 = _mm_srai_epi16(inputVal2, 8);
 
-    ret = _mm_packs_epi16(inputVal1, inputVal2);
+        ret = _mm_packs_epi16(inputVal1, inputVal2);
 
-    _mm_storeu_si128((__m128i*)outputVectorPtr, ret);
+        _mm_storeu_si128((__m128i*)outputVectorPtr, ret);
 
-    outputVectorPtr += 16;
-  }
+        outputVectorPtr += 16;
+    }
 
-  number = sixteenthPoints * 16;
-  for(; number < num_points; number++){
-    outputVector[number] =(int8_t)(inputVector[number] >> 8);
-  }
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        outputVector[number] = (int8_t)(inputVector[number] >> 8);
+    }
 }
 #endif /* LV_HAVE_SSE2 */
 
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void
-volk_16i_convert_8i_generic(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+static inline void volk_16i_convert_8i_generic(int8_t* outputVector,
+                                               const int16_t* inputVector,
+                                               unsigned int num_points)
 {
-  int8_t* outputVectorPtr = outputVector;
-  const int16_t* inputVectorPtr = inputVector;
-  unsigned int number = 0;
+    int8_t* outputVectorPtr = outputVector;
+    const int16_t* inputVectorPtr = inputVector;
+    unsigned int number = 0;
 
-  for(number = 0; number < num_points; number++){
-    *outputVectorPtr++ = ((int8_t)(*inputVectorPtr++  >> 8));
-  }
+    for (number = 0; number < num_points; number++) {
+        *outputVectorPtr++ = ((int8_t)(*inputVectorPtr++ >> 8));
+    }
 }
 #endif /* LV_HAVE_GENERIC */
-
-
 
 
 #endif /* INCLUDED_volk_16i_convert_8i_u_H */
@@ -163,39 +168,42 @@ volk_16i_convert_8i_generic(int8_t* outputVector, const int16_t* inputVector, un
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 
-static inline void
-volk_16i_convert_8i_a_avx2(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+static inline void volk_16i_convert_8i_a_avx2(int8_t* outputVector,
+                                              const int16_t* inputVector,
+                                              unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int thirtysecondPoints = num_points / 32;
+    unsigned int number = 0;
+    const unsigned int thirtysecondPoints = num_points / 32;
 
-  int8_t* outputVectorPtr = outputVector;
-  int16_t* inputPtr = (int16_t*)inputVector;
-  __m256i inputVal1;
-  __m256i inputVal2;
-  __m256i ret;
+    int8_t* outputVectorPtr = outputVector;
+    int16_t* inputPtr = (int16_t*)inputVector;
+    __m256i inputVal1;
+    __m256i inputVal2;
+    __m256i ret;
 
-  for(;number < thirtysecondPoints; number++){
+    for (; number < thirtysecondPoints; number++) {
 
-    // Load the 16 values
-    inputVal1 = _mm256_load_si256((__m256i*)inputPtr); inputPtr += 16;
-    inputVal2 = _mm256_load_si256((__m256i*)inputPtr); inputPtr += 16;
+        // Load the 16 values
+        inputVal1 = _mm256_load_si256((__m256i*)inputPtr);
+        inputPtr += 16;
+        inputVal2 = _mm256_load_si256((__m256i*)inputPtr);
+        inputPtr += 16;
 
-    inputVal1 = _mm256_srai_epi16(inputVal1, 8);
-    inputVal2 = _mm256_srai_epi16(inputVal2, 8);
+        inputVal1 = _mm256_srai_epi16(inputVal1, 8);
+        inputVal2 = _mm256_srai_epi16(inputVal2, 8);
 
-    ret = _mm256_packs_epi16(inputVal1, inputVal2);
-    ret = _mm256_permute4x64_epi64(ret, 0b11011000);
+        ret = _mm256_packs_epi16(inputVal1, inputVal2);
+        ret = _mm256_permute4x64_epi64(ret, 0b11011000);
 
-    _mm256_store_si256((__m256i*)outputVectorPtr, ret);
+        _mm256_store_si256((__m256i*)outputVectorPtr, ret);
 
-    outputVectorPtr += 32;
-  }
+        outputVectorPtr += 32;
+    }
 
-  number = thirtysecondPoints * 32;
-  for(; number < num_points; number++){
-    outputVector[number] =(int8_t)(inputVector[number] >> 8);
-  }
+    number = thirtysecondPoints * 32;
+    for (; number < num_points; number++) {
+        outputVector[number] = (int8_t)(inputVector[number] >> 8);
+    }
 }
 #endif /* LV_HAVE_AVX2 */
 
@@ -203,38 +211,41 @@ volk_16i_convert_8i_a_avx2(int8_t* outputVector, const int16_t* inputVector, uns
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-static inline void
-volk_16i_convert_8i_a_sse2(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+static inline void volk_16i_convert_8i_a_sse2(int8_t* outputVector,
+                                              const int16_t* inputVector,
+                                              unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int sixteenthPoints = num_points / 16;
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
 
-  int8_t* outputVectorPtr = outputVector;
-  int16_t* inputPtr = (int16_t*)inputVector;
-  __m128i inputVal1;
-  __m128i inputVal2;
-  __m128i ret;
+    int8_t* outputVectorPtr = outputVector;
+    int16_t* inputPtr = (int16_t*)inputVector;
+    __m128i inputVal1;
+    __m128i inputVal2;
+    __m128i ret;
 
-  for(;number < sixteenthPoints; number++){
+    for (; number < sixteenthPoints; number++) {
 
-    // Load the 16 values
-    inputVal1 = _mm_load_si128((__m128i*)inputPtr); inputPtr += 8;
-    inputVal2 = _mm_load_si128((__m128i*)inputPtr); inputPtr += 8;
+        // Load the 16 values
+        inputVal1 = _mm_load_si128((__m128i*)inputPtr);
+        inputPtr += 8;
+        inputVal2 = _mm_load_si128((__m128i*)inputPtr);
+        inputPtr += 8;
 
-    inputVal1 = _mm_srai_epi16(inputVal1, 8);
-    inputVal2 = _mm_srai_epi16(inputVal2, 8);
+        inputVal1 = _mm_srai_epi16(inputVal1, 8);
+        inputVal2 = _mm_srai_epi16(inputVal2, 8);
 
-    ret = _mm_packs_epi16(inputVal1, inputVal2);
+        ret = _mm_packs_epi16(inputVal1, inputVal2);
 
-    _mm_store_si128((__m128i*)outputVectorPtr, ret);
+        _mm_store_si128((__m128i*)outputVectorPtr, ret);
 
-    outputVectorPtr += 16;
-  }
+        outputVectorPtr += 16;
+    }
 
-  number = sixteenthPoints * 16;
-  for(; number < num_points; number++){
-    outputVector[number] =(int8_t)(inputVector[number] >> 8);
-  }
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        outputVector[number] = (int8_t)(inputVector[number] >> 8);
+    }
 }
 #endif /* LV_HAVE_SSE2 */
 
@@ -242,53 +253,55 @@ volk_16i_convert_8i_a_sse2(int8_t* outputVector, const int16_t* inputVector, uns
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
-static inline void
-volk_16i_convert_8i_neon(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+static inline void volk_16i_convert_8i_neon(int8_t* outputVector,
+                                            const int16_t* inputVector,
+                                            unsigned int num_points)
 {
-  int8_t* outputVectorPtr = outputVector;
-  const int16_t* inputVectorPtr = inputVector;
-  unsigned int number = 0;
-  unsigned int sixteenth_points = num_points / 16;
+    int8_t* outputVectorPtr = outputVector;
+    const int16_t* inputVectorPtr = inputVector;
+    unsigned int number = 0;
+    unsigned int sixteenth_points = num_points / 16;
 
-  int16x8_t inputVal0;
-  int16x8_t inputVal1;
-  int8x8_t outputVal0;
-  int8x8_t outputVal1;
-  int8x16_t outputVal;
+    int16x8_t inputVal0;
+    int16x8_t inputVal1;
+    int8x8_t outputVal0;
+    int8x8_t outputVal1;
+    int8x16_t outputVal;
 
-  for(number = 0; number < sixteenth_points; number++){
-    // load two input vectors
-    inputVal0 = vld1q_s16(inputVectorPtr);
-    inputVal1 = vld1q_s16(inputVectorPtr+8);
-    // shift right
-    outputVal0 = vshrn_n_s16(inputVal0, 8);
-    outputVal1 = vshrn_n_s16(inputVal1, 8);
-    // squash two vectors and write output
-    outputVal = vcombine_s8(outputVal0, outputVal1);
-    vst1q_s8(outputVectorPtr, outputVal);
-    inputVectorPtr += 16;
-    outputVectorPtr += 16;
-  }
+    for (number = 0; number < sixteenth_points; number++) {
+        // load two input vectors
+        inputVal0 = vld1q_s16(inputVectorPtr);
+        inputVal1 = vld1q_s16(inputVectorPtr + 8);
+        // shift right
+        outputVal0 = vshrn_n_s16(inputVal0, 8);
+        outputVal1 = vshrn_n_s16(inputVal1, 8);
+        // squash two vectors and write output
+        outputVal = vcombine_s8(outputVal0, outputVal1);
+        vst1q_s8(outputVectorPtr, outputVal);
+        inputVectorPtr += 16;
+        outputVectorPtr += 16;
+    }
 
-  for(number = sixteenth_points * 16; number < num_points; number++){
-    *outputVectorPtr++ = ((int8_t)(*inputVectorPtr++ >> 8));
-  }
+    for (number = sixteenth_points * 16; number < num_points; number++) {
+        *outputVectorPtr++ = ((int8_t)(*inputVectorPtr++ >> 8));
+    }
 }
 #endif /* LV_HAVE_NEON */
 
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void
-volk_16i_convert_8i_a_generic(int8_t* outputVector, const int16_t* inputVector, unsigned int num_points)
+static inline void volk_16i_convert_8i_a_generic(int8_t* outputVector,
+                                                 const int16_t* inputVector,
+                                                 unsigned int num_points)
 {
-  int8_t* outputVectorPtr = outputVector;
-  const int16_t* inputVectorPtr = inputVector;
-  unsigned int number = 0;
+    int8_t* outputVectorPtr = outputVector;
+    const int16_t* inputVectorPtr = inputVector;
+    unsigned int number = 0;
 
-  for(number = 0; number < num_points; number++){
-    *outputVectorPtr++ = ((int8_t)(*inputVectorPtr++ >> 8));
-  }
+    for (number = 0; number < num_points; number++) {
+        *outputVectorPtr++ = ((int8_t)(*inputVectorPtr++ >> 8));
+    }
 }
 #endif /* LV_HAVE_GENERIC */
 

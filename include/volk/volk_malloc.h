@@ -23,8 +23,8 @@
 #ifndef INCLUDED_VOLK_MALLOC_H
 #define INCLUDED_VOLK_MALLOC_H
 
-#include <volk/volk_common.h>
 #include <stdlib.h>
+#include <volk/volk_common.h>
 
 __VOLK_DECL_BEGIN
 
@@ -40,7 +40,8 @@ __VOLK_DECL_BEGIN
  * For Apple Clang, we fall back to `posix_memalign`.
  * see: https://linux.die.net/man/3/aligned_alloc
  * For MSVC, we fall back to `_aligned_malloc`.
- * see: https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-malloc?view=vs-2019
+ * see:
+ * https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-malloc?view=vs-2019
  *
  * Because of the ways in which volk_malloc may allocate memory, it is
  * important to always free volk_malloc pointers using volk_free.
@@ -51,7 +52,7 @@ __VOLK_DECL_BEGIN
  * \param alignment The byte alignment of the allocated memory.
  * \return pointer to aligned memory.
  */
-VOLK_API void *volk_malloc(size_t size, size_t alignment);
+VOLK_API void* volk_malloc(size_t size, size_t alignment);
 
 /*!
  * \brief Free's memory allocated by volk_malloc.
@@ -62,11 +63,12 @@ VOLK_API void *volk_malloc(size_t size, size_t alignment);
  * Thus, in this case `volk_free` inherits the same behavior `free` exhibits.
  * see: https://en.cppreference.com/w/c/memory/free
  * In case `_aligned_malloc` was used, we call `_aligned_free`.
- * see: https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-free?view=vs-2019
+ * see:
+ * https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-free?view=vs-2019
  *
  * \param aptr The aligned pointer allocated by volk_malloc.
  */
-VOLK_API void volk_free(void *aptr);
+VOLK_API void volk_free(void* aptr);
 
 __VOLK_DECL_END
 
