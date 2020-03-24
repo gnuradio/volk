@@ -32,14 +32,16 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points);
- * \endcode
+ * void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc(lv_32fc_t* cVector, const
+ * lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int
+ * num_points); \endcode
  *
  * \b Inputs
  * \li aVector: The input vector to be added.
  * \li bVector: The input vector to be conjugate and multiplied.
  * \li scalar: The complex scalar to multiply against conjugated bVector.
- * \li num_points: The number of complex values in aVector and bVector to be conjugate, multiplied and stored into cVector.
+ * \li num_points: The number of complex values in aVector and bVector to be conjugate,
+ * multiplied and stored into cVector.
  *
  * \b Outputs
  * \li cVector: The vector where the results will be stored.
@@ -84,15 +86,21 @@
 #ifndef INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_H
 #define INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_H
 
+#include <float.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <volk/volk_complex.h>
-#include <float.h>
 
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_generic(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points){
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_generic(lv_32fc_t* cVector,
+                                                       const lv_32fc_t* aVector,
+                                                       const lv_32fc_t* bVector,
+                                                       const lv_32fc_t scalar,
+                                                       unsigned int num_points)
+{
     const lv_32fc_t* aPtr = aVector;
     const lv_32fc_t* bPtr = bVector;
     lv_32fc_t* cPtr = cVector;
@@ -123,14 +131,20 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_generic(lv_32f
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_avx(lv_32fc_t* cVector,
+                                                     const lv_32fc_t* aVector,
+                                                     const lv_32fc_t* bVector,
+                                                     const lv_32fc_t scalar,
+                                                     unsigned int num_points)
+{
     unsigned int number = 0;
     unsigned int i = 0;
     const unsigned int quarterPoints = num_points / 4;
     unsigned int isodd = num_points & 3;
 
     __m256 x, y, s, z;
-    lv_32fc_t v_scalar[4] = {scalar, scalar, scalar, scalar};
+    lv_32fc_t v_scalar[4] = { scalar, scalar, scalar, scalar };
 
     const lv_32fc_t* a = aVector;
     const lv_32fc_t* b = bVector;
@@ -139,19 +153,19 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_avx(lv_32fc_
     // Set up constant scalar vector
     s = _mm256_loadu_ps((float*)v_scalar);
 
-    for(;number < quarterPoints; number++) {
+    for (; number < quarterPoints; number++) {
         x = _mm256_loadu_ps((float*)b);
         y = _mm256_loadu_ps((float*)a);
         z = _mm256_complexconjugatemul_ps(s, x);
         z = _mm256_add_ps(y, z);
-        _mm256_storeu_ps((float*)c,z);
+        _mm256_storeu_ps((float*)c, z);
 
         a += 4;
         b += 4;
         c += 4;
     }
 
-    for(i = num_points-isodd; i < num_points; i++) {
+    for (i = num_points - isodd; i < num_points; i++) {
         *c++ = (*a++) + lv_conj(*b++) * scalar;
     }
 }
@@ -162,12 +176,18 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_avx(lv_32fc_
 #include <pmmintrin.h>
 #include <volk/volk_sse3_intrinsics.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_sse3(lv_32fc_t* cVector,
+                                                      const lv_32fc_t* aVector,
+                                                      const lv_32fc_t* bVector,
+                                                      const lv_32fc_t scalar,
+                                                      unsigned int num_points)
+{
     unsigned int number = 0;
     const unsigned int halfPoints = num_points / 2;
 
     __m128 x, y, s, z;
-    lv_32fc_t v_scalar[2] = {scalar, scalar};
+    lv_32fc_t v_scalar[2] = { scalar, scalar };
 
     const lv_32fc_t* a = aVector;
     const lv_32fc_t* b = bVector;
@@ -176,19 +196,19 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_sse3(lv_32fc
     // Set up constant scalar vector
     s = _mm_loadu_ps((float*)v_scalar);
 
-    for(;number < halfPoints; number++){
+    for (; number < halfPoints; number++) {
         x = _mm_loadu_ps((float*)b);
         y = _mm_loadu_ps((float*)a);
         z = _mm_complexconjugatemul_ps(s, x);
         z = _mm_add_ps(y, z);
-        _mm_storeu_ps((float*)c,z);
+        _mm_storeu_ps((float*)c, z);
 
         a += 2;
         b += 2;
         c += 2;
     }
 
-    if((num_points % 2) != 0) {
+    if ((num_points % 2) != 0) {
         *c = *a + lv_conj(*b) * scalar;
     }
 }
@@ -199,14 +219,20 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_sse3(lv_32fc
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_avx(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_avx(lv_32fc_t* cVector,
+                                                     const lv_32fc_t* aVector,
+                                                     const lv_32fc_t* bVector,
+                                                     const lv_32fc_t scalar,
+                                                     unsigned int num_points)
+{
     unsigned int number = 0;
     unsigned int i = 0;
     const unsigned int quarterPoints = num_points / 4;
     unsigned int isodd = num_points & 3;
 
     __m256 x, y, s, z;
-    lv_32fc_t v_scalar[4] = {scalar, scalar, scalar, scalar};
+    lv_32fc_t v_scalar[4] = { scalar, scalar, scalar, scalar };
 
     const lv_32fc_t* a = aVector;
     const lv_32fc_t* b = bVector;
@@ -215,19 +241,19 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_avx(lv_32fc_
     // Set up constant scalar vector
     s = _mm256_load_ps((float*)v_scalar);
 
-    for(;number < quarterPoints; number++) {
+    for (; number < quarterPoints; number++) {
         x = _mm256_load_ps((float*)b);
         y = _mm256_load_ps((float*)a);
         z = _mm256_complexconjugatemul_ps(s, x);
         z = _mm256_add_ps(y, z);
-        _mm256_store_ps((float*)c,z);
+        _mm256_store_ps((float*)c, z);
 
         a += 4;
         b += 4;
         c += 4;
     }
 
-    for(i = num_points-isodd; i < num_points; i++) {
+    for (i = num_points - isodd; i < num_points; i++) {
         *c++ = (*a++) + lv_conj(*b++) * scalar;
     }
 }
@@ -238,12 +264,18 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_avx(lv_32fc_
 #include <pmmintrin.h>
 #include <volk/volk_sse3_intrinsics.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_sse3(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points) {
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_sse3(lv_32fc_t* cVector,
+                                                      const lv_32fc_t* aVector,
+                                                      const lv_32fc_t* bVector,
+                                                      const lv_32fc_t scalar,
+                                                      unsigned int num_points)
+{
     unsigned int number = 0;
     const unsigned int halfPoints = num_points / 2;
 
     __m128 x, y, s, z;
-    lv_32fc_t v_scalar[2] = {scalar, scalar};
+    lv_32fc_t v_scalar[2] = { scalar, scalar };
 
     const lv_32fc_t* a = aVector;
     const lv_32fc_t* b = bVector;
@@ -252,19 +284,19 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_sse3(lv_32fc
     // Set up constant scalar vector
     s = _mm_load_ps((float*)v_scalar);
 
-    for(;number < halfPoints; number++){
+    for (; number < halfPoints; number++) {
         x = _mm_load_ps((float*)b);
         y = _mm_load_ps((float*)a);
         z = _mm_complexconjugatemul_ps(s, x);
         z = _mm_add_ps(y, z);
-        _mm_store_ps((float*)c,z);
+        _mm_store_ps((float*)c, z);
 
         a += 2;
         b += 2;
         c += 2;
     }
 
-    if((num_points % 2) != 0) {
+    if ((num_points % 2) != 0) {
         *c = *a + lv_conj(*b) * scalar;
     }
 }
@@ -272,9 +304,15 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_sse3(lv_32fc
 
 
 #ifdef LV_HAVE_NEON
-#include  <arm_neon.h>
+#include <arm_neon.h>
 
-static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_neon(lv_32fc_t* cVector, const lv_32fc_t* aVector, const lv_32fc_t* bVector, const lv_32fc_t scalar, unsigned int num_points){
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_neon(lv_32fc_t* cVector,
+                                                    const lv_32fc_t* aVector,
+                                                    const lv_32fc_t* bVector,
+                                                    const lv_32fc_t scalar,
+                                                    unsigned int num_points)
+{
     const lv_32fc_t* bPtr = bVector;
     const lv_32fc_t* aPtr = aVector;
     lv_32fc_t* cPtr = cVector;
@@ -287,7 +325,7 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_neon(lv_32fc_t
     scalar_val.val[0] = vld1q_dup_f32((const float*)&scalar);
     scalar_val.val[1] = vld1q_dup_f32(((const float*)&scalar) + 1);
 
-    for(number = 0; number < quarter_points; ++number) {
+    for (number = 0; number < quarter_points; ++number) {
         a_val = vld2q_f32((float*)aPtr);
         b_val = vld2q_f32((float*)bPtr);
         b_val.val[1] = vnegq_f32(b_val.val[1]);
@@ -310,7 +348,7 @@ static inline void volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_neon(lv_32fc_t
         cPtr += 4;
     }
 
-    for(number = quarter_points*4; number < num_points; number++){
+    for (number = quarter_points * 4; number < num_points; number++) {
         *cPtr++ = (*aPtr++) + lv_conj(*bPtr++) * scalar;
     }
 }

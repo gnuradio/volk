@@ -40,30 +40,40 @@ namespace volk {
  */
 template <class T>
 struct alloc {
-  typedef T value_type;
+    typedef T value_type;
 
-  alloc() = default;
+    alloc() = default;
 
-  template <class U> constexpr alloc(alloc<U> const&) noexcept {}
+    template <class U>
+    constexpr alloc(alloc<U> const&) noexcept
+    {
+    }
 
-  T* allocate(std::size_t n) {
-    if (n > std::numeric_limits<std::size_t>::max() / sizeof(T)) throw std::bad_alloc();
+    T* allocate(std::size_t n)
+    {
+        if (n > std::numeric_limits<std::size_t>::max() / sizeof(T))
+            throw std::bad_alloc();
 
-    if (auto p = static_cast<T*>(volk_malloc(n*sizeof(T), volk_get_alignment())))
-      return p;
+        if (auto p = static_cast<T*>(volk_malloc(n * sizeof(T), volk_get_alignment())))
+            return p;
 
-    throw std::bad_alloc();
-  }
+        throw std::bad_alloc();
+    }
 
-  void deallocate(T* p, std::size_t) noexcept { volk_free(p); }
-
-} ;
+    void deallocate(T* p, std::size_t) noexcept { volk_free(p); }
+};
 
 template <class T, class U>
-bool operator==(alloc<T> const&, alloc<U> const&) { return true; }
+bool operator==(alloc<T> const&, alloc<U> const&)
+{
+    return true;
+}
 
 template <class T, class U>
-bool operator!=(alloc<T> const&, alloc<U> const&) { return false; }
+bool operator!=(alloc<T> const&, alloc<U> const&)
+{
+    return false;
+}
 
 
 /*!
@@ -73,8 +83,8 @@ bool operator!=(alloc<T> const&, alloc<U> const&) { return false; }
  * example code:
  *   volk::vector<float> v(100); // vector using volk_malloc, volk_free
  */
-template<class T>
-using vector = std::vector<T, alloc<T> >;
+template <class T>
+using vector = std::vector<T, alloc<T>>;
 
 } // namespace volk
 #endif // INCLUDED_VOLK_ALLOC_H

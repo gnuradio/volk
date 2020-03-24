@@ -29,13 +29,13 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_s32f_power_spectrum_32f(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, unsigned int num_points)
- * \endcode
+ * void volk_32fc_s32f_power_spectrum_32f(float* logPowerOutput, const lv_32fc_t*
+ * complexFFTInput, const float normalizationFactor, unsigned int num_points) \endcode
  *
  * \b Inputs
  * \li complexFFTInput The complex data output from the FFT point.
- * \li normalizationFactor: This value is divided against all the input values before the power is calculated.
- * \li num_points: The number of fft data points.
+ * \li normalizationFactor: This value is divided against all the input values before the
+ * power is calculated. \li num_points: The number of fft data points.
  *
  * \b Outputs
  * \li logPowerOutput: The 10.0 * log10(r*r + i*i) for each data point.
@@ -54,8 +54,8 @@
 #define INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
@@ -65,74 +65,75 @@
 #endif /* LV_HAVE_LIB_SIMDMATH */
 
 static inline void
-volk_32fc_s32f_power_spectrum_32f_a_sse3(float* logPowerOutput, const lv_32fc_t* complexFFTInput,
-                                         const float normalizationFactor, unsigned int num_points)
+volk_32fc_s32f_power_spectrum_32f_a_sse3(float* logPowerOutput,
+                                         const lv_32fc_t* complexFFTInput,
+                                         const float normalizationFactor,
+                                         unsigned int num_points)
 {
-  const float* inputPtr = (const float*)complexFFTInput;
-  float* destPtr = logPowerOutput;
-  uint64_t number = 0;
-  const float iNormalizationFactor = 1.0 / normalizationFactor;
+    const float* inputPtr = (const float*)complexFFTInput;
+    float* destPtr = logPowerOutput;
+    uint64_t number = 0;
+    const float iNormalizationFactor = 1.0 / normalizationFactor;
 #ifdef LV_HAVE_LIB_SIMDMATH
-  __m128 magScalar = _mm_set_ps1(10.0);
-  magScalar = _mm_div_ps(magScalar, logf4(magScalar));
+    __m128 magScalar = _mm_set_ps1(10.0);
+    magScalar = _mm_div_ps(magScalar, logf4(magScalar));
 
-  __m128 invNormalizationFactor = _mm_set_ps1(iNormalizationFactor);
+    __m128 invNormalizationFactor = _mm_set_ps1(iNormalizationFactor);
 
-  __m128 power;
-  __m128 input1, input2;
-  const uint64_t quarterPoints = num_points / 4;
-  for(;number < quarterPoints; number++){
-    // Load the complex values
-    input1 =_mm_load_ps(inputPtr);
-    inputPtr += 4;
-    input2 =_mm_load_ps(inputPtr);
-    inputPtr += 4;
+    __m128 power;
+    __m128 input1, input2;
+    const uint64_t quarterPoints = num_points / 4;
+    for (; number < quarterPoints; number++) {
+        // Load the complex values
+        input1 = _mm_load_ps(inputPtr);
+        inputPtr += 4;
+        input2 = _mm_load_ps(inputPtr);
+        inputPtr += 4;
 
-    // Apply the normalization factor
-    input1 = _mm_mul_ps(input1, invNormalizationFactor);
-    input2 = _mm_mul_ps(input2, invNormalizationFactor);
+        // Apply the normalization factor
+        input1 = _mm_mul_ps(input1, invNormalizationFactor);
+        input2 = _mm_mul_ps(input2, invNormalizationFactor);
 
-    // Multiply each value by itself
-    // (r1*r1), (i1*i1), (r2*r2), (i2*i2)
-    input1 = _mm_mul_ps(input1, input1);
-    // (r3*r3), (i3*i3), (r4*r4), (i4*i4)
-    input2 = _mm_mul_ps(input2, input2);
+        // Multiply each value by itself
+        // (r1*r1), (i1*i1), (r2*r2), (i2*i2)
+        input1 = _mm_mul_ps(input1, input1);
+        // (r3*r3), (i3*i3), (r4*r4), (i4*i4)
+        input2 = _mm_mul_ps(input2, input2);
 
-    // Horizontal add, to add (r*r) + (i*i) for each complex value
-    // (r1*r1)+(i1*i1), (r2*r2) + (i2*i2), (r3*r3)+(i3*i3), (r4*r4)+(i4*i4)
-    power = _mm_hadd_ps(input1, input2);
+        // Horizontal add, to add (r*r) + (i*i) for each complex value
+        // (r1*r1)+(i1*i1), (r2*r2) + (i2*i2), (r3*r3)+(i3*i3), (r4*r4)+(i4*i4)
+        power = _mm_hadd_ps(input1, input2);
 
-    // Calculate the natural log power
-    power = logf4(power);
+        // Calculate the natural log power
+        power = logf4(power);
 
-    // Convert to log10 and multiply by 10.0
-    power = _mm_mul_ps(power, magScalar);
+        // Convert to log10 and multiply by 10.0
+        power = _mm_mul_ps(power, magScalar);
 
-    // Store the floating point results
-    _mm_store_ps(destPtr, power);
+        // Store the floating point results
+        _mm_store_ps(destPtr, power);
 
-    destPtr += 4;
-  }
+        destPtr += 4;
+    }
 
-  number = quarterPoints*4;
+    number = quarterPoints * 4;
 #endif /* LV_HAVE_LIB_SIMDMATH */
-  // Calculate the FFT for any remaining points
+    // Calculate the FFT for any remaining points
 
-  for(; number < num_points; number++){
-    // Calculate dBm
-    // 50 ohm load assumption
-    // 10 * log10 (v^2 / (2 * 50.0 * .001)) = 10 * log10( v^2 * 10)
-    // 75 ohm load assumption
-    // 10 * log10 (v^2 / (2 * 75.0 * .001)) = 10 * log10( v^2 * 15)
+    for (; number < num_points; number++) {
+        // Calculate dBm
+        // 50 ohm load assumption
+        // 10 * log10 (v^2 / (2 * 50.0 * .001)) = 10 * log10( v^2 * 10)
+        // 75 ohm load assumption
+        // 10 * log10 (v^2 / (2 * 75.0 * .001)) = 10 * log10( v^2 * 15)
 
-    const float real = *inputPtr++ * iNormalizationFactor;
-    const float imag = *inputPtr++ * iNormalizationFactor;
+        const float real = *inputPtr++ * iNormalizationFactor;
+        const float imag = *inputPtr++ * iNormalizationFactor;
 
-    *destPtr = 10.0*log10f(((real * real) + (imag * imag)) + 1e-20);
+        *destPtr = 10.0 * log10f(((real * real) + (imag * imag)) + 1e-20);
 
-    destPtr++;
-  }
-
+        destPtr++;
+    }
 }
 #endif /* LV_HAVE_SSE3 */
 
@@ -141,7 +142,10 @@ volk_32fc_s32f_power_spectrum_32f_a_sse3(float* logPowerOutput, const lv_32fc_t*
 #include <volk/volk_neon_intrinsics.h>
 
 static inline void
-volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput, const lv_32fc_t* complexFFTInput, const float normalizationFactor, unsigned int num_points)
+volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput,
+                                       const lv_32fc_t* complexFFTInput,
+                                       const float normalizationFactor,
+                                       unsigned int num_points)
 {
     float* logPowerOutputPtr = logPowerOutput;
     const lv_32fc_t* complexFFTInputPtr = complexFFTInput;
@@ -151,14 +155,14 @@ volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput, const lv_32fc_t* c
     float32x4x2_t fft_vec;
     float32x4_t log_pwr_vec;
     float32x4_t mag_squared_vec;
-    
+
     const float inv_ln10_10 = 4.34294481903f; // 10.0/ln(10.)
-    
-    for(number = 0; number < quarter_points; number++) {
+
+    for (number = 0; number < quarter_points; number++) {
         // Load
         fft_vec = vld2q_f32((float*)complexFFTInputPtr);
         // Prefetch next 4
-        __VOLK_PREFETCH(complexFFTInputPtr+4);
+        __VOLK_PREFETCH(complexFFTInputPtr + 4);
         // Normalize
         fft_vec.val[0] = vmulq_n_f32(fft_vec.val[0], iNormalizationFactor);
         fft_vec.val[1] = vmulq_n_f32(fft_vec.val[1], iNormalizationFactor);
@@ -167,12 +171,12 @@ volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput, const lv_32fc_t* c
         // Store
         vst1q_f32(logPowerOutputPtr, log_pwr_vec);
         // Move pointers ahead
-        complexFFTInputPtr+=4;
-        logPowerOutputPtr+=4;
+        complexFFTInputPtr += 4;
+        logPowerOutputPtr += 4;
     }
-    
+
     // deal with the rest
-    for(number = quarter_points * 4; number < num_points; number++) {
+    for (number = quarter_points * 4; number < num_points; number++) {
         const float real = lv_creal(*complexFFTInputPtr) * iNormalizationFactor;
         const float imag = lv_cimag(*complexFFTInputPtr) * iNormalizationFactor;
         *logPowerOutputPtr = 10.0 * log10f(((real * real) + (imag * imag)) + 1e-20);
@@ -186,27 +190,29 @@ volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput, const lv_32fc_t* c
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutput, const lv_32fc_t* complexFFTInput,
-                                          const float normalizationFactor, unsigned int num_points)
+volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutput,
+                                          const lv_32fc_t* complexFFTInput,
+                                          const float normalizationFactor,
+                                          unsigned int num_points)
 {
-  // Calculate the Power of the complex point
-  const float* inputPtr = (float*)complexFFTInput;
-  float* realFFTDataPointsPtr = logPowerOutput;
-  const float iNormalizationFactor = 1.0 / normalizationFactor;
-  unsigned int point;
-  for(point = 0; point < num_points; point++){
-    // Calculate dBm
-    // 50 ohm load assumption
-    // 10 * log10 (v^2 / (2 * 50.0 * .001)) = 10 * log10( v^2 * 10)
-    // 75 ohm load assumption
-    // 10 * log10 (v^2 / (2 * 75.0 * .001)) = 10 * log10( v^2 * 15)
+    // Calculate the Power of the complex point
+    const float* inputPtr = (float*)complexFFTInput;
+    float* realFFTDataPointsPtr = logPowerOutput;
+    const float iNormalizationFactor = 1.0 / normalizationFactor;
+    unsigned int point;
+    for (point = 0; point < num_points; point++) {
+        // Calculate dBm
+        // 50 ohm load assumption
+        // 10 * log10 (v^2 / (2 * 50.0 * .001)) = 10 * log10( v^2 * 10)
+        // 75 ohm load assumption
+        // 10 * log10 (v^2 / (2 * 75.0 * .001)) = 10 * log10( v^2 * 15)
 
-    const float real = *inputPtr++ * iNormalizationFactor;
-    const float imag = *inputPtr++ * iNormalizationFactor;
+        const float real = *inputPtr++ * iNormalizationFactor;
+        const float imag = *inputPtr++ * iNormalizationFactor;
 
-    *realFFTDataPointsPtr = 10.0*log10f(((real * real) + (imag * imag)) + 1e-20);
-    realFFTDataPointsPtr++;
-  }
+        *realFFTDataPointsPtr = 10.0 * log10f(((real * real) + (imag * imag)) + 1e-20);
+        realFFTDataPointsPtr++;
+    }
 }
 #endif /* LV_HAVE_GENERIC */
 
