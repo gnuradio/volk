@@ -1,0 +1,21 @@
+name: Check PR Formatting
+
+on:
+  push:
+    paths-ignore:
+      - 'tmpl/'
+  pull_request:
+    paths-ignore:
+      - 'tmpl/'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: gnuradio/clang-format-lint-action@v0.5-4
+      with:
+        source: '.'
+        exclude: './tmpl'
+        extensions: 'c,cc,cpp,cxx,h,hh'

@@ -29,8 +29,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32i_x2_or_32i(int32_t* cVector, const int32_t* aVector, const int32_t* bVector, unsigned int num_points)
- * \endcode
+ * void volk_32i_x2_or_32i(int32_t* cVector, const int32_t* aVector, const int32_t*
+ * bVector, unsigned int num_points) \endcode
  *
  * \b Inputs
  * \li aVector: Input vector of samples.
@@ -87,72 +87,75 @@
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 
-static inline void
-volk_32i_x2_or_32i_a_avx512f(int32_t* cVector, const int32_t* aVector,
-                          const int32_t* bVector, unsigned int num_points)
+static inline void volk_32i_x2_or_32i_a_avx512f(int32_t* cVector,
+                                                const int32_t* aVector,
+                                                const int32_t* bVector,
+                                                unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int sixteenthPoints = num_points / 16;
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
 
-  int32_t* cPtr = (int32_t*)cVector;
-  const int32_t* aPtr = (int32_t*)aVector;
-  const int32_t* bPtr = (int32_t*)bVector;
+    int32_t* cPtr = (int32_t*)cVector;
+    const int32_t* aPtr = (int32_t*)aVector;
+    const int32_t* bPtr = (int32_t*)bVector;
 
-  __m512i aVal, bVal, cVal;
-  for(;number < sixteenthPoints; number++){
+    __m512i aVal, bVal, cVal;
+    for (; number < sixteenthPoints; number++) {
 
-    aVal = _mm512_load_si512(aPtr);
-    bVal = _mm512_load_si512(bPtr);
+        aVal = _mm512_load_si512(aPtr);
+        bVal = _mm512_load_si512(bPtr);
 
-    cVal = _mm512_or_si512(aVal, bVal);
+        cVal = _mm512_or_si512(aVal, bVal);
 
-    _mm512_store_si512(cPtr,cVal); // Store the results back into the C container
+        _mm512_store_si512(cPtr, cVal); // Store the results back into the C container
 
-    aPtr += 16;
-    bPtr += 16;
-    cPtr += 16;
-  }
+        aPtr += 16;
+        bPtr += 16;
+        cPtr += 16;
+    }
 
-  number = sixteenthPoints * 16;
-  for(;number < num_points; number++){
-    cVector[number] = aVector[number] | bVector[number];
-  }
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        cVector[number] = aVector[number] | bVector[number];
+    }
 }
 #endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 
-static inline void
-volk_32i_x2_or_32i_a_avx2(int32_t* cVector, const int32_t* aVector,
-                          const int32_t* bVector, unsigned int num_points)
+static inline void volk_32i_x2_or_32i_a_avx2(int32_t* cVector,
+                                             const int32_t* aVector,
+                                             const int32_t* bVector,
+                                             unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int oneEightPoints = num_points / 8;
+    unsigned int number = 0;
+    const unsigned int oneEightPoints = num_points / 8;
 
-  int32_t* cPtr = cVector;
-  const int32_t* aPtr = aVector;
-  const int32_t* bPtr = bVector;
+    int32_t* cPtr = cVector;
+    const int32_t* aPtr = aVector;
+    const int32_t* bPtr = bVector;
 
-  __m256i aVal, bVal, cVal;
-  for(;number < oneEightPoints; number++){
+    __m256i aVal, bVal, cVal;
+    for (; number < oneEightPoints; number++) {
 
-    aVal = _mm256_load_si256((__m256i*)aPtr);
-    bVal = _mm256_load_si256((__m256i*)bPtr);
+        aVal = _mm256_load_si256((__m256i*)aPtr);
+        bVal = _mm256_load_si256((__m256i*)bPtr);
 
-    cVal = _mm256_or_si256(aVal, bVal);
+        cVal = _mm256_or_si256(aVal, bVal);
 
-    _mm256_store_si256((__m256i*)cPtr,cVal); // Store the results back into the C container
+        _mm256_store_si256((__m256i*)cPtr,
+                           cVal); // Store the results back into the C container
 
-    aPtr += 8;
-    bPtr += 8;
-    cPtr += 8;
-  }
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
 
-  number = oneEightPoints * 8;
-  for(;number < num_points; number++){
-    cVector[number] = aVector[number] | bVector[number];
-  }
+    number = oneEightPoints * 8;
+    for (; number < num_points; number++) {
+        cVector[number] = aVector[number] | bVector[number];
+    }
 }
 #endif /* LV_HAVE_AVX2 */
 
@@ -160,35 +163,36 @@ volk_32i_x2_or_32i_a_avx2(int32_t* cVector, const int32_t* aVector,
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
-static inline void
-volk_32i_x2_or_32i_a_sse(int32_t* cVector, const int32_t* aVector,
-                         const int32_t* bVector, unsigned int num_points)
+static inline void volk_32i_x2_or_32i_a_sse(int32_t* cVector,
+                                            const int32_t* aVector,
+                                            const int32_t* bVector,
+                                            unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int quarterPoints = num_points / 4;
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
 
-  float* cPtr = (float*)cVector;
-  const float* aPtr = (float*)aVector;
-  const float* bPtr = (float*)bVector;
+    float* cPtr = (float*)cVector;
+    const float* aPtr = (float*)aVector;
+    const float* bPtr = (float*)bVector;
 
-  __m128 aVal, bVal, cVal;
-  for(;number < quarterPoints; number++){
-    aVal = _mm_load_ps(aPtr);
-    bVal = _mm_load_ps(bPtr);
+    __m128 aVal, bVal, cVal;
+    for (; number < quarterPoints; number++) {
+        aVal = _mm_load_ps(aPtr);
+        bVal = _mm_load_ps(bPtr);
 
-    cVal = _mm_or_ps(aVal, bVal);
+        cVal = _mm_or_ps(aVal, bVal);
 
-    _mm_store_ps(cPtr,cVal); // Store the results back into the C container
+        _mm_store_ps(cPtr, cVal); // Store the results back into the C container
 
-    aPtr += 4;
-    bPtr += 4;
-    cPtr += 4;
-  }
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
+    }
 
-  number = quarterPoints * 4;
-  for(;number < num_points; number++){
-    cVector[number] = aVector[number] | bVector[number];
-  }
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        cVector[number] = aVector[number] | bVector[number];
+    }
 }
 #endif /* LV_HAVE_SSE */
 
@@ -196,63 +200,67 @@ volk_32i_x2_or_32i_a_sse(int32_t* cVector, const int32_t* aVector,
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
-static inline void
-volk_32i_x2_or_32i_neon(int32_t* cVector, const int32_t* aVector,
-                        const int32_t* bVector, unsigned int num_points)
+static inline void volk_32i_x2_or_32i_neon(int32_t* cVector,
+                                           const int32_t* aVector,
+                                           const int32_t* bVector,
+                                           unsigned int num_points)
 {
-  int32_t* cPtr = cVector;
-  const int32_t* aPtr = aVector;
-  const int32_t* bPtr=  bVector;
-  unsigned int number = 0;
-  unsigned int quarter_points = num_points / 4;
+    int32_t* cPtr = cVector;
+    const int32_t* aPtr = aVector;
+    const int32_t* bPtr = bVector;
+    unsigned int number = 0;
+    unsigned int quarter_points = num_points / 4;
 
-  int32x4_t a_val, b_val, c_val;
+    int32x4_t a_val, b_val, c_val;
 
-  for(number = 0; number < quarter_points; number++){
-    a_val = vld1q_s32(aPtr);
-    b_val = vld1q_s32(bPtr);
-    c_val = vorrq_s32(a_val, b_val);
-    vst1q_s32(cPtr, c_val);
-    aPtr += 4;
-    bPtr += 4;
-    cPtr += 4;
-  }
+    for (number = 0; number < quarter_points; number++) {
+        a_val = vld1q_s32(aPtr);
+        b_val = vld1q_s32(bPtr);
+        c_val = vorrq_s32(a_val, b_val);
+        vst1q_s32(cPtr, c_val);
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
+    }
 
-  for(number = quarter_points * 4; number < num_points; number++){
-    *cPtr++ = (*aPtr++) | (*bPtr++);
-  }
+    for (number = quarter_points * 4; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) | (*bPtr++);
+    }
 }
 #endif /* LV_HAVE_NEON */
 
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void
-volk_32i_x2_or_32i_generic(int32_t* cVector, const int32_t* aVector,
-                           const int32_t* bVector, unsigned int num_points)
+static inline void volk_32i_x2_or_32i_generic(int32_t* cVector,
+                                              const int32_t* aVector,
+                                              const int32_t* bVector,
+                                              unsigned int num_points)
 {
-  int32_t* cPtr = cVector;
-  const int32_t* aPtr = aVector;
-  const int32_t* bPtr=  bVector;
-  unsigned int number = 0;
+    int32_t* cPtr = cVector;
+    const int32_t* aPtr = aVector;
+    const int32_t* bPtr = bVector;
+    unsigned int number = 0;
 
-  for(number = 0; number < num_points; number++){
-    *cPtr++ = (*aPtr++) | (*bPtr++);
-  }
+    for (number = 0; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) | (*bPtr++);
+    }
 }
 #endif /* LV_HAVE_GENERIC */
 
 
 #ifdef LV_HAVE_ORC
-extern void
-volk_32i_x2_or_32i_a_orc_impl(int32_t* cVector, const int32_t* aVector,
-                              const int32_t* bVector, unsigned int num_points);
+extern void volk_32i_x2_or_32i_a_orc_impl(int32_t* cVector,
+                                          const int32_t* aVector,
+                                          const int32_t* bVector,
+                                          unsigned int num_points);
 
-static inline void
-volk_32i_x2_or_32i_u_orc(int32_t* cVector, const int32_t* aVector,
-                         const int32_t* bVector, unsigned int num_points)
+static inline void volk_32i_x2_or_32i_u_orc(int32_t* cVector,
+                                            const int32_t* aVector,
+                                            const int32_t* bVector,
+                                            unsigned int num_points)
 {
-  volk_32i_x2_or_32i_a_orc_impl(cVector, aVector, bVector, num_points);
+    volk_32i_x2_or_32i_a_orc_impl(cVector, aVector, bVector, num_points);
 }
 #endif /* LV_HAVE_ORC */
 
@@ -269,72 +277,75 @@ volk_32i_x2_or_32i_u_orc(int32_t* cVector, const int32_t* aVector,
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 
-static inline void
-volk_32i_x2_or_32i_u_avx512f(int32_t* cVector, const int32_t* aVector,
-                          const int32_t* bVector, unsigned int num_points)
+static inline void volk_32i_x2_or_32i_u_avx512f(int32_t* cVector,
+                                                const int32_t* aVector,
+                                                const int32_t* bVector,
+                                                unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int sixteenthPoints = num_points / 16;
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
 
-  int32_t* cPtr = (int32_t*)cVector;
-  const int32_t* aPtr = (int32_t*)aVector;
-  const int32_t* bPtr = (int32_t*)bVector;
+    int32_t* cPtr = (int32_t*)cVector;
+    const int32_t* aPtr = (int32_t*)aVector;
+    const int32_t* bPtr = (int32_t*)bVector;
 
-  __m512i aVal, bVal, cVal;
-  for(;number < sixteenthPoints; number++){
+    __m512i aVal, bVal, cVal;
+    for (; number < sixteenthPoints; number++) {
 
-    aVal = _mm512_loadu_si512(aPtr);
-    bVal = _mm512_loadu_si512(bPtr);
+        aVal = _mm512_loadu_si512(aPtr);
+        bVal = _mm512_loadu_si512(bPtr);
 
-    cVal = _mm512_or_si512(aVal, bVal);
+        cVal = _mm512_or_si512(aVal, bVal);
 
-    _mm512_storeu_si512(cPtr,cVal); // Store the results back into the C container
+        _mm512_storeu_si512(cPtr, cVal); // Store the results back into the C container
 
-    aPtr += 16;
-    bPtr += 16;
-    cPtr += 16;
-  }
+        aPtr += 16;
+        bPtr += 16;
+        cPtr += 16;
+    }
 
-  number = sixteenthPoints * 16;
-  for(;number < num_points; number++){
-    cVector[number] = aVector[number] | bVector[number];
-  }
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        cVector[number] = aVector[number] | bVector[number];
+    }
 }
 #endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 
-static inline void
-volk_32i_x2_or_32i_u_avx2(int32_t* cVector, const int32_t* aVector,
-                          const int32_t* bVector, unsigned int num_points)
+static inline void volk_32i_x2_or_32i_u_avx2(int32_t* cVector,
+                                             const int32_t* aVector,
+                                             const int32_t* bVector,
+                                             unsigned int num_points)
 {
-  unsigned int number = 0;
-  const unsigned int oneEightPoints = num_points / 8;
+    unsigned int number = 0;
+    const unsigned int oneEightPoints = num_points / 8;
 
-  int32_t* cPtr = cVector;
-  const int32_t* aPtr = aVector;
-  const int32_t* bPtr = bVector;
+    int32_t* cPtr = cVector;
+    const int32_t* aPtr = aVector;
+    const int32_t* bPtr = bVector;
 
-  __m256i aVal, bVal, cVal;
-  for(;number < oneEightPoints; number++){
+    __m256i aVal, bVal, cVal;
+    for (; number < oneEightPoints; number++) {
 
-    aVal = _mm256_loadu_si256((__m256i*)aPtr);
-    bVal = _mm256_loadu_si256((__m256i*)bPtr);
+        aVal = _mm256_loadu_si256((__m256i*)aPtr);
+        bVal = _mm256_loadu_si256((__m256i*)bPtr);
 
-    cVal = _mm256_or_si256(aVal, bVal);
+        cVal = _mm256_or_si256(aVal, bVal);
 
-    _mm256_storeu_si256((__m256i*)cPtr,cVal); // Store the results back into the C container
+        _mm256_storeu_si256((__m256i*)cPtr,
+                            cVal); // Store the results back into the C container
 
-    aPtr += 8;
-    bPtr += 8;
-    cPtr += 8;
-  }
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
 
-  number = oneEightPoints * 8;
-  for(;number < num_points; number++){
-    cVector[number] = aVector[number] | bVector[number];
-  }
+    number = oneEightPoints * 8;
+    for (; number < num_points; number++) {
+        cVector[number] = aVector[number] | bVector[number];
+    }
 }
 #endif /* LV_HAVE_AVX2 */
 

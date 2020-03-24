@@ -30,8 +30,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_s32f_normalize(float* vecBuffer, const float scalar, unsigned int num_points)
- * \endcode
+ * void volk_32f_s32f_normalize(float* vecBuffer, const float scalar, unsigned int
+ * num_points) \endcode
  *
  * \b Inputs
  * \li vecBuffer: The buffer of values to be vectorized.
@@ -76,84 +76,99 @@
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
-static inline void volk_32f_s32f_normalize_a_avx(float* vecBuffer, const float scalar, unsigned int num_points){
-  unsigned int number = 0;
-  float* inputPtr = vecBuffer;
+static inline void volk_32f_s32f_normalize_a_avx(float* vecBuffer,
+                                                 const float scalar,
+                                                 unsigned int num_points)
+{
+    unsigned int number = 0;
+    float* inputPtr = vecBuffer;
 
-  const float invScalar = 1.0 / scalar;
-  __m256 vecScalar = _mm256_set1_ps(invScalar);
+    const float invScalar = 1.0 / scalar;
+    __m256 vecScalar = _mm256_set1_ps(invScalar);
 
-  __m256 input1;
+    __m256 input1;
 
-  const uint64_t eighthPoints = num_points / 8;
-  for(;number < eighthPoints; number++){
+    const uint64_t eighthPoints = num_points / 8;
+    for (; number < eighthPoints; number++) {
 
-    input1 = _mm256_load_ps(inputPtr);
+        input1 = _mm256_load_ps(inputPtr);
 
-    input1 = _mm256_mul_ps(input1, vecScalar);
+        input1 = _mm256_mul_ps(input1, vecScalar);
 
-    _mm256_store_ps(inputPtr, input1);
+        _mm256_store_ps(inputPtr, input1);
 
-    inputPtr += 8;
-  }
+        inputPtr += 8;
+    }
 
-  number = eighthPoints*8;
-  for(; number < num_points; number++){
-    *inputPtr *= invScalar;
-    inputPtr++;
-  }
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *inputPtr *= invScalar;
+        inputPtr++;
+    }
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
-static inline void volk_32f_s32f_normalize_a_sse(float* vecBuffer, const float scalar, unsigned int num_points){
-  unsigned int number = 0;
-  float* inputPtr = vecBuffer;
+static inline void volk_32f_s32f_normalize_a_sse(float* vecBuffer,
+                                                 const float scalar,
+                                                 unsigned int num_points)
+{
+    unsigned int number = 0;
+    float* inputPtr = vecBuffer;
 
-  const float invScalar = 1.0 / scalar;
-  __m128 vecScalar = _mm_set_ps1(invScalar);
+    const float invScalar = 1.0 / scalar;
+    __m128 vecScalar = _mm_set_ps1(invScalar);
 
-  __m128 input1;
+    __m128 input1;
 
-  const uint64_t quarterPoints = num_points / 4;
-  for(;number < quarterPoints; number++){
+    const uint64_t quarterPoints = num_points / 4;
+    for (; number < quarterPoints; number++) {
 
-    input1 = _mm_load_ps(inputPtr);
+        input1 = _mm_load_ps(inputPtr);
 
-    input1 = _mm_mul_ps(input1, vecScalar);
+        input1 = _mm_mul_ps(input1, vecScalar);
 
-    _mm_store_ps(inputPtr, input1);
+        _mm_store_ps(inputPtr, input1);
 
-    inputPtr += 4;
-  }
+        inputPtr += 4;
+    }
 
-  number = quarterPoints*4;
-  for(; number < num_points; number++){
-    *inputPtr *= invScalar;
-    inputPtr++;
-  }
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *inputPtr *= invScalar;
+        inputPtr++;
+    }
 }
 #endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void volk_32f_s32f_normalize_generic(float* vecBuffer, const float scalar, unsigned int num_points){
-  unsigned int number = 0;
-  float* inputPtr = vecBuffer;
-  const float invScalar = 1.0 / scalar;
-  for(number = 0; number < num_points; number++){
-    *inputPtr *= invScalar;
-    inputPtr++;
-  }
+static inline void volk_32f_s32f_normalize_generic(float* vecBuffer,
+                                                   const float scalar,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+    float* inputPtr = vecBuffer;
+    const float invScalar = 1.0 / scalar;
+    for (number = 0; number < num_points; number++) {
+        *inputPtr *= invScalar;
+        inputPtr++;
+    }
 }
 #endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_ORC
 
-extern void volk_32f_s32f_normalize_a_orc_impl(float* dst, float* src, const float scalar, unsigned int num_points);
-static inline void volk_32f_s32f_normalize_u_orc(float* vecBuffer, const float scalar, unsigned int num_points){
+extern void volk_32f_s32f_normalize_a_orc_impl(float* dst,
+                                               float* src,
+                                               const float scalar,
+                                               unsigned int num_points);
+static inline void volk_32f_s32f_normalize_u_orc(float* vecBuffer,
+                                                 const float scalar,
+                                                 unsigned int num_points)
+{
     float invscalar = 1.0 / scalar;
     volk_32f_s32f_normalize_a_orc_impl(vecBuffer, vecBuffer, invscalar, num_points);
 }
@@ -169,32 +184,35 @@ static inline void volk_32f_s32f_normalize_u_orc(float* vecBuffer, const float s
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
-static inline void volk_32f_s32f_normalize_u_avx(float* vecBuffer, const float scalar, unsigned int num_points){
-  unsigned int number = 0;
-  float* inputPtr = vecBuffer;
+static inline void volk_32f_s32f_normalize_u_avx(float* vecBuffer,
+                                                 const float scalar,
+                                                 unsigned int num_points)
+{
+    unsigned int number = 0;
+    float* inputPtr = vecBuffer;
 
-  const float invScalar = 1.0 / scalar;
-  __m256 vecScalar = _mm256_set1_ps(invScalar);
+    const float invScalar = 1.0 / scalar;
+    __m256 vecScalar = _mm256_set1_ps(invScalar);
 
-  __m256 input1;
+    __m256 input1;
 
-  const uint64_t eighthPoints = num_points / 8;
-  for(;number < eighthPoints; number++){
+    const uint64_t eighthPoints = num_points / 8;
+    for (; number < eighthPoints; number++) {
 
-    input1 = _mm256_loadu_ps(inputPtr);
+        input1 = _mm256_loadu_ps(inputPtr);
 
-    input1 = _mm256_mul_ps(input1, vecScalar);
+        input1 = _mm256_mul_ps(input1, vecScalar);
 
-    _mm256_storeu_ps(inputPtr, input1);
+        _mm256_storeu_ps(inputPtr, input1);
 
-    inputPtr += 8;
-  }
+        inputPtr += 8;
+    }
 
-  number = eighthPoints*8;
-  for(; number < num_points; number++){
-    *inputPtr *= invScalar;
-    inputPtr++;
-  }
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *inputPtr *= invScalar;
+        inputPtr++;
+    }
 }
 #endif /* LV_HAVE_AVX */
 

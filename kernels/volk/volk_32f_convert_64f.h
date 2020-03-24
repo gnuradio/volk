@@ -29,8 +29,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_convert_64f(double* outputVector, const float* inputVector, unsigned int num_points)
- * \endcode
+ * void volk_32f_convert_64f(double* outputVector, const float* inputVector, unsigned int
+ * num_points) \endcode
  *
  * \b Inputs
  * \li inputVector: The vector of floats to convert to doubles.
@@ -72,29 +72,33 @@
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
-static inline void volk_32f_convert_64f_u_avx(double* outputVector, const float* inputVector, unsigned int num_points){
-  unsigned int number = 0;
+static inline void volk_32f_convert_64f_u_avx(double* outputVector,
+                                              const float* inputVector,
+                                              unsigned int num_points)
+{
+    unsigned int number = 0;
 
-  const unsigned int quarterPoints = num_points / 4;
+    const unsigned int quarterPoints = num_points / 4;
 
-  const float* inputVectorPtr = (const float*)inputVector;
-  double* outputVectorPtr = outputVector;
-  __m256d ret;
-  __m128 inputVal;
+    const float* inputVectorPtr = (const float*)inputVector;
+    double* outputVectorPtr = outputVector;
+    __m256d ret;
+    __m128 inputVal;
 
-  for(;number < quarterPoints; number++){
-    inputVal = _mm_loadu_ps(inputVectorPtr); inputVectorPtr += 4;
+    for (; number < quarterPoints; number++) {
+        inputVal = _mm_loadu_ps(inputVectorPtr);
+        inputVectorPtr += 4;
 
-    ret = _mm256_cvtps_pd(inputVal);
-    _mm256_storeu_pd(outputVectorPtr, ret);
+        ret = _mm256_cvtps_pd(inputVal);
+        _mm256_storeu_pd(outputVectorPtr, ret);
 
-    outputVectorPtr += 4;
-  }
+        outputVectorPtr += 4;
+    }
 
-  number = quarterPoints * 4;
-  for(; number < num_points; number++){
-    outputVector[number] = (double)(inputVector[number]);
-  }
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        outputVector[number] = (double)(inputVector[number]);
+    }
 }
 
 #endif /* LV_HAVE_AVX */
@@ -102,54 +106,59 @@ static inline void volk_32f_convert_64f_u_avx(double* outputVector, const float*
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-static inline void volk_32f_convert_64f_u_sse2(double* outputVector, const float* inputVector, unsigned int num_points){
-  unsigned int number = 0;
+static inline void volk_32f_convert_64f_u_sse2(double* outputVector,
+                                               const float* inputVector,
+                                               unsigned int num_points)
+{
+    unsigned int number = 0;
 
-  const unsigned int quarterPoints = num_points / 4;
+    const unsigned int quarterPoints = num_points / 4;
 
-  const float* inputVectorPtr = (const float*)inputVector;
-  double* outputVectorPtr = outputVector;
-  __m128d ret;
-  __m128 inputVal;
+    const float* inputVectorPtr = (const float*)inputVector;
+    double* outputVectorPtr = outputVector;
+    __m128d ret;
+    __m128 inputVal;
 
-  for(;number < quarterPoints; number++){
-    inputVal = _mm_loadu_ps(inputVectorPtr); inputVectorPtr += 4;
+    for (; number < quarterPoints; number++) {
+        inputVal = _mm_loadu_ps(inputVectorPtr);
+        inputVectorPtr += 4;
 
-    ret = _mm_cvtps_pd(inputVal);
+        ret = _mm_cvtps_pd(inputVal);
 
-    _mm_storeu_pd(outputVectorPtr, ret);
-    outputVectorPtr += 2;
+        _mm_storeu_pd(outputVectorPtr, ret);
+        outputVectorPtr += 2;
 
-    inputVal = _mm_movehl_ps(inputVal, inputVal);
+        inputVal = _mm_movehl_ps(inputVal, inputVal);
 
-    ret = _mm_cvtps_pd(inputVal);
+        ret = _mm_cvtps_pd(inputVal);
 
-    _mm_storeu_pd(outputVectorPtr, ret);
-    outputVectorPtr += 2;
-  }
+        _mm_storeu_pd(outputVectorPtr, ret);
+        outputVectorPtr += 2;
+    }
 
-  number = quarterPoints * 4;
-  for(; number < num_points; number++){
-    outputVector[number] = (double)(inputVector[number]);
-  }
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        outputVector[number] = (double)(inputVector[number]);
+    }
 }
 #endif /* LV_HAVE_SSE2 */
 
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void volk_32f_convert_64f_generic(double* outputVector, const float* inputVector, unsigned int num_points){
-  double* outputVectorPtr = outputVector;
-  const float* inputVectorPtr = inputVector;
-  unsigned int number = 0;
+static inline void volk_32f_convert_64f_generic(double* outputVector,
+                                                const float* inputVector,
+                                                unsigned int num_points)
+{
+    double* outputVectorPtr = outputVector;
+    const float* inputVectorPtr = inputVector;
+    unsigned int number = 0;
 
-  for(number = 0; number < num_points; number++){
-    *outputVectorPtr++ = ((double)(*inputVectorPtr++));
-  }
+    for (number = 0; number < num_points; number++) {
+        *outputVectorPtr++ = ((double)(*inputVectorPtr++));
+    }
 }
 #endif /* LV_HAVE_GENERIC */
-
-
 
 
 #endif /* INCLUDED_volk_32f_convert_64f_u_H */
@@ -164,83 +173,92 @@ static inline void volk_32f_convert_64f_generic(double* outputVector, const floa
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
-static inline void volk_32f_convert_64f_a_avx(double* outputVector, const float* inputVector, unsigned int num_points){
-  unsigned int number = 0;
+static inline void volk_32f_convert_64f_a_avx(double* outputVector,
+                                              const float* inputVector,
+                                              unsigned int num_points)
+{
+    unsigned int number = 0;
 
-  const unsigned int quarterPoints = num_points / 4;
+    const unsigned int quarterPoints = num_points / 4;
 
-  const float* inputVectorPtr = (const float*)inputVector;
-  double* outputVectorPtr = outputVector;
-  __m256d ret;
-  __m128 inputVal;
+    const float* inputVectorPtr = (const float*)inputVector;
+    double* outputVectorPtr = outputVector;
+    __m256d ret;
+    __m128 inputVal;
 
-  for(;number < quarterPoints; number++){
-    inputVal = _mm_load_ps(inputVectorPtr); inputVectorPtr += 4;
+    for (; number < quarterPoints; number++) {
+        inputVal = _mm_load_ps(inputVectorPtr);
+        inputVectorPtr += 4;
 
-    ret = _mm256_cvtps_pd(inputVal);
-    _mm256_store_pd(outputVectorPtr, ret);
+        ret = _mm256_cvtps_pd(inputVal);
+        _mm256_store_pd(outputVectorPtr, ret);
 
-    outputVectorPtr += 4;
-  }
+        outputVectorPtr += 4;
+    }
 
-  number = quarterPoints * 4;
-  for(; number < num_points; number++){
-    outputVector[number] = (double)(inputVector[number]);
-  }
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        outputVector[number] = (double)(inputVector[number]);
+    }
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-static inline void volk_32f_convert_64f_a_sse2(double* outputVector, const float* inputVector, unsigned int num_points){
-  unsigned int number = 0;
+static inline void volk_32f_convert_64f_a_sse2(double* outputVector,
+                                               const float* inputVector,
+                                               unsigned int num_points)
+{
+    unsigned int number = 0;
 
-  const unsigned int quarterPoints = num_points / 4;
+    const unsigned int quarterPoints = num_points / 4;
 
-  const float* inputVectorPtr = (const float*)inputVector;
-  double* outputVectorPtr = outputVector;
-  __m128d ret;
-  __m128 inputVal;
+    const float* inputVectorPtr = (const float*)inputVector;
+    double* outputVectorPtr = outputVector;
+    __m128d ret;
+    __m128 inputVal;
 
-  for(;number < quarterPoints; number++){
-    inputVal = _mm_load_ps(inputVectorPtr); inputVectorPtr += 4;
+    for (; number < quarterPoints; number++) {
+        inputVal = _mm_load_ps(inputVectorPtr);
+        inputVectorPtr += 4;
 
-    ret = _mm_cvtps_pd(inputVal);
+        ret = _mm_cvtps_pd(inputVal);
 
-    _mm_store_pd(outputVectorPtr, ret);
-    outputVectorPtr += 2;
+        _mm_store_pd(outputVectorPtr, ret);
+        outputVectorPtr += 2;
 
-    inputVal = _mm_movehl_ps(inputVal, inputVal);
+        inputVal = _mm_movehl_ps(inputVal, inputVal);
 
-    ret = _mm_cvtps_pd(inputVal);
+        ret = _mm_cvtps_pd(inputVal);
 
-    _mm_store_pd(outputVectorPtr, ret);
-    outputVectorPtr += 2;
-  }
+        _mm_store_pd(outputVectorPtr, ret);
+        outputVectorPtr += 2;
+    }
 
-  number = quarterPoints * 4;
-  for(; number < num_points; number++){
-    outputVector[number] = (double)(inputVector[number]);
-  }
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        outputVector[number] = (double)(inputVector[number]);
+    }
 }
 #endif /* LV_HAVE_SSE2 */
 
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void volk_32f_convert_64f_a_generic(double* outputVector, const float* inputVector, unsigned int num_points){
-  double* outputVectorPtr = outputVector;
-  const float* inputVectorPtr = inputVector;
-  unsigned int number = 0;
+static inline void volk_32f_convert_64f_a_generic(double* outputVector,
+                                                  const float* inputVector,
+                                                  unsigned int num_points)
+{
+    double* outputVectorPtr = outputVector;
+    const float* inputVectorPtr = inputVector;
+    unsigned int number = 0;
 
-  for(number = 0; number < num_points; number++){
-    *outputVectorPtr++ = ((double)(*inputVectorPtr++));
-  }
+    for (number = 0; number < num_points; number++) {
+        *outputVectorPtr++ = ((double)(*inputVectorPtr++));
+    }
 }
 #endif /* LV_HAVE_GENERIC */
-
-
 
 
 #endif /* INCLUDED_volk_32f_convert_64f_a_H */
