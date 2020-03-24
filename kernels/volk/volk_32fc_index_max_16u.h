@@ -84,82 +84,120 @@
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
+#include <volk/volk_avx2_intrinsics.h>
 
-static inline void
-volk_32fc_index_max_16u_a_avx2(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
+static inline void volk_32fc_index_max_16u_a_avx2_variant_0(uint16_t* target,
+                                                            lv_32fc_t* src0,
+                                                            uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
-    const uint32_t num_bytes = num_points * 8;
 
-    union bit256 holderf;
-    union bit256 holderi;
-    float sq_dist = 0.0;
-    float max = 0.0;
-    uint16_t index = 0;
+    const __m256i indices_increment = _mm256_set1_epi32(8);
+    /*
+     * At the start of each loop iteration current_indices holds the indices of
+     * the complex numbers loaded from memory. Explanation for odd order is given
+     * in implementation of vector_32fc_index_max_variant0().
+     */
+    __m256i current_indices = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
 
-    union bit256 xmm5, xmm4;
-    __m256 xmm1, xmm2, xmm3;
-    __m256i xmm8, xmm11, xmm12, xmm9, xmm10;
+    __m256 max_values = _mm256_setzero_ps();
+    __m256i max_indices = _mm256_setzero_si256();
 
-    xmm5.int_vec = _mm256_setzero_si256();
-    xmm4.int_vec = _mm256_setzero_si256();
-    holderf.int_vec = _mm256_setzero_si256();
-    holderi.int_vec = _mm256_setzero_si256();
-
-    int bound = num_bytes >> 6;
-    int i = 0;
-
-    xmm8 = _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7);
-    xmm9 = _mm256_setzero_si256();
-    xmm10 = _mm256_set1_epi32(8);
-    xmm3 = _mm256_setzero_ps();
-
-    __m256i idx = _mm256_setr_epi32(0, 1, 4, 5, 2, 3, 6, 7);
-    for (; i < bound; ++i) {
-        xmm1 = _mm256_load_ps((float*)src0);
-        xmm2 = _mm256_load_ps((float*)&src0[4]);
-
+    for (unsigned i = 0; i < num_points / 8u; ++i) {
+        __m256 in0 = _mm256_load_ps((float*)src0);
+        __m256 in1 = _mm256_load_ps((float*)(src0 + 4));
+        vector_32fc_index_max_variant0(
+            in0, in1, &max_values, &max_indices, &current_indices, indices_increment);
         src0 += 8;
-
-        xmm1 = _mm256_mul_ps(xmm1, xmm1);
-        xmm2 = _mm256_mul_ps(xmm2, xmm2);
-
-        xmm1 = _mm256_hadd_ps(xmm1, xmm2);
-        xmm1 = _mm256_permutevar8x32_ps(xmm1, idx);
-
-        xmm3 = _mm256_max_ps(xmm1, xmm3);
-
-        xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
-        xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
-
-        xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
-        xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
-
-        xmm9 = _mm256_add_epi32(xmm11, xmm12);
-
-        xmm8 = _mm256_add_epi32(xmm8, xmm10);
     }
 
-    _mm256_store_ps((float*)&(holderf.f), xmm3);
-    _mm256_store_si256(&(holderi.int_vec), xmm9);
+    // determine maximum value and index in the result of the vectorized loop
+    __VOLK_ATTR_ALIGNED(32) float max_values_buffer[8];
+    __VOLK_ATTR_ALIGNED(32) uint32_t max_indices_buffer[8];
+    _mm256_store_ps(max_values_buffer, max_values);
+    _mm256_store_si256((__m256i*)max_indices_buffer, max_indices);
 
-    for (i = 0; i < 8; i++) {
-        if (holderf.f[i] > max) {
-            index = holderi.i[i];
-            max = holderf.f[i];
+    float max = 0.f;
+    uint32_t index = 0;
+    for (unsigned i = 0; i < 8; i++) {
+        if (max_values_buffer[i] > max) {
+            max = max_values_buffer[i];
+            index = max_indices_buffer[i];
         }
     }
 
-    for (i = bound * 8; i < num_points; i++, src0++) {
-        sq_dist =
-            lv_creal(src0[0]) * lv_creal(src0[0]) + lv_cimag(src0[0]) * lv_cimag(src0[0]);
-
-        if (sq_dist > max) {
+    // handle tail not processed by the vectorized loop
+    for (unsigned i = num_points & (~7u); i < num_points; ++i) {
+        const float abs_squared =
+            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+        if (abs_squared > max) {
+            max = abs_squared;
             index = i;
-            max = sq_dist;
+        }
+        ++src0;
+    }
+
+    *target = index;
+}
+
+#endif /*LV_HAVE_AVX2*/
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+#include <volk/volk_avx2_intrinsics.h>
+
+static inline void volk_32fc_index_max_16u_a_avx2_variant_1(uint16_t* target,
+                                                            lv_32fc_t* src0,
+                                                            uint32_t num_points)
+{
+    num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
+    const __m256i indices_increment = _mm256_set1_epi32(8);
+    /*
+     * At the start of each loop iteration current_indices holds the indices of
+     * the complex numbers loaded from memory. Explanation for odd order is given
+     * in implementation of vector_32fc_index_max_variant0().
+     */
+    __m256i current_indices = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
+
+    __m256 max_values = _mm256_setzero_ps();
+    __m256i max_indices = _mm256_setzero_si256();
+
+    for (unsigned i = 0; i < num_points / 8u; ++i) {
+        __m256 in0 = _mm256_load_ps((float*)src0);
+        __m256 in1 = _mm256_load_ps((float*)(src0 + 4));
+        vector_32fc_index_max_variant1(
+            in0, in1, &max_values, &max_indices, &current_indices, indices_increment);
+        src0 += 8;
+    }
+
+    // determine maximum value and index in the result of the vectorized loop
+    __VOLK_ATTR_ALIGNED(32) float max_values_buffer[8];
+    __VOLK_ATTR_ALIGNED(32) uint32_t max_indices_buffer[8];
+    _mm256_store_ps(max_values_buffer, max_values);
+    _mm256_store_si256((__m256i*)max_indices_buffer, max_indices);
+
+    float max = 0.f;
+    uint32_t index = 0;
+    for (unsigned i = 0; i < 8; i++) {
+        if (max_values_buffer[i] > max) {
+            max = max_values_buffer[i];
+            index = max_indices_buffer[i];
         }
     }
-    target[0] = index;
+
+    // handle tail not processed by the vectorized loop
+    for (unsigned i = num_points & (~7u); i < num_points; ++i) {
+        const float abs_squared =
+            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+        if (abs_squared > max) {
+            max = abs_squared;
+            index = i;
+        }
+        ++src0;
+    }
+
+    *target = index;
 }
 
 #endif /*LV_HAVE_AVX2*/
@@ -323,82 +361,120 @@ volk_32fc_index_max_16u_generic(uint16_t* target, lv_32fc_t* src0, uint32_t num_
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
+#include <volk/volk_avx2_intrinsics.h>
 
-static inline void
-volk_32fc_index_max_16u_u_avx2(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
+static inline void volk_32fc_index_max_16u_u_avx2_variant_0(uint16_t* target,
+                                                            lv_32fc_t* src0,
+                                                            uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
-    const uint32_t num_bytes = num_points * 8;
 
-    union bit256 holderf;
-    union bit256 holderi;
-    float sq_dist = 0.0;
-    float max = 0.0;
-    uint16_t index = 0;
+    const __m256i indices_increment = _mm256_set1_epi32(8);
+    /*
+     * At the start of each loop iteration current_indices holds the indices of
+     * the complex numbers loaded from memory. Explanation for odd order is given
+     * in implementation of vector_32fc_index_max_variant0().
+     */
+    __m256i current_indices = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
 
-    union bit256 xmm5, xmm4;
-    __m256 xmm1, xmm2, xmm3;
-    __m256i xmm8, xmm11, xmm12, xmm9, xmm10;
+    __m256 max_values = _mm256_setzero_ps();
+    __m256i max_indices = _mm256_setzero_si256();
 
-    xmm5.int_vec = _mm256_setzero_si256();
-    xmm4.int_vec = _mm256_setzero_si256();
-    holderf.int_vec = _mm256_setzero_si256();
-    holderi.int_vec = _mm256_setzero_si256();
-
-    int bound = num_bytes >> 6;
-    int i = 0;
-
-    xmm8 = _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7);
-    xmm9 = _mm256_setzero_si256();
-    xmm10 = _mm256_set1_epi32(8);
-    xmm3 = _mm256_setzero_ps();
-
-    __m256i idx = _mm256_setr_epi32(0, 1, 4, 5, 2, 3, 6, 7);
-    for (; i < bound; ++i) {
-        xmm1 = _mm256_loadu_ps((float*)src0);
-        xmm2 = _mm256_loadu_ps((float*)&src0[4]);
-
+    for (unsigned i = 0; i < num_points / 8u; ++i) {
+        __m256 in0 = _mm256_loadu_ps((float*)src0);
+        __m256 in1 = _mm256_loadu_ps((float*)(src0 + 4));
+        vector_32fc_index_max_variant0(
+            in0, in1, &max_values, &max_indices, &current_indices, indices_increment);
         src0 += 8;
-
-        xmm1 = _mm256_mul_ps(xmm1, xmm1);
-        xmm2 = _mm256_mul_ps(xmm2, xmm2);
-
-        xmm1 = _mm256_hadd_ps(xmm1, xmm2);
-        xmm1 = _mm256_permutevar8x32_ps(xmm1, idx);
-
-        xmm3 = _mm256_max_ps(xmm1, xmm3);
-
-        xmm4.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_LT_OS);
-        xmm5.float_vec = _mm256_cmp_ps(xmm1, xmm3, _CMP_EQ_OQ);
-
-        xmm11 = _mm256_and_si256(xmm8, xmm5.int_vec);
-        xmm12 = _mm256_and_si256(xmm9, xmm4.int_vec);
-
-        xmm9 = _mm256_add_epi32(xmm11, xmm12);
-
-        xmm8 = _mm256_add_epi32(xmm8, xmm10);
     }
 
-    _mm256_storeu_ps((float*)&(holderf.f), xmm3);
-    _mm256_storeu_si256(&(holderi.int_vec), xmm9);
+    // determine maximum value and index in the result of the vectorized loop
+    __VOLK_ATTR_ALIGNED(32) float max_values_buffer[8];
+    __VOLK_ATTR_ALIGNED(32) uint32_t max_indices_buffer[8];
+    _mm256_store_ps(max_values_buffer, max_values);
+    _mm256_store_si256((__m256i*)max_indices_buffer, max_indices);
 
-    for (i = 0; i < 8; i++) {
-        if (holderf.f[i] > max) {
-            index = holderi.i[i];
-            max = holderf.f[i];
+    float max = 0.f;
+    uint32_t index = 0;
+    for (unsigned i = 0; i < 8; i++) {
+        if (max_values_buffer[i] > max) {
+            max = max_values_buffer[i];
+            index = max_indices_buffer[i];
         }
     }
 
-    for (i = bound * 8; i < num_points; i++, src0++) {
-        sq_dist =
-            lv_creal(src0[0]) * lv_creal(src0[0]) + lv_cimag(src0[0]) * lv_cimag(src0[0]);
-
-        if (sq_dist > max) {
+    // handle tail not processed by the vectorized loop
+    for (unsigned i = num_points & (~7u); i < num_points; ++i) {
+        const float abs_squared =
+            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+        if (abs_squared > max) {
+            max = abs_squared;
             index = i;
-            max = sq_dist;
+        }
+        ++src0;
+    }
+
+    *target = index;
+}
+
+#endif /*LV_HAVE_AVX2*/
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+#include <volk/volk_avx2_intrinsics.h>
+
+static inline void volk_32fc_index_max_16u_u_avx2_variant_1(uint16_t* target,
+                                                            lv_32fc_t* src0,
+                                                            uint32_t num_points)
+{
+    num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
+    const __m256i indices_increment = _mm256_set1_epi32(8);
+    /*
+     * At the start of each loop iteration current_indices holds the indices of
+     * the complex numbers loaded from memory. Explanation for odd order is given
+     * in implementation of vector_32fc_index_max_variant0().
+     */
+    __m256i current_indices = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
+
+    __m256 max_values = _mm256_setzero_ps();
+    __m256i max_indices = _mm256_setzero_si256();
+
+    for (unsigned i = 0; i < num_points / 8u; ++i) {
+        __m256 in0 = _mm256_loadu_ps((float*)src0);
+        __m256 in1 = _mm256_loadu_ps((float*)(src0 + 4));
+        vector_32fc_index_max_variant1(
+            in0, in1, &max_values, &max_indices, &current_indices, indices_increment);
+        src0 += 8;
+    }
+
+    // determine maximum value and index in the result of the vectorized loop
+    __VOLK_ATTR_ALIGNED(32) float max_values_buffer[8];
+    __VOLK_ATTR_ALIGNED(32) uint32_t max_indices_buffer[8];
+    _mm256_store_ps(max_values_buffer, max_values);
+    _mm256_store_si256((__m256i*)max_indices_buffer, max_indices);
+
+    float max = 0.f;
+    uint32_t index = 0;
+    for (unsigned i = 0; i < 8; i++) {
+        if (max_values_buffer[i] > max) {
+            max = max_values_buffer[i];
+            index = max_indices_buffer[i];
         }
     }
-    target[0] = index;
+
+    // handle tail not processed by the vectorized loop
+    for (unsigned i = num_points & (~7u); i < num_points; ++i) {
+        const float abs_squared =
+            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+        if (abs_squared > max) {
+            max = abs_squared;
+            index = i;
+        }
+        ++src0;
+    }
+
+    *target = index;
 }
 
 #endif /*LV_HAVE_AVX2*/
