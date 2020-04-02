@@ -32,10 +32,6 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     volk_test_params_t test_params_power(test_params);
     test_params_power.set_scalar(2.5);
 
-    volk_test_params_t test_params_rotator(test_params);
-    test_params_rotator.set_scalar(std::polar(1.0f, 0.1f));
-    test_params_rotator.set_tol(1e-3);
-
     std::vector<volk_test_case_t> test_cases;
     QA(VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt, test_params))
     QA(VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt, test_params))
@@ -44,9 +40,8 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_PUPP(volk_32u_byteswappuppet_32u, volk_32u_byteswap, test_params))
     QA(VOLK_INIT_PUPP(volk_32u_popcntpuppet_32u, volk_32u_popcnt_32u, test_params))
     QA(VOLK_INIT_PUPP(volk_64u_byteswappuppet_64u, volk_64u_byteswap, test_params))
-    QA(VOLK_INIT_PUPP(volk_32fc_s32fc_rotatorpuppet_32fc,
-                      volk_32fc_s32fc_x2_rotator_32fc,
-                      test_params_rotator))
+    QA(VOLK_INIT_PUPP(
+        volk_32fc_s32fc_rotatorpuppet_32fc, volk_32fc_s32fc_x2_rotator_32fc, test_params))
     QA(VOLK_INIT_PUPP(
         volk_8u_conv_k7_r2puppet_8u, volk_8u_x4_conv_k7_r2_8u, test_params.make_tol(0)))
     QA(VOLK_INIT_PUPP(
@@ -170,7 +165,6 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     // 0, 2046, 10000, &results, benchmark_mode, kernel_regex);
     // VOLK_PROFILE(volk_16i_x4_quad_max_star_16i, 1e-4, 0, 2046, 10000, &results,
     // benchmark_mode, kernel_regex);
-
 
     return test_cases;
 }
