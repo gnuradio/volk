@@ -142,7 +142,8 @@ volk_32fc_s32f_x2_power_spectral_density_32f_a_avx(float* logPowerOutput,
         const float real = *inputPtr++ * iNormalizationFactor;
         const float imag = *inputPtr++ * iNormalizationFactor;
 
-        *destPtr = 10.0 * log10f((((real * real) + (imag * imag)) + 1e-20) * iRBW);
+        *destPtr = volk_log2to10factor *
+                   log2f_non_ieee((((real * real) + (imag * imag))) * iRBW);
         destPtr++;
     }
 }
@@ -229,7 +230,8 @@ volk_32fc_s32f_x2_power_spectral_density_32f_a_sse3(float* logPowerOutput,
         const float real = *inputPtr++ * iNormalizationFactor;
         const float imag = *inputPtr++ * iNormalizationFactor;
 
-        *destPtr = 10.0 * log10f((((real * real) + (imag * imag)) + 1e-20) * iRBW);
+        *destPtr = volk_log2to10factor *
+                   log2f_non_ieee((((real * real) + (imag * imag))) * iRBW);
         destPtr++;
     }
 }
@@ -245,29 +247,14 @@ volk_32fc_s32f_x2_power_spectral_density_32f_generic(float* logPowerOutput,
                                                      const float rbw,
                                                      unsigned int num_points)
 {
-    // Calculate the Power of the complex point
-    const float* inputPtr = (float*)complexFFTInput;
-    float* realFFTDataPointsPtr = logPowerOutput;
-    unsigned int point;
-    const float invRBW = 1.0 / rbw;
-    const float iNormalizationFactor = 1.0 / normalizationFactor;
-
-    for (point = 0; point < num_points; point++) {
-        // Calculate dBm
-        // 50 ohm load assumption
-        // 10 * log10 (v^2 / (2 * 50.0 * .001)) = 10 * log10( v^2 * 10)
-        // 75 ohm load assumption
-        // 10 * log10 (v^2 / (2 * 75.0 * .001)) = 10 * log10( v^2 * 15)
-
-        const float real = *inputPtr++ * iNormalizationFactor;
-        const float imag = *inputPtr++ * iNormalizationFactor;
-
-        *realFFTDataPointsPtr =
-            10.0 * log10f((((real * real) + (imag * imag)) + 1e-20) * invRBW);
-
-        realFFTDataPointsPtr++;
-    }
+    if (rbw != 1.0)
+        volk_32fc_s32f_power_spectrum_32f(
+            logPowerOutput, complexFFTInput, normalizationFactor * sqrt(rbw), num_points);
+    else
+        volk_32fc_s32f_power_spectrum_32f(
+            logPowerOutput, complexFFTInput, normalizationFactor, num_points);
 }
+
 #endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_a_H */

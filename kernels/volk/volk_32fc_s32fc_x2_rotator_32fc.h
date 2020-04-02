@@ -87,6 +87,8 @@
 #include <stdlib.h>
 #include <volk/volk_complex.h>
 #define ROTATOR_RELOAD 512
+#define ROTATOR_RELOAD_2 (ROTATOR_RELOAD / 2)
+#define ROTATOR_RELOAD_4 (ROTATOR_RELOAD / 4)
 
 
 #ifdef LV_HAVE_GENERIC
@@ -139,7 +141,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_neon(lv_32fc_t* outVector,
     float32x4x2_t output_vec;
 
     unsigned int i = 0, j = 0;
-    const unsigned int quarter_points = num_points / 4;
+    // const unsigned int quarter_points = num_points / 4;
 
     for (i = 0; i < 4; ++i) {
         phasePtr[i] *= incr;
@@ -151,8 +153,8 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_neon(lv_32fc_t* outVector,
     const float32x4x2_t incr_vec = vld2q_f32((float*)incrPtr);
     float32x4x2_t phase_vec = vld2q_f32((float*)phasePtr);
 
-    for (i = 0; i < (unsigned int)(quarter_points / ROTATOR_RELOAD); i++) {
-        for (j = 0; j < ROTATOR_RELOAD; j++) {
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
+        for (j = 0; j < ROTATOR_RELOAD_4; j++) {
             input_vec = vld2q_f32((float*)inputVectorPtr);
             // Prefetch next one, speeds things up
             __VOLK_PREFETCH(inputVectorPtr + 4);
@@ -175,7 +177,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_neon(lv_32fc_t* outVector,
         phase_vec.val[1] = vmulq_f32(phase_vec.val[1], inv_mag);
     }
 
-    for (i = 0; i < quarter_points % ROTATOR_RELOAD; i++) {
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; i++) {
         input_vec = vld2q_f32((float*)inputVectorPtr);
         // Prefetch next one, speeds things up
         __VOLK_PREFETCH(inputVectorPtr + 4);
@@ -208,7 +210,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_neon(lv_32fc_t* outVector,
         phasePtr[0] *= (phase_inc);
     }
 
-    // For continious phase next time we need to call this function
+    // For continuous phase next time we need to call this function
     (*phase) = phasePtr[0];
 }
 
@@ -236,19 +238,13 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_sse4_1(lv_32fc_t* outVector
         incr *= (phase_inc);
     }
 
-    /*printf("%f, %f\n", lv_creal(phase_Ptr[0]), lv_cimag(phase_Ptr[0]));
-    printf("%f, %f\n", lv_creal(phase_Ptr[1]), lv_cimag(phase_Ptr[1]));
-    printf("incr: %f, %f\n", lv_creal(incr), lv_cimag(incr));*/
     __m128 aVal, phase_Val, inc_Val, yl, yh, tmp1, tmp2, z, ylp, yhp, tmp1p, tmp2p;
 
     phase_Val = _mm_loadu_ps((float*)phase_Ptr);
     inc_Val = _mm_set_ps(lv_cimag(incr), lv_creal(incr), lv_cimag(incr), lv_creal(incr));
 
-    const unsigned int halfPoints = num_points / 2;
-
-
-    for (i = 0; i < (unsigned int)(halfPoints / ROTATOR_RELOAD); i++) {
-        for (j = 0; j < ROTATOR_RELOAD; ++j) {
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
+        for (j = 0; j < ROTATOR_RELOAD_2; ++j) {
 
             aVal = _mm_load_ps((float*)aPtr);
 
@@ -279,7 +275,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_sse4_1(lv_32fc_t* outVector
         tmp2 = _mm_sqrt_ps(tmp1);
         phase_Val = _mm_div_ps(phase_Val, tmp2);
     }
-    for (i = 0; i < halfPoints % ROTATOR_RELOAD; ++i) {
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 2; ++i) {
         aVal = _mm_load_ps((float*)aPtr);
 
         yl = _mm_moveldup_ps(phase_Val);
@@ -353,11 +349,8 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_sse4_1(lv_32fc_t* outVector
     phase_Val = _mm_loadu_ps((float*)phase_Ptr);
     inc_Val = _mm_set_ps(lv_cimag(incr), lv_creal(incr), lv_cimag(incr), lv_creal(incr));
 
-    const unsigned int halfPoints = num_points / 2;
-
-
-    for (i = 0; i < (unsigned int)(halfPoints / ROTATOR_RELOAD); i++) {
-        for (j = 0; j < ROTATOR_RELOAD; ++j) {
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
+        for (j = 0; j < ROTATOR_RELOAD_2; ++j) {
 
             aVal = _mm_loadu_ps((float*)aPtr);
 
@@ -388,7 +381,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_sse4_1(lv_32fc_t* outVector
         tmp2 = _mm_sqrt_ps(tmp1);
         phase_Val = _mm_div_ps(phase_Val, tmp2);
     }
-    for (i = 0; i < halfPoints % ROTATOR_RELOAD; ++i) {
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 2; ++i) {
         aVal = _mm_loadu_ps((float*)aPtr);
 
         yl = _mm_moveldup_ps(phase_Val);
@@ -468,10 +461,8 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx(lv_32fc_t* outVector,
                                          lv_cimag(incr),
                                          lv_creal(incr));
 
-    const unsigned int fourthPoints = num_points / 4;
-
-    for (i = 0; i < (unsigned int)(fourthPoints / ROTATOR_RELOAD); i++) {
-        for (j = 0; j < ROTATOR_RELOAD; ++j) {
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
+        for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
 
             aVal = _mm256_load_ps((float*)aPtr);
 
@@ -486,7 +477,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx(lv_32fc_t* outVector,
         phase_Val = _mm256_normalize_ps(phase_Val);
     }
 
-    for (i = 0; i < fourthPoints % ROTATOR_RELOAD; ++i) {
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
         aVal = _mm256_load_ps((float*)aPtr);
 
         z = _mm256_complexmul_ps(aVal, phase_Val);
@@ -544,10 +535,8 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx(lv_32fc_t* outVector,
                                          lv_cimag(incr),
                                          lv_creal(incr));
 
-    const unsigned int fourthPoints = num_points / 4;
-
-    for (i = 0; i < (unsigned int)(fourthPoints / ROTATOR_RELOAD); ++i) {
-        for (j = 0; j < ROTATOR_RELOAD; ++j) {
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
+        for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
 
             aVal = _mm256_loadu_ps((float*)aPtr);
 
@@ -562,7 +551,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx(lv_32fc_t* outVector,
         phase_Val = _mm256_normalize_ps(phase_Val);
     }
 
-    for (i = 0; i < num_points % ROTATOR_RELOAD; ++i) {
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
         aVal = _mm256_loadu_ps((float*)aPtr);
 
         z = _mm256_complexmul_ps(aVal, phase_Val);
@@ -617,10 +606,9 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx_fma(lv_32fc_t* outVecto
                             lv_creal(incr),
                             lv_cimag(incr),
                             lv_creal(incr));
-    const unsigned int fourthPoints = num_points / 4;
 
-    for (i = 0; i < (unsigned int)(fourthPoints / ROTATOR_RELOAD); i++) {
-        for (j = 0; j < ROTATOR_RELOAD; ++j) {
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
+        for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
 
             aVal = _mm256_load_ps((float*)aPtr);
 
@@ -651,7 +639,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx_fma(lv_32fc_t* outVecto
         tmp2 = _mm256_sqrt_ps(tmp1);
         phase_Val = _mm256_div_ps(phase_Val, tmp2);
     }
-    for (i = 0; i < fourthPoints % ROTATOR_RELOAD; ++i) {
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
         aVal = _mm256_load_ps((float*)aPtr);
 
         yl = _mm256_moveldup_ps(phase_Val);
@@ -726,10 +714,9 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx_fma(lv_32fc_t* outVecto
                             lv_creal(incr),
                             lv_cimag(incr),
                             lv_creal(incr));
-    const unsigned int fourthPoints = num_points / 4;
 
-    for (i = 0; i < (unsigned int)(fourthPoints / ROTATOR_RELOAD); i++) {
-        for (j = 0; j < ROTATOR_RELOAD; ++j) {
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
+        for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
 
             aVal = _mm256_loadu_ps((float*)aPtr);
 
@@ -760,7 +747,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx_fma(lv_32fc_t* outVecto
         tmp2 = _mm256_sqrt_ps(tmp1);
         phase_Val = _mm256_div_ps(phase_Val, tmp2);
     }
-    for (i = 0; i < fourthPoints % ROTATOR_RELOAD; ++i) {
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
         aVal = _mm256_loadu_ps((float*)aPtr);
 
         yl = _mm256_moveldup_ps(phase_Val);

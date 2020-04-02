@@ -57,6 +57,52 @@
 #include <math.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutput,
+                                          const lv_32fc_t* complexFFTInput,
+                                          const float normalizationFactor,
+                                          unsigned int num_points)
+{
+    // Calculate the Power of the complex point
+    const float normFactSq = 1.0 / (normalizationFactor * normalizationFactor);
+
+    // Calculate dBm
+    // 50 ohm load assumption
+    // 10 * log10 (v^2 / (2 * 50.0 * .001)) = 10 * log10( v^2 * 10)
+    // 75 ohm load assumption
+    // 10 * log10 (v^2 / (2 * 75.0 * .001)) = 10 * log10( v^2 * 15)
+
+    /*
+     * For generic reference, the code below is a volk-optimized
+     * approach that also leverages a faster log2 calculation
+     * to calculate the log10:
+     * n*log10(x) = n*log2(x)/log2(10) = (n/log2(10)) * log2(x)
+     *
+     * Generic code:
+     *
+     * const float real = *inputPtr++ * iNormalizationFactor;
+     * const float imag = *inputPtr++ * iNormalizationFactor;
+     * realFFTDataPointsPtr = 10.0*log10f(((real * real) + (imag * imag)) + 1e-20);
+     *  realFFTDataPointsPtr++;
+     *
+     */
+
+    // Calc mag^2
+    volk_32fc_magnitude_squared_32f(logPowerOutput, complexFFTInput, num_points);
+
+    // Finish ((real * real) + (imag * imag)) calculation:
+    volk_32f_s32f_multiply_32f(logPowerOutput, logPowerOutput, normFactSq, num_points);
+
+    // The following calculates 10*log10(x) = 10*log2(x)/log2(10) = (10/log2(10))
+    // * log2(x)
+    volk_32f_log2_32f(logPowerOutput, logPowerOutput, num_points);
+    volk_32f_s32f_multiply_32f(
+        logPowerOutput, logPowerOutput, volk_log2to10factor, num_points);
+}
+#endif /* LV_HAVE_GENERIC */
+
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
 
@@ -130,7 +176,7 @@ volk_32fc_s32f_power_spectrum_32f_a_sse3(float* logPowerOutput,
         const float real = *inputPtr++ * iNormalizationFactor;
         const float imag = *inputPtr++ * iNormalizationFactor;
 
-        *destPtr = 10.0 * log10f(((real * real) + (imag * imag)) + 1e-20);
+        *destPtr = volk_log2to10factor * log2f_non_ieee(((real * real) + (imag * imag)));
 
         destPtr++;
     }
@@ -179,41 +225,14 @@ volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput,
     for (number = quarter_points * 4; number < num_points; number++) {
         const float real = lv_creal(*complexFFTInputPtr) * iNormalizationFactor;
         const float imag = lv_cimag(*complexFFTInputPtr) * iNormalizationFactor;
-        *logPowerOutputPtr = 10.0 * log10f(((real * real) + (imag * imag)) + 1e-20);
+
+        *logPowerOutputPtr =
+            volk_log2to10factor * log2f_non_ieee(((real * real) + (imag * imag)));
         complexFFTInputPtr++;
         logPowerOutputPtr++;
     }
 }
 
 #endif /* LV_HAVE_NEON */
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void
-volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutput,
-                                          const lv_32fc_t* complexFFTInput,
-                                          const float normalizationFactor,
-                                          unsigned int num_points)
-{
-    // Calculate the Power of the complex point
-    const float* inputPtr = (float*)complexFFTInput;
-    float* realFFTDataPointsPtr = logPowerOutput;
-    const float iNormalizationFactor = 1.0 / normalizationFactor;
-    unsigned int point;
-    for (point = 0; point < num_points; point++) {
-        // Calculate dBm
-        // 50 ohm load assumption
-        // 10 * log10 (v^2 / (2 * 50.0 * .001)) = 10 * log10( v^2 * 10)
-        // 75 ohm load assumption
-        // 10 * log10 (v^2 / (2 * 75.0 * .001)) = 10 * log10( v^2 * 15)
-
-        const float real = *inputPtr++ * iNormalizationFactor;
-        const float imag = *inputPtr++ * iNormalizationFactor;
-
-        *realFFTDataPointsPtr = 10.0 * log10f(((real * real) + (imag * imag)) + 1e-20);
-        realFFTDataPointsPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H */
