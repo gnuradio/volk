@@ -68,9 +68,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#ifndef INCLUDED_volk_32f_s32f_add_32f_u_H
-#define INCLUDED_volk_32f_s32f_add_32f_u_H
-
 #ifdef LV_HAVE_GENERIC
 
 static inline void volk_32f_s32f_add_32f_generic(float* cVector,
@@ -89,6 +86,8 @@ static inline void volk_32f_s32f_add_32f_generic(float* cVector,
 }
 
 #endif /* LV_HAVE_GENERIC */
+#ifndef INCLUDED_volk_32f_s32f_add_32f_u_H
+#define INCLUDED_volk_32f_s32f_add_32f_u_H
 
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
@@ -181,7 +180,7 @@ static inline void volk_32f_s32f_add_32f_u_neon(float* cVector,
     }
 
     number = quarterPoints * 4;
-    volk_32f_s32f_add_32f_generic(cPtr, aPtr, scalar, num_points - number);
+    volk_32f_s32f_add_32f_generic(outputPtr, inputPtr, scalar, num_points - number);
 }
 #endif /* LV_HAVE_NEON */
 
