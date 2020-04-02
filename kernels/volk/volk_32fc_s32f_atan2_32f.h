@@ -126,7 +126,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_sse4_1(float* outputVector,
         outPtr += 4;
     }
     number = quarterPoints * 4;
-#endif /* LV_HAVE_SIMDMATH_H */
+#endif /* LV_HAVE_LIB_SIMDMATH */
 
     for (; number < num_points; number++) {
         const float real = *complexVectorPtr++;
@@ -188,7 +188,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_sse(float* outputVector,
         outPtr += 4;
     }
     number = quarterPoints * 4;
-#endif /* LV_HAVE_SIMDMATH_H */
+#endif /* LV_HAVE_LIB_SIMDMATH */
 
     for (; number < num_points; number++) {
         const float real = *complexVectorPtr++;
