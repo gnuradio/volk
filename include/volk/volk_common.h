@@ -142,4 +142,21 @@ union bit256 {
 #define bit128_p(x) ((union bit128*)(x))
 #define bit256_p(x) ((union bit256*)(x))
 
+////////////////////////////////////////////////////////////////////////
+// log2f
+////////////////////////////////////////////////////////////////////////
+#include <math.h>
+// +-Inf -> +-127.0f in order to match the behaviour of the SIMD kernels
+static inline float log2f_non_ieee(float f)
+{
+    float const result = log2f(f);
+    return isinf(result) ? copysignf(127.0f, result) : result;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Constant used to do log10 calculations as faster log2
+////////////////////////////////////////////////////////////////////////
+// precalculated 10.0 / log2f_non_ieee(10.0) to allow for constexpr
+#define volk_log2to10factor 3.01029995663981209120
+
 #endif /*INCLUDED_LIBVOLK_COMMON_H*/
