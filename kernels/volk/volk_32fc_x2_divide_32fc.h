@@ -76,6 +76,25 @@
 #include <inttypes.h>
 #include <volk/volk_complex.h>
 
+
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_32fc_x2_divide_32fc_generic(lv_32fc_t* cVector,
+                                                    const lv_32fc_t* aVector,
+                                                    const lv_32fc_t* bVector,
+                                                    unsigned int num_points)
+{
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const lv_32fc_t* bPtr = bVector;
+
+    for (unsigned int number = 0; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) / (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
+
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
 #include <volk/volk_sse3_intrinsics.h>
@@ -188,25 +207,6 @@ static inline void volk_32fc_x2_divide_32fc_u_avx(lv_32fc_t* cVector,
 #endif /* LV_HAVE_AVX */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_x2_divide_32fc_generic(lv_32fc_t* cVector,
-                                                    const lv_32fc_t* aVector,
-                                                    const lv_32fc_t* bVector,
-                                                    unsigned int num_points)
-{
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    const lv_32fc_t* bPtr = bVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) / (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #endif /* INCLUDED_volk_32fc_x2_divide_32fc_u_H */
 
 
@@ -287,47 +287,57 @@ static inline void volk_32fc_x2_divide_32fc_a_avx(lv_32fc_t* cVector,
                                                   unsigned int num_points)
 {
     /*
+     * Guide to AVX intrisics:
+     * https://software.intel.com/sites/landingpage/IntrinsicsGuide/#
+     *
      * we'll do the "classical"
      *  a      a b*
      * --- = -------
      *  b     |b|^2
-     * */
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
-
-    __m256 num, denum, mul_conj, sq, mag_sq, mag_sq_un, div;
+     *
+     */
     lv_32fc_t* c = cVector;
     const lv_32fc_t* a = numeratorVector;
     const lv_32fc_t* b = denumeratorVector;
 
-    for (; number < quarterPoints; number++) {
-        num =
-            _mm256_load_ps((float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
-        denum =
-            _mm256_load_ps((float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
-        mul_conj = _mm256_complexconjugatemul_ps(num, denum);
-        sq = _mm256_mul_ps(denum, denum); // Square the values
-        mag_sq_un = _mm256_hadd_ps(
-            sq, sq); // obtain the actual squared magnitude, although out of order
-        mag_sq = _mm256_permute_ps(mag_sq_un, 0xd8); // I order them
-        // best guide I found on using these functions:
-        // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#expand=2738,2059,2738,2738,3875,3874,3875,2738,3870
-        div = _mm256_div_ps(mul_conj, mag_sq);
+    const unsigned int eigthPoints = num_points / 8;
 
-        _mm256_store_ps((float*)c, div); // Store the results back into the C container
+    __m256 num01, num23, denum01, denum23, complex_result, result0, result1;
 
+    for (unsigned int number = 0; number < eigthPoints; number++) {
+        // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
+        num01 = _mm256_load_ps((float*)a);
+        denum01 = _mm256_load_ps((float*)b);
+
+        num01 = _mm256_complexconjugatemul_ps(num01, denum01);
         a += 4;
         b += 4;
+
+        num23 = _mm256_load_ps((float*)a);
+        denum23 = _mm256_load_ps((float*)b);
+        num23 = _mm256_complexconjugatemul_ps(num23, denum23);
+        a += 4;
+        b += 4;
+
+        complex_result = _mm256_hadd_ps(_mm256_mul_ps(denum01, denum01),
+                                        _mm256_mul_ps(denum23, denum23));
+
+        denum01 = _mm256_shuffle_ps(complex_result, complex_result, 0x50);
+        denum23 = _mm256_shuffle_ps(complex_result, complex_result, 0xfa);
+
+        result0 = _mm256_div_ps(num01, denum01);
+        result1 = _mm256_div_ps(num23, denum23);
+
+        _mm256_store_ps((float*)c, result0);
+        c += 4;
+        _mm256_store_ps((float*)c, result1);
         c += 4;
     }
 
-    number = quarterPoints * 4;
-
-    for (; number < num_points; number++) {
-        *c++ = (*a++) / (*b++);
-    }
+    volk_32fc_x2_divide_32fc_generic(c, a, b, num_points - eigthPoints * 8);
 }
 #endif /* LV_HAVE_AVX */
+
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
@@ -378,25 +388,6 @@ static inline void volk_32fc_x2_divide_32fc_neon(lv_32fc_t* cVector,
     }
 }
 #endif /* LV_HAVE_NEON */
-
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_x2_divide_32fc_a_generic(lv_32fc_t* cVector,
-                                                      const lv_32fc_t* aVector,
-                                                      const lv_32fc_t* bVector,
-                                                      unsigned int num_points)
-{
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    const lv_32fc_t* bPtr = bVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) / (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 
 #endif /* INCLUDED_volk_32fc_x2_divide_32fc_a_H */
