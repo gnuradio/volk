@@ -239,7 +239,7 @@ volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_avx(lv_32fc_t* cVector,
     lv_32fc_t* c = cVector;
 
     // Set up constant scalar vector
-    s = _mm256_load_ps((float*)v_scalar);
+    s = _mm256_loadu_ps((float*)v_scalar);
 
     for (; number < quarterPoints; number++) {
         x = _mm256_load_ps((float*)b);
@@ -282,7 +282,7 @@ volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_sse3(lv_32fc_t* cVector,
     lv_32fc_t* c = cVector;
 
     // Set up constant scalar vector
-    s = _mm_load_ps((float*)v_scalar);
+    s = _mm_loadu_ps((float*)v_scalar);
 
     for (; number < halfPoints; number++) {
         x = _mm_load_ps((float*)b);
