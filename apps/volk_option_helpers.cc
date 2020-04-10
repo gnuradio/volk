@@ -1,6 +1,25 @@
-//
-// Created by nathan on 2/1/18.
-//
+/* -*- c++ -*- */
+/*
+ * Copyright 2018-2020 Free Software Foundation, Inc.
+ *
+ * This file is part of GNU Radio
+ *
+ * GNU Radio is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3, or (at your option)
+ * any later version.
+ *
+ * GNU Radio is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GNU Radio; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
 
 #include "volk_option_helpers.h"
 
@@ -14,68 +33,74 @@
 /*
  * Option type
  */
-option_t::option_t(std::string longform,
-                   std::string shortform,
-                   std::string msg,
-                   void (*callback)())
-    : longform("--" + longform), shortform("-" + shortform), msg(msg), callback(callback)
+option_t::option_t(std::string t_longform,
+                   std::string t_shortform,
+                   std::string t_msg,
+                   void (*t_callback)())
+    : longform("--" + t_longform),
+      shortform("-" + t_shortform),
+      msg(t_msg),
+      callback(t_callback)
 {
     option_type = VOID_CALLBACK;
 }
 
-option_t::option_t(std::string longform,
-                   std::string shortform,
-                   std::string msg,
-                   void (*callback)(int))
-    : longform("--" + longform),
-      shortform("-" + shortform),
-      msg(msg),
-      callback((void (*)())callback)
+option_t::option_t(std::string t_longform,
+                   std::string t_shortform,
+                   std::string t_msg,
+                   void (*t_callback)(int))
+    : longform("--" + t_longform),
+      shortform("-" + t_shortform),
+      msg(t_msg),
+      callback((void (*)())t_callback)
 {
     option_type = INT_CALLBACK;
 }
 
-option_t::option_t(std::string longform,
-                   std::string shortform,
-                   std::string msg,
-                   void (*callback)(float))
-    : longform("--" + longform),
-      shortform("-" + shortform),
-      msg(msg),
-      callback((void (*)())callback)
+option_t::option_t(std::string t_longform,
+                   std::string t_shortform,
+                   std::string t_msg,
+                   void (*t_callback)(float))
+    : longform("--" + t_longform),
+      shortform("-" + t_shortform),
+      msg(t_msg),
+      callback((void (*)())t_callback)
 {
     option_type = FLOAT_CALLBACK;
 }
 
-option_t::option_t(std::string longform,
-                   std::string shortform,
-                   std::string msg,
-                   void (*callback)(bool))
-    : longform("--" + longform),
-      shortform("-" + shortform),
-      msg(msg),
-      callback((void (*)())callback)
+option_t::option_t(std::string t_longform,
+                   std::string t_shortform,
+                   std::string t_msg,
+                   void (*t_callback)(bool))
+    : longform("--" + t_longform),
+      shortform("-" + t_shortform),
+      msg(t_msg),
+      callback((void (*)())t_callback)
 {
     option_type = BOOL_CALLBACK;
 }
 
-option_t::option_t(std::string longform,
-                   std::string shortform,
-                   std::string msg,
-                   void (*callback)(std::string))
-    : longform("--" + longform),
-      shortform("-" + shortform),
-      msg(msg),
-      callback((void (*)())callback)
+option_t::option_t(std::string t_longform,
+                   std::string t_shortform,
+                   std::string t_msg,
+                   void (*t_callback)(std::string))
+    : longform("--" + t_longform),
+      shortform("-" + t_shortform),
+      msg(t_msg),
+      callback((void (*)())t_callback)
 {
     option_type = STRING_CALLBACK;
 }
 
-option_t::option_t(std::string longform,
-                   std::string shortform,
-                   std::string msg,
-                   std::string printval)
-    : longform("--" + longform), shortform("-" + shortform), msg(msg), printval(printval)
+option_t::option_t(std::string t_longform,
+                   std::string t_shortform,
+                   std::string t_msg,
+                   std::string t_printval)
+    : longform("--" + t_longform),
+      shortform("-" + t_shortform),
+      msg(t_msg),
+      printval(t_printval)
 {
     option_type = STRING;
 }
@@ -85,29 +110,29 @@ option_t::option_t(std::string longform,
  * Option List
  */
 
-option_list::option_list(std::string program_name) : program_name(program_name)
+option_list::option_list(std::string program_name) : d_program_name(program_name)
 {
-    internal_list = std::vector<option_t>();
+    d_internal_list = std::vector<option_t>();
 }
 
 
-void option_list::add(option_t opt) { internal_list.push_back(opt); }
+void option_list::add(option_t opt) { d_internal_list.push_back(opt); }
 
 void option_list::parse(int argc, char** argv)
 {
     for (int arg_number = 0; arg_number < argc; ++arg_number) {
-        for (std::vector<option_t>::iterator this_option = internal_list.begin();
-             this_option != internal_list.end();
+        for (std::vector<option_t>::iterator this_option = d_internal_list.begin();
+             this_option != d_internal_list.end();
              this_option++) {
             int int_val = INT_MIN;
             if (this_option->longform == std::string(argv[arg_number]) ||
                 this_option->shortform == std::string(argv[arg_number])) {
 
-                if (present_options.count(this_option->longform) == 0) {
-                    present_options.insert(
+                if (d_present_options.count(this_option->longform) == 0) {
+                    d_present_options.insert(
                         std::pair<std::string, int>(this_option->longform, 1));
                 } else {
-                    present_options[this_option->longform] += 1;
+                    d_present_options[this_option->longform] += 1;
                 }
                 switch (this_option->option_type) {
                 case VOID_CALLBACK:
@@ -184,7 +209,7 @@ void option_list::parse(int argc, char** argv)
         }
         if (std::string("--help") == std::string(argv[arg_number]) ||
             std::string("-h") == std::string(argv[arg_number])) {
-            present_options.insert(std::pair<std::string, int>("--help", 1));
+            d_present_options.insert(std::pair<std::string, int>("--help", 1));
             help();
         }
     }
@@ -192,7 +217,7 @@ void option_list::parse(int argc, char** argv)
 
 bool option_list::present(std::string option_name)
 {
-    if (present_options.count("--" + option_name)) {
+    if (d_present_options.count("--" + option_name)) {
         return true;
     } else {
         return false;
@@ -201,10 +226,10 @@ bool option_list::present(std::string option_name)
 
 void option_list::help()
 {
-    std::cout << program_name << std::endl;
+    std::cout << d_program_name << std::endl;
     std::cout << "  -h [ --help ] \t\tdisplay this help message" << std::endl;
-    for (std::vector<option_t>::iterator this_option = internal_list.begin();
-         this_option != internal_list.end();
+    for (std::vector<option_t>::iterator this_option = d_internal_list.begin();
+         this_option != d_internal_list.end();
          this_option++) {
         std::string help_line("  ");
         if (this_option->shortform == "-") {
