@@ -43,6 +43,36 @@
 #ifndef INCLUDED_VOLK_32F_S32F_S32F_MOD_RANGE_32F_A_H
 #define INCLUDED_VOLK_32F_S32F_S32F_MOD_RANGE_32F_A_H
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_32f_s32f_s32f_mod_range_32f_generic(float* outputVector,
+                                                            const float* inputVector,
+                                                            const float lower_bound,
+                                                            const float upper_bound,
+                                                            unsigned int num_points)
+{
+    float* outPtr = outputVector;
+    const float* inPtr;
+    const float distance = upper_bound - lower_bound;
+
+    for (inPtr = inputVector; inPtr < inputVector + num_points; inPtr++) {
+        float val = *inPtr;
+        if (val < lower_bound) {
+            float excess = lower_bound - val;
+            signed int count = (int)(excess / distance);
+            *outPtr = val + (count + 1) * distance;
+        } else if (val > upper_bound) {
+            float excess = val - upper_bound;
+            signed int count = (int)(excess / distance);
+            *outPtr = val - (count + 1) * distance;
+        } else
+            *outPtr = val;
+        outPtr++;
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
+
 #ifdef LV_HAVE_AVX
 #include <xmmintrin.h>
 
@@ -52,19 +82,17 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_avx(float* outputVector,
                                                           const float upper_bound,
                                                           unsigned int num_points)
 {
-    __m256 lower = _mm256_set1_ps(lower_bound);
-    __m256 upper = _mm256_set1_ps(upper_bound);
-    __m256 distance = _mm256_sub_ps(upper, lower);
-    float dist = upper_bound - lower_bound;
+    const __m256 lower = _mm256_set1_ps(lower_bound);
+    const __m256 upper = _mm256_set1_ps(upper_bound);
+    const __m256 distance = _mm256_sub_ps(upper, lower);
     __m256 input, output;
     __m256 is_smaller, is_bigger;
     __m256 excess, adj;
 
     const float* inPtr = inputVector;
     float* outPtr = outputVector;
-    size_t eight_points = num_points / 8;
-    size_t counter;
-    for (counter = 0; counter < eight_points; counter++) {
+    const size_t eight_points = num_points / 8;
+    for (size_t counter = 0; counter < eight_points; counter++) {
         input = _mm256_loadu_ps(inPtr);
         // calculate mask: input < lower, input > upper
         is_smaller = _mm256_cmp_ps(
@@ -93,20 +121,8 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_avx(float* outputVector,
         outPtr += 8;
     }
 
-    size_t cnt;
-    for (cnt = eight_points * 8; cnt < num_points; cnt++) {
-        float val = inputVector[cnt];
-        if (val < lower_bound) {
-            float excess = lower_bound - val;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val + (count + 1) * dist;
-        } else if (val > upper_bound) {
-            float excess = val - upper_bound;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val - (count + 1) * dist;
-        } else
-            outputVector[cnt] = val;
-    }
+    volk_32f_s32f_s32f_mod_range_32f_generic(
+        outPtr, inPtr, lower_bound, upper_bound, num_points - eight_points * 8);
 }
 static inline void volk_32f_s32f_s32f_mod_range_32f_a_avx(float* outputVector,
                                                           const float* inputVector,
@@ -114,19 +130,17 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_avx(float* outputVector,
                                                           const float upper_bound,
                                                           unsigned int num_points)
 {
-    __m256 lower = _mm256_set1_ps(lower_bound);
-    __m256 upper = _mm256_set1_ps(upper_bound);
-    __m256 distance = _mm256_sub_ps(upper, lower);
-    float dist = upper_bound - lower_bound;
+    const __m256 lower = _mm256_set1_ps(lower_bound);
+    const __m256 upper = _mm256_set1_ps(upper_bound);
+    const __m256 distance = _mm256_sub_ps(upper, lower);
     __m256 input, output;
     __m256 is_smaller, is_bigger;
     __m256 excess, adj;
 
     const float* inPtr = inputVector;
     float* outPtr = outputVector;
-    size_t eight_points = num_points / 8;
-    size_t counter;
-    for (counter = 0; counter < eight_points; counter++) {
+    const size_t eight_points = num_points / 8;
+    for (size_t counter = 0; counter < eight_points; counter++) {
         input = _mm256_load_ps(inPtr);
         // calculate mask: input < lower, input > upper
         is_smaller = _mm256_cmp_ps(
@@ -155,20 +169,8 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_avx(float* outputVector,
         outPtr += 8;
     }
 
-    size_t cnt;
-    for (cnt = eight_points * 8; cnt < num_points; cnt++) {
-        float val = inputVector[cnt];
-        if (val < lower_bound) {
-            float excess = lower_bound - val;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val + (count + 1) * dist;
-        } else if (val > upper_bound) {
-            float excess = val - upper_bound;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val - (count + 1) * dist;
-        } else
-            outputVector[cnt] = val;
-    }
+    volk_32f_s32f_s32f_mod_range_32f_generic(
+        outPtr, inPtr, lower_bound, upper_bound, num_points - eight_points * 8);
 }
 #endif /* LV_HAVE_AVX */
 
@@ -182,19 +184,17 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse2(float* outputVector,
                                                            const float upper_bound,
                                                            unsigned int num_points)
 {
-    __m128 lower = _mm_set_ps1(lower_bound);
-    __m128 upper = _mm_set_ps1(upper_bound);
-    __m128 distance = _mm_sub_ps(upper, lower);
-    float dist = upper_bound - lower_bound;
+    const __m128 lower = _mm_set_ps1(lower_bound);
+    const __m128 upper = _mm_set_ps1(upper_bound);
+    const __m128 distance = _mm_sub_ps(upper, lower);
     __m128 input, output;
     __m128 is_smaller, is_bigger;
     __m128 excess, adj;
 
     const float* inPtr = inputVector;
     float* outPtr = outputVector;
-    size_t quarter_points = num_points / 4;
-    size_t counter;
-    for (counter = 0; counter < quarter_points; counter++) {
+    const size_t quarter_points = num_points / 4;
+    for (size_t counter = 0; counter < quarter_points; counter++) {
         input = _mm_load_ps(inPtr);
         // calculate mask: input < lower, input > upper
         is_smaller = _mm_cmplt_ps(input, lower);
@@ -220,20 +220,8 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse2(float* outputVector,
         outPtr += 4;
     }
 
-    size_t cnt;
-    for (cnt = quarter_points * 4; cnt < num_points; cnt++) {
-        float val = inputVector[cnt];
-        if (val < lower_bound) {
-            float excess = lower_bound - val;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val + (count + 1) * dist;
-        } else if (val > upper_bound) {
-            float excess = val - upper_bound;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val - (count + 1) * dist;
-        } else
-            outputVector[cnt] = val;
-    }
+    volk_32f_s32f_s32f_mod_range_32f_generic(
+        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
 }
 static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse2(float* outputVector,
                                                            const float* inputVector,
@@ -241,18 +229,17 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse2(float* outputVector,
                                                            const float upper_bound,
                                                            unsigned int num_points)
 {
-    __m128 lower = _mm_set_ps1(lower_bound);
-    __m128 upper = _mm_set_ps1(upper_bound);
-    __m128 distance = _mm_sub_ps(upper, lower);
+    const __m128 lower = _mm_set_ps1(lower_bound);
+    const __m128 upper = _mm_set_ps1(upper_bound);
+    const __m128 distance = _mm_sub_ps(upper, lower);
     __m128 input, output;
     __m128 is_smaller, is_bigger;
     __m128 excess, adj;
 
     const float* inPtr = inputVector;
     float* outPtr = outputVector;
-    size_t quarter_points = num_points / 4;
-    size_t counter;
-    for (counter = 0; counter < quarter_points; counter++) {
+    const size_t quarter_points = num_points / 4;
+    for (size_t counter = 0; counter < quarter_points; counter++) {
         input = _mm_load_ps(inPtr);
         // calculate mask: input < lower, input > upper
         is_smaller = _mm_cmplt_ps(input, lower);
@@ -279,21 +266,8 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse2(float* outputVector,
         outPtr += 4;
     }
 
-    float dist = upper_bound - lower_bound;
-    size_t cnt;
-    for (cnt = quarter_points * 4; cnt < num_points; cnt++) {
-        float val = inputVector[cnt];
-        if (val < lower_bound) {
-            float excess = lower_bound - val;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val + (count + 1) * dist;
-        } else if (val > upper_bound) {
-            float excess = val - upper_bound;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val - (count + 1) * dist;
-        } else
-            outputVector[cnt] = val;
-    }
+    volk_32f_s32f_s32f_mod_range_32f_generic(
+        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
 }
 #endif /* LV_HAVE_SSE2 */
 
@@ -306,10 +280,9 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector,
                                                           const float upper_bound,
                                                           unsigned int num_points)
 {
-    __m128 lower = _mm_set_ps1(lower_bound);
-    __m128 upper = _mm_set_ps1(upper_bound);
-    __m128 distance = _mm_sub_ps(upper, lower);
-    float dist = upper_bound - lower_bound;
+    const __m128 lower = _mm_set_ps1(lower_bound);
+    const __m128 upper = _mm_set_ps1(upper_bound);
+    const __m128 distance = _mm_sub_ps(upper, lower);
     __m128 input, output;
     __m128 is_smaller, is_bigger;
     __m128 excess, adj;
@@ -317,9 +290,8 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector,
 
     const float* inPtr = inputVector;
     float* outPtr = outputVector;
-    size_t quarter_points = num_points / 4;
-    size_t counter;
-    for (counter = 0; counter < quarter_points; counter++) {
+    const size_t quarter_points = num_points / 4;
+    for (size_t counter = 0; counter < quarter_points; counter++) {
         input = _mm_load_ps(inPtr);
         // calculate mask: input < lower, input > upper
         is_smaller = _mm_cmplt_ps(input, lower);
@@ -346,20 +318,8 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector,
         outPtr += 4;
     }
 
-    size_t cnt;
-    for (cnt = quarter_points * 4; cnt < num_points; cnt++) {
-        float val = inputVector[cnt];
-        if (val < lower_bound) {
-            float excess = lower_bound - val;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val + (count + 1) * dist;
-        } else if (val > upper_bound) {
-            float excess = val - upper_bound;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val - (count + 1) * dist;
-        } else
-            outputVector[cnt] = val;
-    }
+    volk_32f_s32f_s32f_mod_range_32f_generic(
+        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
 }
 static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector,
                                                           const float* inputVector,
@@ -367,9 +327,9 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector,
                                                           const float upper_bound,
                                                           unsigned int num_points)
 {
-    __m128 lower = _mm_set_ps1(lower_bound);
-    __m128 upper = _mm_set_ps1(upper_bound);
-    __m128 distance = _mm_sub_ps(upper, lower);
+    const __m128 lower = _mm_set_ps1(lower_bound);
+    const __m128 upper = _mm_set_ps1(upper_bound);
+    const __m128 distance = _mm_sub_ps(upper, lower);
     __m128 input, output;
     __m128 is_smaller, is_bigger;
     __m128 excess, adj;
@@ -377,9 +337,8 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector,
 
     const float* inPtr = inputVector;
     float* outPtr = outputVector;
-    size_t quarter_points = num_points / 4;
-    size_t counter;
-    for (counter = 0; counter < quarter_points; counter++) {
+    const size_t quarter_points = num_points / 4;
+    for (size_t counter = 0; counter < quarter_points; counter++) {
         input = _mm_load_ps(inPtr);
         // calculate mask: input < lower, input > upper
         is_smaller = _mm_cmplt_ps(input, lower);
@@ -406,52 +365,10 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector,
         outPtr += 4;
     }
 
-    float dist = upper_bound - lower_bound;
-    size_t cnt;
-    for (cnt = quarter_points * 4; cnt < num_points; cnt++) {
-        float val = inputVector[cnt];
-        if (val < lower_bound) {
-            float excess = lower_bound - val;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val + (count + 1) * dist;
-        } else if (val > upper_bound) {
-            float excess = val - upper_bound;
-            signed int count = (int)(excess / dist);
-            outputVector[cnt] = val - (count + 1) * dist;
-        } else
-            outputVector[cnt] = val;
-    }
+    volk_32f_s32f_s32f_mod_range_32f_generic(
+        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
 }
 #endif /* LV_HAVE_SSE */
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_s32f_s32f_mod_range_32f_generic(float* outputVector,
-                                                            const float* inputVector,
-                                                            const float lower_bound,
-                                                            const float upper_bound,
-                                                            unsigned int num_points)
-{
-    float* outPtr = outputVector;
-    const float* inPtr;
-    float distance = upper_bound - lower_bound;
-
-    for (inPtr = inputVector; inPtr < inputVector + num_points; inPtr++) {
-        float val = *inPtr;
-        if (val < lower_bound) {
-            float excess = lower_bound - val;
-            signed int count = (int)(excess / distance);
-            *outPtr = val + (count + 1) * distance;
-        } else if (val > upper_bound) {
-            float excess = val - upper_bound;
-            signed int count = (int)(excess / distance);
-            *outPtr = val - (count + 1) * distance;
-        } else
-            *outPtr = val;
-        outPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 
 #endif /* INCLUDED_VOLK_32F_S32F_S32F_MOD_RANGE_32F_A_H */

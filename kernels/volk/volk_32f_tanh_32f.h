@@ -73,6 +73,7 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #ifdef LV_HAVE_GENERIC
 
 static inline void
@@ -94,10 +95,9 @@ volk_32f_tanh_32f_generic(float* cVector, const float* aVector, unsigned int num
 static inline void
 volk_32f_tanh_32f_series(float* cVector, const float* aVector, unsigned int num_points)
 {
-    unsigned int number = 0;
     float* cPtr = cVector;
     const float* aPtr = aVector;
-    for (; number < num_points; number++) {
+    for (unsigned int number = 0; number < num_points; number++) {
         if (*aPtr > 4.97)
             *cPtr++ = 1;
         else if (*aPtr <= -4.97)
@@ -161,19 +161,7 @@ volk_32f_tanh_32f_a_sse(float* cVector, const float* aVector, unsigned int num_p
     }
 
     number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        if (*aPtr > 4.97)
-            *cPtr++ = 1;
-        else if (*aPtr <= -4.97)
-            *cPtr++ = -1;
-        else {
-            float x2 = (*aPtr) * (*aPtr);
-            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-            *cPtr++ = a / b;
-            aPtr++;
-        }
-    }
+    volk_32f_tanh_32f_series(cPtr, aPtr, num_points - number);
 }
 #endif /* LV_HAVE_SSE */
 
@@ -228,19 +216,7 @@ volk_32f_tanh_32f_a_avx(float* cVector, const float* aVector, unsigned int num_p
     }
 
     number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        if (*aPtr > 4.97)
-            *cPtr++ = 1;
-        else if (*aPtr <= -4.97)
-            *cPtr++ = -1;
-        else {
-            float x2 = (*aPtr) * (*aPtr);
-            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-            *cPtr++ = a / b;
-            aPtr++;
-        }
-    }
+    volk_32f_tanh_32f_series(cPtr, aPtr, num_points - number);
 }
 #endif /* LV_HAVE_AVX */
 
@@ -284,19 +260,7 @@ volk_32f_tanh_32f_a_avx_fma(float* cVector, const float* aVector, unsigned int n
     }
 
     number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        if (*aPtr > 4.97)
-            *cPtr++ = 1;
-        else if (*aPtr <= -4.97)
-            *cPtr++ = -1;
-        else {
-            float x2 = (*aPtr) * (*aPtr);
-            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-            *cPtr++ = a / b;
-            aPtr++;
-        }
-    }
+    volk_32f_tanh_32f_series(cPtr, aPtr, num_points - number);
 }
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 
@@ -358,19 +322,7 @@ volk_32f_tanh_32f_u_sse(float* cVector, const float* aVector, unsigned int num_p
     }
 
     number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        if (*aPtr > 4.97)
-            *cPtr++ = 1;
-        else if (*aPtr <= -4.97)
-            *cPtr++ = -1;
-        else {
-            float x2 = (*aPtr) * (*aPtr);
-            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-            *cPtr++ = a / b;
-            aPtr++;
-        }
-    }
+    volk_32f_tanh_32f_series(cPtr, aPtr, num_points - number);
 }
 #endif /* LV_HAVE_SSE */
 
@@ -425,19 +377,7 @@ volk_32f_tanh_32f_u_avx(float* cVector, const float* aVector, unsigned int num_p
     }
 
     number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        if (*aPtr > 4.97)
-            *cPtr++ = 1;
-        else if (*aPtr <= -4.97)
-            *cPtr++ = -1;
-        else {
-            float x2 = (*aPtr) * (*aPtr);
-            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-            *cPtr++ = a / b;
-            aPtr++;
-        }
-    }
+    volk_32f_tanh_32f_series(cPtr, aPtr, num_points - number);
 }
 #endif /* LV_HAVE_AVX */
 
@@ -481,19 +421,7 @@ volk_32f_tanh_32f_u_avx_fma(float* cVector, const float* aVector, unsigned int n
     }
 
     number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        if (*aPtr > 4.97)
-            *cPtr++ = 1;
-        else if (*aPtr <= -4.97)
-            *cPtr++ = -1;
-        else {
-            float x2 = (*aPtr) * (*aPtr);
-            float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
-            float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
-            *cPtr++ = a / b;
-            aPtr++;
-        }
-    }
+    volk_32f_tanh_32f_series(cPtr, aPtr, num_points - number);
 }
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 

@@ -116,22 +116,22 @@ public:
     volk_test_params_t test_parameters() { return _test_parameters; };
     // normal ctor
     volk_test_case_t(volk_func_desc_t desc,
-                     void (*kernel_ptr)(),
+                     void (*t_kernel_ptr)(),
                      std::string name,
                      volk_test_params_t test_parameters)
         : _desc(desc),
-          _kernel_ptr(kernel_ptr),
+          _kernel_ptr(t_kernel_ptr),
           _name(name),
           _test_parameters(test_parameters),
           _puppet_master_name("NULL"){};
     // ctor for puppets
     volk_test_case_t(volk_func_desc_t desc,
-                     void (*kernel_ptr)(),
+                     void (*t_kernel_ptr)(),
                      std::string name,
                      std::string puppet_master_name,
                      volk_test_params_t test_parameters)
         : _desc(desc),
-          _kernel_ptr(kernel_ptr),
+          _kernel_ptr(t_kernel_ptr),
           _name(name),
           _test_parameters(test_parameters),
           _puppet_master_name(puppet_master_name){};
