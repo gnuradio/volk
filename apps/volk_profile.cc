@@ -231,10 +231,10 @@ void read_results(std::vector<volk_test_results_t>* results, std::string path)
                     found = 127;
                 }
                 str_size = config_str.size();
-                char buffer[128] = { '\0' };
-                config_str.copy(buffer, found + 1, 0);
-                buffer[found] = '\0';
-                single_kernel_result.push_back(std::string(buffer));
+                char line_buffer[128] = { '\0' };
+                config_str.copy(line_buffer, found + 1, 0);
+                line_buffer[found] = '\0';
+                single_kernel_result.push_back(std::string(line_buffer));
                 config_str.erase(0, found + 1);
             }
 
