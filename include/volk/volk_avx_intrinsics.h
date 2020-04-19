@@ -37,8 +37,9 @@ static inline __m256 _mm256_complexmul_ps(__m256 x, __m256 y)
     tmp1 = _mm256_mul_ps(x, yl);       // tmp1 = ar*cr,ai*cr,br*dr,bi*dr ...
     x = _mm256_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br ...
     tmp2 = _mm256_mul_ps(x, yh);       // tmp2 = ai*ci,ar*ci,bi*di,br*di
-    return _mm256_addsub_ps(tmp1,
-                            tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
+
+    // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
+    return _mm256_addsub_ps(tmp1, tmp2);
 }
 
 static inline __m256 _mm256_conjugate_ps(__m256 x)
@@ -47,10 +48,17 @@ static inline __m256 _mm256_conjugate_ps(__m256 x)
     return _mm256_xor_ps(x, conjugator); // conjugate y
 }
 
-static inline __m256 _mm256_complexconjugatemul_ps(__m256 x, __m256 y)
+static inline __m256 _mm256_complexconjugatemul_ps(const __m256 x, const __m256 y)
 {
-    y = _mm256_conjugate_ps(y);
-    return _mm256_complexmul_ps(x, y);
+    const __m256 nswap = _mm256_permute_ps(x, 0xb1);
+    const __m256 dreal = _mm256_moveldup_ps(y);
+    const __m256 dimag = _mm256_movehdup_ps(y);
+
+    const __m256 conjugator = _mm256_setr_ps(0, -0.f, 0, -0.f, 0, -0.f, 0, -0.f);
+    const __m256 dimagconj = _mm256_xor_ps(dimag, conjugator);
+    const __m256 multreal = _mm256_mul_ps(x, dreal);
+    const __m256 multimag = _mm256_mul_ps(nswap, dimagconj);
+    return _mm256_add_ps(multreal, multimag);
 }
 
 static inline __m256 _mm256_normalize_ps(__m256 val)
