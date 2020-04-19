@@ -77,11 +77,7 @@ else()
     # VERSION: 1.1{.x}
     # DOCVER:  1.1{.x}
     # LIBVER:  1.1{.x}
-    if("${MAINT_VERSION}" STREQUAL "0")
-        set(VERSION "${MAJOR_VERSION}.${MINOR_VERSION}")
-    else()
-        set(VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${MAINT_VERSION}")
-    endif()
+    set(VERSION "${MAJOR_VERSION}.${MINOR_VERSION}")
     set(DOCVER "${VERSION}")
     set(LIBVER "${VERSION}")
     set(RC_MINOR_VERSION ${MINOR_VERSION})
