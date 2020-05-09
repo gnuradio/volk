@@ -53,10 +53,8 @@ echo "${shortlog}"
 
 echo "${shortlog}" > ${deltafile}
 
-read -q "editcl?Do you want to edit the Changelog addtions (${deltafile}) using ${EDITOR}? (y/n)" || echo "proceeding unedited"
-if [ "${editcl}" = "y" ]; then
-    ${EDITOR} ${deltafile}
-fi
+${EDITOR} ${deltafile}
+
 echo "\n$(cat ${deltafile})" >> ${changelog}
 echo "${releaseprefix}${version}" > ${lastreleasefile}
 
