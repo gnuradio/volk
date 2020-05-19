@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/gnuradio/volk.svg?branch=master)](https://travis-ci.org/gnuradio/volk) [![Build status](https://ci.appveyor.com/api/projects/status/5o56mgw0do20jlh3/branch/master?svg=true)](https://ci.appveyor.com/project/gnuradio/volk/branch/master)
+![Check PR Formatting](https://github.com/gnuradio/volk/workflows/Check%20PR%20Formatting/badge.svg)
+![Run VOLK tests](https://github.com/gnuradio/volk/workflows/Run%20VOLK%20tests/badge.svg)
 
 ![VOLK Logo](/docs/volk_logo.png)
 
@@ -53,6 +55,21 @@ $ sudo make install
 # volk_profile will profile your system so that the best kernel is used
 $ volk_profile
 ```
+
+## Supported platforms
+VOLK aims to be portable to as many platforms as possible. We can only run tests on some platforms.
+
+### Hardware architectures
+Currently VOLK aims to run with optimized kernels on x86 with SSE/AVX and ARM with NEON.
+
+### OS / Distro
+We run tests on a variety of Ubuntu versions and aim to support as many current distros as possible.
+The same goal applies to different OSes. Although this does only happen rarely, it might occur that VOLK does not work on obsolete distros, e.g. Ubuntu 12.04.
+
+### Compilers
+We want to make sure VOLK works with C/C++ standard compliant compilers. Of course, as an open source project we focus on open source compilers, most notably GCC and Clang.
+We want to make sure VOLK compiles on a wide variety of compilers. Thus, we target AppleClang and MSVC as well. Mind that MSVC lacks `aligned_alloc` support for aligned arrays. We use MSVC specific instructions in this case which cannot be `free`'d with `free`.
+
 
 ## License
 
