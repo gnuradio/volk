@@ -68,7 +68,7 @@ The same goal applies to different OSes. Although this does only happen rarely, 
 
 ### Compilers
 We want to make sure VOLK works with C/C++ standard compliant compilers. Of course, as an open source project we focus on open source compilers, most notably GCC and Clang.
-We work want to make sure VOLK compiles on a wide variety of compilers. Thus, we target AppleClang and MSVC as well. Mind that MSVC lacks `aligned_alloc` support for aligned arrays. We use MSVC specific instructions in this case which cannot be `free`'d with `free`.
+We want to make sure VOLK compiles on a wide variety of compilers. Thus, we target AppleClang and MSVC as well. Mind that MSVC lacks `aligned_alloc` support for aligned arrays. We use MSVC specific instructions in this case which cannot be `free`'d with `free`.
 
 
 ## License
