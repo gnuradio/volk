@@ -78,8 +78,8 @@
 
 static inline void volk_32f_s32f_convert_8i_single(int8_t* out, const float in)
 {
-    float min_val = CHAR_MIN;
-    float max_val = CHAR_MAX;
+    float min_val = INT8_MIN;
+    float max_val = INT8_MAX;
     if (in > max_val) {
         *out = (int8_t)(max_val);
     } else if (in < min_val) {
