@@ -209,6 +209,8 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_sse(lv_32fc_t* result,
         bPtr += 16;
     }
 
+    _mm_empty(); // clear the mmx technology state
+
     dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal1);
     dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal2);
     dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal3);
@@ -483,6 +485,8 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_sse(lv_32fc_t* result,
         aPtr += 8;
         bPtr += 16;
     }
+
+    _mm_empty(); // clear the mmx technology state
 
     dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal1);
     dotProdVal0 = _mm_add_ps(dotProdVal0, dotProdVal2);
