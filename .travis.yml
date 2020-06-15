@@ -11,9 +11,8 @@ addons:
 
 env:
   global:
-    - SDE_VERSION=sde-external-8.35.0-2019-03-11-lin
-    - SDE_URL1=https://software.intel.com/protected-download/267266/144917
-    - SDE_URL2=https://software.intel.com/system/files/managed/32/db
+    - SDE_VERSION=sde-external-8.50.0-2020-03-26-lin
+    - SDE_URL=http://software.intel.com/content/dam/develop/external/us/en/protected/
 
 matrix:
   include:
