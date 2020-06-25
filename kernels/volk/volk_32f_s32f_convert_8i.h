@@ -25,7 +25,7 @@
  *
  * \b Overview
  *
- * Converts a floating point number to a 8-bit char after applying a
+ * Converts a floating point number to a 8-bit int after applying a
  * scaling factor.
  *
  * <b>Dispatcher Prototype</b>
