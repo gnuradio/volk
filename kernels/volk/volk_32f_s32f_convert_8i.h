@@ -104,8 +104,8 @@ static inline void volk_32f_s32f_convert_8i_u_avx2(int8_t* outputVector,
     const float* inputVectorPtr = (const float*)inputVector;
     int8_t* outputVectorPtr = outputVector;
 
-    float min_val = CHAR_MIN;
-    float max_val = CHAR_MAX;
+    float min_val = INT8_MIN;
+    float max_val = INT8_MAX;
     float r;
 
     __m256 vScalar = _mm256_set1_ps(scalar);
@@ -176,8 +176,8 @@ static inline void volk_32f_s32f_convert_8i_u_sse2(int8_t* outputVector,
     const float* inputVectorPtr = (const float*)inputVector;
     int8_t* outputVectorPtr = outputVector;
 
-    float min_val = CHAR_MIN;
-    float max_val = CHAR_MAX;
+    float min_val = INT8_MIN;
+    float max_val = INT8_MAX;
     float r;
 
     __m128 vScalar = _mm_set_ps1(scalar);
@@ -245,8 +245,8 @@ static inline void volk_32f_s32f_convert_8i_u_sse(int8_t* outputVector,
     const float* inputVectorPtr = (const float*)inputVector;
     int8_t* outputVectorPtr = outputVector;
 
-    float min_val = CHAR_MIN;
-    float max_val = CHAR_MAX;
+    float min_val = INT8_MIN;
+    float max_val = INT8_MAX;
     float r;
 
     __m128 vScalar = _mm_set_ps1(scalar);
@@ -321,8 +321,8 @@ static inline void volk_32f_s32f_convert_8i_a_avx2(int8_t* outputVector,
     const float* inputVectorPtr = (const float*)inputVector;
     int8_t* outputVectorPtr = outputVector;
 
-    float min_val = CHAR_MIN;
-    float max_val = CHAR_MAX;
+    float min_val = INT8_MIN;
+    float max_val = INT8_MAX;
     float r;
 
     __m256 vScalar = _mm256_set1_ps(scalar);
@@ -393,8 +393,8 @@ static inline void volk_32f_s32f_convert_8i_a_sse2(int8_t* outputVector,
     const float* inputVectorPtr = (const float*)inputVector;
     int8_t* outputVectorPtr = outputVector;
 
-    float min_val = CHAR_MIN;
-    float max_val = CHAR_MAX;
+    float min_val = INT8_MIN;
+    float max_val = INT8_MAX;
     float r;
 
     __m128 vScalar = _mm_set_ps1(scalar);
@@ -460,8 +460,8 @@ static inline void volk_32f_s32f_convert_8i_a_sse(int8_t* outputVector,
 
     const float* inputVectorPtr = (const float*)inputVector;
 
-    float min_val = CHAR_MIN;
-    float max_val = CHAR_MAX;
+    float min_val = INT8_MIN;
+    float max_val = INT8_MAX;
     float r;
 
     int8_t* outputVectorPtr = outputVector;
