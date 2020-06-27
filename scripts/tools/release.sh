@@ -45,17 +45,18 @@ echo "Releasing version ${version}"
 # 2. Prepare Changelog
 echo "appending git shortlog to CHANGELOG:"
 shortlog="
+
 ## [${version}] - $(date +'%Y-%m-%d')
 
 $(git shortlog -e ${last_release}..HEAD)
 "
 echo "${shortlog}"
 
-echo "${shortlog}" > ${deltafile}
+#echo "${shortlog}" > ${deltafile}
 
 ${EDITOR} ${deltafile}
 
-echo "\n$(cat ${deltafile})" >> ${changelog}
+echo "$(cat ${deltafile})" >> ${changelog}
 echo "${releaseprefix}${version}" > ${lastreleasefile}
 
 # 3. Commit changelog
