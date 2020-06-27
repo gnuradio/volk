@@ -114,6 +114,9 @@ endif(MSVC)
 # Dependencies setup
 ########################################################################
 
+# cpu_features
+add_subdirectory(cpu_features)
+
 # Python
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
 VOLK_PYTHON_CHECK_MODULE("python >= 3.4" sys "sys.version.split()[0] >= '3.4'" PYTHON_MIN_VER_FOUND)

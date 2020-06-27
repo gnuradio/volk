@@ -542,7 +542,7 @@ endif()
 #include directories is taken as provided; it -might- matter, but
 #probably doesn't.
 add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
-target_link_libraries(volk PUBLIC ${volk_libraries})
+target_link_libraries(volk PUBLIC ${volk_libraries} cpu_features)
 target_include_directories(volk
     PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -551,6 +551,9 @@ target_include_directories(volk
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     PUBLIC $<INSTALL_INTERFACE:include>
 )
+
+include_directories(../cpu_features/include)
+
 
 #Configure target properties
 if(ORC_FOUND)

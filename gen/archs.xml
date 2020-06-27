@@ -18,7 +18,7 @@
   <flag compiler="gnu">-funsafe-math-optimizations</flag>
   <flag compiler="clang">-funsafe-math-optimizations</flag>
   <alignment>16</alignment>
-  <check name="has_neon"></check>
+  <check name="neon"></check>
 </arch>
 
 <arch name="neonv7">
@@ -27,14 +27,14 @@
   <flag compiler="clang">-mfpu=neon</flag>
   <flag compiler="clang">-funsafe-math-optimizations</flag>
   <alignment>16</alignment>
-  <check name="has_neonv7"></check>
+  <check name="neon"></check>
 </arch>
 
 <arch name="neonv8">
   <flag compiler="gnu">-funsafe-math-optimizations</flag>
   <flag compiler="clang">-funsafe-math-optimizations</flag>
   <alignment>16</alignment>
-  <check name="has_neonv8"></check>
+  <check name="neon"></check>
 </arch>
 
 <arch name="32">
@@ -43,42 +43,42 @@
 </arch>
 
 <arch name="64">
-  <check name="check_extended_cpuid">
-      <param>0x80000001</param>
-  </check>
-  <check name="cpuid_x86_bit">  <!-- checks to see if a bit is set -->
-      <param>3</param>          <!-- eax, ebx, ecx, [edx] -->
-      <param>0x80000001</param> <!-- cpuid operation -->
-      <param>29</param>         <!-- bit shift -->
-  </check>
+  <!-- <check name="check_extended_cpuid"> -->
+      <!-- <param>0x80000001</param>
+  </check> -->
+  <!--<check name="cpuid_x86_bit">   checks to see if a bit is set -->
+  <!--    <param>3</param>           eax, ebx, ecx, [edx] -->
+  <!--    <param>0x80000001</param>  cpuid operation -->
+  <!--    <param>29</param>          bit shift -->
+  <!-- </check> -->
   <flag compiler="gnu">-m64</flag>
   <flag compiler="clang">-m64</flag>
 </arch>
 
 <arch name="3dnow">
-  <check name="cpuid_x86_bit">
+  <!-- <check name="cpuid_x86_bit">
       <param>3</param>
       <param>0x80000001</param>
       <param>31</param>
-  </check>
+  </check> -->
   <flag compiler="gnu">-m3dnow</flag>
   <flag compiler="clang">-m3dnow</flag>
   <alignment>8</alignment>
 </arch>
 
 <arch name="abm">
-  <check name="cpuid_x86_bit">
+  <!-- <check name="cpuid_x86_bit">
       <param>3</param>
       <param>0x80000001</param>
       <param>5</param>
-  </check>
+  </check> -->
   <flag compiler="gnu">-msse4.2</flag>
   <flag compiler="clang">-msse4.2</flag>
   <alignment>16</alignment>
 </arch>
 
 <arch name="popcount">
-  <check name="cpuid_x86_bit">
+  <check name="popcnt">
       <param>2</param>
       <param>0x00000001</param>
       <param>23</param>
@@ -89,7 +89,7 @@
 </arch>
 
 <arch name="mmx">
-  <check name="cpuid_x86_bit">
+  <check name="mmx">
       <param>3</param>
       <param>0x00000001</param>
       <param>23</param>
@@ -101,7 +101,12 @@
 </arch>
 
 <arch name="fma">
-    <check name="cpuid_x86_bit">
+    <check name="fma3">
+        <param>2</param>
+        <param>0x00000001</param>
+        <param>12</param>
+    </check>
+    <check name="fma4">
         <param>2</param>
         <param>0x00000001</param>
         <param>12</param>
@@ -113,7 +118,7 @@
 </arch>
 
 <arch name="sse">
-  <check name="cpuid_x86_bit">
+  <check name="sse">
       <param>3</param>
       <param>0x00000001</param>
       <param>25</param>
@@ -127,7 +132,7 @@
 </arch>
 
 <arch name="sse2">
-  <check name="cpuid_x86_bit">
+  <check name="sse2">
       <param>3</param>
       <param>0x00000001</param>
       <param>26</param>
@@ -146,7 +151,7 @@
 </arch>
 
 <arch name="sse3">
-  <check name="cpuid_x86_bit">
+  <check name="sse3">
       <param>2</param>
       <param>0x00000001</param>
       <param>0</param>
@@ -160,7 +165,7 @@
 </arch>
 
 <arch name="ssse3">
-  <check name="cpuid_x86_bit">
+  <check name="ssse3">
       <param>2</param>
       <param>0x00000001</param>
       <param>9</param>
@@ -172,7 +177,7 @@
 </arch>
 
 <arch name="sse4_a">
-  <check name="cpuid_x86_bit">
+  <check name="sse4a">
       <param>2</param>
       <param>0x80000001</param>
       <param>6</param>
@@ -183,7 +188,7 @@
 </arch>
 
 <arch name="sse4_1">
-  <check name="cpuid_x86_bit">
+  <check name="sse4_1">
       <param>2</param>
       <param>0x00000001</param>
       <param>19</param>
@@ -195,7 +200,7 @@
 </arch>
 
 <arch name="sse4_2">
-  <check name="cpuid_x86_bit">
+  <check name="sse4_2">
       <param>2</param>
       <param>0x00000001</param>
       <param>20</param>
@@ -207,19 +212,11 @@
 </arch>
 
 <arch name="avx">
-  <check name="cpuid_x86_bit">
+  <check name="avx">
       <param>2</param>
       <param>0x00000001</param>
       <param>28</param>
   </check>
-  <!-- check to make sure that xgetbv is enabled in OS -->
-  <check name="cpuid_x86_bit">
-      <param>2</param>
-      <param>0x00000001</param>
-      <param>27</param>
-  </check>
-  <!-- check to see that the OS has enabled AVX -->
-  <check name="get_avx_enabled"></check>
   <flag compiler="gnu">-mavx</flag>
   <flag compiler="clang">-mavx</flag>
   <flag compiler="msvc">/arch:AVX</flag>
@@ -227,20 +224,12 @@
 </arch>
 
 <arch name="avx2">
-    <check name="cpuid_count_x86_bit">
+    <check name="avx2">
         <param>7</param>
         <param>0</param>
         <param>1</param>
         <param>5</param>
     </check>
-    <!-- check to make sure that xgetbv is enabled in OS -->
-    <check name="cpuid_x86_bit">
-        <param>2</param>
-        <param>0x00000001</param>
-        <param>27</param>
-    </check>
-    <!-- check to see that the OS has enabled AVX2 -->
-    <check name="get_avx2_enabled"></check>
     <flag compiler="gnu">-mavx2</flag>
     <flag compiler="clang">-mavx2</flag>
     <flag compiler="msvc">/arch:AVX2</flag>
@@ -249,20 +238,12 @@
 
 <arch name="avx512f">
     <!-- check for AVX512F -->
-    <check name="cpuid_count_x86_bit">
+    <check name="avx512f">
         <param>7</param>
         <param>0</param>
         <param>1</param>
         <param>16</param>
     </check>
-    <!-- check to make sure that xgetbv is enabled in OS -->
-    <check name="cpuid_x86_bit">
-        <param>2</param>
-        <param>0x00000001</param>
-        <param>27</param>
-    </check>
-    <!-- check to see that the OS has enabled AVX512 -->
-    <check name="get_avx512_enabled"></check>
     <flag compiler="gnu">-mavx512f</flag>
     <flag compiler="clang">-mavx512f</flag>
     <flag compiler="msvc">/arch:AVX512F</flag>
@@ -271,20 +252,12 @@
 
 <arch name="avx512cd">
     <!-- check for AVX512CD -->
-    <check name="cpuid_count_x86_bit">
+    <check name="avx512cd">
         <param>7</param>
         <param>0</param>
         <param>1</param>
         <param>28</param>
     </check>
-    <!-- check to make sure that xgetbv is enabled in OS -->
-    <check name="cpuid_x86_bit">
-        <param>2</param>
-        <param>0x00000001</param>
-        <param>27</param>
-    </check>
-    <!-- check to see that the OS has enabled AVX512 -->
-    <check name="get_avx512_enabled"></check>
     <flag compiler="gnu">-mavx512cd</flag>
     <flag compiler="clang">-mavx512cd</flag>
     <flag compiler="msvc">/arch:AVX512CD</flag>
