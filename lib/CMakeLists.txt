@@ -542,7 +542,7 @@ endif()
 #include directories is taken as provided; it -might- matter, but
 #probably doesn't.
 add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
-target_link_libraries(volk PUBLIC ${volk_libraries} cpu_features)
+target_link_libraries(volk PUBLIC ${volk_libraries} PRIVATE cpu_features)
 target_include_directories(volk
     PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

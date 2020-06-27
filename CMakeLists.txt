@@ -115,6 +115,8 @@ endif(MSVC)
 ########################################################################
 
 # cpu_features
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(BUILD_PIC ON)
 add_subdirectory(cpu_features)
 
 # Python
