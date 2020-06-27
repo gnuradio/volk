@@ -123,6 +123,7 @@ matrix:
 script:
   - eval "${MATRIX_EVAL}"
   - lscpu
+  - git submodule update --init --recursive
   - mkdir build && cd build && BOOST_ROOT=$BOOST_ROOT
   - cmake ${CMAKE_ARG} ../
   - make

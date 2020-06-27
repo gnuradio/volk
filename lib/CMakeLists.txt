@@ -552,7 +552,7 @@ target_include_directories(volk
     PUBLIC $<INSTALL_INTERFACE:include>
 )
 
-include_directories(../cpu_features/include)
+include_directories(${PROJECT_SOURCE_DIR}/cpu_features/include)
 
 
 #Configure target properties
