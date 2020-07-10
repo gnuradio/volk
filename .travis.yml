@@ -26,12 +26,6 @@ matrix:
       before_script:
         - cd ${TRAVIS_BUILD_DIR} && ./scripts/ci/download_intel_sde.sh
 
-    # Job 2 ... gcc-4.8
-    - name: Linux Ubuntu 14.04 (trusty) x86 GCC 4.8
-      dist: trusty
-      env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
-      addons: {apt: {packages: [*common_packages, g++-4.8, libboost-system-dev, libboost-filesystem-dev]}}
-
     # Job 4 ... gcc-6
     - name: Linux x86 GCC 6
       env: MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
