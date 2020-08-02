@@ -55,28 +55,6 @@
   <flag compiler="clang">-m64</flag>
 </arch>
 
-<arch name="3dnow">
-  <!-- <check name="cpuid_x86_bit">
-      <param>3</param>
-      <param>0x80000001</param>
-      <param>31</param>
-  </check> -->
-  <flag compiler="gnu">-m3dnow</flag>
-  <flag compiler="clang">-m3dnow</flag>
-  <alignment>8</alignment>
-</arch>
-
-<arch name="abm">
-  <!-- <check name="cpuid_x86_bit">
-      <param>3</param>
-      <param>0x80000001</param>
-      <param>5</param>
-  </check> -->
-  <flag compiler="gnu">-msse4.2</flag>
-  <flag compiler="clang">-msse4.2</flag>
-  <alignment>16</alignment>
-</arch>
-
 <arch name="popcount">
   <check name="popcnt">
       <param>2</param>
@@ -102,11 +80,6 @@
 
 <arch name="fma">
     <check name="fma3">
-        <param>2</param>
-        <param>0x00000001</param>
-        <param>12</param>
-    </check>
-    <check name="fma4">
         <param>2</param>
         <param>0x00000001</param>
         <param>12</param>
