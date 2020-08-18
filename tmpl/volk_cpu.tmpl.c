@@ -24,10 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// This is required for MSVC
-#if defined(__cplusplus)
-using namespace cpu_features;
-#endif
 
 #include "cpu_features_macros.h"
 #if defined(CPU_FEATURES_ARCH_X86)
@@ -41,6 +37,12 @@ using namespace cpu_features;
 #elif defined(CPU_FEATURES_ARCH_PPC)
 #include "cpuinfo_ppc.h"
 #endif
+
+// This is required for MSVC
+#if defined(__cplusplus)
+using namespace cpu_features;
+#endif
+
 
 struct VOLK_CPU volk_cpu;
 
