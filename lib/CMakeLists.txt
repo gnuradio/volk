@@ -528,6 +528,8 @@ target_include_directories(volk_obj
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+target_link_libraries(volk_obj PRIVATE cpu_features)
+
 #Configure object target properties
 if(NOT MSVC)
   set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
@@ -551,8 +553,6 @@ target_include_directories(volk
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     PUBLIC $<INSTALL_INTERFACE:include>
 )
-
-include_directories(${PROJECT_SOURCE_DIR}/cpu_features/include)
 
 
 #Configure target properties
