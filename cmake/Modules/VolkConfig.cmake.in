@@ -29,6 +29,6 @@ if(VOLK_FOUND)
 
   # for backward compatibility with old-CMake non-target project finding
   include(FindPackageHandleStandardArgs)
-  find_package_handle_standard_args(VOLK DEFAULT_MSG VOLK_LIBRARIES VOLK_INCLUDE_DIRS)
+  find_package_handle_standard_args(Volk DEFAULT_MSG VOLK_LIBRARIES VOLK_INCLUDE_DIRS)
   mark_as_advanced(VOLK_LIBRARIES VOLK_INCLUDE_DIRS)
 endif(VOLK_FOUND)
