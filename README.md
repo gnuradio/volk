@@ -33,8 +33,12 @@ $ make
 $ make test
 $ sudo make install
 
-# Link and cache shared library
+# Perform post-installation steps
+
+# Linux OS: Link and cache shared library
 $ sudo ldconfig
+
+# macOS/Windows: Update PATH environment variable to point to lib install location
 
 # volk_profile will profile your system so that the best kernel is used
 $ volk_profile
