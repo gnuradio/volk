@@ -33,6 +33,9 @@ $ make
 $ make test
 $ sudo make install
 
+# Link and cache shared library
+$ sudo ldconfig
+
 # volk_profile will profile your system so that the best kernel is used
 $ volk_profile
 ```
