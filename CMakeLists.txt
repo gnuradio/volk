@@ -370,7 +370,10 @@ add_subdirectory(lib)
 # And the utility apps
 ########################################################################
 add_subdirectory(apps)
-add_subdirectory(python/volk_modtool)
+option(ENABLE_MODTOOL "Enable volk_modtool python utility" True)
+if(ENABLE_MODTOOL)
+  add_subdirectory(python/volk_modtool)
+endif()
 
 ########################################################################
 # Print summary
