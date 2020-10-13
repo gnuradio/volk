@@ -47,6 +47,12 @@ matrix:
       env: MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-8]}}
 
+    # Job 6.1 ... gcc-9
+    - name: Linux Ubuntu 20.04 (focal) x86 GCC 9
+      dist: focal
+      env: MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+      addons: {apt: {packages: [*common_packages, g++-9]}}
+
     # Job 7 ... ARMv7 cross compile
     - name: Linux ARMv7 Qemu GCC 7
       env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm-linux-gnueabihf.cmake"
