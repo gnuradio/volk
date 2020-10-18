@@ -48,6 +48,13 @@ if(MSVC) #its not set otherwise
     set(COMPILER_NAME MSVC)
 endif()
 
+# Assume "AppleClang == Clang".
+string(TOLOWER ${COMPILER_NAME} COMPILER_NAME_LOWER)
+string(REGEX MATCH "clang" COMPILER_NAME_LOWER ${COMPILER_NAME_LOWER})
+if(${COMPILER_NAME_LOWER} MATCHES "clang")
+    set(COMPILER_NAME "Clang")
+endif()
+
 message(STATUS "Compiler name: ${COMPILER_NAME}")
 
 if(NOT DEFINED COMPILER_NAME)
