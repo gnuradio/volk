@@ -136,30 +136,30 @@ endmacro(OVERRULE_ARCH)
 # the xgetbv instruction, or {if not cross-compiling and the xgetbv
 # executable does not function correctly}.
 ########################################################################
-set(HAVE_XGETBV 0)
+#set(HAVE_XGETBV 0)
 set(HAVE_AVX_CVTPI32_PS 0)
 if(CPU_IS_x86)
     # check to see if the compiler/linker works with xgetb instruction
-    if (NOT MSVC)
-        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c "#include <volk/volk_common.h>\n unsigned long long _xgetbv(unsigned int index) { unsigned int eax, edx; __VOLK_ASM __VOLK_VOLATILE(\"xgetbv\" : \"=a\"(eax), \"=d\"(edx) : \"c\"(index)); return ((unsigned long long)edx << 32) | eax; } int main (void) { (void) _xgetbv(0); return (0); }")
-        set(_AUX_INCLUDE_FLAG -I${PROJECT_SOURCE_DIR}/include)
-    else (NOT MSVC)
+    #if (NOT MSVC)
+    #    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c "#include <volk/volk_common.h>\n unsigned long long _xgetbv(unsigned int index) { unsigned int eax, edx; __VOLK_ASM __VOLK_VOLATILE(\"xgetbv\" : \"=a\"(eax), \"=d\"(edx) : \"c\"(index)); return ((unsigned long long)edx << 32) | eax; } int main (void) { (void) _xgetbv(0); return (0); }")
+    #    set(_AUX_INCLUDE_FLAG -I${PROJECT_SOURCE_DIR}/include)
+    #else (NOT MSVC)
         #MSVC defines an intrinsic
-        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c "#include <stdio.h> \n #include <intrin.h> \n int main() { int avxSupported = 0; \n#if (_MSC_FULL_VER >= 160040219) \nint cpuInfo[4]; __cpuid(cpuInfo, 1);\nif ((cpuInfo[2] & (1 << 27) || 0) && (cpuInfo[2] & (1 << 28) || 0)) \n{\nunsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);\n   avxSupported = (xcrFeatureMask & 0x6) == 6;}\n#endif \n return 1- avxSupported; }")
-    endif(NOT MSVC)
-    execute_process(COMMAND ${CMAKE_C_COMPILER} ${_AUX_INCLUDE_FLAG} -o
-        ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
-        ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c
-        OUTPUT_QUIET ERROR_QUIET
-        RESULT_VARIABLE avx_compile_result)
-    if(NOT ${avx_compile_result} EQUAL 0)
-        OVERRULE_ARCH(avx "Compiler or linker missing xgetbv instruction")
-    else()
+   #     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c "#include <stdio.h> \n #include <intrin.h> \n int main() { int avxSupported = 0; \n#if (_MSC_FULL_VER >= 160040219) \nint cpuInfo[4]; __cpuid(cpuInfo, 1);\nif ((cpuInfo[2] & (1 << 27) || 0) && (cpuInfo[2] & (1 << 28) || 0)) \n{\nunsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);\n   avxSupported = (xcrFeatureMask & 0x6) == 6;}\n#endif \n return 1- avxSupported; }")
+    #endif(NOT MSVC)
+    #execute_process(COMMAND ${CMAKE_C_COMPILER} ${_AUX_INCLUDE_FLAG} -o
+    #    ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
+    #    ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c
+    #    OUTPUT_QUIET ERROR_QUIET
+    #    RESULT_VARIABLE avx_compile_result)
+    #if(NOT ${avx_compile_result} EQUAL 0)
+    #    OVERRULE_ARCH(avx "Compiler or linker missing xgetbv instruction")
+    #else()
         # compiler/linker seems to work; assume working
-        set(HAVE_XGETBV 1)
-    endif()
-    file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
-        ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c)
+    #    set(HAVE_XGETBV 1)
+    #endif()
+    #file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv
+    #    ${CMAKE_CURRENT_BINARY_DIR}/test_xgetbv.c)
 
     #########################################################################
     # eliminate AVX if cvtpi32_ps intrinsic fails like some versions of clang
@@ -196,9 +196,10 @@ if(CPU_IS_x86)
 
 endif(CPU_IS_x86)
 
-if(${HAVE_XGETBV})
-    add_definitions(-DHAVE_XGETBV)
-endif()
+# This compiler definition is not used anywhere in the code. 
+#if(${HAVE_XGETBV})
+#    add_definitions(-DHAVE_XGETBV)
+#endif()
 
 if(${HAVE_AVX_CVTPI32_PS})
     add_definitions(-DHAVE_AVX_CVTPI32_PS)
