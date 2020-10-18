@@ -29,7 +29,7 @@ matrix:
     # Job 2 ... gcc-4.8
     - name: Linux Ubuntu 14.04 (trusty) x86 GCC 4.8
       dist: trusty
-      env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8 && CMAKE_ARG=-DBUILD_PIC=ON"
+      env: MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
       addons: {apt: {packages: [*common_packages, g++-4.8, libboost-system-dev, libboost-filesystem-dev]}}
 
     # Job 4 ... gcc-6
@@ -86,7 +86,7 @@ matrix:
 
     # Job 9 ... clang
     - name: Linux x86 Clang 6
-      env: MATRIX_EVAL="CC=\"clang -fprofile-instr-generate -fcoverage-mapping\" && CXX=\"clang++ -fprofile-instr-generate -fcoverage-mapping\" && CMAKE_ARG=-DBUILD_PIC=ON"
+      env: MATRIX_EVAL="CC=\"clang -fprofile-instr-generate -fcoverage-mapping\" && CXX=\"clang++ -fprofile-instr-generate -fcoverage-mapping\""
       addons: {apt: {packages: [*common_packages, ]}}
 
     - name: Linux ARMv8 (aarch64) GCC 7
@@ -96,7 +96,7 @@ matrix:
 
     - name: Linux ARMv8 (aarch64) Clang 6
       arch: arm64
-      env: MATRIX_EVAL="CC=clang && CXX=clang++ && CMAKE_ARG=-DBUILD_PIC=ON"
+      env: MATRIX_EVAL="CC=clang && CXX=clang++"
       addons: {apt: {packages: [*common_packages, ]}}
 
     - name: Linux ppc64le GCC
