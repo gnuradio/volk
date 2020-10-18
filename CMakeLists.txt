@@ -115,7 +115,9 @@ endif(MSVC)
 ########################################################################
 
 # cpu_features
-set(BUILD_PIC ON)
+set(BUILD_PIC ON CACHE BOOL
+    "Build cpu_features with Position Independent Code (PIC)."
+    FORCE)
 add_subdirectory(cpu_features)
 
 # Python
