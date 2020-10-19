@@ -73,12 +73,12 @@ matrix:
 
     # Job 7 ... ARMv7 cross compile
     - name: Linux ARMv7 Qemu GCC 7
-      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_ARG=\"-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm-linux-gnueabihf.cmake\" && QEMU_ARCH=arm"
+      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm-linux-gnueabihf.cmake && QEMU_ARCH=arm"
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-arm-linux-gnueabihf, qemu-user]}}
 
     # Job 8 ... ARMv8 (aarch64) cross compile
     - name: Linux ARMv8 (aarch64) Qemu GCC 7
-      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_ARG=\"-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/aarch64-linux-gnu.cmake\""
+      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/aarch64-linux-gnu.cmake"
            TOOLCHAIN=LINARO
            TARGET=aarch64-linux-gnu
            QEMU_ARCH=aarch64
