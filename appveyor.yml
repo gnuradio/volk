@@ -7,11 +7,6 @@ environment:
   BOOST_VERSION: 1.59.0
   environment:
   matrix:
-    - job_name: VS 12 2013 / python 3.4
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      CMAKE_GENERATOR: Visual Studio 12 2013
-      VC_VERSION: vc120
-      PYTHON: "C:\\Python34-x64"
     - job_name: VS 14 2015 / python 3.8
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GENERATOR: Visual Studio 14 2015

@@ -79,9 +79,6 @@ matrix:
     # Job 8 ... ARMv8 (aarch64) cross compile
     - name: Linux ARMv8 (aarch64) Qemu GCC 7
       env: MATRIX_EVAL="CMAKE_ARG=-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/aarch64-linux-gnu.cmake"
-           TOOLCHAIN=LINARO
-           TARGET=aarch64-linux-gnu
-           QEMU_ARCH=aarch64
       addons: {apt: {sources: "ubuntu-toolchain-r-test", packages: [*common_packages, g++-aarch64-linux-gnu, qemu-user]}}
 
     # Job 9 ... clang
