@@ -7,11 +7,6 @@ environment:
   BOOST_VERSION: 1.59.0
   environment:
   matrix:
-    - job_name: VS 12 2013 / python 3.4
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      CMAKE_GENERATOR: Visual Studio 12 2013
-      VC_VERSION: vc120
-      PYTHON: "C:\\Python34-x64"
     - job_name: VS 14 2015 / python 3.8
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       CMAKE_GENERATOR: Visual Studio 14 2015
@@ -33,6 +28,7 @@ install:
     - pip --version
     - pip install mako
 before_build:
+    - git submodule update --init --recursive
     - cmake -G "%CMAKE_GENERATOR% Win64" \
         -DBoost_CHRONO_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_chrono-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_chrono-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \
         -DBoost_FILESYSTEM_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_filesystem-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_filesystem-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \

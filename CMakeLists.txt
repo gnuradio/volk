@@ -114,6 +114,12 @@ endif(MSVC)
 # Dependencies setup
 ########################################################################
 
+# cpu_features
+set(BUILD_PIC ON CACHE BOOL
+    "Build cpu_features with Position Independent Code (PIC)."
+    FORCE)
+add_subdirectory(cpu_features)
+
 # Python
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
 VOLK_PYTHON_CHECK_MODULE("python >= 3.4" sys "sys.version.split()[0] >= '3.4'" PYTHON_MIN_VER_FOUND)
