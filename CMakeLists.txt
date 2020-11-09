@@ -118,7 +118,10 @@ endif(MSVC)
 set(BUILD_PIC ON CACHE BOOL
     "Build cpu_features with Position Independent Code (PIC)."
     FORCE)
+set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(cpu_features)
+set(BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS_SAVED}")
 
 # Python
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
