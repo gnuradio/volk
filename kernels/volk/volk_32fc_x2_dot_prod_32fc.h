@@ -302,89 +302,89 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_sse3(lv_32fc_t* result,
 
 #endif /*LV_HAVE_SSE3*/
 
-#ifdef LV_HAVE_SSE4_1
+// #ifdef LV_HAVE_SSE4_1
 
-#include <smmintrin.h>
+// #include <smmintrin.h>
 
-static inline void volk_32fc_x2_dot_prod_32fc_u_sse4_1(lv_32fc_t* result,
-                                                       const lv_32fc_t* input,
-                                                       const lv_32fc_t* taps,
-                                                       unsigned int num_points)
-{
+// static inline void volk_32fc_x2_dot_prod_32fc_u_sse4_1(lv_32fc_t* result,
+//                                                        const lv_32fc_t* input,
+//                                                        const lv_32fc_t* taps,
+//                                                        unsigned int num_points)
+// {
 
-    unsigned int i = 0;
-    const unsigned int qtr_points = num_points / 4;
-    const unsigned int isodd = num_points & 3;
+//     unsigned int i = 0;
+//     const unsigned int qtr_points = num_points / 4;
+//     const unsigned int isodd = num_points & 3;
 
-    __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, real0, real1, im0, im1;
-    float *p_input, *p_taps;
-    __m64* p_result;
+//     __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, real0, real1, im0, im1;
+//     float *p_input, *p_taps;
+//     __m64* p_result;
 
-    p_result = (__m64*)result;
-    p_input = (float*)input;
-    p_taps = (float*)taps;
+//     p_result = (__m64*)result;
+//     p_input = (float*)input;
+//     p_taps = (float*)taps;
 
-    static const __m128i neg = { 0x000000000000000080000000 };
+//     static const __m128i neg = { 0x000000000000000080000000 };
 
-    real0 = _mm_setzero_ps();
-    real1 = _mm_setzero_ps();
-    im0 = _mm_setzero_ps();
-    im1 = _mm_setzero_ps();
+//     real0 = _mm_setzero_ps();
+//     real1 = _mm_setzero_ps();
+//     im0 = _mm_setzero_ps();
+//     im1 = _mm_setzero_ps();
 
-    for (; i < qtr_points; ++i) {
-        xmm0 = _mm_loadu_ps(p_input);
-        xmm1 = _mm_loadu_ps(p_taps);
+//     for (; i < qtr_points; ++i) {
+//         xmm0 = _mm_loadu_ps(p_input);
+//         xmm1 = _mm_loadu_ps(p_taps);
 
-        p_input += 4;
-        p_taps += 4;
+//         p_input += 4;
+//         p_taps += 4;
 
-        xmm2 = _mm_loadu_ps(p_input);
-        xmm3 = _mm_loadu_ps(p_taps);
+//         xmm2 = _mm_loadu_ps(p_input);
+//         xmm3 = _mm_loadu_ps(p_taps);
 
-        p_input += 4;
-        p_taps += 4;
+//         p_input += 4;
+//         p_taps += 4;
 
-        xmm4 = _mm_unpackhi_ps(xmm0, xmm2);
-        xmm5 = _mm_unpackhi_ps(xmm1, xmm3);
-        xmm0 = _mm_unpacklo_ps(xmm0, xmm2);
-        xmm2 = _mm_unpacklo_ps(xmm1, xmm3);
+//         xmm4 = _mm_unpackhi_ps(xmm0, xmm2);
+//         xmm5 = _mm_unpackhi_ps(xmm1, xmm3);
+//         xmm0 = _mm_unpacklo_ps(xmm0, xmm2);
+//         xmm2 = _mm_unpacklo_ps(xmm1, xmm3);
 
-        // imaginary vector from input
-        xmm1 = _mm_unpackhi_ps(xmm0, xmm4);
-        // real vector from input
-        xmm3 = _mm_unpacklo_ps(xmm0, xmm4);
-        // imaginary vector from taps
-        xmm0 = _mm_unpackhi_ps(xmm2, xmm5);
-        // real vector from taps
-        xmm2 = _mm_unpacklo_ps(xmm2, xmm5);
+//         // imaginary vector from input
+//         xmm1 = _mm_unpackhi_ps(xmm0, xmm4);
+//         // real vector from input
+//         xmm3 = _mm_unpacklo_ps(xmm0, xmm4);
+//         // imaginary vector from taps
+//         xmm0 = _mm_unpackhi_ps(xmm2, xmm5);
+//         // real vector from taps
+//         xmm2 = _mm_unpacklo_ps(xmm2, xmm5);
 
-        xmm4 = _mm_dp_ps(xmm3, xmm2, 0xf1);
-        xmm5 = _mm_dp_ps(xmm1, xmm0, 0xf1);
+//         xmm4 = _mm_dp_ps(xmm3, xmm2, 0xf1);
+//         xmm5 = _mm_dp_ps(xmm1, xmm0, 0xf1);
 
-        xmm6 = _mm_dp_ps(xmm3, xmm0, 0xf2);
-        xmm7 = _mm_dp_ps(xmm1, xmm2, 0xf2);
+//         xmm6 = _mm_dp_ps(xmm3, xmm0, 0xf2);
+//         xmm7 = _mm_dp_ps(xmm1, xmm2, 0xf2);
 
-        real0 = _mm_add_ps(xmm4, real0);
-        real1 = _mm_add_ps(xmm5, real1);
-        im0 = _mm_add_ps(xmm6, im0);
-        im1 = _mm_add_ps(xmm7, im1);
-    }
+//         real0 = _mm_add_ps(xmm4, real0);
+//         real1 = _mm_add_ps(xmm5, real1);
+//         im0 = _mm_add_ps(xmm6, im0);
+//         im1 = _mm_add_ps(xmm7, im1);
+//     }
 
-    real1 = _mm_xor_ps(real1, bit128_p(&neg)->float_vec);
+//     real1 = _mm_xor_ps(real1, bit128_p(&neg)->float_vec);
 
-    im0 = _mm_add_ps(im0, im1);
-    real0 = _mm_add_ps(real0, real1);
+//     im0 = _mm_add_ps(im0, im1);
+//     real0 = _mm_add_ps(real0, real1);
 
-    im0 = _mm_add_ps(im0, real0);
+//     im0 = _mm_add_ps(im0, real0);
 
-    _mm_storel_pi(p_result, im0);
+//     _mm_storel_pi(p_result, im0);
 
-    for (i = num_points - isodd; i < num_points; i++) {
-        *result += input[i] * taps[i];
-    }
-}
+//     for (i = num_points - isodd; i < num_points; i++) {
+//         *result += input[i] * taps[i];
+//     }
+// }
 
-#endif /*LV_HAVE_SSE4_1*/
+// #endif /*LV_HAVE_SSE4_1*/
 
 #ifdef LV_HAVE_AVX
 
@@ -895,89 +895,89 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_sse3(lv_32fc_t* result,
 #endif /*LV_HAVE_SSE3*/
 
 
-#ifdef LV_HAVE_SSE4_1
+// #ifdef LV_HAVE_SSE4_1
 
-#include <smmintrin.h>
+// #include <smmintrin.h>
 
-static inline void volk_32fc_x2_dot_prod_32fc_a_sse4_1(lv_32fc_t* result,
-                                                       const lv_32fc_t* input,
-                                                       const lv_32fc_t* taps,
-                                                       unsigned int num_points)
-{
+// static inline void volk_32fc_x2_dot_prod_32fc_a_sse4_1(lv_32fc_t* result,
+//                                                        const lv_32fc_t* input,
+//                                                        const lv_32fc_t* taps,
+//                                                        unsigned int num_points)
+// {
 
-    unsigned int i = 0;
-    const unsigned int qtr_points = num_points / 4;
-    const unsigned int isodd = num_points & 3;
+//     unsigned int i = 0;
+//     const unsigned int qtr_points = num_points / 4;
+//     const unsigned int isodd = num_points & 3;
 
-    __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, real0, real1, im0, im1;
-    float *p_input, *p_taps;
-    __m64* p_result;
+//     __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, real0, real1, im0, im1;
+//     float *p_input, *p_taps;
+//     __m64* p_result;
 
-    static const __m128i neg = { 0x000000000000000080000000 };
+//     static const __m128i neg = { 0x000000000000000080000000 };
 
-    p_result = (__m64*)result;
-    p_input = (float*)input;
-    p_taps = (float*)taps;
+//     p_result = (__m64*)result;
+//     p_input = (float*)input;
+//     p_taps = (float*)taps;
 
-    real0 = _mm_setzero_ps();
-    real1 = _mm_setzero_ps();
-    im0 = _mm_setzero_ps();
-    im1 = _mm_setzero_ps();
+//     real0 = _mm_setzero_ps();
+//     real1 = _mm_setzero_ps();
+//     im0 = _mm_setzero_ps();
+//     im1 = _mm_setzero_ps();
 
-    for (; i < qtr_points; ++i) {
-        xmm0 = _mm_load_ps(p_input);
-        xmm1 = _mm_load_ps(p_taps);
+//     for (; i < qtr_points; ++i) {
+//         xmm0 = _mm_load_ps(p_input);
+//         xmm1 = _mm_load_ps(p_taps);
 
-        p_input += 4;
-        p_taps += 4;
+//         p_input += 4;
+//         p_taps += 4;
 
-        xmm2 = _mm_load_ps(p_input);
-        xmm3 = _mm_load_ps(p_taps);
+//         xmm2 = _mm_load_ps(p_input);
+//         xmm3 = _mm_load_ps(p_taps);
 
-        p_input += 4;
-        p_taps += 4;
+//         p_input += 4;
+//         p_taps += 4;
 
-        xmm4 = _mm_unpackhi_ps(xmm0, xmm2);
-        xmm5 = _mm_unpackhi_ps(xmm1, xmm3);
-        xmm0 = _mm_unpacklo_ps(xmm0, xmm2);
-        xmm2 = _mm_unpacklo_ps(xmm1, xmm3);
+//         xmm4 = _mm_unpackhi_ps(xmm0, xmm2);
+//         xmm5 = _mm_unpackhi_ps(xmm1, xmm3);
+//         xmm0 = _mm_unpacklo_ps(xmm0, xmm2);
+//         xmm2 = _mm_unpacklo_ps(xmm1, xmm3);
 
-        // imaginary vector from input
-        xmm1 = _mm_unpackhi_ps(xmm0, xmm4);
-        // real vector from input
-        xmm3 = _mm_unpacklo_ps(xmm0, xmm4);
-        // imaginary vector from taps
-        xmm0 = _mm_unpackhi_ps(xmm2, xmm5);
-        // real vector from taps
-        xmm2 = _mm_unpacklo_ps(xmm2, xmm5);
+//         // imaginary vector from input
+//         xmm1 = _mm_unpackhi_ps(xmm0, xmm4);
+//         // real vector from input
+//         xmm3 = _mm_unpacklo_ps(xmm0, xmm4);
+//         // imaginary vector from taps
+//         xmm0 = _mm_unpackhi_ps(xmm2, xmm5);
+//         // real vector from taps
+//         xmm2 = _mm_unpacklo_ps(xmm2, xmm5);
 
-        xmm4 = _mm_dp_ps(xmm3, xmm2, 0xf1);
-        xmm5 = _mm_dp_ps(xmm1, xmm0, 0xf1);
+//         xmm4 = _mm_dp_ps(xmm3, xmm2, 0xf1);
+//         xmm5 = _mm_dp_ps(xmm1, xmm0, 0xf1);
 
-        xmm6 = _mm_dp_ps(xmm3, xmm0, 0xf2);
-        xmm7 = _mm_dp_ps(xmm1, xmm2, 0xf2);
+//         xmm6 = _mm_dp_ps(xmm3, xmm0, 0xf2);
+//         xmm7 = _mm_dp_ps(xmm1, xmm2, 0xf2);
 
-        real0 = _mm_add_ps(xmm4, real0);
-        real1 = _mm_add_ps(xmm5, real1);
-        im0 = _mm_add_ps(xmm6, im0);
-        im1 = _mm_add_ps(xmm7, im1);
-    }
+//         real0 = _mm_add_ps(xmm4, real0);
+//         real1 = _mm_add_ps(xmm5, real1);
+//         im0 = _mm_add_ps(xmm6, im0);
+//         im1 = _mm_add_ps(xmm7, im1);
+//     }
 
-    real1 = _mm_xor_ps(real1, bit128_p(&neg)->float_vec);
+//     real1 = _mm_xor_ps(real1, bit128_p(&neg)->float_vec);
 
-    im0 = _mm_add_ps(im0, im1);
-    real0 = _mm_add_ps(real0, real1);
+//     im0 = _mm_add_ps(im0, im1);
+//     real0 = _mm_add_ps(real0, real1);
 
-    im0 = _mm_add_ps(im0, real0);
+//     im0 = _mm_add_ps(im0, real0);
 
-    _mm_storel_pi(p_result, im0);
+//     _mm_storel_pi(p_result, im0);
 
-    for (i = num_points - isodd; i < num_points; i++) {
-        *result += input[i] * taps[i];
-    }
-}
+//     for (i = num_points - isodd; i < num_points; i++) {
+//         *result += input[i] * taps[i];
+//     }
+// }
 
-#endif /*LV_HAVE_SSE4_1*/
+// #endif /*LV_HAVE_SSE4_1*/
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
