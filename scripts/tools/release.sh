@@ -83,6 +83,12 @@ git tag --annotate --cleanup=verbatim -F "${annotationfile}" "${releaseprefix}${
 tarprefix="${project}-${version}"
 outfile="${tempdir}/${tarprefix}.tar"
 git archive "--output=${outfile}" "--prefix=${tarprefix}/" HEAD
+# Append submodule archives
+git submodule foreach --recursive "git archive --output ${tempdir}/${tarprefix}-sub-\${sha1}.tar --prefix=${tarprefix}/\${sm_path}/ HEAD"
+if [[ $(ls ${tempdir}/${tarprefix}-sub*.tar | wc -l) != 0  ]]; then
+  # combine all archives into one tar
+  tar --concatenate --file ${outfile} ${tempdir}/${tarprefix}-sub*.tar
+fi
 echo "Created tape archive '${outfile}' of size $(du -h ${outfile})."
 
 # 6. compress
