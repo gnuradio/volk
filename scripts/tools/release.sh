@@ -52,7 +52,7 @@ $(git shortlog -e ${last_release}..HEAD)
 "
 echo "${shortlog}"
 
-#echo "${shortlog}" > ${deltafile}
+echo "${shortlog}" > ${deltafile}
 
 ${EDITOR} ${deltafile}
 
@@ -67,6 +67,7 @@ cat "${deltafile}" > ${annotationfile}
 # Append the HEAD commit hash to the annotation
 echo "git-describes-hash: $(git rev-parse --verify HEAD)" >> "${annotationfile}"
 
+echo "Signing git tag..."
 if type 'signify-openbsd' > /dev/null; then
     signaturefile="${tempdir}/annotationfile.sig"
     signify-openbsd -S -x "${signaturefile}" -s "${seckey}" -m "${annotationfile}"
@@ -103,6 +104,8 @@ xz --keep -9 --threads=0 "${outfile}"
 echo "…compressed."
 
 # 7. sign
+
+# 7.1 with openbsd-signify
 echo "signing file list…"
 filelist="${tempdir}/${version}.sha256"
 pushd "${tempdir}"
@@ -113,14 +116,24 @@ signify-openbsd -C -p "${pubkey}" -x "${filelist}.sig"
 popd
 echo "checked."
 
+# 7.2 with GPG
+echo "signing tarballs with GPG ..."
+gpg --armor --detach-sign "${outfile}".gz
+gpg --armor --detach-sign "${outfile}".xz
+
 #8. bundle archives
 mkdir -p archives
 cp "${tempdir}"/*.tar.* "${filelist}.sig" "${pubkey}" archives/
 echo "Results can be found under $(pwd)/archives"
 
 #9. Push to origin
-read -q "push?Do you want to push to origin? (y/n)" || echo "not pushing"
-if [ "${push}" = "y" ]; then
-    git push "${remote}" HEAD
-    git push "${remote}" "v${releaseprefix}${version}"
-fi
+echo "Finished release!"
+echo "Remember to push release commit AND release tag!"
+echo "Release commit: 'git push ${remote} HEAD'"
+echo "Release tag: 'git push ${remote} v${releaseprefix}${version}'"
+#read -q "push?Do you want to push to origin? (y/n)" || echo "not pushing"
+#if [ "${push}" = "y" ]; then
+#    git push "${remote}" HEAD
+#    git push "${remote}" "v${releaseprefix}${version}"
+#fi
+
