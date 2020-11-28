@@ -209,6 +209,13 @@ if(DOXYGEN_FOUND)
 endif(DOXYGEN_FOUND)
 
 ########################################################################
+# Detect /lib versus /lib64
+########################################################################
+if (${CMAKE_INSTALL_LIBDIR} MATCHES lib64)
+    set(LIB_SUFFIX 64)
+endif()
+
+########################################################################
 # Setup the package config file
 ########################################################################
 #set variables found in the pc.in file
