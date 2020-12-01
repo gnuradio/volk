@@ -577,10 +577,14 @@ install(TARGETS volk
 #probably doesn't.
 if(ENABLE_STATIC_LIBS)
   add_library(volk_static STATIC $<TARGET_OBJECTS:volk_obj>)
-  target_link_libraries(volk_static PUBLIC ${volk_libraries} pthread)
-  if(ORC_FOUND)
-    target_link_libraries(volk_static PUBLIC ${ORC_LIBRARIES})
+  target_link_libraries(volk_static PUBLIC ${volk_libraries})
+  if(VOLK_CPU_FEATURES)
+    target_link_libraries(volk_static PRIVATE cpu_features)
   endif()
+  if(ORC_FOUND)
+    target_link_libraries(volk_static PUBLIC ${ORC_LIBRARIES_STATIC})
+  endif()
+  target_link_libraries(volk_static PRIVATE pthread)
   if(NOT MSVC)
     target_link_libraries(volk_static PUBLIC m)
   endif()
@@ -608,11 +612,19 @@ if(ENABLE_TESTING)
 
     make_directory(${CMAKE_CURRENT_BINARY_DIR}/.unittest)
     include(VolkAddTest)
-    VOLK_GEN_TEST(volk_test_all
-        SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
-        TARGET_DEPS volk
-      )
+    if(ENABLE_STATIC_LIBS)
+        VOLK_GEN_TEST(volk_test_all
+            SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
+            ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
+            TARGET_DEPS volk_static
+          )
+    else()
+        VOLK_GEN_TEST(volk_test_all
+            SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
+            ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc
+            TARGET_DEPS volk
+          )
+    endif()
     foreach(kernel ${h_files})
       get_filename_component(kernel ${kernel} NAME)
       string(REPLACE ".h" "" kernel ${kernel})
