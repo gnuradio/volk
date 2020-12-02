@@ -22,6 +22,25 @@ jobs:
     - name: test
       run: cd build && ctest -V
 
+  build-ubuntu-static:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: dependencies
+      run: sudo apt install python3-mako liborc-dev
+    - name: Checkout submodules
+      uses: srt32/git-actions@v0.0.3
+      with:
+        args: git submodule update --init --recursive
+    - name: configure
+      run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True ..
+    - name: build
+      run: cmake --build build
+    - name: test
+      run: cd build && ctest -V
+
   build-windows:
 
     runs-on: windows-latest
