@@ -122,6 +122,9 @@ else()
   option(VOLK_CPU_FEATURES "Volk uses cpu_features" OFF)
 endif()
 if (VOLK_CPU_FEATURES)
+  if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cpu_features/CMakeLists.txt" )
+    message(FATAL_ERROR "cpu_features/CMakeLists.txt not found. Did you forget to git clone recursively?\nFix with: git submodule update --init")
+  endif()
   message(STATUS "Building Volk with cpu_features")
   set(BUILD_PIC ON CACHE BOOL
     "Build cpu_features with Position Independent Code (PIC)."
