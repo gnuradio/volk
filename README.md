@@ -55,7 +55,7 @@ git clone --recursive https://github.com/gnuradio/volk.git
 will automatically clone submodules as well.
 In case you missed that, you can just run:
 ```bash
-git submmodule update --init --recursive
+git submodule update --init --recursive
 ```
 that'll pull in missing submodules.
 
