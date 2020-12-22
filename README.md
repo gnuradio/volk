@@ -60,7 +60,7 @@ git submmodule update --init --recursive
 that'll pull in missing submodules.
 
 
-### Building on Raspberry Pi and other ARM boards
+### Building on Raspberry Pi and other ARM boards (32 bit)
 
 To build for these boards you need specify the correct cmake toolchain file for best performance.
 
