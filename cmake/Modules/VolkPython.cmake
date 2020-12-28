@@ -100,6 +100,11 @@ endmacro(VOLK_PYTHON_CHECK_MODULE)
 # Sets the python installation directory VOLK_PYTHON_DIR
 ########################################################################
 if(NOT DEFINED VOLK_PYTHON_DIR)
+VOLK_PYTHON_CHECK_MODULE("distutils" "distutils" "True" HAVE_DISTUTILS)
+if(NOT HAVE_DISTUTILS)
+    message(FATAL_ERROR "Python module 'distutils' from Python’s Standard Library not found. On Debian install 'python3-distutils'.")
+endif()
+
 execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "
 from distutils import sysconfig
 print(sysconfig.get_python_lib(plat_specific=True, prefix=''))
