@@ -246,7 +246,6 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs,
         memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
 
         if (stage_size > 15) {
-            _mm256_zeroupper();
             volk_8u_x2_encodeframepolar_8u_u_ssse3(u_target, u_temp, stage_size);
         } else {
             volk_8u_x2_encodeframepolar_8u_generic(u_target, u_temp, stage_size);
@@ -259,7 +258,6 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs,
 
         int p;
         for (p = 0; p < stage_size; p += 8) {
-            _mm256_zeroupper();
             fbits = _mm_loadu_si128((__m128i*)u_target);
             u_target += 8;
 
@@ -347,7 +345,6 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs,
         memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
 
         if (stage_size > 15) {
-            _mm256_zeroupper();
             volk_8u_x2_encodeframepolar_8u_u_ssse3(u_target, u_temp, stage_size);
         } else {
             volk_8u_x2_encodeframepolar_8u_generic(u_target, u_temp, stage_size);
@@ -360,7 +357,6 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs,
 
         int p;
         for (p = 0; p < stage_size; p += 8) {
-            _mm256_zeroupper();
             fbits = _mm_loadu_si128((__m128i*)u_target);
             u_target += 8;
 
