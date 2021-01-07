@@ -364,7 +364,6 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_axv2(lv_16sc_t* out,
 
         _mm256_storeu_si256((__m256i*)dotProductVector,
                             result); // Store the results back into the dot product vector
-        _mm256_zeroupper();
 
         for (number = 0; number < 8; ++number) {
             dotProduct = lv_cmake(
@@ -507,7 +506,6 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_axv2(lv_16sc_t* out,
 
         _mm256_store_si256((__m256i*)dotProductVector,
                            result); // Store the results back into the dot product vector
-        _mm256_zeroupper();
 
         for (number = 0; number < 8; ++number) {
             dotProduct = lv_cmake(

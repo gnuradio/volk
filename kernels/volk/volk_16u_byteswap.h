@@ -99,8 +99,6 @@ static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int n
         inputPtr += nPerSet;
     }
 
-    _mm256_zeroupper();
-
     // Byteswap any remaining points:
     for (number = nPerSet * nSets; number < num_points; number++) {
         uint16_t outputVal = *inputPtr;
@@ -138,8 +136,6 @@ static inline void volk_16u_byteswap_u_avx2(uint16_t* intsToSwap, unsigned int n
         _mm256_storeu_si256((__m256i*)inputPtr, output);
         inputPtr += nPerSet;
     }
-
-    _mm256_zeroupper();
 
     // Byteswap any remaining points:
     for (number = nPerSet * nSets; number < num_points; number++) {

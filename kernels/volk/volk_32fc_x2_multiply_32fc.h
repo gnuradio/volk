@@ -120,8 +120,6 @@ static inline void volk_32fc_x2_multiply_32fc_u_avx2_fma(lv_32fc_t* cVector,
         c += 4;
     }
 
-    _mm256_zeroupper();
-
     number = quarterPoints * 4;
     for (; number < num_points; number++) {
         *c++ = (*a++) * (*b++);
@@ -276,8 +274,6 @@ static inline void volk_32fc_x2_multiply_32fc_a_avx2_fma(lv_32fc_t* cVector,
         b += 4;
         c += 4;
     }
-
-    _mm256_zeroupper();
 
     number = quarterPoints * 4;
     for (; number < num_points; number++) {

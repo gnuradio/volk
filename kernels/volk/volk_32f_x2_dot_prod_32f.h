@@ -416,7 +416,6 @@ static inline void volk_32f_x2_dot_prod_32f_u_avx2_fma(float* result,
     __VOLK_ATTR_ALIGNED(32) float dotProductVector[8];
     _mm256_storeu_ps(dotProductVector,
                      dotProdVal); // Store the results back into the dot product vector
-    _mm256_zeroupper();
 
     float dotProduct = dotProductVector[0] + dotProductVector[1] + dotProductVector[2] +
                        dotProductVector[3] + dotProductVector[4] + dotProductVector[5] +
@@ -825,7 +824,6 @@ static inline void volk_32f_x2_dot_prod_32f_a_avx2_fma(float* result,
     __VOLK_ATTR_ALIGNED(32) float dotProductVector[8];
     _mm256_store_ps(dotProductVector,
                     dotProdVal); // Store the results back into the dot product vector
-    _mm256_zeroupper();
 
     float dotProduct = dotProductVector[0] + dotProductVector[1] + dotProductVector[2] +
                        dotProductVector[3] + dotProductVector[4] + dotProductVector[5] +
