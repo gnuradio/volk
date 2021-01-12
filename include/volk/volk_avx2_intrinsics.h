@@ -119,4 +119,116 @@ static inline __m256 _mm256_scaled_norm_dist_ps_avx2(const __m256 symbols0,
     return _mm256_mul_ps(norms, scalar);
 }
 
+/*
+ * The function below vectorizes the inner loop of the following code:
+ *
+ * float max_values[8] = {0.f};
+ * unsigned max_indices[8] = {0};
+ * unsigned current_indices[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+ * for (unsigned i = 0; i < num_points / 8; ++i) {
+ *     for (unsigned j = 0; j < 8; ++j) {
+ *         float abs_squared = real(src0) * real(src0) + imag(src0) * imag(src1)
+ *         bool compare = abs_squared > max_values[j];
+ *         max_values[j] = compare ? abs_squared : max_values[j];
+ *         max_indices[j] = compare ? current_indices[j] > max_indices[j]
+ *         current_indices[j] += 8; // update for next outer loop iteration
+ *         ++src0;
+ *     }
+ * }
+ */
+static inline void vector_32fc_index_max_variant0(__m256 in0,
+                                                  __m256 in1,
+                                                  __m256* max_values,
+                                                  __m256i* max_indices,
+                                                  __m256i* current_indices,
+                                                  __m256i indices_increment)
+{
+    in0 = _mm256_mul_ps(in0, in0);
+    in1 = _mm256_mul_ps(in1, in1);
+
+    /*
+     * Given the vectors a = (a_7, a_6, …, a_1, a_0) and b = (b_7, b_6, …, b_1, b_0)
+     * hadd_ps(a, b) computes
+     * (b_7 + b_6,
+     *  b_5 + b_4,
+     *  ---------
+     *  a_7 + b_6,
+     *  a_5 + a_4,
+     *  ---------
+     *  b_3 + b_2,
+     *  b_1 + b_0,
+     *  ---------
+     *  a_3 + a_2,
+     *  a_1 + a_0).
+     * The result is the squared absolute value of complex numbers at index
+     * offsets (7, 6, 3, 2, 5, 4, 1, 0). This must be the initial value of
+     * current_indices!
+     */
+    __m256 abs_squared = _mm256_hadd_ps(in0, in1);
+
+    /*
+     * Compare the recently computed squared absolute values with the
+     * previously determined maximum values. cmp_ps(a, b) determines
+     * a > b ? 0xFFFFFFFF for each element in the vectors =>
+     * compare_mask = abs_squared > max_values ? 0xFFFFFFFF : 0
+     *
+     * If either operand is NaN, 0 is returned as an “ordered” comparision is
+     * used => the blend operation will select the value from *max_values.
+     */
+    __m256 compare_mask = _mm256_cmp_ps(abs_squared, *max_values, _CMP_GT_OS);
+
+    /* Select maximum by blending. This is the only line which differs from variant1 */
+    *max_values = _mm256_blendv_ps(*max_values, abs_squared, compare_mask);
+
+    /*
+     * Updates indices: blendv_ps(a, b, mask) determines mask ? b : a for
+     * each element in the vectors =>
+     * max_indices = compare_mask ? current_indices : max_indices
+     *
+     * Note: The casting of data types is required to make the compiler happy
+     * and does not change values.
+     */
+    *max_indices =
+        _mm256_castps_si256(_mm256_blendv_ps(_mm256_castsi256_ps(*max_indices),
+                                             _mm256_castsi256_ps(*current_indices),
+                                             compare_mask));
+
+    /* compute indices of complex numbers which will be loaded in the next iteration */
+    *current_indices = _mm256_add_epi32(*current_indices, indices_increment);
+}
+
+/* See _variant0 for details */
+static inline void vector_32fc_index_max_variant1(__m256 in0,
+                                                  __m256 in1,
+                                                  __m256* max_values,
+                                                  __m256i* max_indices,
+                                                  __m256i* current_indices,
+                                                  __m256i indices_increment)
+{
+    in0 = _mm256_mul_ps(in0, in0);
+    in1 = _mm256_mul_ps(in1, in1);
+
+    __m256 abs_squared = _mm256_hadd_ps(in0, in1);
+    __m256 compare_mask = _mm256_cmp_ps(abs_squared, *max_values, _CMP_GT_OS);
+
+    /*
+     * This is the only line which differs from variant0. Using maxps instead of
+     * blendvps is faster on Intel CPUs (on the ones tested with).
+     *
+     * Note: The order of arguments matters if a NaN is encountered in which
+     * case the value of the second argument is selected. This is consistent
+     * with the “ordered” comparision and the blend operation: The comparision
+     * returns false if a NaN is encountered and the blend operation
+     * consequently selects the value from max_indices.
+     */
+    *max_values = _mm256_max_ps(abs_squared, *max_values);
+
+    *max_indices =
+        _mm256_castps_si256(_mm256_blendv_ps(_mm256_castsi256_ps(*max_indices),
+                                             _mm256_castsi256_ps(*current_indices),
+                                             compare_mask));
+
+    *current_indices = _mm256_add_epi32(*current_indices, indices_increment);
+}
+
 #endif /* INCLUDE_VOLK_VOLK_AVX2_INTRINSICS_H_ */
