@@ -96,30 +96,6 @@ matrix:
       env: MATRIX_EVAL="CC=clang && CXX=clang++"
       addons: {apt: {packages: [*common_packages, ]}}
 
-    - name: Linux ppc64le GCC
-      arch: ppc64le
-      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-      addons: {apt: {packages: [*common_packages, ]}}
-
-    - name: Linux ppc64le Clang
-      arch: ppc64le
-      env: MATRIX_EVAL="CC=clang && CXX=clang++"
-      addons: {apt: {packages: [*common_packages,]}}
-
-    - name: Linux s390x GCC
-      arch: s390x
-      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-      addons: {apt: {packages: [*common_packages, ]}}
-
-    - name: Linux s390x Clang
-      arch: s390x
-      env: MATRIX_EVAL="CC=clang && CXX=clang++"
-      addons: {apt: {packages: [*common_packages, ]}}
-
-  allow_failures:
-    - arch: s390x
-    - arch: ppc64le
-
 script:
   - eval "${MATRIX_EVAL}"
   - lscpu
@@ -127,4 +103,5 @@ script:
   - mkdir build && cd build && BOOST_ROOT=$BOOST_ROOT
   - cmake ${CMAKE_ARG} ../
   - make
+  - echo $(./apps/volk-config-info --malloc) && echo $(./apps/volk-config-info --alignment) && echo "All compiled VOLK machines:" $(./apps/volk-config-info --all-machines) && echo "Available VOLK machines:" $(./apps/volk-config-info --avail-machines)
   - ctest -V
