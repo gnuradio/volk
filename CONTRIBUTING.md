@@ -59,13 +59,6 @@ VOLK unit tests compare the results of each kernel version to the generic versio
 Keep the generic kernel version as simple as possible and verify your optimized
 kernels against the generic version.
 
-## GitHub-specific Actions
-
-VOLK is currently hosted at GitHub, where we've added some mechanics that
-help with getting code merged. If you intend to develop code more than once,
-request being accepted into the [gr-devs][gr-devs] group. Members of this group
-can change labels and approve pull requests or request changes.
-
 ## The Buddy Principle: Submit One, Review One
 
 When you've submitted a pull request, please take the time to review another
