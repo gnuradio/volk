@@ -307,41 +307,37 @@ static inline void volk_8i_s32f_convert_32f_neon(float* outputVector,
     const float iScalar = 1.0 / scalar;
     const float32x4_t qiScalar = vdupq_n_f32(iScalar);
 
-    int8x8x2_t inputVal;
-    float32x4x2_t outputFloat;
-    int16x8_t tmp;
+    int8x16_t inputVal;
+
+    int16x8_t lower;
+    int16x8_t higher;
+
+    float32x4_t outputFloat;
 
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
     for (; number < sixteenthPoints; number++) {
-        __VOLK_PREFETCH(inputVectorPtr + 16);
-
-        inputVal = vld2_s8(inputVectorPtr);
-        inputVal = vzip_s8(inputVal.val[0], inputVal.val[1]);
+        inputVal = vld1q_s8(inputVectorPtr);
         inputVectorPtr += 16;
 
-        tmp = vmovl_s8(inputVal.val[0]);
+        lower = vmovl_s8(vget_low_s8(inputVal));
+        higher = vmovl_s8(vget_high_s8(inputVal));
 
-        outputFloat.val[0] = vcvtq_f32_s32(vmovl_s16(vget_low_s16(tmp)));
-        outputFloat.val[0] = vmulq_f32(outputFloat.val[0], qiScalar);
-        vst1q_f32(outputVectorPtr, outputFloat.val[0]);
+        outputFloat = vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_low_s16(lower))), qiScalar);
+        vst1q_f32(outputVectorPtr, outputFloat);
         outputVectorPtr += 4;
 
-        outputFloat.val[1] = vcvtq_f32_s32(vmovl_s16(vget_high_s16(tmp)));
-        outputFloat.val[1] = vmulq_f32(outputFloat.val[1], qiScalar);
-        vst1q_f32(outputVectorPtr, outputFloat.val[1]);
+        outputFloat = vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_high_s16(lower))), qiScalar);
+        vst1q_f32(outputVectorPtr, outputFloat);
         outputVectorPtr += 4;
 
-        tmp = vmovl_s8(inputVal.val[1]);
-
-        outputFloat.val[0] = vcvtq_f32_s32(vmovl_s16(vget_low_s16(tmp)));
-        outputFloat.val[0] = vmulq_f32(outputFloat.val[0], qiScalar);
-        vst1q_f32(outputVectorPtr, outputFloat.val[0]);
+        outputFloat = vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_low_s16(higher))), qiScalar);
+        vst1q_f32(outputVectorPtr, outputFloat);
         outputVectorPtr += 4;
 
-        outputFloat.val[1] = vcvtq_f32_s32(vmovl_s16(vget_high_s16(tmp)));
-        outputFloat.val[1] = vmulq_f32(outputFloat.val[1], qiScalar);
-        vst1q_f32(outputVectorPtr, outputFloat.val[1]);
+        outputFloat =
+            vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_high_s16(higher))), qiScalar);
+        vst1q_f32(outputVectorPtr, outputFloat);
         outputVectorPtr += 4;
     }
     for (number = sixteenthPoints * 16; number < num_points; number++) {
