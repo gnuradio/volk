@@ -244,7 +244,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_sse2(lv_16sc_t* out,
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 
-static inline void volk_16ic_x2_dot_prod_16ic_u_axv2(lv_16sc_t* out,
+static inline void volk_16ic_x2_dot_prod_16ic_u_avx2(lv_16sc_t* out,
                                                      const lv_16sc_t* in_a,
                                                      const lv_16sc_t* in_b,
                                                      unsigned int num_points)
@@ -386,7 +386,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_axv2(lv_16sc_t* out,
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 
-static inline void volk_16ic_x2_dot_prod_16ic_a_axv2(lv_16sc_t* out,
+static inline void volk_16ic_x2_dot_prod_16ic_a_avx2(lv_16sc_t* out,
                                                      const lv_16sc_t* in_a,
                                                      const lv_16sc_t* in_b,
                                                      unsigned int num_points)
