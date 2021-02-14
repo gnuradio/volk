@@ -55,13 +55,8 @@ inline T lv_conj(const T& x)
 
 #else /* __cplusplus */
 
-#if __STDC_VERSION__ >= 199901L /* C99 check */
-/* this allows us to conj in lv_conj without the double detour for single-precision floats
- */
-#include <tgmath.h>
-#endif /* C99 check */
-
 #include <complex.h>
+#include <tgmath.h>
 
 typedef char complex lv_8sc_t;
 typedef short complex lv_16sc_t;
