@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build-ubuntu:
+    name: Build on ubuntu-latest ${{ matrix.compiler.name }}
 
     strategy:
       matrix:
@@ -48,7 +49,103 @@ jobs:
         cd build
         ctest -V
 
+  build-ubuntu-arm:
+    # The host should always be linux
+    # see: https://github.com/uraimo/run-on-arch-action
+    runs-on: ubuntu-latest
+    name: Build on ${{ matrix.distro }} ${{ matrix.arch }} ${{ matrix.compiler.name }}
+
+    # Run steps on a matrix of compilers and possibly archs.
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64
+            distro: ubuntu20.04
+            compiler: { name: g++-8, cc: gcc-8, cxx: g++-8 }
+          - arch: aarch64
+            distro: ubuntu20.04
+            compiler: { name: g++-9, cc: gcc-9, cxx: g++-9 }
+          - arch: aarch64
+            distro: ubuntu20.04
+            compiler: { name: g++-10, cc: gcc-10, cxx: g++-10 }
+          # This test failed with a stl filesystem issue. 
+          # - arch: aarch64
+          #   distro: ubuntu20.04
+          #   compiler: { name: clang-8, cc: clang-8, cxx: clang++-8 }
+          - arch: aarch64
+            distro: ubuntu20.04
+            compiler: { name: clang-9, cc: clang-9, cxx: clang++-9 }
+          - arch: aarch64
+            distro: ubuntu20.04
+            compiler: { name: clang-10, cc: clang-10, cxx: clang++-10 }
+          # CMake fails to detect compiler on armv7 ...
+          # - arch: armv7
+          #   distro: ubuntu20.04
+          #   compiler: { name: g++-10, cc: gcc-10, cxx: g++-10 }
+          # - arch: armv7
+          #   distro: ubuntu20.04
+          #   compiler: { name: clang-10, cc: clang-10, cxx: clang++-10 }
+          # - arch: ppc64le
+          #   distro: ubuntu20.04
+          # - arch: s390x
+          #   distro: ubuntu20.04
+
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: Checkout submodules
+        uses: srt32/git-actions@v0.0.3
+        with:
+          args: git submodule update --init --recursive
+      - uses: uraimo/run-on-arch-action@v2.0.5
+        name: Build in non-x86 container
+        id: build
+        with:
+          arch: ${{ matrix.arch }}
+          distro: ${{ matrix.distro }}
+
+          # Not required, but speeds up builds
+          githubToken: ${{ github.token }}
+
+          setup: |
+            mkdir -p "${PWD}/build"
+
+          dockerRunArgs: |
+            --volume "${PWD}:/volk"
+
+          env: | # YAML, but pipe character is necessary
+            CC: ${{ matrix.compiler.cc }}
+            CXX: ${{ matrix.compiler.cxx }}
+
+          shell: /bin/sh
+
+          install: |
+            case "${{ matrix.distro }}" in
+              ubuntu*|jessie|stretch|buster)
+                apt-get update -q -y
+                apt-get install -q -y git cmake python3-distutils python3-mako liborc-dev ${{ matrix.compiler.name }}
+                ;;
+              fedora*)
+                dnf -y update
+                dnf -y install git which
+                ;;
+            esac
+
+          run: |
+            cd /volk
+            cd build
+            cmake -DCMAKE_CXX_FLAGS="-Werror" ..
+            make -j$(nproc)
+            ./cpu_features/list_cpu_features
+            ./apps/volk-config-info --alignment
+            ./apps/volk-config-info --avail-machines
+            ./apps/volk-config-info --all-machines
+            ./apps/volk-config-info --malloc
+            ./apps/volk-config-info --cc
+            ctest -V
+
+
   build-ubuntu-static:
+    name: Build static on ubuntu-latest
 
     runs-on: ubuntu-latest
 
