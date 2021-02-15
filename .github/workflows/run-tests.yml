@@ -86,7 +86,7 @@ jobs:
           # clang fails with in-line assembly on armv7 ...
           - arch: armv7
             distro: ubuntu20.04
-            compiler: { name: g++-9, cc: gcc-9, cxx: g++-9 }
+            compiler: { name: g++-9, cc: arm-linux-gnueabihf-gcc-9, cxx: arm-linux-gnueabihf-g++-10 }
             cmake_args: -DCMAKE_CXX_FLAGS="-Werror"
           # - arch: armv7
           #   distro: ubuntu20.04
