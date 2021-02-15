@@ -62,15 +62,15 @@ jobs:
           - arch: aarch64
             distro: ubuntu20.04
             compiler: { name: g++-8, cc: gcc-8, cxx: g++-8 }
-            cmake_args: "-DCMAKE_CXX_FLAGS="-Werror""
+            cmake_args: -DCMAKE_CXX_FLAGS="-Werror"
           - arch: aarch64
             distro: ubuntu20.04
             compiler: { name: g++-9, cc: gcc-9, cxx: g++-9 }
-            cmake_args: "-DCMAKE_CXX_FLAGS="-Werror""
+            cmake_args: -DCMAKE_CXX_FLAGS="-Werror"
           - arch: aarch64
             distro: ubuntu20.04
             compiler: { name: g++-10, cc: gcc-10, cxx: g++-10 }
-            cmake_args: "-DCMAKE_CXX_FLAGS="-Werror""
+            cmake_args: -DCMAKE_CXX_FLAGS="-Werror"
           # This test failed with a stl filesystem issue. 
           # - arch: aarch64
           #   distro: ubuntu20.04
@@ -78,16 +78,16 @@ jobs:
           - arch: aarch64
             distro: ubuntu20.04
             compiler: { name: clang-9, cc: clang-9, cxx: clang++-9 }
-            cmake_args: "-DCMAKE_CXX_FLAGS="-Werror""
+            cmake_args: -DCMAKE_CXX_FLAGS="-Werror"
           - arch: aarch64
             distro: ubuntu20.04
             compiler: { name: clang-10, cc: clang-10, cxx: clang++-10 }
-            cmake_args: "-DCMAKE_CXX_FLAGS="-Werror""
+            cmake_args: -DCMAKE_CXX_FLAGS="-Werror"
           # clang fails with in-line assembly on armv7 ...
           - arch: armv7
             distro: ubuntu20.04
             compiler: { name: g++-10, cc: gcc-10, cxx: g++-10 }
-            cmake_args: "-DCMAKE_CXX_FLAGS:STRING="-mfpu=neon -Werror" -DCMAKE_C_FLAGS:STRING="-mfpu=neon -Werror" -DCMAKE_ASM_FLAGS:STRING="-mfpu=neon -g""
+            cmake_args: -DCMAKE_CXX_FLAGS:STRING="-mfpu=neon -Werror" -DCMAKE_C_FLAGS:STRING="-mfpu=neon -Werror" -DCMAKE_ASM_FLAGS:STRING="-mfpu=neon -g"
           # - arch: armv7
           #   distro: ubuntu20.04
           #   compiler: { name: clang-10, cc: clang-10, cxx: clang++-10 }
