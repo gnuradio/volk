@@ -157,7 +157,7 @@ endif()
 
 # Python
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
-VOLK_PYTHON_CHECK_MODULE("python >= 3.4" sys "sys.version.split()[0] >= '3.4'" PYTHON_MIN_VER_FOUND)
+VOLK_PYTHON_CHECK_MODULE("python >= 3.4" sys "sys.version_info >= (3, 4)" PYTHON_MIN_VER_FOUND)
 VOLK_PYTHON_CHECK_MODULE("mako >= 0.4.2" mako "mako.__version__ >= '0.4.2'" MAKO_FOUND)
 
 if(NOT PYTHON_MIN_VER_FOUND)
