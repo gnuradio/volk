@@ -86,7 +86,7 @@ jobs:
           # clang fails with in-line assembly on armv7 ...
           - arch: armv7
             distro: ubuntu20.04
-            compiler: { name: g++-10, cc: gcc-10, cxx: g++-10 }
+            compiler: { name: g++-9, cc: gcc-9, cxx: g++-9 }
             cmake_args: -DCMAKE_CXX_FLAGS:STRING="-mfpu=neon -Werror" -DCMAKE_C_FLAGS:STRING="-mfpu=neon -Werror" -DCMAKE_ASM_FLAGS:STRING="-mfpu=neon -g"
           # - arch: armv7
           #   distro: ubuntu20.04
@@ -108,7 +108,7 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           distro: ${{ matrix.distro }}
-          cmake_flags: ${{ matrix.cmake_flags }}
+          cmake_args: ${{ matrix.cmake_args }}
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
