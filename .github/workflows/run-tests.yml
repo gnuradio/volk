@@ -108,7 +108,6 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           distro: ${{ matrix.distro }}
-          cmake_args: ${{ matrix.cmake_args }}
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
