@@ -57,29 +57,29 @@ endif()
 if("${MINOR_VERSION}" STREQUAL "git")
     # VERSION: 1.0git-xxx-gxxxxxxxx
     # DOCVER:  1.0git
-    # LIBVER:  1.0git
+    # SOVERSION:  1.0git
     set(VERSION "${GIT_DESCRIBE}")
     set(DOCVER  "${MAJOR_VERSION}.0${MINOR_VERSION}")
-    set(LIBVER  "${MAJOR_VERSION}.0${MINOR_VERSION}")
+    set(SOVERSION  "${MAJOR_VERSION}.0${MINOR_VERSION}")
     set(RC_MINOR_VERSION "0")
     set(RC_MAINT_VERSION "0")
 elseif("${MAINT_VERSION}" STREQUAL "git")
     # VERSION: 1.xgit-xxx-gxxxxxxxx
     # DOCVER:  1.xgit
-    # LIBVER:  1.xgit
+    # SOVERSION:  1.xgit
     set(VERSION "${GIT_DESCRIBE}")
     set(DOCVER  "${MAJOR_VERSION}.${MINOR_VERSION}${MAINT_VERSION}")
-    set(LIBVER  "${MAJOR_VERSION}.${MINOR_VERSION}${MAINT_VERSION}")
+    set(SOVERSION  "${MAJOR_VERSION}.${MINOR_VERSION}${MAINT_VERSION}")
     math(EXPR RC_MINOR_VERSION "${MINOR_VERSION} - 1")
     set(RC_MAINT_VERSION "0")
 else()
     # This is a numbered release.
     # VERSION: 1.1{.x}
     # DOCVER:  1.1{.x}
-    # LIBVER:  1.1{.x}
-    set(VERSION "${MAJOR_VERSION}.${MINOR_VERSION}")
+    # SOVERSION:  1.1.0
+    set(VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${MAINT_VERSION}")
     set(DOCVER "${VERSION}")
-    set(LIBVER "${VERSION}")
+    set(SOVERSION "${MAJOR_VERSION}.${MINOR_VERSION}")
     set(RC_MINOR_VERSION ${MINOR_VERSION})
     set(RC_MAINT_VERSION ${MAINT_VERSION})
 endif()
