@@ -556,7 +556,8 @@ endif()
 if(NOT MSVC)
   target_link_libraries(volk PUBLIC m)
 endif()
-set_target_properties(volk PROPERTIES SOVERSION ${LIBVER})
+set_target_properties(volk PROPERTIES VERSION ${VERSION})
+set_target_properties(volk PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
 
 #Install locations
