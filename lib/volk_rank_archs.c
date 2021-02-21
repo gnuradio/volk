@@ -41,13 +41,9 @@ int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
 )
 {
     size_t i;
-    static volk_arch_pref_t* volk_arch_prefs;
-    static size_t n_arch_prefs = 0;
-    static int prefs_loaded = 0;
-    if (!prefs_loaded) {
-        n_arch_prefs = volk_load_preferences(&volk_arch_prefs);
-        prefs_loaded = 1;
-    }
+
+    const volk_arch_pref_t* volk_arch_prefs = volk_get_arch_prefs();
+    const size_t n_arch_prefs = volk_get_num_arch_prefs();
 
     // If we've defined VOLK_GENERIC to be anything, always return the
     // 'generic' kernel. Used in GR's QA code.

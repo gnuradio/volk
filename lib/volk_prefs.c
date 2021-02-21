@@ -18,6 +18,7 @@
 #else
 #include <unistd.h>
 #endif
+#include <stdatomic.h>
 #include <volk/volk_prefs.h>
 
 void volk_get_config_path(char* path, bool read)
@@ -71,6 +72,48 @@ void volk_get_config_path(char* path, bool read)
     path[0] = 0;
     return;
 }
+
+
+static struct volk_preferences {
+    volk_arch_pref_t* volk_arch_prefs;
+    size_t n_arch_prefs;
+    atomic_int initialized;
+
+} volk_preferences;
+
+
+void volk_initialize_preferences()
+{
+    if (!atomic_fetch_and(&volk_preferences.initialized, 1)) {
+        volk_preferences.n_arch_prefs =
+            volk_load_preferences(&volk_preferences.volk_arch_prefs);
+    }
+}
+
+
+void volk_free_preferences()
+{
+    if (volk_preferences.initialized) {
+        free(volk_preferences.volk_arch_prefs);
+        volk_preferences.n_arch_prefs = 0;
+        volk_preferences.initialized = 0;
+    }
+}
+
+
+const size_t volk_get_num_arch_prefs()
+{
+    volk_initialize_preferences();
+    return volk_preferences.n_arch_prefs;
+}
+
+
+const volk_arch_pref_t* volk_get_arch_prefs()
+{
+    volk_initialize_preferences();
+    return volk_preferences.volk_arch_prefs;
+}
+
 
 size_t volk_load_preferences(volk_arch_pref_t** prefs_res)
 {
