@@ -18,7 +18,9 @@
 #else
 #include <unistd.h>
 #endif
+#ifndef __STDC_NO_THREADS__
 #include <threads.h>
+#endif
 #include <volk/volk_prefs.h>
 
 void volk_get_config_path(char* path, bool read)
@@ -78,10 +80,12 @@ static struct volk_preferences {
     volk_arch_pref_t* volk_arch_prefs;
     size_t n_arch_prefs;
     int initialized;
+#ifndef __STDC_NO_THREADS__
     mtx_t mutex;
-
+#endif
 } volk_preferences;
 
+#ifndef __STDC_NO_THREADS__
 void init_struct_mutex(void)
 {
     if (mtx_init(&volk_preferences.mutex, mtx_plain) != thrd_success) {
@@ -91,30 +95,39 @@ void init_struct_mutex(void)
 
 static once_flag mutex_init_once_flag = ONCE_FLAG_INIT;
 void initialize_mutex() { call_once(&mutex_init_once_flag, init_struct_mutex); }
+#endif
 
 void volk_initialize_preferences()
 {
+#ifndef __STDC_NO_THREADS__
     initialize_mutex();
     mtx_lock(&volk_preferences.mutex);
+#endif
     if (!volk_preferences.initialized) {
         volk_preferences.n_arch_prefs =
             volk_load_preferences(&volk_preferences.volk_arch_prefs);
         volk_preferences.initialized = 1;
     }
+#ifndef __STDC_NO_THREADS__
     mtx_unlock(&volk_preferences.mutex);
+#endif
 }
 
 
 void volk_free_preferences()
 {
+#ifndef __STDC_NO_THREADS__
     initialize_mutex();
     mtx_lock(&volk_preferences.mutex);
+#endif
     if (volk_preferences.initialized) {
         free(volk_preferences.volk_arch_prefs);
         volk_preferences.n_arch_prefs = 0;
         volk_preferences.initialized = 0;
     }
+#ifndef __STDC_NO_THREADS__
     mtx_unlock(&volk_preferences.mutex);
+#endif
 }
 
 
