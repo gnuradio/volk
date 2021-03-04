@@ -18,7 +18,7 @@
 #else
 #include <unistd.h>
 #endif
-#include <stdatomic.h>
+#include <threads.h>
 #include <volk/volk_prefs.h>
 
 void volk_get_config_path(char* path, bool read)
@@ -77,27 +77,44 @@ void volk_get_config_path(char* path, bool read)
 static struct volk_preferences {
     volk_arch_pref_t* volk_arch_prefs;
     size_t n_arch_prefs;
-    atomic_int initialized;
+    int initialized;
+    mtx_t mutex;
 
 } volk_preferences;
 
+void init_struct_mutex(void)
+{
+    if (mtx_init(&volk_preferences.mutex, mtx_plain) != thrd_success) {
+        printf("\n mutex init failed\n");
+    }
+}
+
+static once_flag mutex_init_once_flag = ONCE_FLAG_INIT;
+void initialize_mutex() { call_once(&mutex_init_once_flag, init_struct_mutex); }
 
 void volk_initialize_preferences()
 {
-    if (!atomic_fetch_and(&volk_preferences.initialized, 1)) {
+    initialize_mutex();
+    mtx_lock(&volk_preferences.mutex);
+    if (!volk_preferences.initialized) {
         volk_preferences.n_arch_prefs =
             volk_load_preferences(&volk_preferences.volk_arch_prefs);
+        volk_preferences.initialized = 1;
     }
+    mtx_unlock(&volk_preferences.mutex);
 }
 
 
 void volk_free_preferences()
 {
+    initialize_mutex();
+    mtx_lock(&volk_preferences.mutex);
     if (volk_preferences.initialized) {
         free(volk_preferences.volk_arch_prefs);
         volk_preferences.n_arch_prefs = 0;
         volk_preferences.initialized = 0;
     }
+    mtx_unlock(&volk_preferences.mutex);
 }
 
 
