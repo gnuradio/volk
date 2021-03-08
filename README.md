@@ -60,9 +60,11 @@ git submodule update --init --recursive
 that'll pull in missing submodules.
 
 
-### Building on Raspberry Pi and other ARM boards
+### Building on Raspberry Pi and other ARM boards (32 bit)
 
 To build for these boards you need specify the correct cmake toolchain file for best performance.
+
+_Note: There is no need for adding extra options to the compiler for 64 bit._
 
 * Raspberry Pi 4 `arm_cortex_a72_hardfp_native.cmake`
 * Raspberry Pi 3 `arm_cortex_a53_hardfp_native.cmake`
@@ -87,7 +89,7 @@ Currently VOLK aims to run with optimized kernels on x86 with SSE/AVX and ARM wi
 
 ### OS / Distro
 We run tests on a variety of Ubuntu versions and aim to support as many current distros as possible.
-The same goal applies to different OSes. Although this does only happen rarely, it might occur that VOLK does not work on obsolete distros, e.g. Ubuntu 12.04.
+The same goal applies to different OSes. Although this does only rarely happen, it might occur that VOLK does not work on obsolete distros, e.g. Ubuntu 12.04.
 
 ### Compilers
 We want to make sure VOLK works with C/C++ standard compliant compilers. Of course, as an open source project we focus on open source compilers, most notably GCC and Clang.
