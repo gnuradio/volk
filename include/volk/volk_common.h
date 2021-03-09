@@ -145,13 +145,23 @@ union bit256 {
 ////////////////////////////////////////////////////////////////////////
 // log2f
 ////////////////////////////////////////////////////////////////////////
+#ifdef __cplusplus
+#include <cmath>
+#else
 #include <math.h>
+#endif
 // +-Inf -> +-127.0f in order to match the behaviour of the SIMD kernels
 static inline float log2f_non_ieee(float f)
 {
+#ifdef __cplusplus
+    float const result = std::log2f(f);
+    return std::isinf(result) ? std::copysignf(127.0f, result) : result;
+#else
     float const result = log2f(f);
     return isinf(result) ? copysignf(127.0f, result) : result;
+#endif
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 // Constant used to do log10 calculations as faster log2
