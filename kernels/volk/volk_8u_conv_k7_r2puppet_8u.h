@@ -188,87 +188,87 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* syms,
 #endif /*LV_HAVE_SSE3*/
 
 
-#if LV_HAVE_AVX2
-
-#include <immintrin.h>
-#include <stdio.h>
-
-static inline void volk_8u_conv_k7_r2puppet_8u_avx2(unsigned char* syms,
-                                                    unsigned char* dec,
-                                                    unsigned int framebits)
-{
-
-
-    static int once = 1;
-    int d_numstates = (1 << 6);
-    int rate = 2;
-    static unsigned char* D;
-    static unsigned char* Y;
-    static unsigned char* X;
-    static unsigned int excess = 6;
-    static unsigned char* Branchtab;
-    static unsigned char Partab[256];
-
-    int d_polys[2] = { 79, 109 };
-
-
-    if (once) {
-
-        X = (unsigned char*)volk_malloc(2 * d_numstates, volk_get_alignment());
-        Y = X + d_numstates;
-        Branchtab =
-            (unsigned char*)volk_malloc(d_numstates / 2 * rate, volk_get_alignment());
-        D = (unsigned char*)volk_malloc((d_numstates / 8) * (framebits + 6),
-                                        volk_get_alignment());
-        int state, i;
-        int cnt, ti;
-
-        /* Initialize parity lookup table */
-        for (i = 0; i < 256; i++) {
-            cnt = 0;
-            ti = i;
-            while (ti) {
-                if (ti & 1)
-                    cnt++;
-                ti >>= 1;
-            }
-            Partab[i] = cnt & 1;
-        }
-        /*  Initialize the branch table */
-        for (state = 0; state < d_numstates / 2; state++) {
-            for (i = 0; i < rate; i++) {
-                Branchtab[i * d_numstates / 2 + state] =
-                    parity((2 * state) & d_polys[i], Partab) ? 255 : 0;
-            }
-        }
-
-        once = 0;
-    }
-
-    // unbias the old_metrics
-    memset(X, 31, d_numstates);
-
-    // initialize decisions
-    memset(D, 0, (d_numstates / 8) * (framebits + 6));
-
-    volk_8u_x4_conv_k7_r2_8u_avx2(
-        Y, X, syms, D, framebits / 2 - excess, excess, Branchtab);
-
-    unsigned int min = X[0];
-    int i = 0, state = 0;
-    for (i = 0; i < (d_numstates); ++i) {
-        if (X[i] < min) {
-            min = X[i];
-            state = i;
-        }
-    }
-
-    chainback_viterbi(dec, framebits / 2 - excess, state, excess, D);
-
-    return;
-}
-
-#endif /*LV_HAVE_AVX2*/
+//#if LV_HAVE_AVX2
+//
+//#include <immintrin.h>
+//#include <stdio.h>
+//
+// static inline void volk_8u_conv_k7_r2puppet_8u_avx2(unsigned char* syms,
+//                                                    unsigned char* dec,
+//                                                    unsigned int framebits)
+//{
+//
+//
+//    static int once = 1;
+//    int d_numstates = (1 << 6);
+//    int rate = 2;
+//    static unsigned char* D;
+//    static unsigned char* Y;
+//    static unsigned char* X;
+//    static unsigned int excess = 6;
+//    static unsigned char* Branchtab;
+//    static unsigned char Partab[256];
+//
+//    int d_polys[2] = { 79, 109 };
+//
+//
+//    if (once) {
+//
+//        X = (unsigned char*)volk_malloc(2 * d_numstates, volk_get_alignment());
+//        Y = X + d_numstates;
+//        Branchtab =
+//            (unsigned char*)volk_malloc(d_numstates / 2 * rate, volk_get_alignment());
+//        D = (unsigned char*)volk_malloc((d_numstates / 8) * (framebits + 6),
+//                                        volk_get_alignment());
+//        int state, i;
+//        int cnt, ti;
+//
+//        /* Initialize parity lookup table */
+//        for (i = 0; i < 256; i++) {
+//            cnt = 0;
+//            ti = i;
+//            while (ti) {
+//                if (ti & 1)
+//                    cnt++;
+//                ti >>= 1;
+//            }
+//            Partab[i] = cnt & 1;
+//        }
+//        /*  Initialize the branch table */
+//        for (state = 0; state < d_numstates / 2; state++) {
+//            for (i = 0; i < rate; i++) {
+//                Branchtab[i * d_numstates / 2 + state] =
+//                    parity((2 * state) & d_polys[i], Partab) ? 255 : 0;
+//            }
+//        }
+//
+//        once = 0;
+//    }
+//
+//    // unbias the old_metrics
+//    memset(X, 31, d_numstates);
+//
+//    // initialize decisions
+//    memset(D, 0, (d_numstates / 8) * (framebits + 6));
+//
+//    volk_8u_x4_conv_k7_r2_8u_avx2(
+//        Y, X, syms, D, framebits / 2 - excess, excess, Branchtab);
+//
+//    unsigned int min = X[0];
+//    int i = 0, state = 0;
+//    for (i = 0; i < (d_numstates); ++i) {
+//        if (X[i] < min) {
+//            min = X[i];
+//            state = i;
+//        }
+//    }
+//
+//    chainback_viterbi(dec, framebits / 2 - excess, state, excess, D);
+//
+//    return;
+//}
+//
+//#endif /*LV_HAVE_AVX2*/
 
 
 #if LV_HAVE_GENERIC
