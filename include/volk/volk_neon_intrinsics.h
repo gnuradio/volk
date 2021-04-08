@@ -277,12 +277,11 @@ static inline float32x4_t _vtanq_f32(float32x4_t x)
     return vmulq_f32(sincos.val[0], _vinvq_f32(sincos.val[1]));
 }
 
-static inline float32x4_t 
-_neon_accumulate_square_sum_f32(float32x4_t sq_acc,
-                                float32x4_t acc,
-                                float32x4_t val,
-                                float32x4_t rec,
-                                float32x4_t aux)
+static inline float32x4_t _neon_accumulate_square_sum_f32(float32x4_t sq_acc,
+                                                          float32x4_t acc,
+                                                          float32x4_t val,
+                                                          float32x4_t rec,
+                                                          float32x4_t aux)
 {
     aux = vmulq_f32(aux, val);
     aux = vsubq_f32(aux, acc);
