@@ -9,10 +9,10 @@ jobs:
     strategy:
       matrix:
         compiler: 
-          - { name: gcc-7, cc: gcc-7, cxx: g++-7 }
-          - { name: gcc-8, cc: gcc-8, cxx: g++-8 }
-          - { name: gcc-9, cc: gcc-9, cxx: g++-9 }
-          - { name: gcc-10, cc: gcc-10, cxx: g++-10 }
+          - { name: g++-7, cc: gcc-7, cxx: g++-7 }
+          - { name: g++-8, cc: gcc-8, cxx: g++-8 }
+          - { name: g++-9, cc: gcc-9, cxx: g++-9 }
+          - { name: g++-10, cc: gcc-10, cxx: g++-10 }
           - { name: clang-7, cc: clang-7, cxx: clang++-7 }
           - { name: clang-8, cc: clang-8, cxx: clang++-8 }
           - { name: clang-9, cc: clang-9, cxx: clang++-9 }
