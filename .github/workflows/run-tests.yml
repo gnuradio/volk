@@ -58,6 +58,7 @@ jobs:
 
     # Run steps on a matrix of compilers and possibly archs.
     strategy:
+      fail-fast: false
       matrix:
         include:
           - arch: aarch64
@@ -162,6 +163,14 @@ jobs:
       run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True ..
     - name: build
       run: cmake --build build
+    - name: Print info
+      run: |
+        ./build/cpu_features/list_cpu_features
+        ./build/apps/volk-config-info --alignment
+        ./build/apps/volk-config-info --avail-machines
+        ./build/apps/volk-config-info --all-machines
+        ./build/apps/volk-config-info --malloc
+        ./build/apps/volk-config-info --cc
     - name: test
       run: cd build && ctest -V
 
@@ -197,5 +206,13 @@ jobs:
       run: mkdir build && cd build && cmake ..
     - name: build
       run: cmake --build build --config Debug
+    - name: Print info
+      run: |
+        ./build/cpu_features/list_cpu_features
+        # ./build/apps/volk-config-info --alignment
+        # ./build/apps/volk-config-info --avail-machines
+        # ./build/apps/volk-config-info --all-machines
+        # ./build/apps/volk-config-info --malloc
+        # ./build/apps/volk-config-info --cc
     - name: test
       run: cd build && ctest -V
