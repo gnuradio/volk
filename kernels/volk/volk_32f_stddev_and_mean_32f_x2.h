@@ -44,9 +44,9 @@
  * \b Example
  * Generate random numbers with c++11's normal distribution and estimate the mean and
  * standard deviation \code int N = 1000; unsigned int alignment = volk_get_alignment();
- *   float* rand_numbers = (float*)volk_malloc(sizeof(float)*N, alignment);
- *   float* mean = (float*)volk_malloc(sizeof(float), alignment);
- *   float* stddev = (float*)volk_malloc(sizeof(float), alignment);
+ *   float* rand_numbers = (float*) volk_malloc(sizeof(float)*N, alignment);
+ *   float* mean = (float*) volk_malloc(sizeof(float), alignment);
+ *   float* stddev = (float*) volk_malloc(sizeof(float), alignment);
  *
  *   // Use a normal generator with 0 mean, stddev 1
  *   std::default_random_engine generator;
@@ -111,7 +111,7 @@ static inline float update_square_sum_1_val(const float SquareSum,
                                             const float val)
 {
     // Updates a sum of squares calculated over len values with the value val
-    float n = (float)len;
+    float n = (float) len;
     return SquareSum + 1.f / (n * (n + 1.f)) * (n * val - Sum) * (n * val - Sum);
 }
 
@@ -122,7 +122,7 @@ static inline float add_square_sums(const float SquareSum0,
                                     const uint32_t len)
 {
     // Add two sums of squares calculated over the same number of values, len
-    float n = (float)len;
+    float n = (float) len;
     return SquareSum0 + SquareSum1 + .5f / n * (Sum0 - Sum1) * (Sum0 - Sum1);
 }
 
@@ -175,8 +175,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_neon(float* stddev,
 
     const float* in_ptr = inputBuffer;
 
-    __VOLK_ATTR_ALIGNED(16) float SumLocal[8] = { 0.f };
-    __VOLK_ATTR_ALIGNED(16) float SquareSumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SquareSumLocal[8] = { 0.f };
 
     const uint32_t eigth_points = num_points / 8;
 
@@ -259,8 +259,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev,
 
     const float* in_ptr = inputBuffer;
 
-    __VOLK_ATTR_ALIGNED(16) float SumLocal[8] = { 0.f };
-    __VOLK_ATTR_ALIGNED(16) float SquareSumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SquareSumLocal[8] = { 0.f };
 
 
     const uint32_t eigth_points = num_points / 8;
@@ -337,8 +337,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev,
 
     const float* in_ptr = inputBuffer;
 
-    __VOLK_ATTR_ALIGNED(32) float SumLocal[16] = { 0.f };
-    __VOLK_ATTR_ALIGNED(32) float SquareSumLocal[16] = { 0.f };
+    __VOLK_ATTR_ALIGNED(64) float SumLocal[16] = { 0.f };
+    __VOLK_ATTR_ALIGNED(64) float SquareSumLocal[16] = { 0.f };
 
     const unsigned int sixteenth_points = num_points / 16;
 
@@ -415,8 +415,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev,
 
     const float* in_ptr = inputBuffer;
 
-    __VOLK_ATTR_ALIGNED(16) float SumLocal[8] = { 0.f };
-    __VOLK_ATTR_ALIGNED(16) float SquareSumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SquareSumLocal[8] = { 0.f };
 
 
     const uint32_t eigth_points = num_points / 8;
@@ -432,11 +432,11 @@ static inline void volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev,
     __m128 Reciprocal;
 
     for (uint32_t number = 1; number < eigth_points; number++) {
-        Values0 = _mm_loadu_ps(in_ptr);
+        Values0 = _mm_load_ps(in_ptr);
         in_ptr += 4;
         __VOLK_PREFETCH(in_ptr + 4);
 
-        Values1 = _mm_loadu_ps(in_ptr);
+        Values1 = _mm_load_ps(in_ptr);
         in_ptr += 4;
         __VOLK_PREFETCH(in_ptr + 4);
 
@@ -492,8 +492,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev,
 
     const float* in_ptr = inputBuffer;
 
-    __VOLK_ATTR_ALIGNED(32) float SumLocal[16] = { 0.f };
-    __VOLK_ATTR_ALIGNED(32) float SquareSumLocal[16] = { 0.f };
+    __VOLK_ATTR_ALIGNED(64) float SumLocal[16] = { 0.f };
+    __VOLK_ATTR_ALIGNED(64) float SquareSumLocal[16] = { 0.f };
 
     const unsigned int sixteenth_points = num_points / 16;
 
@@ -509,11 +509,11 @@ static inline void volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev,
     __m256 Reciprocal;
 
     for (uint32_t number = 1; number < sixteenth_points; number++) {
-        Values0 = _mm256_loadu_ps(in_ptr);
+        Values0 = _mm256_load_ps(in_ptr);
         in_ptr += 8;
         __VOLK_PREFETCH(in_ptr + 8);
 
-        Values1 = _mm256_loadu_ps(in_ptr);
+        Values1 = _mm256_load_ps(in_ptr);
         in_ptr += 8;
         __VOLK_PREFETCH(in_ptr + 8);
 
