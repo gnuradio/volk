@@ -111,7 +111,7 @@ static inline float update_square_sum_1_val(const float SquareSum,
                                             const float val)
 {
     // Updates a sum of squares calculated over len values with the value val
-    float n = (float) len;
+    float n = (float)len;
     return SquareSum + 1.f / (n * (n + 1.f)) * (n * val - Sum) * (n * val - Sum);
 }
 
@@ -122,7 +122,7 @@ static inline float add_square_sums(const float SquareSum0,
                                     const uint32_t len)
 {
     // Add two sums of squares calculated over the same number of values, len
-    float n = (float) len;
+    float n = (float)len;
     return SquareSum0 + SquareSum1 + .5f / n * (Sum0 - Sum1) * (Sum0 - Sum1);
 }
 
