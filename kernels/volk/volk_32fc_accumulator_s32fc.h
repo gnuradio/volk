@@ -246,7 +246,7 @@ static inline void volk_32fc_accumulator_s32fc_neon(lv_32fc_t* result,
     float32x4_t out_vec1 = { 0.f, 0.f, 0.f, 0.f };
     float32x4_t out_vec2 = { 0.f, 0.f, 0.f, 0.f };
     float32x4_t out_vec3 = { 0.f, 0.f, 0.f, 0.f };
-    float tempBuffer[4];
+    __VOLK_ATTR_ALIGNED(32) float tempBuffer[4];
 
     for (; number < eighthPoints; number++) {
         in_vec = vld1q_f32((float*)aPtr);

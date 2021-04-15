@@ -259,8 +259,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev,
 
     const float* in_ptr = inputBuffer;
 
-    __VOLK_ATTR_ALIGNED(32) float SumLocal[8] = { 0.f };
-    __VOLK_ATTR_ALIGNED(32) float SquareSumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(16) float SumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(16) float SquareSumLocal[8] = { 0.f };
 
 
     const uint32_t eigth_points = num_points / 8;
@@ -337,8 +337,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev,
 
     const float* in_ptr = inputBuffer;
 
-    __VOLK_ATTR_ALIGNED(64) float SumLocal[16] = { 0.f };
-    __VOLK_ATTR_ALIGNED(64) float SquareSumLocal[16] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SumLocal[16] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SquareSumLocal[16] = { 0.f };
 
     const unsigned int sixteenth_points = num_points / 16;
 
@@ -415,8 +415,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev,
 
     const float* in_ptr = inputBuffer;
 
-    __VOLK_ATTR_ALIGNED(32) float SumLocal[8] = { 0.f };
-    __VOLK_ATTR_ALIGNED(32) float SquareSumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(16) float SumLocal[8] = { 0.f };
+    __VOLK_ATTR_ALIGNED(16) float SquareSumLocal[8] = { 0.f };
 
 
     const uint32_t eigth_points = num_points / 8;
@@ -492,8 +492,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev,
 
     const float* in_ptr = inputBuffer;
 
-    __VOLK_ATTR_ALIGNED(64) float SumLocal[16] = { 0.f };
-    __VOLK_ATTR_ALIGNED(64) float SquareSumLocal[16] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SumLocal[16] = { 0.f };
+    __VOLK_ATTR_ALIGNED(32) float SquareSumLocal[16] = { 0.f };
 
     const unsigned int sixteenth_points = num_points / 16;
 
