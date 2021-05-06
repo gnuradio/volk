@@ -191,6 +191,39 @@ jobs:
     - name: test
       run: cd build && ctest -V -C Release
 
+  build-windows-msys2:
+    name: Build on windows-latest using MinGW and MSYS2
+    
+    runs-on: windows-latest
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            git
+            mingw-w64-x86_64-boost
+            mingw-w64-x86_64-gcc-libs
+            mingw-w64-x86_64-orc
+            python
+            python-mako
+            python-six
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Configure
+        shell: msys2 {0}
+        run: mkdir build && cd build && cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3 -DCMAKE_CXX_FLAGS="-Werror" ..
+      - name: Build
+        shell: msys2 {0}
+        run: cd build && make -j$(nproc)
+      - name: Test 
+        shell: msys2 {0}
+        run: |
+          cd build
+          ctest -V
 
   build-macos:
 

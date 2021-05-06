@@ -67,7 +67,7 @@ void* volk_malloc(size_t size, size_t alignment)
                 err,
                 strerror(err));
     }
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) || defined(__MINGW32__)
     void* ptr = _aligned_malloc(size, alignment);
 #else
     void* ptr = aligned_alloc(alignment, size);
@@ -81,7 +81,7 @@ void* volk_malloc(size_t size, size_t alignment)
 
 void volk_free(void* ptr)
 {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
     _aligned_free(ptr);
 #else
     free(ptr);
