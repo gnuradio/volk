@@ -286,7 +286,11 @@ static inline float32x4_t _neon_accumulate_square_sum_f32(float32x4_t sq_acc,
     aux = vmulq_f32(aux, val);
     aux = vsubq_f32(aux, acc);
     aux = vmulq_f32(aux, aux);
+    /* Alternatively:
     return vfmaq_f32(sq_acc, aux, rec);
+    */
+    aux = vmulq_f32(aux, rec);
+    return vaddq_f32(sq_acc, aux);
 }
 
 #endif /* INCLUDE_VOLK_VOLK_NEON_INTRINSICS_H_ */
