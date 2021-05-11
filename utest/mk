@@ -1,2 +1,0 @@
-#/bin/bash
-g++-10 -o ts -std=c++11 test_stdmean.cpp -lvolk -I$HOME/local/include -L$HOME/local/lib
