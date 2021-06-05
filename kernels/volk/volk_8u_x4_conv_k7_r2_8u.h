@@ -100,7 +100,7 @@ static inline void BFLY(int i,
 
     int NUMSTATES = 64;
     int RATE = 2;
-    int METRICSHIFT = 1;
+    int METRICSHIFT = 2;
     int PRECISIONSHIFT = 2;
 
     metric = 0;
