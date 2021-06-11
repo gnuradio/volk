@@ -477,7 +477,7 @@ volk_32fc_index_min_32u_neon(uint32_t* target, lv_32fc_t* src0, uint32_t num_poi
     uint32x4_t vec_min_indices = vec_indices;
 
     if (num_points) {
-        float min = *src0Ptr;
+        float min = FLT_MAX;
         uint32_t index = 0;
 
         float32x4_t vec_min = vdupq_n_f32(*src0Ptr);
