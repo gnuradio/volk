@@ -480,7 +480,7 @@ volk_32fc_index_min_32u_neon(uint32_t* target, lv_32fc_t* src0, uint32_t num_poi
         float min = FLT_MAX;
         uint32_t index = 0;
 
-        float32x4_t vec_min = vdupq_n_f32(*src0Ptr);
+        float32x4_t vec_min = vdupq_n_f32(FLT_MAX);
 
         for (; number < quarter_points; number++) {
             // Load complex and compute magnitude squared
