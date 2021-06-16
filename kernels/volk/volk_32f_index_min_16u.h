@@ -140,8 +140,9 @@ volk_32f_index_min_16u_a_avx(uint16_t* target, const float* source, uint32_t num
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
-static inline void
-volk_32f_index_min_16u_a_sse4_1(uint16_t* target, const float* source, uint32_t num_points)
+static inline void volk_32f_index_min_16u_a_sse4_1(uint16_t* target,
+                                                   const float* source,
+                                                   uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
     const uint32_t quarterPoints = num_points / 4;

@@ -284,8 +284,8 @@ volk_32fc_index_min_16u_a_sse3(uint16_t* target, lv_32fc_t* source, uint32_t num
     }
 
     if (num_bytes >> 3 & 1) {
-        sq_dist =
-            lv_creal(source[0]) * lv_creal(source[0]) + lv_cimag(source[0]) * lv_cimag(source[0]);
+        sq_dist = lv_creal(source[0]) * lv_creal(source[0]) +
+                  lv_cimag(source[0]) * lv_cimag(source[0]);
 
         xmm2 = _mm_load1_ps(&sq_dist);
 
@@ -331,8 +331,8 @@ volk_32fc_index_min_16u_generic(uint16_t* target, lv_32fc_t* source, uint32_t nu
     uint16_t index = 0;
 
     for (uint32_t i = 0; i<num_bytes>> 3; ++i) {
-        sq_dist =
-            lv_creal(source[i]) * lv_creal(source[i]) + lv_cimag(source[i]) * lv_cimag(source[i]);
+        sq_dist = lv_creal(source[i]) * lv_creal(source[i]) +
+                  lv_cimag(source[i]) * lv_cimag(source[i]);
 
         if (sq_dist < min) {
             index = i;

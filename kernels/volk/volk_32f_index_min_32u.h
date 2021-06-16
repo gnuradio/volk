@@ -72,8 +72,9 @@
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
-static inline void
-volk_32f_index_min_32u_a_sse4_1(uint32_t* target, const float* source, uint32_t num_points)
+static inline void volk_32f_index_min_32u_a_sse4_1(uint32_t* target,
+                                                   const float* source,
+                                                   uint32_t num_points)
 {
     if (num_points > 0) {
         const uint32_t quarterPoints = num_points / 4;
@@ -421,8 +422,9 @@ volk_32f_index_min_32u_u_avx(uint32_t* target, const float* source, uint32_t num
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 
-static inline void
-volk_32f_index_min_32u_u_sse4_1(uint32_t* target, const float* source, uint32_t num_points)
+static inline void volk_32f_index_min_32u_u_sse4_1(uint32_t* target,
+                                                   const float* source,
+                                                   uint32_t num_points)
 {
     if (num_points > 0) {
         const uint32_t quarterPoints = num_points / 4;
