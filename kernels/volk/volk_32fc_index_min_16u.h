@@ -36,11 +36,11 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_index_min_16u(uint16_t* target, lv_32fc_t* src0, uint32_t
+ * void volk_32fc_index_min_16u(uint16_t* target, lv_32fc_t* source, uint32_t
  * num_points) \endcode
  *
  * \b Inputs
- * \li src0: The complex input vector.
+ * \li source: The complex input vector.
  * \li num_points: The number of samples.
  *
  * \b Outputs
@@ -87,7 +87,7 @@
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_16u_a_avx2_variant_0(uint16_t* target,
-                                                            lv_32fc_t* src0,
+                                                            lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
@@ -104,11 +104,11 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_0(uint16_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_load_ps((float*)src0);
-        __m256 in1 = _mm256_load_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_load_ps((float*)source);
+        __m256 in1 = _mm256_load_ps((float*)(source + 4));
         vector_32fc_index_min_variant0(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
-        src0 += 8;
+        source += 8;
     }
 
     // determine minimum value and index in the result of the vectorized loop
@@ -129,12 +129,12 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_0(uint16_t* target,
     // handle tail not processed by the vectorized loop
     for (unsigned i = num_points & (~7u); i < num_points; ++i) {
         const float abs_squared =
-            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+            lv_creal(*source) * lv_creal(*source) + lv_cimag(*source) * lv_cimag(*source);
         if (abs_squared < min) {
             min = abs_squared;
             index = i;
         }
-        ++src0;
+        ++source;
     }
 
     *target = index;
@@ -147,7 +147,7 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_0(uint16_t* target,
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_16u_a_avx2_variant_1(uint16_t* target,
-                                                            lv_32fc_t* src0,
+                                                            lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
@@ -164,11 +164,11 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_1(uint16_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_load_ps((float*)src0);
-        __m256 in1 = _mm256_load_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_load_ps((float*)source);
+        __m256 in1 = _mm256_load_ps((float*)(source + 4));
         vector_32fc_index_min_variant1(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
-        src0 += 8;
+        source += 8;
     }
 
     // determine minimum value and index in the result of the vectorized loop
@@ -189,12 +189,12 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_1(uint16_t* target,
     // handle tail not processed by the vectorized loop
     for (unsigned i = num_points & (~7u); i < num_points; ++i) {
         const float abs_squared =
-            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+            lv_creal(*source) * lv_creal(*source) + lv_cimag(*source) * lv_cimag(*source);
         if (abs_squared < min) {
             min = abs_squared;
             index = i;
         }
-        ++src0;
+        ++source;
     }
 
     *target = index;
@@ -207,7 +207,7 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_1(uint16_t* target,
 #include <xmmintrin.h>
 
 static inline void
-volk_32fc_index_min_16u_a_sse3(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
+volk_32fc_index_min_16u_a_sse3(uint16_t* target, lv_32fc_t* source, uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
     const uint32_t num_bytes = num_points * 8;
@@ -225,19 +225,18 @@ volk_32fc_index_min_16u_a_sse3(uint16_t* target, lv_32fc_t* src0, uint32_t num_p
     holderf.int_vec = _mm_setzero_si128();
     holderi.int_vec = _mm_setzero_si128();
 
-    int bound = num_bytes >> 5;
-    int i = 0;
-
     xmm8 = _mm_setr_epi32(0, 1, 2, 3);
     xmm9 = _mm_setzero_si128();
     xmm10 = _mm_setr_epi32(4, 4, 4, 4);
     xmm3 = _mm_set_ps1(FLT_MAX);
 
-    for (; i < bound; ++i) {
-        xmm1 = _mm_load_ps((float*)src0);
-        xmm2 = _mm_load_ps((float*)&src0[2]);
+    int bound = num_bytes >> 5;
 
-        src0 += 4;
+    for (int i = 0; i < bound; ++i) {
+        xmm1 = _mm_load_ps((float*)source);
+        xmm2 = _mm_load_ps((float*)&source[2]);
+
+        source += 4;
 
         xmm1 = _mm_mul_ps(xmm1, xmm1);
         xmm2 = _mm_mul_ps(xmm2, xmm2);
@@ -258,14 +257,14 @@ volk_32fc_index_min_16u_a_sse3(uint16_t* target, lv_32fc_t* src0, uint32_t num_p
     }
 
     if (num_bytes >> 4 & 1) {
-        xmm2 = _mm_load_ps((float*)src0);
+        xmm2 = _mm_load_ps((float*)source);
 
         xmm1 = _mm_movelh_ps(bit128_p(&xmm8)->float_vec, bit128_p(&xmm8)->float_vec);
         xmm8 = bit128_p(&xmm1)->int_vec;
 
         xmm2 = _mm_mul_ps(xmm2, xmm2);
 
-        src0 += 2;
+        source += 2;
 
         xmm1 = _mm_hadd_ps(xmm2, xmm2);
 
@@ -286,7 +285,7 @@ volk_32fc_index_min_16u_a_sse3(uint16_t* target, lv_32fc_t* src0, uint32_t num_p
 
     if (num_bytes >> 3 & 1) {
         sq_dist =
-            lv_creal(src0[0]) * lv_creal(src0[0]) + lv_cimag(src0[0]) * lv_cimag(src0[0]);
+            lv_creal(source[0]) * lv_creal(source[0]) + lv_cimag(source[0]) * lv_cimag(source[0]);
 
         xmm2 = _mm_load1_ps(&sq_dist);
 
@@ -322,21 +321,18 @@ volk_32fc_index_min_16u_a_sse3(uint16_t* target, lv_32fc_t* src0, uint32_t num_p
 
 #ifdef LV_HAVE_GENERIC
 static inline void
-volk_32fc_index_min_16u_generic(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
+volk_32fc_index_min_16u_generic(uint16_t* target, lv_32fc_t* source, uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
-
     const uint32_t num_bytes = num_points * 8;
 
     float sq_dist = 0.0;
     float min = FLT_MAX;
     uint16_t index = 0;
 
-    uint32_t i = 0;
-
-    for (; i<num_bytes>> 3; ++i) {
+    for (uint32_t i = 0; i<num_bytes>> 3; ++i) {
         sq_dist =
-            lv_creal(src0[i]) * lv_creal(src0[i]) + lv_cimag(src0[i]) * lv_cimag(src0[i]);
+            lv_creal(source[i]) * lv_creal(source[i]) + lv_cimag(source[i]) * lv_cimag(source[i]);
 
         if (sq_dist < min) {
             index = i;
@@ -364,7 +360,7 @@ volk_32fc_index_min_16u_generic(uint16_t* target, lv_32fc_t* src0, uint32_t num_
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_16u_u_avx2_variant_0(uint16_t* target,
-                                                            lv_32fc_t* src0,
+                                                            lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
@@ -381,11 +377,11 @@ static inline void volk_32fc_index_min_16u_u_avx2_variant_0(uint16_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_loadu_ps((float*)src0);
-        __m256 in1 = _mm256_loadu_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_loadu_ps((float*)source);
+        __m256 in1 = _mm256_loadu_ps((float*)(source + 4));
         vector_32fc_index_min_variant0(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
-        src0 += 8;
+        source += 8;
     }
 
     // determine minimum value and index in the result of the vectorized loop
@@ -406,12 +402,12 @@ static inline void volk_32fc_index_min_16u_u_avx2_variant_0(uint16_t* target,
     // handle tail not processed by the vectorized loop
     for (unsigned i = num_points & (~7u); i < num_points; ++i) {
         const float abs_squared =
-            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+            lv_creal(*source) * lv_creal(*source) + lv_cimag(*source) * lv_cimag(*source);
         if (abs_squared < min) {
             min = abs_squared;
             index = i;
         }
-        ++src0;
+        ++source;
     }
 
     *target = index;
@@ -424,7 +420,7 @@ static inline void volk_32fc_index_min_16u_u_avx2_variant_0(uint16_t* target,
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_16u_u_avx2_variant_1(uint16_t* target,
-                                                            lv_32fc_t* src0,
+                                                            lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
@@ -441,11 +437,11 @@ static inline void volk_32fc_index_min_16u_u_avx2_variant_1(uint16_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_loadu_ps((float*)src0);
-        __m256 in1 = _mm256_loadu_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_loadu_ps((float*)source);
+        __m256 in1 = _mm256_loadu_ps((float*)(source + 4));
         vector_32fc_index_min_variant1(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
-        src0 += 8;
+        source += 8;
     }
 
     // determine minimum value and index in the result of the vectorized loop
@@ -466,12 +462,12 @@ static inline void volk_32fc_index_min_16u_u_avx2_variant_1(uint16_t* target,
     // handle tail not processed by the vectorized loop
     for (unsigned i = num_points & (~7u); i < num_points; ++i) {
         const float abs_squared =
-            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+            lv_creal(*source) * lv_creal(*source) + lv_cimag(*source) * lv_cimag(*source);
         if (abs_squared < min) {
             min = abs_squared;
             index = i;
         }
-        ++src0;
+        ++source;
     }
 
     *target = index;

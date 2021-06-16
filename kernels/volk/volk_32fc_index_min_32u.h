@@ -30,11 +30,11 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_index_min_32u(uint32_t* target, lv_32fc_t* src0, uint32_t
+ * void volk_32fc_index_min_32u(uint32_t* target, lv_32fc_t* source, uint32_t
  * num_points) \endcode
  *
  * \b Inputs
- * \li src0: The complex input vector.
+ * \li source: The complex input vector.
  * \li num_points: The number of samples.
  *
  * \b Outputs
@@ -80,7 +80,7 @@
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_32u_a_avx2_variant_0(uint32_t* target,
-                                                            lv_32fc_t* src0,
+                                                            lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     const __m256i indices_increment = _mm256_set1_epi32(8);
@@ -95,11 +95,11 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_0(uint32_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_load_ps((float*)src0);
-        __m256 in1 = _mm256_load_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_load_ps((float*)source);
+        __m256 in1 = _mm256_load_ps((float*)(source + 4));
         vector_32fc_index_min_variant0(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
-        src0 += 8;
+        source += 8;
     }
 
     // determine minimum value and index in the result of the vectorized loop
@@ -120,12 +120,12 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_0(uint32_t* target,
     // handle tail not processed by the vectorized loop
     for (unsigned i = num_points & (~7u); i < num_points; ++i) {
         const float abs_squared =
-            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+            lv_creal(*source) * lv_creal(*source) + lv_cimag(*source) * lv_cimag(*source);
         if (abs_squared < min) {
             min = abs_squared;
             index = i;
         }
-        ++src0;
+        ++source;
     }
 
     *target = index;
@@ -138,7 +138,7 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_0(uint32_t* target,
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_32u_a_avx2_variant_1(uint32_t* target,
-                                                            lv_32fc_t* src0,
+                                                            lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     const __m256i indices_increment = _mm256_set1_epi32(8);
@@ -153,11 +153,11 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_1(uint32_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_load_ps((float*)src0);
-        __m256 in1 = _mm256_load_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_load_ps((float*)source);
+        __m256 in1 = _mm256_load_ps((float*)(source + 4));
         vector_32fc_index_min_variant1(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
-        src0 += 8;
+        source += 8;
     }
 
     // determine minimum value and index in the result of the vectorized loop
@@ -178,12 +178,12 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_1(uint32_t* target,
     // handle tail not processed by the vectorized loop
     for (unsigned i = num_points & (~7u); i < num_points; ++i) {
         const float abs_squared =
-            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+            lv_creal(*source) * lv_creal(*source) + lv_cimag(*source) * lv_cimag(*source);
         if (abs_squared < min) {
             min = abs_squared;
             index = i;
         }
-        ++src0;
+        ++source;
     }
 
     *target = index;
@@ -196,7 +196,7 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_1(uint32_t* target,
 #include <xmmintrin.h>
 
 static inline void
-volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* src0, uint32_t num_points)
+volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* source, uint32_t num_points)
 {
     const uint32_t num_bytes = num_points * 8;
 
@@ -213,19 +213,18 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* src0, uint32_t num_p
     holderf.int_vec = _mm_setzero_si128();
     holderi.int_vec = _mm_setzero_si128();
 
-    int bound = num_bytes >> 5;
-    int i = 0;
-
     xmm8 = _mm_setr_epi32(0, 1, 2, 3);
     xmm9 = _mm_setzero_si128();
     xmm10 = _mm_setr_epi32(4, 4, 4, 4);
     xmm3 = _mm_set_ps1(FLT_MAX);
 
-    for (; i < bound; ++i) {
-        xmm1 = _mm_load_ps((float*)src0);
-        xmm2 = _mm_load_ps((float*)&src0[2]);
+    int bound = num_bytes >> 5;
 
-        src0 += 4;
+    for (int i = 0; i < bound; ++i) {
+        xmm1 = _mm_load_ps((float*)source);
+        xmm2 = _mm_load_ps((float*)&source[2]);
+
+        source += 4;
 
         xmm1 = _mm_mul_ps(xmm1, xmm1);
         xmm2 = _mm_mul_ps(xmm2, xmm2);
@@ -246,14 +245,14 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* src0, uint32_t num_p
     }
 
     if (num_bytes >> 4 & 1) {
-        xmm2 = _mm_load_ps((float*)src0);
+        xmm2 = _mm_load_ps((float*)source);
 
         xmm1 = _mm_movelh_ps(bit128_p(&xmm8)->float_vec, bit128_p(&xmm8)->float_vec);
         xmm8 = bit128_p(&xmm1)->int_vec;
 
         xmm2 = _mm_mul_ps(xmm2, xmm2);
 
-        src0 += 2;
+        source += 2;
 
         xmm1 = _mm_hadd_ps(xmm2, xmm2);
 
@@ -274,7 +273,7 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* src0, uint32_t num_p
 
     if (num_bytes >> 3 & 1) {
         sq_dist =
-            lv_creal(src0[0]) * lv_creal(src0[0]) + lv_cimag(src0[0]) * lv_cimag(src0[0]);
+            lv_creal(source[0]) * lv_creal(source[0]) + lv_cimag(source[0]) * lv_cimag(source[0]);
 
         xmm2 = _mm_load1_ps(&sq_dist);
 
@@ -310,7 +309,7 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* src0, uint32_t num_p
 
 #ifdef LV_HAVE_GENERIC
 static inline void
-volk_32fc_index_min_32u_generic(uint32_t* target, lv_32fc_t* src0, uint32_t num_points)
+volk_32fc_index_min_32u_generic(uint32_t* target, lv_32fc_t* source, uint32_t num_points)
 {
     const uint32_t num_bytes = num_points * 8;
 
@@ -318,11 +317,9 @@ volk_32fc_index_min_32u_generic(uint32_t* target, lv_32fc_t* src0, uint32_t num_
     float min = FLT_MAX;
     uint32_t index = 0;
 
-    uint32_t i = 0;
-
-    for (; i<num_bytes>> 3; ++i) {
+    for (uint32_t i = 0; i<num_bytes>> 3; ++i) {
         sq_dist =
-            lv_creal(src0[i]) * lv_creal(src0[i]) + lv_cimag(src0[i]) * lv_cimag(src0[i]);
+            lv_creal(source[i]) * lv_creal(source[i]) + lv_cimag(source[i]) * lv_cimag(source[i]);
 
         if (sq_dist < min) {
             index = i;
@@ -349,7 +346,7 @@ volk_32fc_index_min_32u_generic(uint32_t* target, lv_32fc_t* src0, uint32_t num_
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_32u_u_avx2_variant_0(uint32_t* target,
-                                                            lv_32fc_t* src0,
+                                                            lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     const __m256i indices_increment = _mm256_set1_epi32(8);
@@ -364,11 +361,11 @@ static inline void volk_32fc_index_min_32u_u_avx2_variant_0(uint32_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_loadu_ps((float*)src0);
-        __m256 in1 = _mm256_loadu_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_loadu_ps((float*)source);
+        __m256 in1 = _mm256_loadu_ps((float*)(source + 4));
         vector_32fc_index_min_variant0(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
-        src0 += 8;
+        source += 8;
     }
 
     // determine minimum value and index in the result of the vectorized loop
@@ -389,12 +386,12 @@ static inline void volk_32fc_index_min_32u_u_avx2_variant_0(uint32_t* target,
     // handle tail not processed by the vectorized loop
     for (unsigned i = num_points & (~7u); i < num_points; ++i) {
         const float abs_squared =
-            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+            lv_creal(*source) * lv_creal(*source) + lv_cimag(*source) * lv_cimag(*source);
         if (abs_squared < min) {
             min = abs_squared;
             index = i;
         }
-        ++src0;
+        ++source;
     }
 
     *target = index;
@@ -407,7 +404,7 @@ static inline void volk_32fc_index_min_32u_u_avx2_variant_0(uint32_t* target,
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_32u_u_avx2_variant_1(uint32_t* target,
-                                                            lv_32fc_t* src0,
+                                                            lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     const __m256i indices_increment = _mm256_set1_epi32(8);
@@ -422,11 +419,11 @@ static inline void volk_32fc_index_min_32u_u_avx2_variant_1(uint32_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_loadu_ps((float*)src0);
-        __m256 in1 = _mm256_loadu_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_loadu_ps((float*)source);
+        __m256 in1 = _mm256_loadu_ps((float*)(source + 4));
         vector_32fc_index_min_variant1(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
-        src0 += 8;
+        source += 8;
     }
 
     // determine minimum value and index in the result of the vectorized loop
@@ -447,12 +444,12 @@ static inline void volk_32fc_index_min_32u_u_avx2_variant_1(uint32_t* target,
     // handle tail not processed by the vectorized loop
     for (unsigned i = num_points & (~7u); i < num_points; ++i) {
         const float abs_squared =
-            lv_creal(*src0) * lv_creal(*src0) + lv_cimag(*src0) * lv_cimag(*src0);
+            lv_creal(*source) * lv_creal(*source) + lv_cimag(*source) * lv_cimag(*source);
         if (abs_squared < min) {
             min = abs_squared;
             index = i;
         }
-        ++src0;
+        ++source;
     }
 
     *target = index;
@@ -465,11 +462,10 @@ static inline void volk_32fc_index_min_32u_u_avx2_variant_1(uint32_t* target,
 #include <volk/volk_neon_intrinsics.h>
 
 static inline void
-volk_32fc_index_min_32u_neon(uint32_t* target, lv_32fc_t* src0, uint32_t num_points)
+volk_32fc_index_min_32u_neon(uint32_t* target, lv_32fc_t* source, uint32_t num_points)
 {
-    unsigned int number = 0;
     const uint32_t quarter_points = num_points / 4;
-    const lv_32fc_t* src0Ptr = src0;
+    const lv_32fc_t* sourcePtr = source;
 
     uint32_t indices[4] = { 0, 1, 2, 3 };
     const uint32x4_t vec_indices_incr = vdupq_n_u32(4);
@@ -482,11 +478,11 @@ volk_32fc_index_min_32u_neon(uint32_t* target, lv_32fc_t* src0, uint32_t num_poi
 
         float32x4_t vec_min = vdupq_n_f32(FLT_MAX);
 
-        for (; number < quarter_points; number++) {
+        for (uint32_t number = 0; number < quarter_points; number++) {
             // Load complex and compute magnitude squared
             const float32x4_t vec_mag2 =
-                _vmagnitudesquaredq_f32(vld2q_f32((float*)src0Ptr));
-            __VOLK_PREFETCH(src0Ptr += 4);
+                _vmagnitudesquaredq_f32(vld2q_f32((float*)sourcePtr));
+            __VOLK_PREFETCH(sourcePtr += 4);
             // a < b?
             const uint32x4_t lt_mask = vcltq_f32(vec_mag2, vec_min);
             vec_min = vbslq_f32(lt_mask, vec_mag2, vec_min);
@@ -506,14 +502,14 @@ volk_32fc_index_min_32u_neon(uint32_t* target, lv_32fc_t* src0, uint32_t num_poi
         }
 
         // Deal with the rest
-        for (number = quarter_points * 4; number < num_points; number++) {
-            const float re = lv_creal(*src0Ptr);
-            const float im = lv_cimag(*src0Ptr);
+        for (uint32_t number = quarter_points * 4; number < num_points; number++) {
+            const float re = lv_creal(*sourcePtr);
+            const float im = lv_cimag(*sourcePtr);
             if ((re * re + im * im) < min) {
-                min = *src0Ptr;
+                min = *sourcePtr;
                 index = number;
             }
-            src0Ptr++;
+            sourcePtr++;
         }
         *target = index;
     }

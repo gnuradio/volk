@@ -36,11 +36,11 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_index_min_16u(uint16_t* target, const float* src0, uint32_t num_points)
+ * void volk_32f_index_min_16u(uint16_t* target, const float* source, uint32_t num_points)
  * \endcode
  *
  * \b Inputs
- * \li src0: The input vector of floats.
+ * \li source: The input vector of floats.
  * \li num_points: The number of data points.
  *
  * \b Outputs
@@ -80,19 +80,17 @@
 #include <immintrin.h>
 
 static inline void
-volk_32f_index_min_16u_a_avx(uint16_t* target, const float* src0, uint32_t num_points)
+volk_32f_index_min_16u_a_avx(uint16_t* target, const float* source, uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
-
-    uint32_t number = 0;
     const uint32_t eighthPoints = num_points / 8;
 
-    float* inputPtr = (float*)src0;
+    float* inputPtr = (float*)source;
 
     __m256 indexIncrementValues = _mm256_set1_ps(8);
     __m256 currentIndexes = _mm256_set_ps(-1, -2, -3, -4, -5, -6, -7, -8);
 
-    float min = src0[0];
+    float min = source[0];
     float index = 0;
     __m256 minValues = _mm256_set1_ps(min);
     __m256 minValuesIndex = _mm256_setzero_ps();
@@ -102,7 +100,7 @@ volk_32f_index_min_16u_a_avx(uint16_t* target, const float* src0, uint32_t num_p
     __VOLK_ATTR_ALIGNED(32) float minValuesBuffer[8];
     __VOLK_ATTR_ALIGNED(32) float minIndexesBuffer[8];
 
-    for (; number < eighthPoints; number++) {
+    for (uint32_t number = 0; number < eighthPoints; number++) {
 
         currentValues = _mm256_load_ps(inputPtr);
         inputPtr += 8;
@@ -118,7 +116,7 @@ volk_32f_index_min_16u_a_avx(uint16_t* target, const float* src0, uint32_t num_p
     _mm256_store_ps(minValuesBuffer, minValues);
     _mm256_store_ps(minIndexesBuffer, minValuesIndex);
 
-    for (number = 0; number < 8; number++) {
+    for (uint32_t number = 0; number < 8; number++) {
         if (minValuesBuffer[number] < min) {
             index = minIndexesBuffer[number];
             min = minValuesBuffer[number];
@@ -128,11 +126,10 @@ volk_32f_index_min_16u_a_avx(uint16_t* target, const float* src0, uint32_t num_p
         }
     }
 
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        if (src0[number] < min) {
+    for (uint32_t number = eighthPoints * 8; number < num_points; number++) {
+        if (source[number] < min) {
             index = number;
-            min = src0[number];
+            min = source[number];
         }
     }
     target[0] = (uint16_t)index;
@@ -144,19 +141,17 @@ volk_32f_index_min_16u_a_avx(uint16_t* target, const float* src0, uint32_t num_p
 #include <smmintrin.h>
 
 static inline void
-volk_32f_index_min_16u_a_sse4_1(uint16_t* target, const float* src0, uint32_t num_points)
+volk_32f_index_min_16u_a_sse4_1(uint16_t* target, const float* source, uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
-
-    uint32_t number = 0;
     const uint32_t quarterPoints = num_points / 4;
 
-    float* inputPtr = (float*)src0;
+    float* inputPtr = (float*)source;
 
     __m128 indexIncrementValues = _mm_set1_ps(4);
     __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
-    float min = src0[0];
+    float min = source[0];
     float index = 0;
     __m128 minValues = _mm_set1_ps(min);
     __m128 minValuesIndex = _mm_setzero_ps();
@@ -166,7 +161,7 @@ volk_32f_index_min_16u_a_sse4_1(uint16_t* target, const float* src0, uint32_t nu
     __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
     __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
 
-    for (; number < quarterPoints; number++) {
+    for (uint32_t number = 0; number < quarterPoints; number++) {
 
         currentValues = _mm_load_ps(inputPtr);
         inputPtr += 4;
@@ -182,7 +177,7 @@ volk_32f_index_min_16u_a_sse4_1(uint16_t* target, const float* src0, uint32_t nu
     _mm_store_ps(minValuesBuffer, minValues);
     _mm_store_ps(minIndexesBuffer, minValuesIndex);
 
-    for (number = 0; number < 4; number++) {
+    for (uint32_t number = 0; number < 4; number++) {
         if (minValuesBuffer[number] < min) {
             index = minIndexesBuffer[number];
             min = minValuesBuffer[number];
@@ -192,11 +187,10 @@ volk_32f_index_min_16u_a_sse4_1(uint16_t* target, const float* src0, uint32_t nu
         }
     }
 
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        if (src0[number] < min) {
+    for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
+        if (source[number] < min) {
             index = number;
-            min = src0[number];
+            min = source[number];
         }
     }
     target[0] = (uint16_t)index;
@@ -210,19 +204,17 @@ volk_32f_index_min_16u_a_sse4_1(uint16_t* target, const float* src0, uint32_t nu
 #include <xmmintrin.h>
 
 static inline void
-volk_32f_index_min_16u_a_sse(uint16_t* target, const float* src0, uint32_t num_points)
+volk_32f_index_min_16u_a_sse(uint16_t* target, const float* source, uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
-
-    uint32_t number = 0;
     const uint32_t quarterPoints = num_points / 4;
 
-    float* inputPtr = (float*)src0;
+    float* inputPtr = (float*)source;
 
     __m128 indexIncrementValues = _mm_set1_ps(4);
     __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
-    float min = src0[0];
+    float min = source[0];
     float index = 0;
     __m128 minValues = _mm_set1_ps(min);
     __m128 minValuesIndex = _mm_setzero_ps();
@@ -232,7 +224,7 @@ volk_32f_index_min_16u_a_sse(uint16_t* target, const float* src0, uint32_t num_p
     __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
     __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
 
-    for (; number < quarterPoints; number++) {
+    for (uint32_t number = 0; number < quarterPoints; number++) {
 
         currentValues = _mm_load_ps(inputPtr);
         inputPtr += 4;
@@ -250,7 +242,7 @@ volk_32f_index_min_16u_a_sse(uint16_t* target, const float* src0, uint32_t num_p
     _mm_store_ps(minValuesBuffer, minValues);
     _mm_store_ps(minIndexesBuffer, minValuesIndex);
 
-    for (number = 0; number < 4; number++) {
+    for (uint32_t number = 0; number < 4; number++) {
         if (minValuesBuffer[number] < min) {
             index = minIndexesBuffer[number];
             min = minValuesBuffer[number];
@@ -260,11 +252,10 @@ volk_32f_index_min_16u_a_sse(uint16_t* target, const float* src0, uint32_t num_p
         }
     }
 
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        if (src0[number] < min) {
+    for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
+        if (source[number] < min) {
             index = number;
-            min = src0[number];
+            min = source[number];
         }
     }
     target[0] = (uint16_t)index;
@@ -276,19 +267,17 @@ volk_32f_index_min_16u_a_sse(uint16_t* target, const float* src0, uint32_t num_p
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32f_index_min_16u_generic(uint16_t* target, const float* src0, uint32_t num_points)
+volk_32f_index_min_16u_generic(uint16_t* target, const float* source, uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
 
-    float min = src0[0];
+    float min = source[0];
     uint16_t index = 0;
 
-    uint32_t i = 1;
-
-    for (; i < num_points; ++i) {
-        if (src0[i] < min) {
+    for (uint32_t i = 1; i < num_points; ++i) {
+        if (source[i] < min) {
             index = i;
-            min = src0[i];
+            min = source[i];
         }
     }
     target[0] = index;
@@ -312,19 +301,17 @@ volk_32f_index_min_16u_generic(uint16_t* target, const float* src0, uint32_t num
 #include <immintrin.h>
 
 static inline void
-volk_32f_index_min_16u_u_avx(uint16_t* target, const float* src0, uint32_t num_points)
+volk_32f_index_min_16u_u_avx(uint16_t* target, const float* source, uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
-
-    uint32_t number = 0;
     const uint32_t eighthPoints = num_points / 8;
 
-    float* inputPtr = (float*)src0;
+    float* inputPtr = (float*)source;
 
     __m256 indexIncrementValues = _mm256_set1_ps(8);
     __m256 currentIndexes = _mm256_set_ps(-1, -2, -3, -4, -5, -6, -7, -8);
 
-    float min = src0[0];
+    float min = source[0];
     float index = 0;
     __m256 minValues = _mm256_set1_ps(min);
     __m256 minValuesIndex = _mm256_setzero_ps();
@@ -334,7 +321,7 @@ volk_32f_index_min_16u_u_avx(uint16_t* target, const float* src0, uint32_t num_p
     __VOLK_ATTR_ALIGNED(32) float minValuesBuffer[8];
     __VOLK_ATTR_ALIGNED(32) float minIndexesBuffer[8];
 
-    for (; number < eighthPoints; number++) {
+    for (uint32_t number = 0; number < eighthPoints; number++) {
 
         currentValues = _mm256_loadu_ps(inputPtr);
         inputPtr += 8;
@@ -350,7 +337,7 @@ volk_32f_index_min_16u_u_avx(uint16_t* target, const float* src0, uint32_t num_p
     _mm256_storeu_ps(minValuesBuffer, minValues);
     _mm256_storeu_ps(minIndexesBuffer, minValuesIndex);
 
-    for (number = 0; number < 8; number++) {
+    for (uint32_t number = 0; number < 8; number++) {
         if (minValuesBuffer[number] < min) {
             index = minIndexesBuffer[number];
             min = minValuesBuffer[number];
@@ -360,11 +347,10 @@ volk_32f_index_min_16u_u_avx(uint16_t* target, const float* src0, uint32_t num_p
         }
     }
 
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        if (src0[number] < min) {
+    for (uint32_t number = eighthPoints * 8; number < num_points; number++) {
+        if (source[number] < min) {
             index = number;
-            min = src0[number];
+            min = source[number];
         }
     }
     target[0] = (uint16_t)index;
