@@ -47,12 +47,27 @@
  *
  * \b Example
  * \code
- * int N = 10000;
+ * unsigned int N = 1000;
+ * unsigned int alignment = volk_get_alignment();
  *
- * <FIXME>
+ * lv_32fc_t* a = (lv_32fc_t*) volk_malloc(sizeof(lv_32fc_t) * N, alignment);
+ * lv_32fc_t* b = (lv_32fc_t*) volk_malloc(sizeof(lv_32fc_t) * N, alignment);
  *
- * volk_32fc_x2_conjugate_dot_prod_32fc();
+ * for (int i = 0; i < N; ++i) {
+ *   a[i] = lv_cmake(.50f, .50f);
+ *   b[i] = lv_cmake(.50f, .75f);
+ * }
  *
+ * lv_32fc_t e = (float) N * a[0] * lv_conj(b[0]); // When a and b constant
+ * lv_32fc_t res;
+ *
+ * volk_32fc_x2_conjugate_dot_prod_32fc(&res, a, b, N);
+ *
+ * printf("Expected: %8.2f%+8.2fi\n", lv_real(e), lv_imag(e));
+ * printf("Result:   %8.2f%+8.2fi\n", lv_real(res), lv_imag(res));
+ *
+ * volk_free(a);
+ * volk_free(b);
  * \endcode
  */
 
@@ -69,6 +84,22 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_generic(lv_32fc_t* resul
                                                                 const lv_32fc_t* input,
                                                                 const lv_32fc_t* taps,
                                                                 unsigned int num_points)
+{
+    lv_32fc_t res = lv_cmake(0.f, 0.f);
+    for (unsigned int i = 0; i < num_points; ++i) {
+        res += (*input++) * lv_conj((*taps++));
+    }
+    *result = res;
+}
+
+#endif /*LV_HAVE_GENERIC*/
+
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_32fc_x2_conjugate_dot_prod_32fc_block(lv_32fc_t* result,
+                                                              const lv_32fc_t* input,
+                                                              const lv_32fc_t* taps,
+                                                              unsigned int num_points)
 {
 
     const unsigned int num_bytes = num_points * 8;
