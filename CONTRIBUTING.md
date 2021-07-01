@@ -21,10 +21,10 @@ code.
 
 ## DCO Signed?
 
-Any code contributions going into VOLK will become part of a GPL-licensed,
-open source repository. It is therefore imperative that code submissions belong
-to the authors, and that submitters have the authority to merge that code into
-the public VOLK codebase.
+Any code contributions going into VOLK will become part of an LPGPL-licensed
+(former contributions are GPL-licensed), open source repository. It is therefore
+imperative that code submissions belong to the authors, and that submitters have
+the authority to merge that code into the public VOLK codebase.
 
 For that purpose, we use the [Developer's Certificate of Origin](DCO.txt). It
 is the same document used by other projects. Signing the DCO states that there

@@ -1,0 +1,15 @@
+VOLK is going to migrating from GPLv3 (GNU General Public license version 3.0)
+to LGPLv3 (GNU Lesser General Public License version 3.0).
+
+This file is a list of the authors who agreed to grant an LGPL license to the
+code they contributed to this repository. In case the affected code is currently
+licensed differently (GPLv3), this gives the right to use the current
+contributions under both LGPLv3 and that other license. Future contributions by
+these authors are, however, licensed under LGPLv3, unless explicitly stated
+otherwise.
+
+Together with the date of agreement, these authors are:
+
+| Date | Author (as used in commits) |
+|------+-----------------------------|
+|      |                             |
