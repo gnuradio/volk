@@ -10,6 +10,7 @@ otherwise.
 
 Together with the date of agreement, these authors are:
 
-| Date | Author (as used in commits) |
-|------+-----------------------------|
-|      |                             |
+|       Date | Author (as used in commits) |
+|------------+-----------------------------|
+| 2021-07-01 | Marcus Müller               |
+|            |                             |
