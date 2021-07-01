@@ -1,3 +1,13 @@
+Files in this code repository are to be licensed under the LGPLv3, which you'll
+find in the file COPYING-LGPL
+
+However, you'll find some files that carry a license header that assigns them as
+GPLv3, which was the default license for VOLK up to version 3. You can find the
+full license text of the GPLv3 below.
+
+================================================================================
+
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
