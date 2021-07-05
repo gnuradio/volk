@@ -2,14 +2,14 @@
 /*
  * Copyright 2021 Free Software Foundation, Inc.
  *
- * This file is part of GNU Radio
+ * This file is part of VOLK
  *
- * GNU Radio is free software; you can redistribute it and/or modify
+ * VOLK is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  *
- * GNU Radio is distributed in the hope that it will be useful,
+ * VOLK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -76,59 +76,57 @@ static inline void volk_32f_index_min_32u_a_sse4_1(uint32_t* target,
                                                    const float* source,
                                                    uint32_t num_points)
 {
-    if (num_points > 0) {
-        const uint32_t quarterPoints = num_points / 4;
+    const uint32_t quarterPoints = num_points / 4;
 
-        float* inputPtr = (float*)source;
+    float* inputPtr = (float*)source;
 
-        __m128 indexIncrementValues = _mm_set1_ps(4);
-        __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
+    __m128 indexIncrementValues = _mm_set1_ps(4);
+    __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
-        float min = source[0];
-        float index = 0;
-        __m128 minValues = _mm_set1_ps(min);
-        __m128 minValuesIndex = _mm_setzero_ps();
-        __m128 compareResults;
-        __m128 currentValues;
+    float min = source[0];
+    float index = 0;
+    __m128 minValues = _mm_set1_ps(min);
+    __m128 minValuesIndex = _mm_setzero_ps();
+    __m128 compareResults;
+    __m128 currentValues;
 
-        __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
-        __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
 
-        for (uint32_t number = 0; number < quarterPoints; number++) {
+    for (uint32_t number = 0; number < quarterPoints; number++) {
 
-            currentValues = _mm_load_ps(inputPtr);
-            inputPtr += 4;
-            currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
+        currentValues = _mm_load_ps(inputPtr);
+        inputPtr += 4;
+        currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-            compareResults = _mm_cmplt_ps(currentValues, minValues);
+        compareResults = _mm_cmplt_ps(currentValues, minValues);
 
-            minValuesIndex =
-                _mm_blendv_ps(minValuesIndex, currentIndexes, compareResults);
-            minValues = _mm_blendv_ps(minValues, currentValues, compareResults);
-        }
-
-        // Calculate the smallest value from the remaining 4 points
-        _mm_store_ps(minValuesBuffer, minValues);
-        _mm_store_ps(minIndexesBuffer, minValuesIndex);
-
-        for (uint32_t number = 0; number < 4; number++) {
-            if (minValuesBuffer[number] < min) {
-                index = minIndexesBuffer[number];
-                min = minValuesBuffer[number];
-            } else if (minValuesBuffer[number] == min) {
-                if (index > minIndexesBuffer[number])
-                    index = minIndexesBuffer[number];
-            }
-        }
-
-        for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
-            if (source[number] < min) {
-                index = number;
-                min = source[number];
-            }
-        }
-        target[0] = (uint32_t)index;
+        minValuesIndex =
+            _mm_blendv_ps(minValuesIndex, currentIndexes, compareResults);
+        minValues = _mm_blendv_ps(minValues, currentValues, compareResults);
     }
+
+    // Calculate the smallest value from the remaining 4 points
+    _mm_store_ps(minValuesBuffer, minValues);
+    _mm_store_ps(minIndexesBuffer, minValuesIndex);
+
+    for (uint32_t number = 0; number < 4; number++) {
+        if (minValuesBuffer[number] < min) {
+            index = minIndexesBuffer[number];
+            min = minValuesBuffer[number];
+        } else if (minValuesBuffer[number] == min) {
+            if (index > minIndexesBuffer[number])
+                index = minIndexesBuffer[number];
+        }
+    }
+
+    for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
+        if (source[number] < min) {
+            index = number;
+            min = source[number];
+        }
+    }
+    target[0] = (uint32_t)index;
 }
 
 #endif /*LV_HAVE_SSE4_1*/
@@ -141,61 +139,59 @@ static inline void volk_32f_index_min_32u_a_sse4_1(uint32_t* target,
 static inline void
 volk_32f_index_min_32u_a_sse(uint32_t* target, const float* source, uint32_t num_points)
 {
-    if (num_points > 0) {
-        const uint32_t quarterPoints = num_points / 4;
+    const uint32_t quarterPoints = num_points / 4;
 
-        float* inputPtr = (float*)source;
+    float* inputPtr = (float*)source;
 
-        __m128 indexIncrementValues = _mm_set1_ps(4);
-        __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
+    __m128 indexIncrementValues = _mm_set1_ps(4);
+    __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
-        float min = source[0];
-        float index = 0;
-        __m128 minValues = _mm_set1_ps(min);
-        __m128 minValuesIndex = _mm_setzero_ps();
-        __m128 compareResults;
-        __m128 currentValues;
+    float min = source[0];
+    float index = 0;
+    __m128 minValues = _mm_set1_ps(min);
+    __m128 minValuesIndex = _mm_setzero_ps();
+    __m128 compareResults;
+    __m128 currentValues;
 
-        __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
-        __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
 
-        for (uint32_t number = 0; number < quarterPoints; number++) {
+    for (uint32_t number = 0; number < quarterPoints; number++) {
 
-            currentValues = _mm_load_ps(inputPtr);
-            inputPtr += 4;
-            currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
+        currentValues = _mm_load_ps(inputPtr);
+        inputPtr += 4;
+        currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
 
-            compareResults = _mm_cmplt_ps(currentValues, minValues);
+        compareResults = _mm_cmplt_ps(currentValues, minValues);
 
-            minValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, currentIndexes),
-                                       _mm_andnot_ps(compareResults, minValuesIndex));
+        minValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, currentIndexes),
+                                   _mm_andnot_ps(compareResults, minValuesIndex));
 
-            minValues = _mm_or_ps(_mm_and_ps(compareResults, currentValues),
-                                  _mm_andnot_ps(compareResults, minValues));
-        }
-
-        // Calculate the smallest value from the remaining 4 points
-        _mm_store_ps(minValuesBuffer, minValues);
-        _mm_store_ps(minIndexesBuffer, minValuesIndex);
-
-        for (uint32_t number = 0; number < 4; number++) {
-            if (minValuesBuffer[number] < min) {
-                index = minIndexesBuffer[number];
-                min = minValuesBuffer[number];
-            } else if (minValuesBuffer[number] == min) {
-                if (index > minIndexesBuffer[number])
-                    index = minIndexesBuffer[number];
-            }
-        }
-
-        for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
-            if (source[number] < min) {
-                index = number;
-                min = source[number];
-            }
-        }
-        target[0] = (uint32_t)index;
+        minValues = _mm_or_ps(_mm_and_ps(compareResults, currentValues),
+                              _mm_andnot_ps(compareResults, minValues));
     }
+
+    // Calculate the smallest value from the remaining 4 points
+    _mm_store_ps(minValuesBuffer, minValues);
+    _mm_store_ps(minIndexesBuffer, minValuesIndex);
+
+    for (uint32_t number = 0; number < 4; number++) {
+        if (minValuesBuffer[number] < min) {
+            index = minIndexesBuffer[number];
+            min = minValuesBuffer[number];
+        } else if (minValuesBuffer[number] == min) {
+            if (index > minIndexesBuffer[number])
+                index = minIndexesBuffer[number];
+        }
+    }
+
+    for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
+        if (source[number] < min) {
+            index = number;
+            min = source[number];
+        }
+    }
+    target[0] = (uint32_t)index;
 }
 
 #endif /*LV_HAVE_SSE*/
@@ -207,56 +203,54 @@ volk_32f_index_min_32u_a_sse(uint32_t* target, const float* source, uint32_t num
 static inline void
 volk_32f_index_min_32u_a_avx(uint32_t* target, const float* source, uint32_t num_points)
 {
-    if (num_points > 0) {
-        const uint32_t quarterPoints = num_points / 8;
+    const uint32_t quarterPoints = num_points / 8;
 
-        float* inputPtr = (float*)source;
+    float* inputPtr = (float*)source;
 
-        __m256 indexIncrementValues = _mm256_set1_ps(8);
-        __m256 currentIndexes = _mm256_set_ps(-1, -2, -3, -4, -5, -6, -7, -8);
+    __m256 indexIncrementValues = _mm256_set1_ps(8);
+    __m256 currentIndexes = _mm256_set_ps(-1, -2, -3, -4, -5, -6, -7, -8);
 
-        float min = source[0];
-        float index = 0;
-        __m256 minValues = _mm256_set1_ps(min);
-        __m256 minValuesIndex = _mm256_setzero_ps();
-        __m256 compareResults;
-        __m256 currentValues;
+    float min = source[0];
+    float index = 0;
+    __m256 minValues = _mm256_set1_ps(min);
+    __m256 minValuesIndex = _mm256_setzero_ps();
+    __m256 compareResults;
+    __m256 currentValues;
 
-        __VOLK_ATTR_ALIGNED(32) float minValuesBuffer[8];
-        __VOLK_ATTR_ALIGNED(32) float minIndexesBuffer[8];
+    __VOLK_ATTR_ALIGNED(32) float minValuesBuffer[8];
+    __VOLK_ATTR_ALIGNED(32) float minIndexesBuffer[8];
 
-        for (uint32_t number = 0; number < quarterPoints; number++) {
-            currentValues = _mm256_load_ps(inputPtr);
-            inputPtr += 8;
-            currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
-            compareResults = _mm256_cmp_ps(currentValues, minValues, _CMP_LT_OS);
-            minValuesIndex =
-                _mm256_blendv_ps(minValuesIndex, currentIndexes, compareResults);
-            minValues = _mm256_blendv_ps(minValues, currentValues, compareResults);
-        }
-
-        // Calculate the smallest value from the remaining 8 points
-        _mm256_store_ps(minValuesBuffer, minValues);
-        _mm256_store_ps(minIndexesBuffer, minValuesIndex);
-
-        for (uint32_t number = 0; number < 8; number++) {
-            if (minValuesBuffer[number] < min) {
-                index = minIndexesBuffer[number];
-                min = minValuesBuffer[number];
-            } else if (minValuesBuffer[number] == min) {
-                if (index > minIndexesBuffer[number])
-                    index = minIndexesBuffer[number];
-            }
-        }
-
-        for (uint32_t number = quarterPoints * 8; number < num_points; number++) {
-            if (source[number] < min) {
-                index = number;
-                min = source[number];
-            }
-        }
-        target[0] = (uint32_t)index;
+    for (uint32_t number = 0; number < quarterPoints; number++) {
+        currentValues = _mm256_load_ps(inputPtr);
+        inputPtr += 8;
+        currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
+        compareResults = _mm256_cmp_ps(currentValues, minValues, _CMP_LT_OS);
+        minValuesIndex =
+            _mm256_blendv_ps(minValuesIndex, currentIndexes, compareResults);
+        minValues = _mm256_blendv_ps(minValues, currentValues, compareResults);
     }
+
+    // Calculate the smallest value from the remaining 8 points
+    _mm256_store_ps(minValuesBuffer, minValues);
+    _mm256_store_ps(minIndexesBuffer, minValuesIndex);
+
+    for (uint32_t number = 0; number < 8; number++) {
+        if (minValuesBuffer[number] < min) {
+            index = minIndexesBuffer[number];
+            min = minValuesBuffer[number];
+        } else if (minValuesBuffer[number] == min) {
+            if (index > minIndexesBuffer[number])
+                index = minIndexesBuffer[number];
+        }
+    }
+
+    for (uint32_t number = quarterPoints * 8; number < num_points; number++) {
+        if (source[number] < min) {
+            index = number;
+            min = source[number];
+        }
+    }
+    target[0] = (uint32_t)index;
 }
 
 #endif /*LV_HAVE_AVX*/
@@ -268,58 +262,56 @@ volk_32f_index_min_32u_a_avx(uint32_t* target, const float* source, uint32_t num
 static inline void
 volk_32f_index_min_32u_neon(uint32_t* target, const float* source, uint32_t num_points)
 {
-    if (num_points > 0) {
-        const uint32_t quarterPoints = num_points / 4;
+    const uint32_t quarterPoints = num_points / 4;
 
-        float* inputPtr = (float*)source;
-        float32x4_t indexIncrementValues = vdupq_n_f32(4);
-        __VOLK_ATTR_ALIGNED(16)
-        float currentIndexes_float[4] = { -4.0f, -3.0f, -2.0f, -1.0f };
-        float32x4_t currentIndexes = vld1q_f32(currentIndexes_float);
+    float* inputPtr = (float*)source;
+    float32x4_t indexIncrementValues = vdupq_n_f32(4);
+    __VOLK_ATTR_ALIGNED(16)
+    float currentIndexes_float[4] = { -4.0f, -3.0f, -2.0f, -1.0f };
+    float32x4_t currentIndexes = vld1q_f32(currentIndexes_float);
 
-        float min = source[0];
-        float index = 0;
-        float32x4_t minValues = vdupq_n_f32(min);
-        uint32x4_t minValuesIndex = vmovq_n_u32(0);
-        uint32x4_t compareResults;
-        uint32x4_t currentIndexes_u;
-        float32x4_t currentValues;
+    float min = source[0];
+    float index = 0;
+    float32x4_t minValues = vdupq_n_f32(min);
+    uint32x4_t minValuesIndex = vmovq_n_u32(0);
+    uint32x4_t compareResults;
+    uint32x4_t currentIndexes_u;
+    float32x4_t currentValues;
 
-        __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
-        __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
 
-        for (uint32_t number = 0; number < quarterPoints; number++) {
-            currentValues = vld1q_f32(inputPtr);
-            inputPtr += 4;
-            currentIndexes = vaddq_f32(currentIndexes, indexIncrementValues);
-            currentIndexes_u = vcvtq_u32_f32(currentIndexes);
-            compareResults = vcgeq_f32(currentValues, minValues);
-            minValuesIndex = vorrq_u32(vandq_u32(compareResults, minValuesIndex),
-                                       vbicq_u32(currentIndexes_u, compareResults));
-            minValues = vminq_f32(currentValues, minValues);
-        }
-
-        // Calculate the smallest value from the remaining 4 points
-        vst1q_f32(minValuesBuffer, minValues);
-        vst1q_f32(minIndexesBuffer, vcvtq_f32_u32(minValuesIndex));
-        for (uint32_t number = 0; number < 4; number++) {
-            if (minValuesBuffer[number] < min) {
-                index = minIndexesBuffer[number];
-                min = minValuesBuffer[number];
-            } else if (minValues[number] == min) {
-                if (index > minIndexesBuffer[number])
-                    index = minIndexesBuffer[number];
-            }
-        }
-
-        for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
-            if (source[number] < min) {
-                index = number;
-                min = source[number];
-            }
-        }
-        target[0] = (uint32_t)index;
+    for (uint32_t number = 0; number < quarterPoints; number++) {
+        currentValues = vld1q_f32(inputPtr);
+        inputPtr += 4;
+        currentIndexes = vaddq_f32(currentIndexes, indexIncrementValues);
+        currentIndexes_u = vcvtq_u32_f32(currentIndexes);
+        compareResults = vcgeq_f32(currentValues, minValues);
+        minValuesIndex = vorrq_u32(vandq_u32(compareResults, minValuesIndex),
+                                   vbicq_u32(currentIndexes_u, compareResults));
+        minValues = vminq_f32(currentValues, minValues);
     }
+
+    // Calculate the smallest value from the remaining 4 points
+    vst1q_f32(minValuesBuffer, minValues);
+    vst1q_f32(minIndexesBuffer, vcvtq_f32_u32(minValuesIndex));
+    for (uint32_t number = 0; number < 4; number++) {
+        if (minValuesBuffer[number] < min) {
+            index = minIndexesBuffer[number];
+            min = minValuesBuffer[number];
+        } else if (minValues[number] == min) {
+            if (index > minIndexesBuffer[number])
+                index = minIndexesBuffer[number];
+        }
+    }
+
+    for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
+        if (source[number] < min) {
+            index = number;
+            min = source[number];
+        }
+    }
+    target[0] = (uint32_t)index;
 }
 
 #endif /*LV_HAVE_NEON*/
@@ -330,18 +322,16 @@ volk_32f_index_min_32u_neon(uint32_t* target, const float* source, uint32_t num_
 static inline void
 volk_32f_index_min_32u_generic(uint32_t* target, const float* source, uint32_t num_points)
 {
-    if (num_points > 0) {
-        float min = source[0];
-        uint32_t index = 0;
+    float min = source[0];
+    uint32_t index = 0;
 
-        for (uint32_t i = 1; i < num_points; ++i) {
-            if (source[i] < min) {
-                index = i;
-                min = source[i];
-            }
+    for (uint32_t i = 1; i < num_points; ++i) {
+        if (source[i] < min) {
+            index = i;
+            min = source[i];
         }
-        target[0] = index;
     }
+    target[0] = index;
 }
 
 #endif /*LV_HAVE_GENERIC*/
@@ -364,56 +354,54 @@ volk_32f_index_min_32u_generic(uint32_t* target, const float* source, uint32_t n
 static inline void
 volk_32f_index_min_32u_u_avx(uint32_t* target, const float* source, uint32_t num_points)
 {
-    if (num_points > 0) {
-        const uint32_t quarterPoints = num_points / 8;
+    const uint32_t quarterPoints = num_points / 8;
 
-        float* inputPtr = (float*)source;
+    float* inputPtr = (float*)source;
 
-        __m256 indexIncrementValues = _mm256_set1_ps(8);
-        __m256 currentIndexes = _mm256_set_ps(-1, -2, -3, -4, -5, -6, -7, -8);
+    __m256 indexIncrementValues = _mm256_set1_ps(8);
+    __m256 currentIndexes = _mm256_set_ps(-1, -2, -3, -4, -5, -6, -7, -8);
 
-        float min = source[0];
-        float index = 0;
-        __m256 minValues = _mm256_set1_ps(min);
-        __m256 minValuesIndex = _mm256_setzero_ps();
-        __m256 compareResults;
-        __m256 currentValues;
+    float min = source[0];
+    float index = 0;
+    __m256 minValues = _mm256_set1_ps(min);
+    __m256 minValuesIndex = _mm256_setzero_ps();
+    __m256 compareResults;
+    __m256 currentValues;
 
-        __VOLK_ATTR_ALIGNED(32) float minValuesBuffer[8];
-        __VOLK_ATTR_ALIGNED(32) float minIndexesBuffer[8];
+    __VOLK_ATTR_ALIGNED(32) float minValuesBuffer[8];
+    __VOLK_ATTR_ALIGNED(32) float minIndexesBuffer[8];
 
-        for (uint32_t number = 0; number < quarterPoints; number++) {
-            currentValues = _mm256_loadu_ps(inputPtr);
-            inputPtr += 8;
-            currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
-            compareResults = _mm256_cmp_ps(currentValues, minValues, _CMP_LT_OS);
-            minValuesIndex =
-                _mm256_blendv_ps(minValuesIndex, currentIndexes, compareResults);
-            minValues = _mm256_blendv_ps(minValues, currentValues, compareResults);
-        }
-
-        // Calculate the smalles value from the remaining 8 points
-        _mm256_store_ps(minValuesBuffer, minValues);
-        _mm256_store_ps(minIndexesBuffer, minValuesIndex);
-
-        for (uint32_t number = 0; number < 8; number++) {
-            if (minValuesBuffer[number] < min) {
-                index = minIndexesBuffer[number];
-                min = minValuesBuffer[number];
-            } else if (minValuesBuffer[number] == min) {
-                if (index > minIndexesBuffer[number])
-                    index = minIndexesBuffer[number];
-            }
-        }
-
-        for (uint32_t number = quarterPoints * 8; number < num_points; number++) {
-            if (source[number] < min) {
-                index = number;
-                min = source[number];
-            }
-        }
-        target[0] = (uint32_t)index;
+    for (uint32_t number = 0; number < quarterPoints; number++) {
+        currentValues = _mm256_loadu_ps(inputPtr);
+        inputPtr += 8;
+        currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
+        compareResults = _mm256_cmp_ps(currentValues, minValues, _CMP_LT_OS);
+        minValuesIndex =
+            _mm256_blendv_ps(minValuesIndex, currentIndexes, compareResults);
+        minValues = _mm256_blendv_ps(minValues, currentValues, compareResults);
     }
+
+    // Calculate the smalles value from the remaining 8 points
+    _mm256_store_ps(minValuesBuffer, minValues);
+    _mm256_store_ps(minIndexesBuffer, minValuesIndex);
+
+    for (uint32_t number = 0; number < 8; number++) {
+        if (minValuesBuffer[number] < min) {
+            index = minIndexesBuffer[number];
+            min = minValuesBuffer[number];
+        } else if (minValuesBuffer[number] == min) {
+            if (index > minIndexesBuffer[number])
+                index = minIndexesBuffer[number];
+        }
+    }
+
+    for (uint32_t number = quarterPoints * 8; number < num_points; number++) {
+        if (source[number] < min) {
+            index = number;
+            min = source[number];
+        }
+    }
+    target[0] = (uint32_t)index;
 }
 
 #endif /*LV_HAVE_AVX*/
@@ -426,56 +414,54 @@ static inline void volk_32f_index_min_32u_u_sse4_1(uint32_t* target,
                                                    const float* source,
                                                    uint32_t num_points)
 {
-    if (num_points > 0) {
-        const uint32_t quarterPoints = num_points / 4;
+    const uint32_t quarterPoints = num_points / 4;
 
-        float* inputPtr = (float*)source;
+    float* inputPtr = (float*)source;
 
-        __m128 indexIncrementValues = _mm_set1_ps(4);
-        __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
+    __m128 indexIncrementValues = _mm_set1_ps(4);
+    __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
-        float min = source[0];
-        float index = 0;
-        __m128 minValues = _mm_set1_ps(min);
-        __m128 minValuesIndex = _mm_setzero_ps();
-        __m128 compareResults;
-        __m128 currentValues;
+    float min = source[0];
+    float index = 0;
+    __m128 minValues = _mm_set1_ps(min);
+    __m128 minValuesIndex = _mm_setzero_ps();
+    __m128 compareResults;
+    __m128 currentValues;
 
-        __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
-        __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
 
-        for (uint32_t number = 0; number < quarterPoints; number++) {
-            currentValues = _mm_loadu_ps(inputPtr);
-            inputPtr += 4;
-            currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
-            compareResults = _mm_cmplt_ps(currentValues, minValues);
-            minValuesIndex =
-                _mm_blendv_ps(minValuesIndex, currentIndexes, compareResults);
-            minValues = _mm_blendv_ps(minValues, currentValues, compareResults);
-        }
-
-        // Calculate the smallest value from the remaining 4 points
-        _mm_store_ps(minValuesBuffer, minValues);
-        _mm_store_ps(minIndexesBuffer, minValuesIndex);
-
-        for (uint32_t number = 0; number < 4; number++) {
-            if (minValuesBuffer[number] < min) {
-                index = minIndexesBuffer[number];
-                min = minValuesBuffer[number];
-            } else if (minValuesBuffer[number] == min) {
-                if (index > minIndexesBuffer[number])
-                    index = minIndexesBuffer[number];
-            }
-        }
-
-        for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
-            if (source[number] < min) {
-                index = number;
-                min = source[number];
-            }
-        }
-        target[0] = (uint32_t)index;
+    for (uint32_t number = 0; number < quarterPoints; number++) {
+        currentValues = _mm_loadu_ps(inputPtr);
+        inputPtr += 4;
+        currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
+        compareResults = _mm_cmplt_ps(currentValues, minValues);
+        minValuesIndex =
+            _mm_blendv_ps(minValuesIndex, currentIndexes, compareResults);
+        minValues = _mm_blendv_ps(minValues, currentValues, compareResults);
     }
+
+    // Calculate the smallest value from the remaining 4 points
+    _mm_store_ps(minValuesBuffer, minValues);
+    _mm_store_ps(minIndexesBuffer, minValuesIndex);
+
+    for (uint32_t number = 0; number < 4; number++) {
+        if (minValuesBuffer[number] < min) {
+            index = minIndexesBuffer[number];
+            min = minValuesBuffer[number];
+        } else if (minValuesBuffer[number] == min) {
+            if (index > minIndexesBuffer[number])
+                index = minIndexesBuffer[number];
+        }
+    }
+
+    for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
+        if (source[number] < min) {
+            index = number;
+            min = source[number];
+        }
+    }
+    target[0] = (uint32_t)index;
 }
 
 #endif /*LV_HAVE_SSE4_1*/
@@ -486,57 +472,55 @@ static inline void volk_32f_index_min_32u_u_sse4_1(uint32_t* target,
 static inline void
 volk_32f_index_min_32u_u_sse(uint32_t* target, const float* source, uint32_t num_points)
 {
-    if (num_points > 0) {
-        const uint32_t quarterPoints = num_points / 4;
+    const uint32_t quarterPoints = num_points / 4;
 
-        float* inputPtr = (float*)source;
+    float* inputPtr = (float*)source;
 
-        __m128 indexIncrementValues = _mm_set1_ps(4);
-        __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
+    __m128 indexIncrementValues = _mm_set1_ps(4);
+    __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
-        float min = source[0];
-        float index = 0;
-        __m128 minValues = _mm_set1_ps(min);
-        __m128 minValuesIndex = _mm_setzero_ps();
-        __m128 compareResults;
-        __m128 currentValues;
+    float min = source[0];
+    float index = 0;
+    __m128 minValues = _mm_set1_ps(min);
+    __m128 minValuesIndex = _mm_setzero_ps();
+    __m128 compareResults;
+    __m128 currentValues;
 
-        __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
-        __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
 
-        for (uint32_t number = 0; number < quarterPoints; number++) {
-            currentValues = _mm_loadu_ps(inputPtr);
-            inputPtr += 4;
-            currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
-            compareResults = _mm_cmplt_ps(currentValues, minValues);
-            minValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, currentIndexes),
-                                       _mm_andnot_ps(compareResults, minValuesIndex));
-            minValues = _mm_or_ps(_mm_and_ps(compareResults, currentValues),
-                                  _mm_andnot_ps(compareResults, minValues));
-        }
-
-        // Calculate the smallest value from the remaining 4 points
-        _mm_store_ps(minValuesBuffer, minValues);
-        _mm_store_ps(minIndexesBuffer, minValuesIndex);
-
-        for (uint32_t number = 0; number < 4; number++) {
-            if (minValuesBuffer[number] < min) {
-                index = minIndexesBuffer[number];
-                min = minValuesBuffer[number];
-            } else if (minValuesBuffer[number] == min) {
-                if (index > minIndexesBuffer[number])
-                    index = minIndexesBuffer[number];
-            }
-        }
-
-        for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
-            if (source[number] < min) {
-                index = number;
-                min = source[number];
-            }
-        }
-        target[0] = (uint32_t)index;
+    for (uint32_t number = 0; number < quarterPoints; number++) {
+        currentValues = _mm_loadu_ps(inputPtr);
+        inputPtr += 4;
+        currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
+        compareResults = _mm_cmplt_ps(currentValues, minValues);
+        minValuesIndex = _mm_or_ps(_mm_and_ps(compareResults, currentIndexes),
+                                   _mm_andnot_ps(compareResults, minValuesIndex));
+        minValues = _mm_or_ps(_mm_and_ps(compareResults, currentValues),
+                              _mm_andnot_ps(compareResults, minValues));
     }
+
+    // Calculate the smallest value from the remaining 4 points
+    _mm_store_ps(minValuesBuffer, minValues);
+    _mm_store_ps(minIndexesBuffer, minValuesIndex);
+
+    for (uint32_t number = 0; number < 4; number++) {
+        if (minValuesBuffer[number] < min) {
+            index = minIndexesBuffer[number];
+            min = minValuesBuffer[number];
+        } else if (minValuesBuffer[number] == min) {
+            if (index > minIndexesBuffer[number])
+                index = minIndexesBuffer[number];
+        }
+    }
+
+    for (uint32_t number = quarterPoints * 4; number < num_points; number++) {
+        if (source[number] < min) {
+            index = number;
+            min = source[number];
+        }
+    }
+    target[0] = (uint32_t)index;
 }
 
 #endif /*LV_HAVE_SSE*/

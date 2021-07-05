@@ -2,14 +2,14 @@
 /*
  * Copyright 2021 Free Software Foundation, Inc.
  *
- * This file is part of GNU Radio
+ * This file is part of VOLK
  *
- * GNU Radio is free software; you can redistribute it and/or modify
+ * VOLK is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  *
- * GNU Radio is distributed in the hope that it will be useful,
+ * VOLK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -198,8 +198,6 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_1(uint32_t* target,
 static inline void
 volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* source, uint32_t num_points)
 {
-    const uint32_t num_bytes = num_points * 8;
-
     union bit128 holderf;
     union bit128 holderi;
     float sq_dist = 0.0;
@@ -218,7 +216,7 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* source, uint32_t num
     xmm10 = _mm_setr_epi32(4, 4, 4, 4);
     xmm3 = _mm_set_ps1(FLT_MAX);
 
-    int bound = num_bytes >> 5;
+    int bound = num_points >> 2;
 
     for (int i = 0; i < bound; ++i) {
         xmm1 = _mm_load_ps((float*)source);
@@ -244,7 +242,7 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* source, uint32_t num
         xmm8 = _mm_add_epi32(xmm8, xmm10);
     }
 
-    if (num_bytes >> 4 & 1) {
+    if (num_points >> 1 & 1) {
         xmm2 = _mm_load_ps((float*)source);
 
         xmm1 = _mm_movelh_ps(bit128_p(&xmm8)->float_vec, bit128_p(&xmm8)->float_vec);
@@ -271,7 +269,7 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* source, uint32_t num
         xmm8 = _mm_add_epi32(xmm8, xmm10);
     }
 
-    if (num_bytes >> 3 & 1) {
+    if (num_points & 1) {
         sq_dist = lv_creal(source[0]) * lv_creal(source[0]) +
                   lv_cimag(source[0]) * lv_cimag(source[0]);
 
@@ -311,13 +309,11 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* source, uint32_t num
 static inline void
 volk_32fc_index_min_32u_generic(uint32_t* target, lv_32fc_t* source, uint32_t num_points)
 {
-    const uint32_t num_bytes = num_points * 8;
-
     float sq_dist = 0.0;
     float min = FLT_MAX;
     uint32_t index = 0;
 
-    for (uint32_t i = 0; i<num_bytes>> 3; ++i) {
+    for (uint32_t i = 0; i < num_points; ++i) {
         sq_dist = lv_creal(source[i]) * lv_creal(source[i]) +
                   lv_cimag(source[i]) * lv_cimag(source[i]);
 
