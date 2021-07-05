@@ -101,8 +101,7 @@ static inline void volk_32f_index_min_32u_a_sse4_1(uint32_t* target,
 
         compareResults = _mm_cmplt_ps(currentValues, minValues);
 
-        minValuesIndex =
-            _mm_blendv_ps(minValuesIndex, currentIndexes, compareResults);
+        minValuesIndex = _mm_blendv_ps(minValuesIndex, currentIndexes, compareResults);
         minValues = _mm_blendv_ps(minValues, currentValues, compareResults);
     }
 
@@ -225,8 +224,7 @@ volk_32f_index_min_32u_a_avx(uint32_t* target, const float* source, uint32_t num
         inputPtr += 8;
         currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
         compareResults = _mm256_cmp_ps(currentValues, minValues, _CMP_LT_OS);
-        minValuesIndex =
-            _mm256_blendv_ps(minValuesIndex, currentIndexes, compareResults);
+        minValuesIndex = _mm256_blendv_ps(minValuesIndex, currentIndexes, compareResults);
         minValues = _mm256_blendv_ps(minValues, currentValues, compareResults);
     }
 
@@ -376,8 +374,7 @@ volk_32f_index_min_32u_u_avx(uint32_t* target, const float* source, uint32_t num
         inputPtr += 8;
         currentIndexes = _mm256_add_ps(currentIndexes, indexIncrementValues);
         compareResults = _mm256_cmp_ps(currentValues, minValues, _CMP_LT_OS);
-        minValuesIndex =
-            _mm256_blendv_ps(minValuesIndex, currentIndexes, compareResults);
+        minValuesIndex = _mm256_blendv_ps(minValuesIndex, currentIndexes, compareResults);
         minValues = _mm256_blendv_ps(minValues, currentValues, compareResults);
     }
 
@@ -436,8 +433,7 @@ static inline void volk_32f_index_min_32u_u_sse4_1(uint32_t* target,
         inputPtr += 4;
         currentIndexes = _mm_add_ps(currentIndexes, indexIncrementValues);
         compareResults = _mm_cmplt_ps(currentValues, minValues);
-        minValuesIndex =
-            _mm_blendv_ps(minValuesIndex, currentIndexes, compareResults);
+        minValuesIndex = _mm_blendv_ps(minValuesIndex, currentIndexes, compareResults);
         minValues = _mm_blendv_ps(minValues, currentValues, compareResults);
     }
 
