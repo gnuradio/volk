@@ -195,8 +195,9 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_1(uint32_t* target,
 #include <pmmintrin.h>
 #include <xmmintrin.h>
 
-static inline void
-volk_32fc_index_min_32u_a_sse3(uint32_t* target, const lv_32fc_t* source, uint32_t num_points)
+static inline void volk_32fc_index_min_32u_a_sse3(uint32_t* target,
+                                                  const lv_32fc_t* source,
+                                                  uint32_t num_points)
 {
     union bit128 holderf;
     union bit128 holderi;
@@ -306,8 +307,9 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, const lv_32fc_t* source, uint32
 #endif /*LV_HAVE_SSE3*/
 
 #ifdef LV_HAVE_GENERIC
-static inline void
-volk_32fc_index_min_32u_generic(uint32_t* target, const lv_32fc_t* source, uint32_t num_points)
+static inline void volk_32fc_index_min_32u_generic(uint32_t* target,
+                                                   const lv_32fc_t* source,
+                                                   uint32_t num_points)
 {
     float sq_dist = 0.0;
     float min = FLT_MAX;
@@ -457,8 +459,9 @@ static inline void volk_32fc_index_min_32u_u_avx2_variant_1(uint32_t* target,
 #include <arm_neon.h>
 #include <volk/volk_neon_intrinsics.h>
 
-static inline void
-volk_32fc_index_min_32u_neon(uint32_t* target, const lv_32fc_t* source, uint32_t num_points)
+static inline void volk_32fc_index_min_32u_neon(uint32_t* target,
+                                                const lv_32fc_t* source,
+                                                uint32_t num_points)
 {
     const uint32_t quarter_points = num_points / 4;
     const lv_32fc_t* sourcePtr = source;

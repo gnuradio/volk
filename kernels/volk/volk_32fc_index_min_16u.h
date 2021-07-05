@@ -206,8 +206,9 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_1(uint16_t* target,
 #include <pmmintrin.h>
 #include <xmmintrin.h>
 
-static inline void
-volk_32fc_index_min_16u_a_sse3(uint16_t* target, const lv_32fc_t* source, uint32_t num_points)
+static inline void volk_32fc_index_min_16u_a_sse3(uint16_t* target,
+                                                  const lv_32fc_t* source,
+                                                  uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
 
@@ -319,8 +320,9 @@ volk_32fc_index_min_16u_a_sse3(uint16_t* target, const lv_32fc_t* source, uint32
 #endif /*LV_HAVE_SSE3*/
 
 #ifdef LV_HAVE_GENERIC
-static inline void
-volk_32fc_index_min_16u_generic(uint16_t* target, const lv_32fc_t* source, uint32_t num_points)
+static inline void volk_32fc_index_min_16u_generic(uint16_t* target,
+                                                   const lv_32fc_t* source,
+                                                   uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
 
