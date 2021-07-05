@@ -80,7 +80,7 @@
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_32u_a_avx2_variant_0(uint32_t* target,
-                                                            lv_32fc_t* source,
+                                                            const lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     const __m256i indices_increment = _mm256_set1_epi32(8);
@@ -138,7 +138,7 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_0(uint32_t* target,
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_32u_a_avx2_variant_1(uint32_t* target,
-                                                            lv_32fc_t* source,
+                                                            const lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     const __m256i indices_increment = _mm256_set1_epi32(8);
@@ -196,7 +196,7 @@ static inline void volk_32fc_index_min_32u_a_avx2_variant_1(uint32_t* target,
 #include <xmmintrin.h>
 
 static inline void
-volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* source, uint32_t num_points)
+volk_32fc_index_min_32u_a_sse3(uint32_t* target, const lv_32fc_t* source, uint32_t num_points)
 {
     union bit128 holderf;
     union bit128 holderi;
@@ -307,7 +307,7 @@ volk_32fc_index_min_32u_a_sse3(uint32_t* target, lv_32fc_t* source, uint32_t num
 
 #ifdef LV_HAVE_GENERIC
 static inline void
-volk_32fc_index_min_32u_generic(uint32_t* target, lv_32fc_t* source, uint32_t num_points)
+volk_32fc_index_min_32u_generic(uint32_t* target, const lv_32fc_t* source, uint32_t num_points)
 {
     float sq_dist = 0.0;
     float min = FLT_MAX;
@@ -342,7 +342,7 @@ volk_32fc_index_min_32u_generic(uint32_t* target, lv_32fc_t* source, uint32_t nu
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_32u_u_avx2_variant_0(uint32_t* target,
-                                                            lv_32fc_t* source,
+                                                            const lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     const __m256i indices_increment = _mm256_set1_epi32(8);
@@ -400,7 +400,7 @@ static inline void volk_32fc_index_min_32u_u_avx2_variant_0(uint32_t* target,
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_min_32u_u_avx2_variant_1(uint32_t* target,
-                                                            lv_32fc_t* source,
+                                                            const lv_32fc_t* source,
                                                             uint32_t num_points)
 {
     const __m256i indices_increment = _mm256_set1_epi32(8);
@@ -458,7 +458,7 @@ static inline void volk_32fc_index_min_32u_u_avx2_variant_1(uint32_t* target,
 #include <volk/volk_neon_intrinsics.h>
 
 static inline void
-volk_32fc_index_min_32u_neon(uint32_t* target, lv_32fc_t* source, uint32_t num_points)
+volk_32fc_index_min_32u_neon(uint32_t* target, const lv_32fc_t* source, uint32_t num_points)
 {
     const uint32_t quarter_points = num_points / 4;
     const lv_32fc_t* sourcePtr = source;
