@@ -48,6 +48,8 @@
 \li \subpage volk_32fc_deinterleave_real_64f
 \li \subpage volk_32fc_index_max_16u
 \li \subpage volk_32fc_index_max_32u
+\li \subpage volk_32fc_index_min_16u
+\li \subpage volk_32fc_index_min_32u
 \li \subpage volk_32fc_magnitude_32f
 \li \subpage volk_32fc_magnitude_squared_32f
 \li \subpage volk_32f_cos_32f
@@ -63,6 +65,8 @@
 \li \subpage volk_32f_expfast_32f
 \li \subpage volk_32f_index_max_16u
 \li \subpage volk_32f_index_max_32u
+\li \subpage volk_32f_index_min_16u
+\li \subpage volk_32f_index_min_32u
 \li \subpage volk_32f_invsqrt_32f
 \li \subpage volk_32f_log2_32f
 \li \subpage volk_32f_s32f_calc_spectral_noise_floor_32f
