@@ -1,9 +1,9 @@
-Files in this code repository are to be licensed under the LGPLv3, which you'll
-find in the file COPYING-LGPL
+Files in this code repository are to be licensed under the LGPL-3.0-or-later, 
+which you will find in the file COPYING-LGPL.
 
 However, you'll find some files that carry a license header that assigns them as
-GPLv3, which was the default license for VOLK up to version 3. You can find the
-full license text of the GPLv3 below.
+GPL-3.0-or-later, which was the default license for VOLK before version 3. You can find the
+full license text of the GPL-3.0-or-later below.
 
 ================================================================================
 

@@ -21,7 +21,7 @@ code.
 
 ## DCO Signed?
 
-Any code contributions going into VOLK will become part of an LPGPL-licensed
+Any code contributions going into VOLK will become part of an LGPL-licensed
 (former contributions are GPL-licensed), open source repository. It is therefore
 imperative that code submissions belong to the authors, and that submitters have
 the authority to merge that code into the public VOLK codebase.
