@@ -26,43 +26,10 @@
  * - lv_conj - take the conjugate of the complex number
  */
 
-#ifdef __cplusplus
 
-#include <stdint.h>
-#include <complex>
+#include <volk/volk_common.h>
 
-typedef std::complex<int8_t> lv_8sc_t;
-typedef std::complex<int16_t> lv_16sc_t;
-typedef std::complex<int32_t> lv_32sc_t;
-typedef std::complex<int64_t> lv_64sc_t;
-typedef std::complex<float> lv_32fc_t;
-typedef std::complex<double> lv_64fc_t;
-
-template <typename T>
-inline std::complex<T> lv_cmake(const T& r, const T& i)
-{
-    return std::complex<T>(r, i);
-}
-
-template <typename T>
-inline typename T::value_type lv_creal(const T& x)
-{
-    return x.real();
-}
-
-template <typename T>
-inline typename T::value_type lv_cimag(const T& x)
-{
-    return x.imag();
-}
-
-template <typename T>
-inline T lv_conj(const T& x)
-{
-    return std::conj(x);
-}
-
-#else /* __cplusplus */
+__VOLK_DECL_BEGIN
 
 #include <complex.h>
 #include <tgmath.h>
@@ -101,6 +68,6 @@ typedef double complex lv_64fc_t;
 
 #endif /* __GNUC__ */
 
-#endif /* __cplusplus */
+__VOLK_DECL_END
 
 #endif /* INCLUDE_VOLK_COMPLEX_H */
