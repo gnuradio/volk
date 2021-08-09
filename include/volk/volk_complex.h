@@ -26,22 +26,30 @@
  * - lv_conj - take the conjugate of the complex number
  */
 
-
 #include <volk/volk_common.h>
 
 __VOLK_DECL_BEGIN
 
 #include <complex.h>
-#include <tgmath.h>
 
-typedef char complex lv_8sc_t;
-typedef short complex lv_16sc_t;
-typedef long complex lv_32sc_t;
-typedef long long complex lv_64sc_t;
-typedef float complex lv_32fc_t;
-typedef double complex lv_64fc_t;
+// Obviously, we would love `typedef float complex lv_32fc_t` to work.
+// However, this clashes with C++ definitions.
+// error: expected initializer before ‘lv_32fc_t’
+//    --> typedef float complex lv_32fc_t;
+// https://stackoverflow.com/a/10540302
+
+typedef char _Complex lv_8sc_t;
+typedef short _Complex lv_16sc_t;
+typedef long _Complex lv_32sc_t;
+typedef long long _Complex lv_64sc_t;
+typedef float _Complex lv_32fc_t;
+typedef double _Complex lv_64fc_t;
 
 #define lv_cmake(r, i) ((r) + _Complex_I * (i))
+// We want `_Imaginary_I` to ensure the correct sign.
+// https://en.cppreference.com/w/c/numeric/complex/Imaginary_I
+// It does not compile. Complex numbers are a terribly implemented afterthought.
+// #define lv_cmake(r, i) ((r) + _Imaginary_I * (i))
 
 // When GNUC is available, use the complex extensions.
 // The extensions always return the correct value type.
@@ -59,6 +67,7 @@ typedef double complex lv_64fc_t;
 // unless we have C99 and thus tgmath.h overriding functions
 // with type-generic versions.
 #else /* __GNUC__ */
+
 
 #define lv_creal(x) (creal(x))
 
