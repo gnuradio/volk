@@ -19,4 +19,5 @@ Together with the date of agreement, these authors are:
 |------------|-----------------------------|---------------|--------------------------|
 | 2021-07-01 | Marcus Müller               |               |                          |
 | 2021-08-01 | Johannes Demel              | jdemel        | <ufcsy@student.kit.edu>, <demel@uni-bremen.de>, <demel@ant.uni-bremen.de> |
+| 2021-08-25 | Martin Braun | mbr0wn        | martin@gnuradio.org, martin.braun@ettus.com  |
 |            |                             |
