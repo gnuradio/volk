@@ -26,9 +26,11 @@
  * - lv_conj - take the conjugate of the complex number
  */
 
-#include <volk/volk_common.h>
+// #include <volk/volk_common.h>
 
-__VOLK_DECL_BEGIN
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #include <complex.h>
 
@@ -77,6 +79,10 @@ typedef double _Complex lv_64fc_t;
 
 #endif /* __GNUC__ */
 
-__VOLK_DECL_END
+// __VOLK_DECL_END
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* INCLUDE_VOLK_COMPLEX_H */

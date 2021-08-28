@@ -1,3 +1,3 @@
-gcc -std=c17 -I/home/johannes/src/volk/include -x c main.c -o mainvolkgnuc -lm
-clang -std=c17 -I/home/johannes/src/volk/include -x c main.c -o mainvolkclangc -lm
-g++ -std=c++17 -I/home/johannes/src/volk/include -x c++ main.cc -o mainvolkcpp -lm -lfmt
+gcc -std=c17 -I/home/johannes/src/volk/include -I/home/johannes/src/volk/build/include -L/home/johannes/src/volk/build/lib -x c main.c -o mainvolkgnuc -lm -lvolk
+clang -std=c17 -I/home/johannes/src/volk/include -I/home/johannes/src/volk/build/include -L/home/johannes/src/volk/build/lib -x c main.c -o mainvolkclangc -lm -lvolk
+g++ -std=c++17 -I/home/johannes/src/volk/include -I/home/johannes/src/volk/build/include -L/home/johannes/src/volk/build/lib -x c++ main.cc -o mainvolkcpp -lm -lfmt -lvolk

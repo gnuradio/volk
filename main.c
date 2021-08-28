@@ -1,9 +1,49 @@
 
 #include <stdio.h>
-#include <volk/volk_complex.h>
+#include <math.h>
+#include <volk/volk.h>
+
+void function_test(int num_points)
+{
+    unsigned int alignment = volk_get_alignment();
+    lv_32fc_t* in0 = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t) * num_points, alignment);
+    lv_32fc_t* in1 = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t) * num_points, alignment);
+    lv_32fc_t* out = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t) * num_points, alignment);
+
+    for (unsigned int ii = 0; ii < num_points; ++ii) {
+        // Generate two tones
+        float real_1 = cosf(0.3f * (float)ii);
+        float imag_1 = sinf(0.3f * (float)ii);
+        in0[ii] = lv_cmake(real_1, imag_1);
+        float real_2 = cosf(0.1f * (float)ii);
+        float imag_2 = sinf(0.1f * (float)ii);
+        in1[ii] = lv_cmake(real_2, imag_2);
+    }
+
+    volk_32fc_x2_multiply_32fc(out, in0, in1, num_points);
+
+    for (unsigned int ii = 0; ii < num_points; ++ii) {
+        lv_32fc_t v0 = in0[ii];
+        lv_32fc_t v1 = in1[ii];
+        lv_32fc_t o = out[ii];
+        printf("in0=(%+.1f%+.1fj), in1=(%+.1f%+.1fj), out=(%+.1f%+.1fj)\n",
+               creal(v0),
+               cimag(v0),
+               creal(v1),
+               cimag(v1),
+               creal(o),
+               cimag(o));
+    }
+
+    volk_free(in0);
+    volk_free(in1);
+    volk_free(out);
+}
 
 int main(int argc, char* argv[])
 {
+    function_test(32);
+
     lv_32fc_t fc_cpl[4];
     printf("float=%lu, complex float=%lu, complex float array[4]=%lu\n",
            sizeof(float),
