@@ -21,4 +21,5 @@ Together with the date of agreement, these authors are:
 | 2021-08-01 | Johannes Demel              | jdemel        | <ufcsy@student.kit.edu>, <demel@uni-bremen.de>, <demel@ant.uni-bremen.de> |
 | 2021-08-25 | Martin Braun | mbr0wn        | martin@gnuradio.org, martin.braun@ettus.com  |
 | 2021-08-27 | Carles Fernandez            | carlesfernandez | <carles.fernandez@cttc.es> |
-|            |                             | | |
+| 2021-08-27 | Magnus Lundmark | Ka-zam | magnus@skysense.io |
+|            |                             |
