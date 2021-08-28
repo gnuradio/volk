@@ -11,6 +11,24 @@ Future contributions by these authors are, however,
 licensed under LGPL-3.0-or-later, unless explicitly stated otherwise.
 
 
+## How to add myself to the table of authors
+There are several options. Choose the one you prefer.
+
+1. Open a PR and add yourself to the table.
+2. Add a Github comment that clearly states your wish to be added to the table.
+3. Write an email to the maintainers that clearly states your wish to be added to the table.
+
+If you go with option 2 or 3, the maintainers add your statement to the corresponding git commit message for documentation purposes.
+
+### Information for option 2 and 3
+
+If you go with option 2 or 3, the maintainers add your statement to the corresponding git commit message for documentation purposes.
+
+Suggested wording
+
+> I, {contributor name}, hereby resubmit all my contributions to the VOLK project and repository under the terms of the LGPLv3+. My GitHub handle is {github handle}, my email addresses used for contributions are: {email address}, ... .
+
+
 ## Table of authors
 
 Together with the date of agreement, these authors are:
