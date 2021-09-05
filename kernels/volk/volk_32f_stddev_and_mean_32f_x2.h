@@ -43,16 +43,19 @@
  *
  * \b Example
  * Generate random numbers with c++11's normal distribution and estimate the mean and
- * standard deviation \code int N = 1000; unsigned int alignment = volk_get_alignment();
+ * standard deviation
+ * \code
+ *   int N = 1000;
+ *   unsigned int alignment = volk_get_alignment();
  *   float* rand_numbers = (float*) volk_malloc(sizeof(float)*N, alignment);
  *   float* mean = (float*) volk_malloc(sizeof(float), alignment);
  *   float* stddev = (float*) volk_malloc(sizeof(float), alignment);
  *
- *   // Use a normal generator with 0 mean, stddev 1
+ *   // Use a normal generator with 0 mean, stddev 1000
  *   std::default_random_engine generator;
- *   std::normal_distribution<float> distribution(0,1000);
+ *   std::normal_distribution<float> distribution(0, 1000);
  *
- *   for(unsigned int ii = 0; ii < N; ++ii){
+ *   for(unsigned int ii = 0; ii < N; ++ii) {
  *       rand_numbers[ii] =  distribution(generator);
  *   }
  *
