@@ -1,6 +1,6 @@
 
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <volk/volk.h>
 
 void function_test(int num_points)
