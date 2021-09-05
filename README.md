@@ -98,23 +98,10 @@ We want to make sure VOLK compiles on a wide variety of compilers. Thus, we targ
 
 ## License
 
->
-> Copyright 2015 Free Software Foundation, Inc.
->
-> This file is part of VOLK
->
-> VOLK is free software; you can redistribute it and/or modify
-> it under the terms of the GNU General Public License as published by
-> the Free Software Foundation; either version 3, or (at your option)
-> any later version.
->
-> VOLK is distributed in the hope that it will be useful,
-> but WITHOUT ANY WARRANTY; without even the implied warranty of
-> MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> GNU General Public License for more details.
->
-> You should have received a copy of the GNU General Public License
-> along with GNU Radio; see the file COPYING.  If not, write to
-> the Free Software Foundation, Inc., 51 Franklin Street,
-> Boston, MA 02110-1301, USA.
->
+VOLK is migrating from the GNU General Public License v3.0 or later (GPL-3.0-or-later) 
+to the GNU Lesser General Public License v3.0 or later (LGPL-3.0-or-later).
+At this point in time, much of the code in the repository is still GPL-licensed.
+New contributors are required to use the LGPLv3+ for their code contributions. 
+Existing contributors are very kindly requested to re-submit their GPL-3.0-or-later license code contributions to LGPL-3.0-or-later by
+adding their name, GitHub handle, and email address(es) used for VOLK commits 
+to the file `AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md`.
