@@ -98,10 +98,10 @@ We want to make sure VOLK compiles on a wide variety of compilers. Thus, we targ
 
 ## License
 
-VOLK is moving from the GNU General Public License v3.0 or later (GPL-3.0-or-later) 
+VOLK is migrating from the GNU General Public License v3.0 or later (GPL-3.0-or-later) 
 to the GNU Lesser General Public License v3.0 or later (LGPL-3.0-or-later).
-At this point in time, much of the code in the repository is still GPL-licensed, 
-but new contributors are asked to use the LGPLv3+ for their code contributions. 
-Existing contributors are very kindly requested to also allow LPGL-licensing by 
+At this point in time, much of the code in the repository is still GPL-licensed.
+New contributors are required to use the LGPLv3+ for their code contributions. 
+Existing contributors are very kindly requested to re-submit their GPL-3.0-or-later license code contributions to LGPL-3.0-or-later by
 adding their name, GitHub handle, and email address(es) used for VOLK commits 
 to the file `AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md`.

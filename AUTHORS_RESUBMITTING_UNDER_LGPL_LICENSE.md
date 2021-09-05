@@ -1,12 +1,12 @@
 # List of authors resubmitting their contributions under LGPL-3.0-or-later
 
-VOLK is going to migrating from GNU General Public License v3.0 or later (GPL-3.0-or-later)
+VOLK is migrating from GNU General Public License v3.0 or later (GPL-3.0-or-later)
 to GNU Lesser General Public License v3.0 or later (LGPL-3.0-or-later).
 
 This file is a list of the authors who agreed to resubmit their code
 under the LGPL-3.0-or-later license to this repository.
 In case the affected code is licensed differently than VOLK's current license (GPL-3.0-or-later),
-this gives the right to use the current contributions under both LGPL-3.0-or-later and that other license.
+this gives the VOLK project the right to use the current contributions under both LGPL-3.0-or-later and that other license.
 Future contributions by these authors are, however,
 licensed under LGPL-3.0-or-later, unless explicitly stated otherwise.
 
@@ -17,8 +17,6 @@ There are several options. Choose the one you prefer.
 1. Open a PR and add yourself to the table.
 2. Add a Github comment that clearly states your wish to be added to the table.
 3. Write an email to the maintainers that clearly states your wish to be added to the table.
-
-If you go with option 2 or 3, the maintainers add your statement to the corresponding git commit message for documentation purposes.
 
 ### Information for option 2 and 3
 
