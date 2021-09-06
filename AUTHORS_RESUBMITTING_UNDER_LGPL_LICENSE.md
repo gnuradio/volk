@@ -40,4 +40,5 @@ Together with the date of agreement, these authors are:
 | 2021-08-27 | Magnus Lundmark             | Ka-zam          | magnus@skysense.io                                                  |
 | 2021-09-04 | Michael Dickens             | michaelld       | mlk@alum.mit.edu, michael.dickens@ettus.com                         |
 | 2021-09-05 | Andrej Rode                 | noc0lour        | mail@andrejro.de                                                    |
+| 2021-09-06 | rear1019                    | rear1019        | rear1019@posteo.de                                                  |
 |            |                             |                 |                                                                     |
