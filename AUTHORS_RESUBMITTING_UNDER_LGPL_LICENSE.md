@@ -44,5 +44,6 @@ Together with the date of agreement, these authors are:
 | 2021-09-08 | Federico 'Larroca' La Rocca | git-artes       | flarroca@fing.edu.uy                                                |
 | 2021-09-08 | A. Maitland Bottoms         | maitbot         | bottoms@debian.org                                                  |
 | 2021-09-08 | Paul Cercueil               | pcercuei        | paul.cercueil@analog.com                                            |
+| 2021-09-08 | Jeison Cardoso              | jsonzilla, 0unit| cardoso.jeison@gmail.com                                            |
 | 2021-09-08 | Brennan Ashton              | btashton        | bashton@brennanashton.com                                           |
 |            |                             |                 |                                                                     |
