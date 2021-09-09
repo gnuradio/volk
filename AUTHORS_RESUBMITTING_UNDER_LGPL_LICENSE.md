@@ -51,4 +51,5 @@ Together with the date of agreement, these authors are:
 | 2021-09-08 | Douglas Anderson            | djanderson      | douglas.j.anderson@gmail.com, djanderson@users.noreply.github.com   |
 | 2021-09-09 | Jaroslav Škarvada           | yarda           | jskarvad@redhat.com                                                 |
 | 2021-09-09 | Vasil Velichkov             | velichkov       | vvvelichkov@gmail.com                                               |
+| 2021-09-09 | Takehiro Sekine             | bstalk          | takehiro.sekine@ps23.jp                                             |
 |            |                             |                 |                                                                     |
