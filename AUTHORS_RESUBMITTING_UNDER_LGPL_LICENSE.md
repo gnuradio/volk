@@ -39,5 +39,15 @@ Together with the date of agreement, these authors are:
 | 2021-08-27 | Carles Fernandez            | carlesfernandez | carles.fernandez@cttc.es                                            |
 | 2021-08-27 | Magnus Lundmark             | Ka-zam          | magnus@skysense.io                                                  |
 | 2021-09-04 | Michael Dickens             | michaelld       | mlk@alum.mit.edu, michael.dickens@ettus.com                         |
+| 2021-09-05 | Andrej Rode                 | noc0lour        | mail@andrejro.de                                                    |
+| 2021-09-06 | rear1019                    | rear1019        | rear1019@posteo.de                                                  |
+| 2021-09-08 | Federico 'Larroca' La Rocca | git-artes       | flarroca@fing.edu.uy                                                |
+| 2021-09-08 | Bernhard M. Wiedemann       | bmwiedemann     | bwiedemann@suse.de                                                  |
+| 2021-09-08 | A. Maitland Bottoms         | maitbot         | bottoms@debian.org                                                  |
+| 2021-09-08 | Paul Cercueil               | pcercuei        | paul.cercueil@analog.com                                            |
+| 2021-09-08 | Jeison Cardoso              | jsonzilla, 0unit| cardoso.jeison@gmail.com                                            |
+| 2021-09-08 | Brennan Ashton              | btashton        | bashton@brennanashton.com                                           |
+| 2021-09-08 | Ryan Volz                   | ryanvolz        | ryan.volz@gmail.com, rvolz@mit.edu                                  |
+| 2021-09-08 | Douglas Anderson            | djanderson      | douglas.j.anderson@gmail.com, djanderson@users.noreply.github.com   |
 | 2021-09-09 | Jaroslav Škarvada           | yarda           | jskarvad@redhat.com                                                 |
 |            |                             |                 |                                                                     |
