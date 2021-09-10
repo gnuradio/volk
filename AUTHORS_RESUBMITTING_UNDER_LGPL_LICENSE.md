@@ -54,4 +54,4 @@ Together with the date of agreement, these authors are:
 | 2021-09-09 | Takehiro Sekine             | bstalk          | takehiro.sekine@ps23.jp                                             |
 | 2021-09-10 | Vanya Sergeev               | vsergeev        | vsergeev@gmail.com                                                  |
 | 2021-09-10 | Ben Hilburn                 | bhilburn        | bhilburn@gnuradio.org, bhilburn@gmail.com, ben@ettus.com, ben@hilburn.dev          |
-|            |                             |                 |                                                                     |
+| 2021-09-09 | Philip Balister             | balister        | philip@balister.org, root@usrp-e1xx.(none)                          |
