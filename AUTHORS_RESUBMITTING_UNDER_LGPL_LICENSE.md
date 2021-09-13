@@ -57,4 +57,5 @@ Together with the date of agreement, these authors are:
 | 2021-09-09 | Philip Balister             | balister        | philip@balister.org, root@usrp-e1xx.(none)                          |
 | 2021-09-12 | Andrey Rodionov             | dernasherbrezon | rodionovamp@mail.ru                                                 |
 | 2021-09-13 | Clayton Smith               | argilo          | argilo@gmail.com                                                    |
+| 2021-09-14 | Martin Kaesberger           | mkaesberger     | git@skipfish.de                                                     |
 |            |                             |                 |                                                                     |
