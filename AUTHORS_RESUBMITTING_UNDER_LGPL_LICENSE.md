@@ -61,4 +61,5 @@ Together with the date of agreement, these authors are:
 | 2021-09-14 | Martin Kaesberger           | mkaesberger     | git@skipfish.de                                                     |
 | 2021-09-08 | Karl Semich                 | xloem           | 0xloem@gmail.com                                                    |
 | 2021-09-10 | Mike Piscopo                | ghostop14       | ghostop14@gmail.com                                                 |
+| 2021-09-13 | Amr Bekhit                  | amrbekhit       | amr@helmpcb.com, amrbekhit@gmail.com                                |
 |            |                             |                 |                                                                     |
