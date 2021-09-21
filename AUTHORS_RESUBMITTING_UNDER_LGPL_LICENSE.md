@@ -63,5 +63,5 @@ Together with the date of agreement, these authors are:
 | 2021-09-10 | Mike Piscopo                | ghostop14       | ghostop14@gmail.com                                                 |
 | 2021-09-13 | Amr Bekhit                  | amrbekhit       | amr@helmpcb.com, amrbekhit@gmail.com                                |
 | 2021-09-19 | Eric Blossom                | eblossom        | eb@comsec.com                                                       |
-| 2021-09-20 | Douglas Geiger              | douggeiger      | doug.geiger@bioradiation.net                                        |
+| 2021-09-20 | Douglas Geiger              | douggeiger      | doug.geiger@bioradiation.net,douglas.geiger@nrl.navy.mil            |
 |            |                             |                 |                                                                     |
