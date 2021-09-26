@@ -22,13 +22,16 @@ int volk_get_index(const char* impl_names[], // list of implementations by name
 {
     unsigned int i;
     for (i = 0; i < n_impls; i++) {
-        if (!strncmp(impl_names[i], impl_name, 20)) {
+        if (!strncmp(impl_names[i], impl_name, 42)) {
             return i;
         }
     }
     // TODO return -1;
     // something terrible should happen here
     fprintf(stderr, "Volk warning: no arch found, returning generic impl\n");
+    if (strncmp(impl_name, "generic", 20)) {
+        return -1;
+    }
     return volk_get_index(impl_names, n_impls, "generic"); // but we'll fake it for now
 }
 
