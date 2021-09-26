@@ -85,7 +85,7 @@
 ////////////////////////////////////////////////////////////////////////
 // C-linkage declaration macros
 // FIXME: due to the usage of complex.h, require gcc for c-linkage
-// Hope and p*** that extern "C" works for all relevant compilers nowadays.
+// Hope that extern "C" works for all relevant compilers nowadays.
 ////////////////////////////////////////////////////////////////////////
 #if defined(__cplusplus)
 #define __VOLK_DECL_BEGIN extern "C" {
