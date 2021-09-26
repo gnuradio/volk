@@ -26,11 +26,10 @@
  * - lv_conj - take the conjugate of the complex number
  */
 
+#include <complex.h>
 #include <volk/volk_common.h>
 
 __VOLK_DECL_BEGIN
-
-#include <complex.h>
 
 // Obviously, we would love `typedef float complex lv_32fc_t` to work.
 // However, this clashes with C++ definitions.
@@ -78,6 +77,5 @@ typedef double _Complex lv_64fc_t;
 #endif /* __GNUC__ */
 
 __VOLK_DECL_END
-
 
 #endif /* INCLUDE_VOLK_COMPLEX_H */
