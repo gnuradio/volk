@@ -67,4 +67,5 @@ Together with the date of agreement, these authors are:
 | 2021-09-21 | Zlika                       | Zlika           | zlika_ese@hotmail.com                                               |
 | 2021-09-24 | Ron Economos                | drmpeg          | w6rz@comcast.net                                                    |
 | 2021-09-26 | Marc Lichtman               | 777arc          | marcll@vt.edu                                                       |
+| 2021-09-28 | Stefan Wunsch               | stwunsch        | stefan.wunsch@student.kit.edu                                       |
 |            |                             |                 |                                                                     |
