@@ -22,7 +22,7 @@ int volk_search_index(const char* impl_names[],
 {
     unsigned int i;
     for (i = 0; i < n_impls; i++) {
-        if (strncmp(impl_names[i], impl_name, 42) != 0) {
+        if (!strncmp(impl_names[i], impl_name, 42)) {
             return i;
         }
     }
@@ -48,10 +48,10 @@ int volk_get_index(const char* impl_names[], // list of implementations by name
     idx = volk_search_index(impl_names, n_impls, "generic");
     if (idx >= 0) {
         fprintf(stderr, "Volk warning: no arch found, returning generic impl\n");
-        return idx;
+    } else {
+        fprintf(stderr, "Volk ERROR: no arch found. generic impl missing!\n");
     }
-    fprintf(stderr, "Volk warning: no arch found, returning -1 aka not found!\n");
-    return -1;
+    return idx;
 }
 
 int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
