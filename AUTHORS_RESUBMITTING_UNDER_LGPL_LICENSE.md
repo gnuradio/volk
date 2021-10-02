@@ -68,4 +68,5 @@ Together with the date of agreement, these authors are:
 | 2021-09-24 | Ron Economos                | drmpeg          | w6rz@comcast.net                                                    |
 | 2021-09-26 | Marc Lichtman               | 777arc          | marcll@vt.edu                                                       |
 | 2021-09-28 | Stefan Wunsch               | stwunsch        | stefan.wunsch@student.kit.edu                                       |
+| 2021-10-02 | Albin Stigö                 | ast             | albin.stigo@gmail.com                                               |
 |            |                             |                 |                                                                     |
