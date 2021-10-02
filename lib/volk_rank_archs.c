@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2011-2012 Free Software Foundation, Inc.
+ * Copyright 2011-2012, 2021 Free Software Foundation, Inc.
  *
  * This file is part of VOLK
  *
@@ -15,24 +15,43 @@
 #include <volk/volk_prefs.h>
 #include <volk_rank_archs.h>
 
+// This function is supposed to be private to this compilation unit.
+int volk_search_index(const char* impl_names[],
+                      const size_t n_impls,
+                      const char* impl_name)
+{
+    unsigned int i;
+    for (i = 0; i < n_impls; i++) {
+        if (strncmp(impl_names[i], impl_name, 42) != 0) {
+            return i;
+        }
+    }
+    return -1; // Indicate we couldn't find anything!
+}
+
 int volk_get_index(const char* impl_names[], // list of implementations by name
                    const size_t n_impls,     // number of implementations available
                    const char* impl_name     // the implementation name to find
 )
 {
-    unsigned int i;
-    for (i = 0; i < n_impls; i++) {
-        if (!strncmp(impl_names[i], impl_name, 42)) {
-            return i;
-        }
+    /*
+     * We follow a 3 step process.
+     * 1. Search for the requested impl. Return index if found.
+     * 2. Search for the generic impl. Return as fail-safe.
+     * 3. Return -1 to indicate an error. Caller needs to handle this case.
+     */
+    int idx = volk_search_index(impl_names, n_impls, impl_name);
+    if (idx >= 0) {
+        return idx;
     }
-    // TODO return -1;
-    // something terrible should happen here
-    fprintf(stderr, "Volk warning: no arch found, returning generic impl\n");
-    if (strncmp(impl_name, "generic", 20)) {
-        return -1;
+
+    idx = volk_search_index(impl_names, n_impls, "generic");
+    if (idx >= 0) {
+        fprintf(stderr, "Volk warning: no arch found, returning generic impl\n");
+        return idx;
     }
-    return volk_get_index(impl_names, n_impls, "generic"); // but we'll fake it for now
+    fprintf(stderr, "Volk warning: no arch found, returning -1 aka not found!\n");
+    return -1;
 }
 
 int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
