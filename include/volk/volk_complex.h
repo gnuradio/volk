@@ -30,7 +30,7 @@
 #include <volk/volk_common.h>
 
 __VOLK_DECL_BEGIN
-
+#ifndef __STDC_NO_COMPLEX__
 // Obviously, we would love `typedef float complex lv_32fc_t` to work.
 // However, this clashes with C++ definitions.
 // error: expected initializer before ‘lv_32fc_t’
@@ -43,6 +43,37 @@ typedef long _Complex lv_32sc_t;
 typedef long long _Complex lv_64sc_t;
 typedef float _Complex lv_32fc_t;
 typedef double _Complex lv_64fc_t;
+
+#else
+// MSVC requires different treatment.
+// https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-160
+// https://docs.microsoft.com/en-us/cpp/c-runtime-library/complex-math-support?view=msvc-160
+// Refer to `complex.h` in
+// https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/
+
+typedef _Fcomplex lv_32fc_t;
+typedef _Dcomplex lv_64fc_t;
+
+// typedef char _Complex lv_8sc_t;
+typedef struct lv_8sc_t {
+    char _Val[2];
+} lv_8sc_t;
+
+// typedef short _Complex lv_16sc_t;
+typedef struct lv_16sc_t {
+    short _Val[2];
+} lv_16sc_t;
+
+// typedef long _Complex lv_32sc_t;
+typedef struct lv_32sc_t {
+    long _Val[2];
+} lv_32sc_t;
+
+// typedef long long _Complex lv_64sc_t;
+typedef struct lv_64sc_t {
+    long long _Val[2];
+} lv_64sc_t;
+#endif
 
 #define lv_cmake(r, i) ((r) + _Complex_I * (i))
 // We want `_Imaginary_I` to ensure the correct sign.
