@@ -56,8 +56,8 @@ void* volk_malloc(size_t size, size_t alignment)
     }
     // Tweak size to satisfy ASAN (the GCC address sanitizer).
     // Calling 'volk_malloc' might therefor result in the allocation of more memory than
-    // requested for correct alignment. Any allocation size change here will in general not
-    // impact the end result since initial size alignment is required either way.
+    // requested for correct alignment. Any allocation size change here will in general
+    // not impact the end result since initial size alignment is required either way.
     if (size % alignment) {
         size += alignment - (size % alignment);
     }
