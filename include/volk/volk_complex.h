@@ -30,7 +30,7 @@
 #include <volk/volk_common.h>
 
 __VOLK_DECL_BEGIN
-#ifndef __STDC_NO_COMPLEX__
+#ifndef _MSC_VER
 // Obviously, we would love `typedef float complex lv_32fc_t` to work.
 // However, this clashes with C++ definitions.
 // error: expected initializer before ‘lv_32fc_t’
