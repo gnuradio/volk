@@ -36,7 +36,7 @@ Together with the date of agreement, these authors are:
 | 2021-07-01 | Marcus Müller               | marcusmueller   | marcus@hostalia.de, mmueller@gnuradio.org, mueller@kit.edu          |
 | 2021-08-01 | Johannes Demel              | jdemel          | ufcsy@student.kit.edu, demel@uni-bremen.de, demel@ant.uni-bremen.de |
 | 2021-08-25 | Martin Braun                | mbr0wn          | martin@gnuradio.org, martin.braun@ettus.com                         |
-| 2021-08-27 | Carles Fernandez            | carlesfernandez | carles.fernandez@cttc.es                                            |
+| 2021-08-27 | Carles Fernandez            | carlesfernandez | carles.fernandez@cttc.es, carles.fernandez@gmail.com, carlesfernandez@gmail.com |
 | 2021-08-27 | Magnus Lundmark             | Ka-zam          | magnus@skysense.io                                                  |
 | 2021-09-04 | Michael Dickens             | michaelld       | mlk@alum.mit.edu, michael.dickens@ettus.com                         |
 | 2021-09-05 | Andrej Rode                 | noc0lour        | mail@andrejro.de                                                    |
