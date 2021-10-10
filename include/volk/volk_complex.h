@@ -50,6 +50,7 @@ typedef double _Complex lv_64fc_t;
 // https://docs.microsoft.com/en-us/cpp/c-runtime-library/complex-math-support?view=msvc-160
 // Refer to `complex.h` in
 // https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/
+// https://github.com/microsoft/STL/blob/main/stl/inc/complex
 
 typedef _Fcomplex lv_32fc_t;
 typedef _Dcomplex lv_64fc_t;
