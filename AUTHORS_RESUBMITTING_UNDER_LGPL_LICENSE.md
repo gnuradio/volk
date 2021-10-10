@@ -73,4 +73,5 @@ Together with the date of agreement, these authors are:
 | 2021-10-06 | Sylvain Munaut              | smunaut         | tnt@246tNt.com, 246tnt@gmail.com                                    |
 | 2021-10-10 | Dan Robertson               | dlrobertson     | dan@dlrobertson.com                                                 |
 | 2021-10-10 | Steve Markgraf              | steve-m         | steve@steve-m.de                                                    |
+| 2021-10-10 | Gwenhael Goavec-Merou       | trabucayre      | gwenhael.goavec-merou@trabucayre.com                                |
 |            |                             |                 |                                                                     |
