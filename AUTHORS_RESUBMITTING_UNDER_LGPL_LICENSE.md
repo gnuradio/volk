@@ -76,5 +76,7 @@ Together with the date of agreement, these authors are:
 | 2021-10-10 | Gwenhael Goavec-Merou       | trabucayre      | gwenhael.goavec-merou@trabucayre.com                                |
 | 2021-10-10 | Doron Behar                 | doronbehar      | doron.behar@gmail.com                                               |
 | 2021-10-10 | Brandon Enochs              | brandonenochs   | brandon.enochs@nrl.navy.mil                                         |
-| 2021-10-10 | Thomas Rondeau              | trondeau        | tom@trondeau.com                                                    |
+| 2021-10-10 | Thomas Rondeau              | trondeau        | tom@trondeau.com, trondeau@vt.edu                                   |
+| 2021-10-11 | Tim O'Shea                  | oshtim          | tim.oshea753@gmail.com                                              |
+| 2021-10-13 | Alexey Slokva               | Alesha72003     | Alesha72003@ya.ru                                                   |
 |            |                             |                 |                                                                     |
