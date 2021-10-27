@@ -54,7 +54,7 @@ Together with the date of agreement, these authors are:
 | 2021-09-09 | Vasil Velichkov             | velichkov       | vvvelichkov@gmail.com                                               |
 | 2021-09-09 | Takehiro Sekine             | bstalk          | takehiro.sekine@ps23.jp                                             |
 | 2021-09-10 | Vanya Sergeev               | vsergeev        | vsergeev@gmail.com                                                  |
-| 2021-09-10 | Ben Hilburn                 | bhilburn        | bhilburn@gnuradio.org, bhilburn@gmail.com, ben@ettus.com, ben@hilburn.dev          |
+| 2021-09-10 | Ben Hilburn                 | bhilburn        | bhilburn@gnuradio.org, bhilburn@gmail.com, ben@ettus.com, ben@hilburn.dev |
 | 2021-09-09 | Philip Balister             | balister        | philip@balister.org, root@usrp-e1xx.(none)                          |
 | 2021-09-12 | Andrey Rodionov             | dernasherbrezon | rodionovamp@mail.ru                                                 |
 | 2021-09-13 | Clayton Smith               | argilo          | argilo@gmail.com                                                    |
@@ -81,7 +81,7 @@ Together with the date of agreement, these authors are:
 | 2021-10-13 | Alexey Slokva               | Alesha72003     | Alesha72003@ya.ru                                                   |
 | 2021-10-17 | Josh Blum                   | guruofquality   | josh@joshknows.com                                                  |
 | 2021-10-14 | Nicholas Corgan             | ncorgan         | n.corgan@gmail.com, nick.corgan@ettus.com                           |
-| 2021-10-24 | Andy Walls                  | awalls-cx18     | andy@silverblocksystems.net, awalls.cx18@gmail.com, awalls@md.metrocast.net                           |
-| 2021-10-26 | Ettus Research              | N/A             | nick.corgan@ettus.com, nick@ettus.com, ben.hilburn@ettus.com, michael.dickens@ettus.com                                                                    |
-| 2021-10-27 | Pascal Giard                | evilynux        | evilynux@gmail.com, pascal.giard@lacime.etsmtl.ca, pascal.giard@etsmtl.ca, pascal.giard@mail.mcgill.ca                           |
-|            |                             |                 |                                                                     |
+| 2021-10-24 | Andy Walls                  | awalls-cx18     | andy@silverblocksystems.net, awalls.cx18@gmail.com, awalls@md.metrocast.net |
+| 2021-10-26 | Ettus Research              | N/A             | nick.corgan@ettus.com, nick@ettus.com, ben.hilburn@ettus.com, michael.dickens@ettus.com |
+| 2021-10-27 | Pascal Giard                | evilynux        | evilynux@gmail.com, pascal.giard@lacime.etsmtl.ca, pascal.giard@etsmtl.ca, pascal.giard@mail.mcgill.ca |
+| 2021-10-27 | The Aerospace Corporation   | N/A             | oss@aero.org, damian.miralles@aero.org, jessica.iwamoto@aero.org    |
