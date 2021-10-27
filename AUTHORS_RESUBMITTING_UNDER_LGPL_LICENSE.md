@@ -83,4 +83,5 @@ Together with the date of agreement, these authors are:
 | 2021-10-14 | Nicholas Corgan             | ncorgan         | n.corgan@gmail.com, nick.corgan@ettus.com                           |
 | 2021-10-24 | Andy Walls                  | awalls-cx18     | andy@silverblocksystems.net, awalls.cx18@gmail.com, awalls@md.metrocast.net                           |
 | 2021-10-26 | Ettus Research              | N/A             | nick.corgan@ettus.com, nick@ettus.com, ben.hilburn@ettus.com, michael.dickens@ettus.com                                                                    |
+| 2021-10-27 | Pascal Giard                | evilynux        | evilynux@gmail.com, pascal.giard@lacime.etsmtl.ca, pascal.giard@etsmtl.ca, pascal.giard@mail.mcgill.ca                           |
 |            |                             |                 |                                                                     |
