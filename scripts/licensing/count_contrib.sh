@@ -28,7 +28,7 @@ fi
 
 allfiles=`git ls-files $rootdir`
 lgplers="$(sed -ne 's/^|[^|]*|[^|]*| \([^|]*\)|/\1/ip' $authorfile)"
-authorcounts="$(echo "$allfiles" | while read f; do git blame --line-porcelain $f 2>/dev/null | sed -ne 's/^author-mail <\([^>]*\)>/\1/p'; done | sort -f | uniq -ic | sort -n)"
+authorcounts="$(echo "$allfiles" | while read f; do git blame --line-porcelain --ignore-rev 092a59997a1e1d5f421a0a5f87ee655ad173b93f $f 2>/dev/null | sed -ne 's/^author-mail <\([^>]*\)>/\1/p'; done | sort -f | uniq -ic | sort -n)"
 
 total_loc=0
 missing_loc=0
