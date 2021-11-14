@@ -85,3 +85,9 @@ Together with the date of agreement, these authors are:
 | 2021-10-26 | Ettus Research              | N/A             | nick.corgan@ettus.com, nick@ettus.com, ben.hilburn@ettus.com, michael.dickens@ettus.com |
 | 2021-10-27 | Pascal Giard                | evilynux        | evilynux@gmail.com, pascal.giard@lacime.etsmtl.ca, pascal.giard@etsmtl.ca, pascal.giard@mail.mcgill.ca |
 | 2021-10-27 | The Aerospace Corporation   | N/A             | oss@aero.org, damian.miralles@aero.org, jessica.iwamoto@aero.org    |
+| 2021-10-29 | Christoph Mayer             | hcab14          | hcab14@gmail.com, Christoph.Mayer@cern.ch                           |
+| 2021-10-29 | Valerii Zapodovnikov        | ValZapod        | val.zapod.vz@gmail.com                                              |
+| 2021-10-29 | Stefan Oltmanns             | Stefan-Olt      | stefan-oltmanns@gmx.net                                             |
+| 2021-10-29 | Mathieu Rene                | mrene           | mrene@avgs.ca                                                       |
+| 2021-11-06 | Julien Olivain              | jolivain        | julien.olivain@lsv.ens-cachan.fr                                    |
+| 2021-11-07 | Jam M. Hernandez Quiceno    | JamMarHer       | jamarck96@gmail.com, jam_quiceno@partech.com                        |
