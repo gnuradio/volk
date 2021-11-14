@@ -88,3 +88,4 @@ Together with the date of agreement, these authors are:
 | 2021-10-29 | Christoph Mayer             | hcab14          | hcab14@gmail.com, Christoph.Mayer@cern.ch                           |
 | 2021-10-29 | Valerii Zapodovnikov        | ValZapod        | val.zapod.vz@gmail.com                                              |
 | 2021-10-29 | Stefan Oltmanns             | Stefan-Olt      | stefan-oltmanns@gmx.net                                             |
+| 2021-10-29 | Mathieu Rene                | mrene           | mrene@avgs.ca                                                       |
