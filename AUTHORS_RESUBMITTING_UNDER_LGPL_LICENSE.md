@@ -92,5 +92,6 @@ Together with the date of agreement, these authors are:
 | 2021-10-29 | Steven Behnke               | sbehnke         | steven_behnke@me.com                                                |
 | 2021-10-29 | Adam Thompson               | awthomp         | adamt@nvidia.com                                                    |
 | 2021-10-29 | Nick Foster                 | bistromath      | bistromath@gmail.com, nick@nerdnetworks.org                         |
+| 2021-10-29 | Roy Thompson                | roythompson     | rthompso@gmail.com                                                  |
 | 2021-11-06 | Julien Olivain              | jolivain        | julien.olivain@lsv.ens-cachan.fr                                    |
 | 2021-11-07 | Jam M. Hernandez Quiceno    | JamMarHer       | jamarck96@gmail.com, jam_quiceno@partech.com                        |
