@@ -3,13 +3,13 @@
 # users from the AUTHORFILE. Requires the authors to be listed in
 # | ... | ... | email@address.com |
 # format.
-# 
+#
 # We can add another table of "git committers who are exempt from the need to
 # relicense due to their contributions being under an acceptable license
 # already" if we need; no changes to this script would be necessary.
 #
 # This script is part of VOLK.
-# 
+#
 # Copyright 2021 Marcus Müller
 # SPDX-License-Identifier: MPL-2.0
 
@@ -28,6 +28,7 @@ fi
 
 allfiles=`git ls-files $rootdir`
 lgplers="$(sed -ne 's/^|[^|]*|[^|]*| \([^|]*\)|/\1/ip' $authorfile)"
+lgplers="$lgplers 32478819+fritterhoff@users.noreply.github.com douggeiger@users.noreply.github.com"
 authorcounts="$(echo "$allfiles" | while read f; do git blame --line-porcelain --ignore-rev 092a59997a1e1d5f421a0a5f87ee655ad173b93f $f 2>/dev/null | sed -ne 's/^author-mail <\([^>]*\)>/\1/p'; done | sort -f | uniq -ic | sort -n)"
 
 total_loc=0
