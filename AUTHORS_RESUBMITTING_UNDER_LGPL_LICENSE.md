@@ -97,3 +97,4 @@ Together with the date of agreement, these authors are:
 | 2021-10-29 | Damian Miralles             | dmiralles2009   | dmiralles2009@gmail.com, damian.miralles@colorado.edu               |
 | 2021-11-06 | Julien Olivain              | jolivain        | julien.olivain@lsv.ens-cachan.fr                                    |
 | 2021-11-07 | Jam M. Hernandez Quiceno    | JamMarHer       | jamarck96@gmail.com, jam_quiceno@partech.com                        |
+| 2021-11-19 | Abhishek Bhowmick           | abhowmick22     | abhowmick22@gmail.com                                               |
