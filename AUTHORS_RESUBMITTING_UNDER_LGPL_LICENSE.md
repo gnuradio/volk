@@ -39,4 +39,5 @@ Together with the date of agreement, these authors are:
 | 2021-08-27 | Carles Fernandez            | carlesfernandez | carles.fernandez@cttc.es                                            |
 | 2021-08-27 | Magnus Lundmark             | Ka-zam          | magnus@skysense.io                                                  |
 | 2021-09-04 | Michael Dickens             | michaelld       | mlk@alum.mit.edu, michael.dickens@ettus.com                         |
+| 2021-11-29 | Aang23 (Alan)               | Aang23          | qwerty15@gmx.fr, aang23@altillimity.com                             |
 |            |                             |                 |                                                                     |
