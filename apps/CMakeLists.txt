@@ -48,10 +48,7 @@ target_include_directories(volk_profile
 )
 
 if(NOT FILESYSTEM_FOUND)
-    target_include_directories(volk_profile
-        PUBLIC ${Boost_INCLUDE_DIRS}
-    )
-    target_link_libraries(volk_profile PRIVATE ${Boost_LIBRARIES})
+    target_link_libraries(volk_profile PRIVATE Boost::filesystem)
 endif()
 
 if(FILESYSTEM_FOUND)

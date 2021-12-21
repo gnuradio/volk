@@ -193,11 +193,8 @@ if(${FILESYSTEM_FOUND})
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(Boost_LIBRARIES "")
     set(Boost_INCLUDE_DIRS "")
-else()
-    include(VolkBoost)
-    if(NOT Boost_FOUND)
-        message(FATAL_ERROR "VOLK Requires boost to build")
-    endif()
+  else()
+    find_package(Boost 1.35 REQUIRED COMPONENTS filesystem)
 endif()
 
 ########################################################################
