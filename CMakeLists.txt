@@ -147,6 +147,9 @@ if (VOLK_CPU_FEATURES)
   set(BUILD_PIC ON CACHE BOOL
     "Build cpu_features with Position Independent Code (PIC)."
     FORCE)
+  set(BUILD_TESTING OFF CACHE BOOL
+    "Build cpu_features without tests."
+    FORCE)
   set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
   set(BUILD_SHARED_LIBS OFF)
   add_subdirectory(cpu_features)
