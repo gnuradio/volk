@@ -144,7 +144,11 @@ if (VOLK_CPU_FEATURES)
     message(FATAL_ERROR "cpu_features/CMakeLists.txt not found. Did you forget to git clone recursively?\nFix with: git submodule update --init")
   endif()
   message(STATUS "Building Volk with cpu_features")
-  set(BUILD_PIC ON CACHE BOOL
+  set(BUILD_TESTING OFF CACHE BOOL "Build cpu_features without tests." FORCE)
+  set(BUILD_PIC ON CACHE BOOL 
+    "Build cpu_features with Position Independent Code (PIC)." 
+    FORCE)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL
     "Build cpu_features with Position Independent Code (PIC)."
     FORCE)
   set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
