@@ -21,7 +21,7 @@
  */
 
 /*!
- * \page volk_32fc_x2_add_32fcc
+ * \page volk_32fc_x2_add_32fc
  *
  * \b Overview
  *
