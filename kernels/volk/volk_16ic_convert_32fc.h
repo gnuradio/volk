@@ -40,6 +40,18 @@
  * \b Outputs
  * \li outputVector: pointer to a vector holding the converted vector.
  *
+ * \b Example
+ * \code
+ * int N = 10000;
+ *
+ * unsigned int alignment = volk_get_alignment();
+ * lv_16sc_t* input  = (lv_16sc_t*)volk_malloc(sizeof(lv_16sc_t)*N, alignment);
+ * lv_32fc_t* output  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ * volk_16ic_convert_32f(output, input, N);
+ *
+ * volk_free(input);
+ * volk_free(output);
+ * \endcode
  */
 
 
