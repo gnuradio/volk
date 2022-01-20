@@ -202,7 +202,6 @@ jobs:
   #         install: >-
   #           base-devel
   #           git
-  #           mingw-w64-x86_64-boost
   #           mingw-w64-x86_64-gcc-libs
   #           mingw-w64-x86_64-orc
   #           python

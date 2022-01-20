@@ -60,7 +60,7 @@ script:
   - eval "${MATRIX_EVAL}"
   - lscpu
   - git submodule update --init --recursive
-  - mkdir build && cd build && BOOST_ROOT=$BOOST_ROOT
+  - mkdir build && cd build
   - cmake ${CMAKE_ARG} ../
   - make
   - echo $(./apps/volk-config-info --malloc) && echo $(./apps/volk-config-info --alignment) && echo "All compiled VOLK machines:" $(./apps/volk-config-info --all-machines) && echo "Available VOLK machines:" $(./apps/volk-config-info --avail-machines)

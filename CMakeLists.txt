@@ -110,10 +110,6 @@ configure_file(
 ########################################################################
 # Environment setup
 ########################################################################
-IF(NOT DEFINED BOOST_ROOT AND NOT DEFINED ENV{BOOST_ROOT})
-    SET(BOOST_ROOT ${CMAKE_INSTALL_PREFIX})
-ENDIF()
-
 IF(NOT DEFINED CROSSCOMPILE_MULTILIB)
     SET(CROSSCOMPILE_MULTILIB "")
 ENDIF()
@@ -178,20 +174,6 @@ if(NOT MAKO_FOUND)
     message(FATAL_ERROR "Mako templates required to build VOLK")
 endif()
 
-
-# Boost
-if(MSVC)
-    if (NOT DEFINED BOOST_ALL_DYN_LINK)
-        set(BOOST_ALL_DYN_LINK TRUE)
-    endif()
-    set(BOOST_ALL_DYN_LINK "${BOOST_ALL_DYN_LINK}" CACHE BOOL "boost enable dynamic linking")
-    if(BOOST_ALL_DYN_LINK)
-        add_definitions(-DBOOST_ALL_DYN_LINK) #setup boost auto-linking in msvc
-    else(BOOST_ALL_DYN_LINK)
-        unset(BOOST_REQUIRED_COMPONENTS) #empty components list for static link
-    endif(BOOST_ALL_DYN_LINK)
-endif(MSVC)
-
 # Check if we have std::filesystem
 find_package(FILESYSTEM COMPONENTS Final Experimental)
 
@@ -200,13 +182,8 @@ if(${FILESYSTEM_FOUND})
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_EXTENSIONS OFF)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
-    set(Boost_LIBRARIES "")
-    set(Boost_INCLUDE_DIRS "")
 else()
-    include(VolkBoost)
-    if(NOT Boost_FOUND)
-        message(FATAL_ERROR "VOLK Requires boost to build")
-    endif()
+    message(FATAL_ERROR "VOLK requires std::filesystem to build")
 endif()
 
 ########################################################################
