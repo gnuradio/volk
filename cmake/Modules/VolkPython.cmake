@@ -29,6 +29,11 @@ set(__INCLUDED_VOLK_PYTHON_CMAKE TRUE)
 ########################################################################
 #this allows the user to override PYTHON_EXECUTABLE
 
+# `PythonInterp` is deprecated in 3.12, we should use `Python3` instead.
+# The `Python3` CMake module is introduced in CMake 3.12, e.g. Ubuntu 18.04 comes with CMake 3.10 though.
+# https://cmake.org/cmake/help/latest/module/FindPythonInterp.html
+# https://cmake.org/cmake/help/latest/module/FindPython3.html#module:FindPython3
+
 # FUTURE TODO: With CMake 3.12+ we can simply do:
 #if(PYTHON_EXECUTABLE)
 #    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
@@ -98,17 +103,30 @@ endmacro(VOLK_PYTHON_CHECK_MODULE)
 
 ########################################################################
 # Sets the python installation directory VOLK_PYTHON_DIR
+# cf. https://github.com/gnuradio/gnuradio/blob/master/cmake/Modules/GrPython.cmake
+# From https://github.com/pothosware/SoapySDR/tree/master/python
+# https://github.com/pothosware/SoapySDR/blob/master/LICENSE_1_0.txt
 ########################################################################
 if(NOT DEFINED VOLK_PYTHON_DIR)
-VOLK_PYTHON_CHECK_MODULE("distutils" "distutils" "True" HAVE_DISTUTILS)
-if(NOT HAVE_DISTUTILS)
-    message(FATAL_ERROR "Python module 'distutils' from Python’s Standard Library not found. On Debian install 'python3-distutils'.")
-endif()
-
-execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "
-from distutils import sysconfig
-print(sysconfig.get_python_lib(plat_specific=True, prefix=''))
-" OUTPUT_VARIABLE VOLK_PYTHON_DIR OUTPUT_STRIP_TRAILING_WHITESPACE
+execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} -c "import os
+import sysconfig
+import site
+install_dir = None
+prefix = '${CMAKE_INSTALL_PREFIX}'
+#use sites when the prefix is already recognized
+try:
+  paths = [p for p in site.getsitepackages() if p.startswith(prefix)]
+  if len(paths) == 1: install_dir = paths[0]
+except AttributeError: pass
+if not install_dir:
+    #find where to install the python module
+    install_dir = sysconfig.get_path('platlib')
+    prefix = sysconfig.get_config_var('prefix')
+#strip the prefix to return a relative path
+print(os.path.relpath(install_dir, prefix))"
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    OUTPUT_VARIABLE VOLK_PYTHON_DIR
 )
 endif()
 file(TO_CMAKE_PATH ${VOLK_PYTHON_DIR} VOLK_PYTHON_DIR)

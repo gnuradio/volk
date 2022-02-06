@@ -124,7 +124,7 @@ jobs:
             case "${{ matrix.distro }}" in
               ubuntu*|jessie|stretch|buster)
                 apt-get update -q -y
-                apt-get install -q -y git cmake python3-distutils python3-mako liborc-dev ${{ matrix.compiler.name }}
+                apt-get install -q -y git cmake python3-mako liborc-dev ${{ matrix.compiler.name }}
                 ;;
               fedora*)
                 dnf -y update
