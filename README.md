@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.com/gnuradio/volk.svg?branch=master)](https://travis-ci.com/gnuradio/volk) [![Build status](https://ci.appveyor.com/api/projects/status/5o56mgw0do20jlh3/branch/master?svg=true)](https://ci.appveyor.com/project/gnuradio/volk/branch/master)
 ![Check PR Formatting](https://github.com/gnuradio/volk/workflows/Check%20PR%20Formatting/badge.svg)
 ![Run VOLK tests](https://github.com/gnuradio/volk/workflows/Run%20VOLK%20tests/badge.svg)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3360942.svg)](https://doi.org/10.5281/zenodo.3360942)
 
 ![VOLK Logo](/docs/volk_logo.png)
 
@@ -98,10 +99,10 @@ We want to make sure VOLK compiles on a wide variety of compilers. Thus, we targ
 
 ## License
 
-VOLK is migrating from the GNU General Public License v3.0 or later (GPL-3.0-or-later) 
+VOLK is migrating from the GNU General Public License v3.0 or later (GPL-3.0-or-later)
 to the GNU Lesser General Public License v3.0 or later (LGPL-3.0-or-later).
 At this point in time, much of the code in the repository is still GPL-licensed.
-New contributors are required to use the LGPLv3+ for their code contributions. 
+New contributors are required to use the LGPLv3+ for their code contributions.
 Existing contributors are very kindly requested to re-submit their GPL-3.0-or-later license code contributions to LGPL-3.0-or-later by
-adding their name, GitHub handle, and email address(es) used for VOLK commits 
+adding their name, GitHub handle, and email address(es) used for VOLK commits
 to the file `AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md`.

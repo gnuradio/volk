@@ -1,0 +1,261 @@
+{
+    "title": "Vector-Optimized Library of Kernels (VOLK)",
+    "description": "VOLK is the Vector-Optimized Library of Kernels. It is a free library that contains kernels of hand-written SIMD code for different mathematical operations. Since each SIMD architecture can be very different and no compiler has yet come along to handle vectorization properly or highly efficiently, VOLK approaches the problem differently. For each architecture or platform that a developer wishes to vectorize for, a new proto-kernel is added to VOLK. At runtime, VOLK will select the correct proto-kernel. In this way, the users of VOLK call a kernel for performing the operation that is platform/architecture agnostic. This allows us to write portable SIMD code that is optimized for a variety of platforms.",
+    "license": {
+        "id": "GPL-3.0-or-later"
+    },
+    "keywords": [
+        "communication",
+        "software radio",
+        "SDR",
+        "C",
+        "C++",
+        "SIMD",
+        "library"
+    ],
+    "creators": [
+        {
+            "name": "Aang23"
+        },
+        {
+            "name": "AlexandreRouma"
+        },
+        {
+            "name": "Anderson, Douglas"
+        },
+        {
+            "name": "Andrew"
+        },
+        {
+            "name": "Ashton, Brennan"
+        },
+        {
+            "name": "Balister, Philip"
+        },
+        {
+            "name": "Behar, Doron"
+        },
+        {
+            "name": "Behnke, Steven"
+        },
+        {
+            "name": "Bekhit, Amr"
+        },
+        {
+            "affiliation": "Carnegie Mellon University, IIT Bombay",
+            "name": "Bhowmick, Abhishek"
+        },
+        {
+            "name": "Blossom, Eric"
+        },
+        {
+            "name": "Blum, Josh"
+        },
+        {
+            "name": "Bottoms, A. Maitland"
+        },
+        {
+            "name": "Briggs, Elliot"
+        },
+        {
+            "name": "Cardoso, Jeison"
+        },
+        {
+            "name": "Cercueil, Paul"
+        },
+        {
+            "affiliation": "Corgan Labs",
+            "name": "Corgan, Johnathan"
+        },
+        {
+            "affiliation": "Skylark Wireless (@skylarkwireless)",
+            "name": "Corgan, Nicholas"
+        },
+        {
+            "name": "Cruz, Luigi"
+        },
+        {
+            "affiliation": "Department of Communications Engineering, University of Bremen, Germany",
+            "name": "Demel, Johannes",
+            "orcid": "0000-0002-5434-7232"
+        },
+        {
+            "name": "Dickens, Michael"
+        },
+        {
+            "name": "Economos, Ron"
+        },
+        {
+            "name": "Enochs, Brandon P."
+        },
+        {
+            "affiliation": "Centre Tecnol\u00f2gic de Telecomunicacions de Catalunya (CTTC)",
+            "name": "Fernandez, Carles"
+        },
+        {
+            "name": "Fischer, Moritz"
+        },
+        {
+            "name": "Foster, Nick"
+        },
+        {
+            "name": "Geiger, Douglas"
+        },
+        {
+            "name": "Giard, Pascal"
+        },
+        {
+            "name": "Goavec-Merou, Gwenhael"
+        },
+        {
+            "name": "Hilburn, Ben"
+        },
+        {
+            "name": "Holguin, Albert"
+        },
+        {
+            "name": "Iwamoto, Jessica"
+        },
+        {
+            "name": "Kaesberger, Martin"
+        },
+        {
+            "name": "Lichtman, Marc"
+        },
+        {
+            "name": "Logue, Kyle A"
+        },
+        {
+            "name": "Lundmark, Magnus"
+        },
+        {
+            "name": "Markgraf, Steve"
+        },
+        {
+            "name": "Mayer, Christoph"
+        },
+        {
+            "name": "McCarthy, Nicholas"
+        },
+        {
+            "name": "McCarthy, Nick"
+        },
+        {
+            "affiliation": "University of Colorado Boulder",
+            "name": "Miralles, Damian"
+        },
+        {
+            "name": "Munaut, Sylvain"
+        },
+        {
+            "name": "M\u00fcller, Marcus"
+        },
+        {
+            "affiliation": "GCN Development",
+            "name": "Nieboer, Geof"
+        },
+        {
+            "affiliation": "@deepsig",
+            "name": "O'Shea, Tim"
+        },
+        {
+            "name": "Olivain, Julien"
+        },
+        {
+            "name": "Oltmanns, Stefan"
+        },
+        {
+            "name": "Pinkava, Jiri"
+        },
+        {
+            "name": "Piscopo, Mike"
+        },
+        {
+            "name": "Quiceno, Jam M. Hernandez"
+        },
+        {
+            "name": "Rene, Mathieu"
+        },
+        {
+            "name": "Ritterhoff, Florian"
+        },
+        {
+            "name": "Robertson, Dan"
+        },
+        {
+            "name": "Rocca, Federico 'Larroca' La"
+        },
+        {
+            "name": "Rode, Andrej"
+        },
+        {
+            "name": "Rodionov, Andrey"
+        },
+        {
+            "affiliation": "GNU Radio",
+            "name": "Rondeau, Tom"
+        },
+        {
+            "name": "Sekine, Takehiro"
+        },
+        {
+            "name": "Semich, Karl"
+        },
+        {
+            "name": "Sergeev, Vanya"
+        },
+        {
+            "name": "Slokva, Alexey"
+        },
+        {
+            "name": "Smith, Clayton"
+        },
+        {
+            "affiliation": "Medurit AB",
+            "name": "Stigo, Albin"
+        },
+        {
+            "name": "Thompson, Adam"
+        },
+        {
+            "name": "Thompson, Roy"
+        },
+        {
+            "name": "Velichkov, Vasil"
+        },
+        {
+            "affiliation": "@MITHaystack",
+            "name": "Volz, Ryan"
+        },
+        {
+            "name": "Walls, Andy"
+        },
+        {
+            "name": "Ward, Don"
+        },
+        {
+            "name": "West, Nathan"
+        },
+        {
+            "name": "Wiedemann, Bernhard M."
+        },
+        {
+            "name": "Wunsch, Stefan"
+        },
+        {
+            "name": "Zapodovnikov, Valerii"
+        },
+        {
+            "name": "Zlika"
+        },
+        {
+            "name": "luz.paz"
+        },
+        {
+            "name": "rear1019"
+        },
+        {
+            "name": "\u0160karvada, Jaroslav"
+        }
+    ]
+}
