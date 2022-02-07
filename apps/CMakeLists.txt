@@ -47,20 +47,11 @@ target_include_directories(volk_profile
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-if(NOT FILESYSTEM_FOUND)
-    target_include_directories(volk_profile
-        PUBLIC ${Boost_INCLUDE_DIRS}
-    )
-    target_link_libraries(volk_profile PRIVATE ${Boost_LIBRARIES})
+add_definitions(-DHAS_STD_FILESYSTEM=1)
+if(${find_experimental})
+    add_definitions(-DHAS_STD_FILESYSTEM_EXPERIMENTAL=1)
 endif()
-
-if(FILESYSTEM_FOUND)
-    add_definitions(-DHAS_STD_FILESYSTEM=1)
-    if(${find_experimental})
-        add_definitions(-DHAS_STD_FILESYSTEM_EXPERIMENTAL=1)
-    endif()
-    target_link_libraries(volk_profile PRIVATE std::filesystem)
-endif()
+target_link_libraries(volk_profile PRIVATE std::filesystem)
 
 if(ENABLE_STATIC_LIBS)
     target_link_libraries(volk_profile PRIVATE volk_static)

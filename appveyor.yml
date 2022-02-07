@@ -1,24 +1,16 @@
 clone_depth: 1
-image: Visual Studio 2017
+image: Visual Studio 2019
 cache:
   - packages -> appveyor.yml
 environment:
-  BOOST_FILENAME_VERSION: 1_59
-  BOOST_VERSION: 1.59.0
   environment:
   matrix:
-    - job_name: VS 14 2015 / python 3.8
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      CMAKE_GENERATOR: Visual Studio 14 2015
-      VC_VERSION: vc140
+    - job_name: VS 16 2019 / python 3.8
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GENERATOR: Visual Studio 16 2019
       PYTHON: "C:\\Python38-x64"
 
 install:
-    - nuget install boost_system-%VC_VERSION% -Version %BOOST_VERSION% -OutputDirectory %CD%/packages
-    - nuget install boost_filesystem-%VC_VERSION% -Version %BOOST_VERSION% -OutputDirectory %CD%/packages
-    - nuget install boost_chrono-%VC_VERSION% -Version %BOOST_VERSION% -OutputDirectory %CD%/packages
-    - nuget install boost_program_options-%VC_VERSION% -Version %BOOST_VERSION% -OutputDirectory %CD%/packages
-    - nuget install boost_unit_test_framework-%VC_VERSION% -Version %BOOST_VERSION% -OutputDirectory %CD%/packages
     # Prepend the selected Python to the PATH of this build
     - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
     # Display version information about selected python and pip
@@ -29,13 +21,7 @@ install:
     - pip install mako
 before_build:
     - git submodule update --init --recursive
-    - cmake -G "%CMAKE_GENERATOR% Win64" \
-        -DBoost_CHRONO_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_chrono-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_chrono-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \
-        -DBoost_FILESYSTEM_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_filesystem-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_filesystem-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \
-        -DBoost_PROGRAM_OPTIONS_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_program_options-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_program_options-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \
-        -DBoost_SYSTEM_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_system-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_system-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \
-        -DBoost_UNIT_TEST_FRAMEWORK_LIBRARY_RELEASE:FILEPATH=%CD%/packages/boost_unit_test_framework-%VC_VERSION%.%BOOST_VERSION%.0/lib/native/address-model-64/lib/boost_unit_test_framework-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.lib \
-        -DBoost_INCLUDE_DIR:PATH=%CD%/packages/boost.%BOOST_VERSION%.0/lib/native/include \
+    - cmake -G "%CMAKE_GENERATOR%" -A x64 \
         -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=ON \
         .
 build_script:
@@ -46,11 +32,6 @@ after_test:
     - cd "c:\Program Files"
     - 7z a "c:\libvolk-x64-%VC_VERSION%.zip" volk
     - mkdir dlls
-    - copy c:\projects\volk\packages\boost_chrono-%VC_VERSION%.%BOOST_VERSION%.0\lib\native\address-model-64\lib\boost_chrono-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll dlls\boost_chrono-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll
-    - copy c:\projects\volk\packages\boost_filesystem-%VC_VERSION%.%BOOST_VERSION%.0\lib\native\address-model-64\lib\boost_filesystem-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll dlls\boost_filesystem-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll
-    - copy c:\projects\volk\packages\boost_program_options-%VC_VERSION%.%BOOST_VERSION%.0\lib\native\address-model-64\lib\boost_program_options-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll dlls\boost_program_options-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll
-    - copy c:\projects\volk\packages\boost_system-%VC_VERSION%.%BOOST_VERSION%.0\lib\native\address-model-64\lib\boost_system-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll dlls\boost_system-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll
-    - copy c:\projects\volk\packages\boost_unit_test_framework-%VC_VERSION%.%BOOST_VERSION%.0\lib\native\address-model-64\lib\boost_unit_test_framework-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll dlls\boost_unit_test_framework-%VC_VERSION%-mt-%BOOST_FILENAME_VERSION%.dll
     - cd dlls
     - 7z a "c:\libvolk-x64-deps-%VC_VERSION%.zip" *
     - appveyor PushArtifact c:\libvolk-x64-%VC_VERSION%.zip
