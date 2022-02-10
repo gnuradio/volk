@@ -7,6 +7,7 @@
 #
 
 import argparse
+from pprint import pprint
 import regex
 import json
 import pathlib
@@ -128,6 +129,13 @@ def main():
 
     # make sure all contributors are sorted alphabetically by their family name.
     creators = sorted(creators, key=lambda x: x['name'])
+    maintainers = ["Demel, Johannes", "Dickens, Michael"]
+    maintainer_list = list(filter(lambda x: x['name'] in maintainers, creators))
+    creators = list(filter(lambda x: x['name'] not in maintainers, creators))
+    nick_list = list(filter(lambda x: ', ' not in x['name'], creators))
+    fullname_list = list(filter(lambda x: ', ' in x['name'], creators))
+
+    creators = maintainer_list + fullname_list + nick_list
 
     citation_file['creators'] = creators
     update_citation_file(citation_file_name, citation_file)

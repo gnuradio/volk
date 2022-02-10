@@ -15,16 +15,15 @@
     ],
     "creators": [
         {
-            "name": "Aang23"
+            "affiliation": "Department of Communications Engineering, University of Bremen, Germany",
+            "name": "Demel, Johannes",
+            "orcid": "0000-0002-5434-7232"
         },
         {
-            "name": "AlexandreRouma"
+            "name": "Dickens, Michael"
         },
         {
             "name": "Anderson, Douglas"
-        },
-        {
-            "name": "Andrew"
         },
         {
             "name": "Ashton, Brennan"
@@ -73,14 +72,6 @@
         },
         {
             "name": "Cruz, Luigi"
-        },
-        {
-            "affiliation": "Department of Communications Engineering, University of Bremen, Germany",
-            "name": "Demel, Johannes",
-            "orcid": "0000-0002-5434-7232"
-        },
-        {
-            "name": "Dickens, Michael"
         },
         {
             "name": "Economos, Ron"
@@ -246,6 +237,18 @@
             "name": "Zapodovnikov, Valerii"
         },
         {
+            "name": "\u0160karvada, Jaroslav"
+        },
+        {
+            "name": "Aang23"
+        },
+        {
+            "name": "AlexandreRouma"
+        },
+        {
+            "name": "Andrew"
+        },
+        {
             "name": "Zlika"
         },
         {
@@ -253,9 +256,6 @@
         },
         {
             "name": "rear1019"
-        },
-        {
-            "name": "\u0160karvada, Jaroslav"
         }
     ]
 }
