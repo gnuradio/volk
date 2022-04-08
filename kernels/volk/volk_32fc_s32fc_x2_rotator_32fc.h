@@ -438,7 +438,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx(lv_32fc_t* outVector,
 {
     lv_32fc_t* cPtr = outVector;
     const lv_32fc_t* aPtr = inVector;
-    lv_32fc_t incr = lv_cmake(1.0, 0.0);
+    lv_32fc_t incr = lv_cmake(1.0f, 0.0f);
     lv_32fc_t phase_Ptr[4] = { (*phase), (*phase), (*phase), (*phase) };
 
     unsigned int i, j = 0;
@@ -512,7 +512,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx(lv_32fc_t* outVector,
 {
     lv_32fc_t* cPtr = outVector;
     const lv_32fc_t* aPtr = inVector;
-    lv_32fc_t incr = lv_cmake(1.0, 0.0);
+    lv_32fc_t incr = lv_cmake(1.0f, 0.0f);
     lv_32fc_t phase_Ptr[4] = { (*phase), (*phase), (*phase), (*phase) };
 
     unsigned int i, j = 0;

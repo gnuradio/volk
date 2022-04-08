@@ -59,4 +59,14 @@ static inline __m128 _mm_scaled_norm_dist_ps_sse(const __m128 symbols0,
     return _mm_mul_ps(norms, scalar);
 }
 
+static inline __m128 _mm_accumulate_square_sum_ps(
+    __m128 sq_acc, __m128 acc, __m128 val, __m128 rec, __m128 aux)
+{
+    aux = _mm_mul_ps(aux, val);
+    aux = _mm_sub_ps(aux, acc);
+    aux = _mm_mul_ps(aux, aux);
+    aux = _mm_mul_ps(aux, rec);
+    return _mm_add_ps(sq_acc, aux);
+}
+
 #endif /* INCLUDE_VOLK_VOLK_SSE_INTRINSICS_H_ */

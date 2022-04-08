@@ -7,12 +7,13 @@ jobs:
     name: Build on ubuntu-latest ${{ matrix.compiler.name }}
 
     strategy:
+      fail-fast: false
       matrix:
         compiler: 
-          - { name: gcc-7, cc: gcc-7, cxx: g++-7 }
-          - { name: gcc-8, cc: gcc-8, cxx: g++-8 }
-          - { name: gcc-9, cc: gcc-9, cxx: g++-9 }
-          - { name: gcc-10, cc: gcc-10, cxx: g++-10 }
+          - { name: g++-7, cc: gcc-7, cxx: g++-7 }
+          - { name: g++-8, cc: gcc-8, cxx: g++-8 }
+          - { name: g++-9, cc: gcc-9, cxx: g++-9 }
+          - { name: g++-10, cc: gcc-10, cxx: g++-10 }
           - { name: clang-7, cc: clang-7, cxx: clang++-7 }
           - { name: clang-8, cc: clang-8, cxx: clang++-8 }
           - { name: clang-9, cc: clang-9, cxx: clang++-9 }
@@ -57,6 +58,7 @@ jobs:
 
     # Run steps on a matrix of compilers and possibly archs.
     strategy:
+      fail-fast: false
       matrix:
         include:
           - arch: aarch64
@@ -161,6 +163,14 @@ jobs:
       run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True ..
     - name: build
       run: cmake --build build
+    - name: Print info
+      run: |
+        ./build/cpu_features/list_cpu_features
+        ./build/apps/volk-config-info --alignment
+        ./build/apps/volk-config-info --avail-machines
+        ./build/apps/volk-config-info --all-machines
+        ./build/apps/volk-config-info --malloc
+        ./build/apps/volk-config-info --cc
     - name: test
       run: cd build && ctest -V
 
@@ -181,6 +191,39 @@ jobs:
     - name: test
       run: cd build && ctest -V -C Release
 
+  build-windows-msys2:
+    name: Build on windows-latest using MinGW and MSYS2
+    
+    runs-on: windows-latest
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            git
+            mingw-w64-x86_64-boost
+            mingw-w64-x86_64-gcc-libs
+            mingw-w64-x86_64-orc
+            python
+            python-mako
+            python-six
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Configure
+        shell: msys2 {0}
+        run: mkdir build && cd build && cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3 -DCMAKE_CXX_FLAGS="-Werror" ..
+      - name: Build
+        shell: msys2 {0}
+        run: cd build && make -j$(nproc)
+      - name: Test 
+        shell: msys2 {0}
+        run: |
+          cd build
+          ctest -V
 
   build-macos:
 
@@ -196,5 +239,13 @@ jobs:
       run: mkdir build && cd build && cmake ..
     - name: build
       run: cmake --build build --config Debug
+    - name: Print info
+      run: |
+        ./build/cpu_features/list_cpu_features
+        # ./build/apps/volk-config-info --alignment
+        # ./build/apps/volk-config-info --avail-machines
+        # ./build/apps/volk-config-info --all-machines
+        # ./build/apps/volk-config-info --malloc
+        # ./build/apps/volk-config-info --cc
     - name: test
       run: cd build && ctest -V
