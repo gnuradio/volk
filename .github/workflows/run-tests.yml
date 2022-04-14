@@ -23,13 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3.0.0
+      with:
+        submodules: 'recursive'
     - name: Install dependencies
       run: sudo apt install python3-mako liborc-dev ${{ matrix.compiler.name }}
-    - name: Checkout submodules
-      uses: srt32/git-actions@v0.0.3
-      with:
-        args: git submodule update --init --recursive
     - name: Configure
       env:
         CC: ${{ matrix.compiler.cc }}
