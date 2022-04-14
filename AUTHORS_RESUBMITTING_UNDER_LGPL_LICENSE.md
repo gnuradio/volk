@@ -101,4 +101,5 @@ Together with the date of agreement, these authors are:
 | 2021-11-29 | Aang23 (Alan)               | Aang23          | qwerty15@gmx.fr, aang23@altillimity.com                             |
 | 2022-02-06 | Nathan West                 | n-west          | nwest@deepsig.io, nate.ewest@gmail.com, nathan.west@gnuradio.org, nathan.west@nrl.navy.mil, nathan.west@okstate.edu, nathan@pepper                             |
 | 2022-04-01 | Albert Holguin              | hades-          | aholguin_77@yahoo.com, codename.hash@gmail.com                      |
+| 2022-04-14 | Elliot Briggs               | N/A             | elliot.briggs@gmail.com                                             |
 |            |                             |                 |                                                                     |
