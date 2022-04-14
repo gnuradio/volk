@@ -23,13 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3.0.0
+      with:
+        submodules: 'recursive'
     - name: Install dependencies
       run: sudo apt install python3-mako liborc-dev ${{ matrix.compiler.name }}
-    - name: Checkout submodules
-      uses: srt32/git-actions@v0.0.3
-      with:
-        args: git submodule update --init --recursive
     - name: Configure
       env:
         CC: ${{ matrix.compiler.cc }}
@@ -93,11 +91,9 @@ jobs:
           #   distro: ubuntu20.04
 
     steps:
-      - uses: actions/checkout@v2.1.0
-      - name: Checkout submodules
-        uses: srt32/git-actions@v0.0.3
+      - uses: actions/checkout@v3.0.0
         with:
-          args: git submodule update --init --recursive
+          submodules: 'recursive'
       - uses: uraimo/run-on-arch-action@v2.0.5
         name: Build in non-x86 container
         id: build
@@ -152,13 +148,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3.0.0
+      with:
+        submodules: 'recursive'
     - name: dependencies
       run: sudo apt install python3-mako liborc-dev
-    - name: Checkout submodules
-      uses: srt32/git-actions@v0.0.3
-      with:
-        args: git submodule update --init --recursive
     - name: configure
       run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True ..
     - name: build
@@ -179,11 +173,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3.0.0
+      with:
+        submodules: 'recursive'
     - name: dependencies
       run: pip install mako
-    - name: Checkout submodules
-      run: git submodule update --init --recursive
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
@@ -229,11 +223,12 @@ jobs:
     runs-on: macos-latest
 
     steps:
+    - uses: actions/checkout@v3.0.0
+      with:
+        submodules: 'recursive'
     - uses: actions/checkout@v1
     - name: dependencies
       run: pip3 install mako
-    - name: Checkout submodules
-      run: git submodule update --init --recursive
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
