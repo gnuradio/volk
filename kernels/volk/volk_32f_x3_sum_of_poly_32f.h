@@ -493,8 +493,8 @@ volk_32f_x3_sum_of_poly_32f_neonvert(float* __restrict target,
     float thrd = 0.0;
     float frth = 0.0;
 
-    for (i = 4 * num_points / 4; i < num_points; ++i) {
-        fst = src0[i];
+    for (i = 4 * (num_points / 4); i < num_points; ++i) {
+        fst = *src0++;
         fst = MAX(fst, *cutoff);
 
         sq = fst * fst;
