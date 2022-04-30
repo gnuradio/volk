@@ -504,8 +504,9 @@ static inline void volk_32fc_index_min_32u_neon(uint32_t* target,
         for (uint32_t number = quarter_points * 4; number < num_points; number++) {
             const float re = lv_creal(*sourcePtr);
             const float im = lv_cimag(*sourcePtr);
-            if ((re * re + im * im) < min) {
-                min = *sourcePtr;
+            const float sq_dist = re * re + im * im;
+            if (sq_dist < min) {
+                min = sq_dist;
                 index = number;
             }
             sourcePtr++;
