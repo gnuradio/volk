@@ -431,14 +431,17 @@ static inline void volk_32f_s32f_convert_32i_a_generic(int32_t* outputVector,
     float min_val = INT_MIN;
     float max_val = INT_MAX;
     float r;
+    int s;
 
     for (number = 0; number < num_points; number++) {
         r = *inputVectorPtr++ * scalar;
-        if (r > max_val)
-            r = max_val;
+        if (r >= max_val)
+            s = INT_MAX;
         else if (r < min_val)
-            r = min_val;
-        *outputVectorPtr++ = (int32_t)rintf(r);
+            s = INT_MIN;
+	else
+            s = (int32_t)rintf(r);
+        *outputVectorPtr++ = s;
     }
 }
 
