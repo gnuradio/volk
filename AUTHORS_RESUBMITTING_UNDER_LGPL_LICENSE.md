@@ -102,4 +102,6 @@ Together with the date of agreement, these authors are:
 | 2022-02-06 | Nathan West                 | n-west          | nwest@deepsig.io, nate.ewest@gmail.com, nathan.west@gnuradio.org, nathan.west@nrl.navy.mil, nathan.west@okstate.edu, nathan@pepper                             |
 | 2022-04-01 | Albert Holguin              | hades-          | aholguin_77@yahoo.com, codename.hash@gmail.com                      |
 | 2022-04-14 | Elliot Briggs               | N/A             | elliot.briggs@gmail.com                                             |
+| 2022-06-28 | Moritz Fischer              | N/A             | gnuradio@pure-entropy.org                                           |
+| 2022-06-29 | Johnathan Corgan            | jmcorgan        | jcorgan@corganenterprises.com, johnathan@corganlabs.com             |
 |            |                             |                 |                                                                     |
