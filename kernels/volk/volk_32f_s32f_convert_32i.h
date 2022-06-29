@@ -237,18 +237,19 @@ static inline void volk_32f_s32f_convert_32i_generic(int32_t* outputVector,
 {
     int32_t* outputVectorPtr = outputVector;
     const float* inputVectorPtr = inputVector;
-    unsigned int number = 0;
-    float min_val = INT_MIN;
-    float max_val = INT_MAX;
-    float r;
+    const float min_val = (float)INT_MIN;
+    const float max_val = (float)INT_MAX;
 
-    for (number = 0; number < num_points; number++) {
-        r = *inputVectorPtr++ * scalar;
-        if (r > max_val)
-            r = max_val;
+    for (unsigned int number = 0; number < num_points; number++) {
+        const float r = *inputVectorPtr++ * scalar;
+        int s;
+        if (r >= max_val)
+            s = INT_MAX;
         else if (r < min_val)
-            r = min_val;
-        *outputVectorPtr++ = (int32_t)rintf(r);
+            s = INT_MIN;
+        else
+            s = (int32_t)rintf(r);
+        *outputVectorPtr++ = s;
     }
 }
 
@@ -425,21 +426,7 @@ static inline void volk_32f_s32f_convert_32i_a_generic(int32_t* outputVector,
                                                        const float scalar,
                                                        unsigned int num_points)
 {
-    int32_t* outputVectorPtr = outputVector;
-    const float* inputVectorPtr = inputVector;
-    unsigned int number = 0;
-    float min_val = INT_MIN;
-    float max_val = INT_MAX;
-    float r;
-
-    for (number = 0; number < num_points; number++) {
-        r = *inputVectorPtr++ * scalar;
-        if (r > max_val)
-            r = max_val;
-        else if (r < min_val)
-            r = min_val;
-        *outputVectorPtr++ = (int32_t)rintf(r);
-    }
+    volk_32f_s32f_convert_32i_generic(outputVector, inputVector, scalar, num_points);
 }
 
 #endif /* LV_HAVE_GENERIC */
