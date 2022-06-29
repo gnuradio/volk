@@ -103,4 +103,5 @@ Together with the date of agreement, these authors are:
 | 2022-04-01 | Albert Holguin              | hades-          | aholguin_77@yahoo.com, codename.hash@gmail.com                      |
 | 2022-04-14 | Elliot Briggs               | N/A             | elliot.briggs@gmail.com                                             |
 | 2022-06-28 | Moritz Fischer              | N/A             | gnuradio@pure-entropy.org                                           |
+| 2022-06-29 | Johnathan Corgan            | jmcorgan        | jcorgan@corganenterprises.com, johnathan@corganlabs.com             |
 |            |                             |                 |                                                                     |
