@@ -137,7 +137,7 @@ else()
 endif()
 
 if (VOLK_CPU_FEATURES)
-  find_package(CpuFeatures)
+  find_package(CpuFeatures QUIET)
   if(NOT CpuFeatures_FOUND)
     message(STATUS "cpu_features package not found. Requiring cpu_features submodule ...")
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cpu_features/CMakeLists.txt" )
