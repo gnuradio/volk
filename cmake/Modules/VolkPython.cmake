@@ -112,17 +112,26 @@ execute_process(
     COMMAND ${PYTHON_EXECUTABLE} -c "import os
 import sysconfig
 import site
+
 install_dir = None
 prefix = '${CMAKE_INSTALL_PREFIX}'
-#use sites when the prefix is already recognized
+
+#use `site` when the prefix is already recognized
 try:
   paths = [p for p in site.getsitepackages() if p.startswith(prefix)]
   if len(paths) == 1: install_dir = paths[0]
 except AttributeError: pass
+
 if not install_dir:
-    #find where to install the python module
-    install_dir = sysconfig.get_path('platlib')
-    prefix = sysconfig.get_config_var('prefix')
+    # find where to install the python module
+    # for Python 3.11+, we could use the 'venv' scheme for all platforms
+    if os.name == 'nt':
+        scheme = 'nt'
+    else:
+        scheme = 'posix_prefix'
+    install_dir = sysconfig.get_path('platlib', scheme)
+    prefix = sysconfig.get_path('data', scheme)
+
 #strip the prefix to return a relative path
 print(os.path.relpath(install_dir, prefix))"
     OUTPUT_STRIP_TRAILING_WHITESPACE
