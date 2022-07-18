@@ -112,17 +112,32 @@ execute_process(
     COMMAND ${PYTHON_EXECUTABLE} -c "import os
 import sysconfig
 import site
+
 install_dir = None
+# The next line passes a CMake variable into our script.
 prefix = '${CMAKE_INSTALL_PREFIX}'
-#use sites when the prefix is already recognized
+
+# We use `site` to identify if our chosen prefix is a default one.
+# https://docs.python.org/3/library/site.html
 try:
-  paths = [p for p in site.getsitepackages() if p.startswith(prefix)]
-  if len(paths) == 1: install_dir = paths[0]
+    # https://docs.python.org/3/library/site.html#site.getsitepackages
+    paths = [p for p in site.getsitepackages() if p.startswith(prefix)]
+    if len(paths) == 1: install_dir = paths[0]
 except AttributeError: pass
+
+# If we found a default install path, `install_dir` is set.
 if not install_dir:
-    #find where to install the python module
-    install_dir = sysconfig.get_path('platlib')
-    prefix = sysconfig.get_config_var('prefix')
+    # We use a custom install prefix!
+    # Determine the correct install path in that prefix on the current platform.
+    # For Python 3.11+, we could use the 'venv' scheme for all platforms
+    # https://docs.python.org/3.11/library/sysconfig.html#installation-paths
+    if os.name == 'nt':
+        scheme = 'nt'
+    else:
+        scheme = 'posix_prefix'
+    install_dir = sysconfig.get_path('platlib', scheme)
+    prefix = sysconfig.get_path('data', scheme)
+
 #strip the prefix to return a relative path
 print(os.path.relpath(install_dir, prefix))"
     OUTPUT_STRIP_TRAILING_WHITESPACE
