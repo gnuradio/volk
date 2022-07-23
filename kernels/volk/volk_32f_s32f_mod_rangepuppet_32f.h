@@ -1,3 +1,12 @@
+/* -*- c++ -*- */
+/*
+ * Copyright 2017, 2020 Free Software Foundation, Inc.
+ *
+ * This file is part of VOLK
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #ifndef INCLUDED_VOLK_32F_S32F_MOD_RANGEPUPPET_32F_H
 #define INCLUDED_VOLK_32F_S32F_MOD_RANGEPUPPET_32F_H
 
