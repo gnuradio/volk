@@ -1,3 +1,12 @@
+/* -*- c++ -*- */
+/*
+ * Copyright 2010, 2011, 2015-2017, 2019, 2020 Free Software Foundation, Inc.
+ *
+ * This file is part of VOLK
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #ifndef INCLUDED_LIBVOLK_COMMON_H
 #define INCLUDED_LIBVOLK_COMMON_H
 
