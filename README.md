@@ -82,6 +82,9 @@ $ sudo make install
 $ volk_profile
 ```
 
+## Code of Conduct
+We want to make sure everyone feels welcome. Thus, we follow our [Code of Conduct](docs/CODE_OF_CONDUCT.md).
+
 ## Contributing
 We are happy to accept contributions. [Please refer to our contributing guide for further details](docs/CONTRIBUTING.md).
 Also, make sure to read the [Developer's Certificate of Origin](docs/DCO.txt) and make sure to sign every commit with `git commit -s`.
