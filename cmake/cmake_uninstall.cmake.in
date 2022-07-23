@@ -1,3 +1,10 @@
+# Copyright 2014 Free Software Foundation, Inc.
+#
+# This file is part of VOLK.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
 # http://www.vtk.org/Wiki/CMake_FAQ#Can_I_do_.22make_uninstall.22_with_CMake.3F
 
 IF(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")

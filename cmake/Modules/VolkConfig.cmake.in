@@ -1,3 +1,10 @@
+# Copyright 2016, 2018 - 2020 Free Software Foundation, Inc.
+#
+# This file is part of VOLK.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
 get_filename_component(VOLK_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 if(NOT TARGET Volk::volk)

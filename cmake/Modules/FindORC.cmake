@@ -1,3 +1,10 @@
+# Copyright 2014, 2019, 2020 Free Software Foundation, Inc.
+#
+# This file is part of VOLK.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
 FIND_PACKAGE(PkgConfig)
 PKG_CHECK_MODULES(PC_ORC "orc-0.4 > 0.4.11")
 
