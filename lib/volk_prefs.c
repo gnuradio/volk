@@ -1,3 +1,12 @@
+/* -*- c++ -*- */
+/*
+ * Copyright 2011, 2012, 2015, 2016, 2019, 2020 Free Software Foundation, Inc.
+ *
+ * This file is part of VOLK
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
