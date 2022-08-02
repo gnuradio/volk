@@ -10,6 +10,10 @@ this gives the VOLK project the right to use the current contributions under bot
 Future contributions by these authors are, however,
 licensed under LGPL-3.0-or-later, unless explicitly stated otherwise.
 
+## Current status
+
+We'd like to thank everyone who helped to re-license VOLK under LGPL!
+Being technical: There are 3 people left (out of 74) who we haven't been able to get in contact with (at all), for a total of 4 (out of 1092) commits, 13 (of 282822) additions, and 7 (of 170421) deletions. We have reviewed these commits and all are simple changes (e.g., 1 line change) and most are no longer relevant (e.g., to a file that no longer exists). VOLK maintainers are in agreement that the combination -- small numbers of changes per committer, simple changes per commit, commits no longer relevant -- means that we can proceed with relicensing without the approval of the folks. We will try reaching out periodically to these folks, but we believe it unlikely we will get a reply.
 
 ## How to add myself to the table of authors
 There are several options. Choose the one you prefer.

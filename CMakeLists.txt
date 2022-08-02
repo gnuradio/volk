@@ -229,7 +229,7 @@ set(libdir "\${exec_prefix}/lib${LIB_SUFFIX}")
 set(includedir "\${prefix}/include")
 
 configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/volk.pc.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/tmpl/volk.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/volk.pc
 @ONLY)
 

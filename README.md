@@ -82,6 +82,17 @@ $ sudo make install
 $ volk_profile
 ```
 
+## Code of Conduct
+We want to make sure everyone feels welcome. Thus, we follow our [Code of Conduct](docs/CODE_OF_CONDUCT.md).
+
+## Contributing
+We are happy to accept contributions. [Please refer to our contributing guide for further details](docs/CONTRIBUTING.md).
+Also, make sure to read the [Developer's Certificate of Origin](docs/DCO.txt) and make sure to sign every commit with `git commit -s`.
+
+## Releases and development
+We maintain a [CHANGELOG](docs/CHANGELOG.md) for every release. Please refer to this file for more detailed information.
+We follow semantic versioning as outlined in [our versioning guide](docs/versioning.md).
+
 ## Supported platforms
 VOLK aims to be portable to as many platforms as possible. We can only run tests on some platforms.
 
@@ -105,4 +116,7 @@ At this point in time, much of the code in the repository is still GPL-licensed.
 New contributors are required to use the LGPLv3+ for their code contributions.
 Existing contributors are very kindly requested to re-submit their GPL-3.0-or-later license code contributions to LGPL-3.0-or-later by
 adding their name, GitHub handle, and email address(es) used for VOLK commits
-to the file `AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md`.
+to the file [AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md](docs/AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md).
+
+### Re-licensing status
+VOLK is ready for a VOLK 3.0 release which marks our final switch to LGPL.
