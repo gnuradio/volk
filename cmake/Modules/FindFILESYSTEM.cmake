@@ -1,21 +1,9 @@
 # Copyright 2019 Free Software Foundation, Inc.
 #
-# This file is part of Volk
+# This file is part of VOLK.
 #
-# Volk is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# Volk is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-# License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Volk; see the file COPYING.  If not, write to the Free
-# Software Foundation, Inc., 51 Franklin Street, Boston, MA
-# 02110-1301, USA.
 
 # Original code from https://github.com/vector-of-bool/CMakeCM and modified
 # by C. Fernandez. The original code is distributed under the OSI-approved

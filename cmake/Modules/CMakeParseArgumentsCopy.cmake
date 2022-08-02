@@ -1,3 +1,10 @@
+# Copyright 2014, 2018 Free Software Foundation, Inc.
+#
+# This file is part of VOLK.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
 # CMAKE_PARSE_ARGUMENTS(<prefix> <options> <one_value_keywords> <multi_value_keywords> args...)
 #
 # CMAKE_PARSE_ARGUMENTS() is intended to be used in macros or functions for
