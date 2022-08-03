@@ -198,10 +198,7 @@ endif(ENABLE_ORC)
 ########################################################################
 # Setup doxygen
 ########################################################################
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  add_subdirectory(docs)
-endif(DOXYGEN_FOUND)
+add_subdirectory(docs)
 
 ########################################################################
 # Detect /lib versus /lib64

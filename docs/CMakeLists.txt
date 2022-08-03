@@ -5,7 +5,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-message(STATUS "Doxygen in docs |${DOXYGEN_FOUND}|")
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+
+message(STATUS "Doxygen found. Building docs ...")
+
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
     ${CMAKE_BINARY_DIR}/Doxyfile
@@ -16,3 +20,5 @@ add_custom_target(volk_doc
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "Generating documentation with Doxygen" VERBATIM
 )
+
+endif(DOXYGEN_FOUND)
