@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+#
+# Copyright 2020 Marcus Müller, Johannes Demel, Ryan Volz
+#
+# This script is part of VOLK.
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
 setopt ERR_EXIT #exit on error
 #Project name
 project=volk

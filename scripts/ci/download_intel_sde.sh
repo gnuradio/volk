@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# Copyright 2019, 2020 Christoph Mayer
+#
+# This script is part of VOLK.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 set -e
 set -x

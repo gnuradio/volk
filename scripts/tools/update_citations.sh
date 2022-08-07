@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-
+#
+# Copyright 2022 Johannes Demel
+#
+# This script is part of VOLK.
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
 # Find all contributors according to git and update `.zenodo.json` accordingly.
 
 script_name=$0
