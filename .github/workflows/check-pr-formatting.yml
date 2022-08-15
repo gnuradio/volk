@@ -4,9 +4,11 @@ on:
   push:
     paths-ignore:
       - 'tmpl/'
+      - 'include/volk/sse2neon.h'
   pull_request:
     paths-ignore:
       - 'tmpl/'
+      - 'include/volk/sse2neon.h'
 
 jobs:
   build:
@@ -17,5 +19,5 @@ jobs:
     - uses: gnuradio/clang-format-lint-action@v0.5-4
       with:
         source: '.'
-        exclude: './tmpl'
+        exclude: './tmpl,./include/volk/sse2neon.h'
         extensions: 'c,cc,cpp,cxx,h,hh'

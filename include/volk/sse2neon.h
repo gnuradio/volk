@@ -1,3 +1,7 @@
+// Turn off Clang formatting, as 
+// this would make diffs a lot more
+// tricky.
+// clang-format off
 #ifndef SSE2NEON_H
 #define SSE2NEON_H
 
@@ -8846,3 +8850,4 @@ FORCE_INLINE uint64_t _rdtsc(void)
 #endif
 
 #endif
+// clang-format on
