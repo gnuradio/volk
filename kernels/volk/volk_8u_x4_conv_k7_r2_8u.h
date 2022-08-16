@@ -623,13 +623,13 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
 
 #include "volk/sse2neon.h"
 
-static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
-                                                   unsigned char* X,
-                                                   unsigned char* syms,
-                                                   unsigned char* dec,
-                                                   unsigned int framebits,
-                                                   unsigned int excess,
-                                                   unsigned char* Branchtab)
+static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
+                                                       unsigned char* X,
+                                                       unsigned char* syms,
+                                                       unsigned char* dec,
+                                                       unsigned int framebits,
+                                                       unsigned int excess,
+                                                       unsigned char* Branchtab)
 {
     unsigned int i9;
     for (i9 = 0; i9 < ((framebits + excess) >> 1); i9++) {

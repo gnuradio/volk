@@ -1,6 +1,7 @@
 // Turn off Clang formatting, as 
 // this would make diffs a lot more
 // tricky.
+// From https://github.com/DLTcollab/sse2neon
 // clang-format off
 #ifndef SSE2NEON_H
 #define SSE2NEON_H

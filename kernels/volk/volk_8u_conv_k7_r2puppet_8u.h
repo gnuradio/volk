@@ -179,9 +179,9 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* syms,
 
 #include "volk/sse2neon.h"
 
-static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* syms,
-                                                      unsigned char* dec,
-                                                      unsigned int framebits)
+static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* syms,
+                                                          unsigned char* dec,
+                                                          unsigned int framebits)
 {
 
 
@@ -237,7 +237,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* syms,
     // initialize decisions
     memset(D, 0, (d_numstates / 8) * (framebits + 6));
 
-    volk_8u_x4_conv_k7_r2_8u_spiral(
+    volk_8u_x4_conv_k7_r2_8u_neonspiral(
         Y, X, syms, D, framebits / 2 - excess, excess, Branchtab);
 
     unsigned int min = X[0];
