@@ -1,7 +1,17 @@
+/*
+ * Copyright 2022 Free Software Foundation, Inc.
+ *
+ * This file is part of VOLK
+ *
+ * SPDX-License-Identifier: MIT
+ * 
+ * This file is from :
+ * https://github.com/DLTcollab/sse2neon
+ */
+
 // Turn off Clang formatting, as 
 // this would make diffs a lot more
 // tricky.
-// From https://github.com/DLTcollab/sse2neon
 // clang-format off
 #ifndef SSE2NEON_H
 #define SSE2NEON_H
