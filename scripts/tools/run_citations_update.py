@@ -3,6 +3,8 @@
 #
 # Copyright 2022 Johannes Demel.
 #
+# This file is part of VOLK
+#
 # SPDX-License-Identifier: LGPL-3.0-or-later
 #
 
@@ -130,7 +132,8 @@ def main():
     # make sure all contributors are sorted alphabetically by their family name.
     creators = sorted(creators, key=lambda x: x['name'])
     maintainers = ["Demel, Johannes", "Dickens, Michael"]
-    maintainer_list = list(filter(lambda x: x['name'] in maintainers, creators))
+    maintainer_list = list(
+        filter(lambda x: x['name'] in maintainers, creators))
     creators = list(filter(lambda x: x['name'] not in maintainers, creators))
     nick_list = list(filter(lambda x: ', ' not in x['name'], creators))
     fullname_list = list(filter(lambda x: ', ' in x['name'], creators))
