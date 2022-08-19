@@ -131,7 +131,9 @@ jobs:
           run: |
             cd /volk
             cd build
-            cmake -DCMAKE_CXX_FLAGS="-Werror" ..
+            ${{ matrix.compiler.cc }} --version
+            ${{ matrix.compiler.cxx }} --version
+            cmake -DCMAKE_CXX_FLAGS="-Werror" -DCMAKE_C_COMPILER=${{ matrix.compiler.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }} ..
             make -j$(nproc)
             ./cpu_features/list_cpu_features
             ./apps/volk-config-info --alignment
