@@ -14,7 +14,7 @@ releaseprefix="v"
 #Remote to push to
 remote="origin"
 #Name of the Changelog file
-changelog="CHANGELOG.md"
+changelog="docs/CHANGELOG.md"
 #Name of the file where the last release tag is stored
 lastreleasefile=".lastrelease"
 
