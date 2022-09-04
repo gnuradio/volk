@@ -223,10 +223,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3.0.0
+    - uses: actions/checkout@v3.0.2
       with:
         submodules: 'recursive'
-    - uses: actions/checkout@v1
     - name: dependencies
       run: pip3 install mako
     - name: configure
