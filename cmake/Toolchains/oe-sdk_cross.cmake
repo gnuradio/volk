@@ -1,3 +1,11 @@
+#
+# Copyright 2014 Free Software Foundation, Inc.
+#
+# This file is part of VOLK
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+
 set( CMAKE_SYSTEM_NAME Linux )
 #set( CMAKE_C_COMPILER  $ENV{CC} )
 #set( CMAKE_CXX_COMPILER  $ENV{CXX} )
