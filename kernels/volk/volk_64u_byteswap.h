@@ -242,10 +242,10 @@ static inline void volk_64u_byteswap_neonv8(uint64_t* intsToSwap, unsigned int n
     unsigned int number = 0;
     for (number = 0; number < n4points; ++number) {
         __VOLK_PREFETCH(inputPtr + 8);
-        input = vld2q_u8((uint8_t*)inputPtr);
+        input = vld1q_u8_x2((uint8_t*)inputPtr);
         input.val[0] = vqtbl1q_u8(input.val[0], idx);
         input.val[1] = vqtbl1q_u8(input.val[1], idx);
-        vst2q_u8((uint8_t*)inputPtr, input);
+        vst1q_u8_x2((uint8_t*)inputPtr, input);
 
         inputPtr += 8;
     }
