@@ -98,6 +98,7 @@ VOLK aims to be portable to as many platforms as possible. We can only run tests
 
 ### Hardware architectures
 Currently VOLK aims to run with optimized kernels on x86 with SSE/AVX and ARM with NEON.
+Support for MIPS and RISC-V is experimental; some kernels are known not to work on these architectures.
 
 ### OS / Distro
 We run tests on a variety of Ubuntu versions and aim to support as many current distros as possible.
