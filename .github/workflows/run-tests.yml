@@ -4,26 +4,30 @@ on: [push, pull_request]
 
 jobs:
   build-ubuntu:
-    name: Build on ubuntu-latest ${{ matrix.compiler.name }}
+    name: Build on ${{ matrix.compiler.distro }} ${{ matrix.compiler.name }}
 
     strategy:
       fail-fast: false
       matrix:
         compiler: 
-          - { name: g++-7, cc: gcc-7, cxx: g++-7 }
-          - { name: g++-8, cc: gcc-8, cxx: g++-8 }
-          - { name: g++-9, cc: gcc-9, cxx: g++-9 }
-          - { name: g++-10, cc: gcc-10, cxx: g++-10 }
-          - { name: clang-7, cc: clang-7, cxx: clang++-7 }
-          - { name: clang-8, cc: clang-8, cxx: clang++-8 }
-          - { name: clang-9, cc: clang-9, cxx: clang++-9 }
-          - { name: clang-10, cc: clang-10, cxx: clang++-10 }
-          # - { name: clang-11, cc: clang-11, cxx: clang++-11 }
+          - { name: g++-7, cc: gcc-7, cxx: g++-7, distro: ubuntu-20.04 }
+          - { name: g++-8, cc: gcc-8, cxx: g++-8, distro: ubuntu-20.04 }
+          - { name: g++-9, cc: gcc-9, cxx: g++-9, distro: ubuntu-latest }
+          - { name: g++-10, cc: gcc-10, cxx: g++-10, distro: ubuntu-latest }
+          - { name: clang-7, cc: clang-7, cxx: clang++-7, distro: ubuntu-20.04 }
+          - { name: clang-8, cc: clang-8, cxx: clang++-8, distro: ubuntu-20.04 }
+          - { name: clang-9, cc: clang-9, cxx: clang++-9, distro: ubuntu-20.04 }
+          - { name: clang-10, cc: clang-10, cxx: clang++-10, distro: ubuntu-20.04 }
+          - { name: clang-11, cc: clang-11, cxx: clang++-11, distro: ubuntu-20.04 }
+          - { name: clang-12, cc: clang-12, cxx: clang++-12, distro: ubuntu-latest }
+          - { name: clang-13, cc: clang-13, cxx: clang++-13, distro: ubuntu-latest }
+          - { name: clang-14, cc: clang-14, cxx: clang++-14, distro: ubuntu-latest }
+          # - { name: clang-15, cc: clang-15, cxx: clang++-15, distro: ubuntu-latest }
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.compiler.distro }}
     
     steps:
-    - uses: actions/checkout@v3.0.0
+    - uses: actions/checkout@v3.1.0
       with:
         submodules: 'recursive'
     - name: Install dependencies
@@ -34,7 +38,9 @@ jobs:
         CXX: ${{ matrix.compiler.cxx }}
       run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
     - name: Build
-      run: cmake --build build
+      run: |
+        echo "Build with $(nproc) thread(s)"
+        cmake --build build -j$(nproc)
     - name: Print info
       run: |
         ./build/cpu_features/list_cpu_features
@@ -43,7 +49,7 @@ jobs:
         ./build/apps/volk-config-info --all-machines
         ./build/apps/volk-config-info --malloc
         ./build/apps/volk-config-info --cc
-    - name: Test 
+    - name: Test
       run: |
         cd build
         ctest -V
@@ -68,34 +74,39 @@ jobs:
           - arch: aarch64
             distro: ubuntu20.04
             compiler: { name: g++-10, cc: gcc-10, cxx: g++-10 }
-          # This test failed with a stl filesystem issue. 
-          # - arch: aarch64
-          #   distro: ubuntu20.04
-          #   compiler: { name: clang-8, cc: clang-8, cxx: clang++-8 }
+          - arch: aarch64
+            distro: ubuntu22.04
+            compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
           - arch: aarch64
             distro: ubuntu20.04
             compiler: { name: clang-9, cc: clang-9, cxx: clang++-9 }
           - arch: aarch64
             distro: ubuntu20.04
             compiler: { name: clang-10, cc: clang-10, cxx: clang++-10 }
-          # CMake fails to detect compiler on armv7 ...
-          # - arch: armv7
-          #   distro: ubuntu20.04
-          #   compiler: { name: g++-10, cc: gcc-10, cxx: g++-10 }
-          # - arch: armv7
-          #   distro: ubuntu20.04
-          #   compiler: { name: clang-10, cc: clang-10, cxx: clang++-10 }
-          # - arch: ppc64le
-          #   distro: ubuntu20.04
-          # - arch: s390x
-          #   distro: ubuntu20.04
-
+          - arch: aarch64
+            distro: ubuntu22.04
+            compiler: { name: clang-14, cc: clang-14, cxx: clang++-14 }
+          - arch: armv7
+            distro: ubuntu22.04
+            compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
+          - arch: ppc64le
+            distro: ubuntu22.04
+            compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
+          - arch: s390x
+            distro: ubuntu22.04
+            compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
+          # It would be really nice to test on Risc-V but that'll take time.
+          - arch: riscv64
+            distro: ubuntu22.04
+            compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
+    
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v3.1.0
         with:
           submodules: 'recursive'
-      - uses: uraimo/run-on-arch-action@v2.0.5
+      - uses: uraimo/run-on-arch-action@v2.5.0
         name: Build in non-x86 container
+        continue-on-error: ${{ contains(fromJson('["ppc64le", "s390x", "riscv64"]'), matrix.arch) || contains(fromJson('["clang-14"]'), matrix.compiler.name) }}
         id: build
         with:
           arch: ${{ matrix.arch }}
@@ -132,6 +143,7 @@ jobs:
             cd /volk
             cd build
             cmake -DCMAKE_CXX_FLAGS="-Werror" ..
+            echo "Build with $(nproc) thread(s)"
             make -j$(nproc)
             ./cpu_features/list_cpu_features
             ./apps/volk-config-info --alignment
@@ -141,14 +153,13 @@ jobs:
             ./apps/volk-config-info --cc
             ctest -V
 
-
   build-ubuntu-static:
     name: Build static on ubuntu-latest
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3.0.0
+    - uses: actions/checkout@v3.1.0
       with:
         submodules: 'recursive'
     - name: dependencies
@@ -156,7 +167,7 @@ jobs:
     - name: configure
       run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True ..
     - name: build
-      run: cmake --build build
+      run: cmake --build build -j$(nproc)
     - name: Print info
       run: |
         ./build/cpu_features/list_cpu_features
@@ -173,7 +184,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3.0.0
+    - uses: actions/checkout@v3.1.0
       with:
         submodules: 'recursive'
     - name: dependencies
@@ -181,7 +192,7 @@ jobs:
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
-      run: cmake --build build --config Release --target INSTALL
+      run: cmake --build build --config Release --target INSTALL -j2
     - name: test
       run: cd build && ctest -V -C Release
 
@@ -223,7 +234,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3.0.2
+    - uses: actions/checkout@v3.1.0
       with:
         submodules: 'recursive'
     - name: dependencies
@@ -231,7 +242,7 @@ jobs:
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
-      run: cmake --build build --config Debug
+      run: cmake --build build --config Debug -j3
     - name: Print info
       run: |
         ./build/cpu_features/list_cpu_features
