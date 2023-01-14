@@ -1,3 +1,12 @@
+#
+# Copyright 2014, 2018, 2019 Free Software Foundation, Inc.
+#
+# This file is part of VOLK
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+
+
 ########################################################################
 # Toolchain file for building native on a ARM Cortex A8 w/ NEON
 # Usage: cmake -DCMAKE_TOOLCHAIN_FILE=<this file> <source directory>

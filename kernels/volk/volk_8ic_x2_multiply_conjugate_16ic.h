@@ -4,7 +4,7 @@
  *
  * This file is part of VOLK
  *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
 #ifndef INCLUDED_volk_8ic_x2_multiply_conjugate_16ic_a_H

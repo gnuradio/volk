@@ -1,3 +1,11 @@
+/*
+ * Copyright 2012, 2017, 2020 Free Software Foundation, Inc.
+ *
+ * This file is part of VOLK
+ *
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ */
+
 #ifndef _MSC_VER // [
 #error "Use this header only with Microsoft Visual C++ compilers!"
 #endif // _MSC_VER ]

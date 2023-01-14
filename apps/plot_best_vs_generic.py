@@ -3,7 +3,7 @@
 #
 # This file is part of VOLK
 #
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 #
 
 # This script is used to compare the generic kernels to the highest performing kernel, for each operation
