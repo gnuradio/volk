@@ -384,21 +384,6 @@ if(ENABLE_MODTOOL)
 endif()
 
 ########################################################################
-# And the LGPL license check
-########################################################################
-# detect default for LGPL
-if(VERSION_INFO_MAJOR_VERSION GREATER_EQUAL 3)
-  OPTION(ENABLE_LGPL "Enable testing for LGPL" ON)
-else()
-  OPTION(ENABLE_LGPL "Enable testing for LGPL" OFF)
-endif()
-
-if(ENABLE_TESTING AND ENABLE_LGPL)
-  message(STATUS "Checking for LGPL resubmission enabled")
-  add_test("check_lgpl" ${CMAKE_SOURCE_DIR}/scripts/licensing/count_contrib.sh ${CMAKE_SOURCE_DIR}/AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md)
-endif()
-
-########################################################################
 # Print summary
 ########################################################################
 message(STATUS "Using install prefix: ${CMAKE_INSTALL_PREFIX}")
