@@ -74,9 +74,9 @@ message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 # Version setup
 ########################################################################
 
-set(VERSION_INFO_MAJOR_VERSION 2)
-set(VERSION_INFO_MINOR_VERSION 5)
-set(VERSION_INFO_MAINT_VERSION 2)
+set(VERSION_INFO_MAJOR_VERSION 3)
+set(VERSION_INFO_MINOR_VERSION 0)
+set(VERSION_INFO_MAINT_VERSION 0)
 include(VolkVersion) #setup version info
 
 macro(set_version_str VAR)
