@@ -2,7 +2,7 @@
 #
 # This file is part of VOLK.
 #
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 #
 
 get_filename_component(VOLK_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
