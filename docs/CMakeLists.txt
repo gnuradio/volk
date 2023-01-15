@@ -2,7 +2,7 @@
 #
 # Copyright 2022 Johannes Demel.
 #
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 #
 
 find_package(Doxygen)
