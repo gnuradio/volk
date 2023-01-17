@@ -114,7 +114,7 @@ jobs:
           submodules: 'recursive'
       - uses: uraimo/run-on-arch-action@v2.5.0
         name: Build in non-x86 container
-        continue-on-error: ${{ contains(fromJson('["ppc64le", "s390x", "riscv64"]'), matrix.arch) || contains(fromJson('["clang-14"]'), matrix.compiler.name) }}
+        continue-on-error: ${{ contains(fromJson('["ppc64le", "s390x"]'), matrix.arch) || contains(fromJson('["clang-14"]'), matrix.compiler.name) }}
         id: build
         with:
           arch: ${{ matrix.arch }}

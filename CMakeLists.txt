@@ -121,7 +121,7 @@ endif(MSVC)
 
 # cpu_features - sensible defaults, user settable option
 if(CMAKE_SYSTEM_PROCESSOR MATCHES
-    "(^mips)|(^arm)|(^aarch64)|(x86_64)|(AMD64|amd64)|(^i.86$)|(^powerpc)|(^ppc)")
+    "(^mips)|(^arm)|(^aarch64)|(x86_64)|(AMD64|amd64)|(^i.86$)|(^powerpc)|(^ppc)|(^riscv)")
   option(VOLK_CPU_FEATURES "Volk uses cpu_features" ON)
 else()
   option(VOLK_CPU_FEATURES "Volk uses cpu_features" OFF)
