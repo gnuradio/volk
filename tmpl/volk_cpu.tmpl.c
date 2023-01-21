@@ -25,6 +25,8 @@
 #include "cpuinfo_mips.h"
 #elif defined(CPU_FEATURES_ARCH_PPC)
 #include "cpuinfo_ppc.h"
+#elif defined(CPU_FEATURES_ARCH_RISCV)
+#include "cpuinfo_riscv.h"
 #endif
 
 // This is required for MSVC
@@ -46,6 +48,10 @@ static int i_can_has_${arch.name} (void) {
         %elif "mips" in arch.name:
 #if defined(CPU_FEATURES_ARCH_MIPS)
     if (GetMipsInfo().features.${check} == 0){ return 0; }
+#endif
+        %elif "riscv" in arch.name:
+#if defined(CPU_FEATURES_ARCH_RISCV)
+    if (GetRiscvInfo().features.${check} == 0){ return 0; }
 #endif
         %else:
 #if defined(CPU_FEATURES_ARCH_X86)
