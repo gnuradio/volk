@@ -128,8 +128,14 @@ static inline void volk_32f_s32f_multiply_32f_u_avx(float* cVector,
 }
 #endif /* LV_HAVE_AVX */
 
-#ifdef LV_HAVE_GENERIC
+#ifdef LV_HAVE_RISCV64
+extern void volk_32f_s32f_multiply_32f_sifive_u74(float* cVector,
+                                                  const float* aVector,
+                                                  const float scalar,
+                                                  unsigned int num_points);
+#endif /* LV_HAVE_RISCV64 */
 
+#ifdef LV_HAVE_GENERIC
 static inline void volk_32f_s32f_multiply_32f_generic(float* cVector,
                                                       const float* aVector,
                                                       const float scalar,
