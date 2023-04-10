@@ -80,3 +80,4 @@ volk_32f_s32f_multiply_32f_sifive_u74:
 	.align 2
 .done:
         ret
+	.size	volk_32f_s32f_multiply_32f_sifive_u74, .-volk_32f_s32f_multiply_32f_sifive_u74
