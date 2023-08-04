@@ -113,6 +113,7 @@
 \li \subpage volk_64f_x2_max_64f
 \li \subpage volk_64f_x2_min_64f
 \li \subpage volk_64f_x2_multiply_64f
+\li \subpage volk_64f_x2_dot_prod_64f
 \li \subpage volk_64u_byteswap
 \li \subpage volk_64u_popcnt
 \li \subpage volk_8ic_deinterleave_16i_x2
