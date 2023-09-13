@@ -534,7 +534,7 @@ endif()
 add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
 target_link_libraries(volk PUBLIC ${volk_libraries})
 if(VOLK_CPU_FEATURES)
-  target_link_libraries(volk PRIVATE cpu_features)
+  target_link_libraries(volk PRIVATE CpuFeatures::cpu_features)
 endif()
 target_include_directories(volk
     PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
