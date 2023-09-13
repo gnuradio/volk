@@ -29,6 +29,10 @@
 <archs>generic 32|64| mmx| sse sse2 sse3 ssse3 orc|</archs>
 </machine>
 
+<machine name="sifive_u74">
+<archs>generic riscv64 orc|</archs>
+</machine>
+
 <machine name="sse4_a">
 <archs>generic 32|64| mmx| sse sse2 sse3 sse4_a popcount orc|</archs>
 </machine>

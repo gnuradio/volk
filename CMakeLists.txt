@@ -3,7 +3,7 @@
 #
 # This file is part of VOLK
 #
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 #
 
 ########################################################################
@@ -74,9 +74,9 @@ message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 # Version setup
 ########################################################################
 
-set(VERSION_INFO_MAJOR_VERSION 2)
-set(VERSION_INFO_MINOR_VERSION 5)
-set(VERSION_INFO_MAINT_VERSION 2)
+set(VERSION_INFO_MAJOR_VERSION 3)
+set(VERSION_INFO_MINOR_VERSION 0)
+set(VERSION_INFO_MAINT_VERSION 0)
 include(VolkVersion) #setup version info
 
 macro(set_version_str VAR)
@@ -121,7 +121,7 @@ endif(MSVC)
 
 # cpu_features - sensible defaults, user settable option
 if(CMAKE_SYSTEM_PROCESSOR MATCHES
-    "(^mips)|(^arm)|(^aarch64)|(x86_64)|(AMD64|amd64)|(^i.86$)|(^powerpc)|(^ppc)")
+    "(^mips)|(^arm)|(^aarch64)|(x86_64)|(AMD64|amd64)|(^i.86$)|(^powerpc)|(^ppc)|(^riscv)")
   option(VOLK_CPU_FEATURES "Volk uses cpu_features" ON)
 else()
   option(VOLK_CPU_FEATURES "Volk uses cpu_features" OFF)
@@ -381,21 +381,6 @@ add_subdirectory(apps)
 option(ENABLE_MODTOOL "Enable volk_modtool python utility" True)
 if(ENABLE_MODTOOL)
   add_subdirectory(python/volk_modtool)
-endif()
-
-########################################################################
-# And the LGPL license check
-########################################################################
-# detect default for LGPL
-if(VERSION_INFO_MAJOR_VERSION GREATER_EQUAL 3)
-  OPTION(ENABLE_LGPL "Enable testing for LGPL" ON)
-else()
-  OPTION(ENABLE_LGPL "Enable testing for LGPL" OFF)
-endif()
-
-if(ENABLE_TESTING AND ENABLE_LGPL)
-  message(STATUS "Checking for LGPL resubmission enabled")
-  add_test("check_lgpl" ${CMAKE_SOURCE_DIR}/scripts/licensing/count_contrib.sh ${CMAKE_SOURCE_DIR}/AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md)
 endif()
 
 ########################################################################

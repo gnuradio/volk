@@ -98,6 +98,7 @@ VOLK aims to be portable to as many platforms as possible. We can only run tests
 
 ### Hardware architectures
 Currently VOLK aims to run with optimized kernels on x86 with SSE/AVX and ARM with NEON.
+Support for MIPS and RISC-V is experimental; some kernels are known not to work on these architectures.
 
 ### OS / Distro
 We run tests on a variety of Ubuntu versions and aim to support as many current distros as possible.
@@ -110,13 +111,22 @@ We want to make sure VOLK compiles on a wide variety of compilers. Thus, we targ
 
 ## License
 
-VOLK is migrating from the GNU General Public License v3.0 or later (GPL-3.0-or-later)
-to the GNU Lesser General Public License v3.0 or later (LGPL-3.0-or-later).
-At this point in time, much of the code in the repository is still GPL-licensed.
-New contributors are required to use the LGPLv3+ for their code contributions.
-Existing contributors are very kindly requested to re-submit their GPL-3.0-or-later license code contributions to LGPL-3.0-or-later by
-adding their name, GitHub handle, and email address(es) used for VOLK commits
+**VOLK 3.0 and later are licensed under the GNU Lesser General Public License v3.0 or later (LGPL-3.0-or-later).**
+
+### Previous VOLK version license
+
+Earlier versions of VOLK (before VOLK 3.0) were licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later).
+Since then, VOLK migrated to the LGPL-3.0-or-later.
+
+Being technical: There are 3 people left (out of 74) who we haven't been able to get in contact with (at all), for a total of 4 (out of 1092) commits, 13 (of 282822) additions, and 7 (of 170421) deletions. We have reviewed these commits and all are simple, trivial changes (e.g., 1 line change) and most are no longer relevant (e.g., to a file that no longer exists). Volk maintainers (@michaelld and @jdemel) are in agreement that the combination -- small numbers of changes per committer, simple changes per commit, commits no longer relevant -- means that we can proceed with relicensing without the approval of the folks. We will try reaching out periodically to these folks, but we believe it unlikely we will get a reply.
+We kindly request them to re-submit their GPL-3.0-or-later license code contributions to LGPL-3.0-or-later by adding their name, GitHub handle, and email address(es) used for VOLK commits
 to the file [AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md](docs/AUTHORS_RESUBMITTING_UNDER_LGPL_LICENSE.md).
 
-### Re-licensing status
-VOLK is ready for a VOLK 3.0 release which marks our final switch to LGPL.
+### Legal Matters
+
+Some files have been changed many times throughout the years. Copyright
+notices at the top of source files list which years changes have been
+made. For some files, changes have occurred in many consecutive years.
+These files may often have the format of a year range (e.g., "2006 - 2011"),
+which indicates that these files have had copyrightable changes made
+during each year in the range, inclusive.

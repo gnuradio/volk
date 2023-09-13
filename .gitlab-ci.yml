@@ -1,3 +1,11 @@
+#
+# Copyright 2018 - 2020, 2022 Free Software Foundation, Inc.
+#
+# This file is part of VOLK
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+
 # This file is a template, and might need editing before it works on your project.
 # use the official gcc image, based on debian
 # can use versions as well, like gcc:5.2

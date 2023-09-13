@@ -4,7 +4,7 @@
  *
  * This file is part of VOLK
  *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
 #include "qa_utils.h"
@@ -173,6 +173,8 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_PUPP(volk_32fc_s32f_power_spectral_densitypuppet_32f,
                       volk_32fc_s32f_x2_power_spectral_density_32f,
                       test_params))
+    QA(VOLK_INIT_PUPP(
+        volk_32f_s32f_convertpuppet_8u, volk_32f_s32f_x2_convert_8u, test_params))
     // no one uses these, so don't test them
     // VOLK_PROFILE(volk_16i_x5_add_quad_16i_x4, 1e-4, 2046, 10000, &results,
     // benchmark_mode, kernel_regex); VOLK_PROFILE(volk_16i_branch_4_state_8, 1e-4, 2046,

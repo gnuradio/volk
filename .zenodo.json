@@ -1,8 +1,7 @@
 {
     "title": "Vector-Optimized Library of Kernels (VOLK)",
-    "description": "VOLK is the Vector-Optimized Library of Kernels. It is a free library that contains kernels of hand-written SIMD code for different mathematical operations. Since each SIMD architecture can be very different and no compiler has yet come along to handle vectorization properly or highly efficiently, VOLK approaches the problem differently. For each architecture or platform that a developer wishes to vectorize for, a new proto-kernel is added to VOLK. At runtime, VOLK will select the correct proto-kernel. In this way, the users of VOLK call a kernel for performing the operation that is platform/architecture agnostic. This allows us to write portable SIMD code that is optimized for a variety of platforms.",
     "license": {
-        "id": "GPL-3.0-or-later"
+        "id": "LGPL-3.0-or-later"
     },
     "keywords": [
         "communication",
@@ -181,6 +180,9 @@
         },
         {
             "name": "Rodionov, Andrey"
+        },
+        {
+            "name": "Roe, Michael"
         },
         {
             "affiliation": "GNU Radio",

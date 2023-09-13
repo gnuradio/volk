@@ -1,4 +1,9 @@
-<!-- archs appear in order of significance for blind, de-facto version ordering -->
+<!--
+Archs appear in order of significance for blind, de-facto version ordering.
+
+In other words when available, an arch further down will be used. "generic" is
+at the top, as a last resort.
+-->
 <grammar>
 
 <arch name="generic"> <!-- name is required-->
@@ -171,6 +176,9 @@
     <flag compiler="clang">-mavx512cd</flag>
     <flag compiler="msvc">/arch:AVX512CD</flag>
     <alignment>64</alignment>
+</arch>
+
+<arch name="riscv64">
 </arch>
 
 </grammar>

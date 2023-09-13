@@ -3,7 +3,7 @@
 #
 # This file is part of VOLK.
 #
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 #
 
 ########################################################################
@@ -262,6 +262,19 @@ if(NOT CROSSCOMPILE_MULTILIB AND CPU_IS_x86)
     endif()
 
 
+endif()
+
+if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "^riscv64$")
+  message("---- Adding RISC-V ASM files")
+  message("DEBUG: looking for ASM files in ${CMAKE_SOURCE_DIR}/kernels/volk/asm/riscv")
+  include_directories(${CMAKE_SOURCE_DIR}/kernels/volk/asm/riscv)
+  file(GLOB asm_files ${CMAKE_SOURCE_DIR}/kernels/volk/asm/riscv/*.s)
+  foreach(asm_file ${asm_files})
+    list(APPEND volk_sources ${asm_file})
+    message(STATUS "Adding source file: ${asm_file}")
+  endforeach(asm_file)
+else()
+  OVERRULE_ARCH(riscv64 "machine is not riscv64")
 endif()
 
 ########################################################################

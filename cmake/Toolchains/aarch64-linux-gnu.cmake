@@ -1,3 +1,11 @@
+#
+# Copyright 2018, 2020 Free Software Foundation, Inc.
+#
+# This file is part of VOLK
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR aarch64)
 

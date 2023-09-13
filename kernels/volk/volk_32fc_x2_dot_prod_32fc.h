@@ -4,7 +4,7 @@
  *
  * This file is part of VOLK
  *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
 /*!
@@ -50,6 +50,13 @@
 #include <volk/volk_common.h>
 #include <volk/volk_complex.h>
 
+
+#ifdef LV_HAVE_RISCV64
+extern void volk_32fc_x2_dot_prod_32fc_sifive_u74(lv_32fc_t* result,
+                                                  const lv_32fc_t* input,
+                                                  const lv_32fc_t* taps,
+                                                  unsigned int num_points);
+#endif
 
 #ifdef LV_HAVE_GENERIC
 

@@ -4,7 +4,7 @@
  *
  * This file is part of VOLK
  *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
 /* For documentation see 'kernels/volk/volk_8u_x3_encodepolar_8u_x2.h'

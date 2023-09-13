@@ -84,6 +84,7 @@
 \li \subpage volk_32f_s32f_power_32f
 \li \subpage volk_32f_s32f_s32f_mod_range_32f
 \li \subpage volk_32f_s32f_stddev_32f
+\li \subpage volk_32f_s32f_x2_convert_8u
 \li \subpage volk_32f_sin_32f
 \li \subpage volk_32f_sqrt_32f
 \li \subpage volk_32f_stddev_and_mean_32f_x2
