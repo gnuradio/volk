@@ -521,15 +521,9 @@ target_include_directories(volk_obj
 )
 if(VOLK_CPU_FEATURES)
   set_source_files_properties(volk_cpu.c PROPERTIES COMPILE_DEFINITIONS "VOLK_CPU_FEATURES=1")
-  if(CpuFeatures_FOUND)
-    target_include_directories(volk_obj
-        PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>
-    )
-  else()
-    target_include_directories(volk_obj
-        PRIVATE $<TARGET_PROPERTY:cpu_features,INTERFACE_INCLUDE_DIRECTORIES>
-    )
-  endif()
+  target_include_directories(volk_obj
+      PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>
+  )
 endif()
 
 #Configure object target properties
