@@ -1,6 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2010, 2011, 2015-2017, 2019, 2020 Free Software Foundation, Inc.
+ * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -166,6 +167,50 @@ static inline float log2f_non_ieee(float f)
 // Constant used to do log10 calculations as faster log2
 ////////////////////////////////////////////////////////////////////////
 // precalculated 10.0 / log2f_non_ieee(10.0) to allow for constexpr
-#define volk_log2to10factor 3.01029995663981209120
+#define volk_log2to10factor (0x1.815182p1) // 3.01029995663981209120
+
+////////////////////////////////////////////////////////////////////////
+// arctan(x)
+////////////////////////////////////////////////////////////////////////
+static inline float volk_arctan_poly(const float x)
+{
+    /*
+     * arctan(x) polynomial expansion on the interval [-1, 1]
+     * Maximum relative error < 6.6e-7
+     */
+    const float a1 = +0x1.ffffeap-1f;
+    const float a3 = -0x1.55437p-2f;
+    const float a5 = +0x1.972be6p-3f;
+    const float a7 = -0x1.1436ap-3f;
+    const float a9 = +0x1.5785aap-4f;
+    const float a11 = -0x1.2f3004p-5f;
+    const float a13 = +0x1.01a37cp-7f;
+
+    const float x_times_x = x * x;
+    float arctan = a13;
+    arctan = fmaf(x_times_x, arctan, a11);
+    arctan = fmaf(x_times_x, arctan, a9);
+    arctan = fmaf(x_times_x, arctan, a7);
+    arctan = fmaf(x_times_x, arctan, a5);
+    arctan = fmaf(x_times_x, arctan, a3);
+    arctan = fmaf(x_times_x, arctan, a1);
+    arctan *= x;
+
+    return arctan;
+}
+
+static inline float volk_arctan(const float x)
+{
+    /*
+     *  arctan(x) + arctan(1 / x) == sign(x) * pi / 2
+     */
+    const float pi_over_2 = 0x1.921fb6p0f;
+
+    if (fabs(x) < 1.f) {
+        return volk_arctan_poly(x);
+    } else {
+        return copysignf(pi_over_2, x) - volk_arctan_poly(1.f / x);
+    }
+}
 
 #endif /*INCLUDED_LIBVOLK_COMMON_H*/

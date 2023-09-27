@@ -56,134 +56,8 @@
  */
 #include <math.h>
 
-#define POLY_ORDER (13) // Use either 11, 12, 13 or 15
-/*
- * arctan(x) polynomial expansion on the interval [-1, 1]
- */
-#if (POLY_ORDER == 11)
-static inline float arctan_approximation(const float x)
-{
-    /*
-     * Max relative error < 4.4e-6
-     */
-    const float a1 = +0x1.ffff6ep-1f;
-    const float a3 = -0x1.54fca2p-2f;
-    const float a5 = +0x1.90aaa2p-3f;
-    const float a7 = -0x1.f09d2ep-4f;
-    const float a9 = +0x1.d6e42cp-5f;
-    const float a11 = -0x1.b9c81ep-7f;
-
-    const float x_times_x = x * x;
-    float arctan = a11;
-    arctan = fmaf(x_times_x, arctan, a9);
-    arctan = fmaf(x_times_x, arctan, a7);
-    arctan = fmaf(x_times_x, arctan, a5);
-    arctan = fmaf(x_times_x, arctan, a3);
-    arctan = fmaf(x_times_x, arctan, a1);
-    arctan *= x;
-
-    return arctan;
-}
-#elif (POLY_ORDER == 12) // Order 13 with a1 set to 1
-static inline float arctan_approximation(const float x)
-{
-    /*
-     * Max relative error < 7.5e-7
-     */
-    //          a1 == 1 implicitly
-    const float a3 = -0x1.5548a4p-2f;
-    const float a5 = +0x1.978224p-3f;
-    const float a7 = -0x1.156488p-3f;
-    const float a9 = +0x1.5b822cp-4f;
-    const float a11 = -0x1.35a172p-5f;
-    const float a13 = +0x1.09a14ep-7f;
-
-    const float x_times_x = x * x;
-    float arctan = a13;
-    arctan = fmaf(x_times_x, arctan, a11);
-    arctan = fmaf(x_times_x, arctan, a9);
-    arctan = fmaf(x_times_x, arctan, a7);
-    arctan = fmaf(x_times_x, arctan, a5);
-    arctan = fmaf(x_times_x, arctan, a3);
-    arctan *= x_times_x;
-    arctan = fmaf(x, arctan, x);
-
-    return arctan;
-}
-#elif (POLY_ORDER == 13)
-static inline float arctan_approximation(const float x)
-{
-    /*
-     * Max relative error < 6.6e-7
-     */
-    const float a1 = +0x1.ffffeap-1f;
-    const float a3 = -0x1.55437p-2f;
-    const float a5 = +0x1.972be6p-3f;
-    const float a7 = -0x1.1436ap-3f;
-    const float a9 = +0x1.5785aap-4f;
-    const float a11 = -0x1.2f3004p-5f;
-    const float a13 = +0x1.01a37cp-7f;
-
-    const float x_times_x = x * x;
-    float arctan = a13;
-    arctan = fmaf(x_times_x, arctan, a11);
-    arctan = fmaf(x_times_x, arctan, a9);
-    arctan = fmaf(x_times_x, arctan, a7);
-    arctan = fmaf(x_times_x, arctan, a5);
-    arctan = fmaf(x_times_x, arctan, a3);
-    arctan = fmaf(x_times_x, arctan, a1);
-    arctan *= x;
-
-    return arctan;
-}
-#elif (POLY_ORDER == 15)
-static inline float arctan_approximation(const float x)
-{
-    /*
-     * Max relative error < 1.0e-7
-     */
-    const float a1 = +0x1.fffffcp-1f;
-    const float a3 = -0x1.55519ep-2f;
-    const float a5 = +0x1.98f6a8p-3f;
-    const float a7 = -0x1.1f0a92p-3f;
-    const float a9 = +0x1.95b654p-4f;
-    const float a11 = -0x1.e65492p-5f;
-    const float a13 = +0x1.8c0c36p-6f;
-    const float a15 = -0x1.32316ep-8f;
-
-    const float x_times_x = x * x;
-    float arctan = a15;
-    arctan = fmaf(x_times_x, arctan, a13);
-    arctan = fmaf(x_times_x, arctan, a11);
-    arctan = fmaf(x_times_x, arctan, a9);
-    arctan = fmaf(x_times_x, arctan, a7);
-    arctan = fmaf(x_times_x, arctan, a5);
-    arctan = fmaf(x_times_x, arctan, a3);
-    arctan = fmaf(x_times_x, arctan, a1);
-    arctan *= x;
-
-    return arctan;
-}
-#else
-#error Undefined polynomial order.
-#endif
-
 #ifndef INCLUDED_volk_32f_atan_32f_a_H
 #define INCLUDED_volk_32f_atan_32f_a_H
-
-static inline float arctan(const float x)
-{
-    /*
-     *  arctan(x) + arctan(1 / x) == sign(x) * pi / 2
-     */
-    const float pi_over_2 = 0x1.921fb6p0f;
-
-    if (fabs(x) < 1.f) {
-        return arctan_approximation(x);
-    } else {
-        return copysignf(pi_over_2, x) - arctan_approximation(1.f / x);
-    }
-}
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
@@ -215,7 +89,7 @@ volk_32f_atan_32f_a_avx2_fma(float* out, const float* in, unsigned int num_point
 
     number = eighth_points * 8;
     for (; number < num_points; number++) {
-        *out++ = arctan(*in++);
+        *out++ = volk_arctan(*in++);
     }
 }
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for aligned */
@@ -250,7 +124,7 @@ volk_32f_atan_32f_a_avx2(float* out, const float* in, unsigned int num_points)
 
     number = eighth_points * 8;
     for (; number < num_points; number++) {
-        *out++ = arctan(*in++);
+        *out++ = volk_arctan(*in++);
     }
 }
 #endif /* LV_HAVE_AVX for aligned */
@@ -285,7 +159,7 @@ volk_32f_atan_32f_a_sse4_1(float* out, const float* in, unsigned int num_points)
 
     number = quarter_points * 4;
     for (; number < num_points; number++) {
-        *out++ = arctan(*in++);
+        *out++ = volk_arctan(*in++);
     }
 }
 #endif /* LV_HAVE_SSE4_1 for aligned */
@@ -323,7 +197,7 @@ volk_32f_atan_32f_u_avx2_fma(float* out, const float* in, unsigned int num_point
 
     number = eighth_points * 8;
     for (; number < num_points; number++) {
-        *out++ = arctan(*in++);
+        *out++ = volk_arctan(*in++);
     }
 }
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for unaligned */
@@ -357,7 +231,7 @@ volk_32f_atan_32f_u_avx2(float* out, const float* in, unsigned int num_points)
 
     number = eighth_points * 8;
     for (; number < num_points; number++) {
-        *out++ = arctan(*in++);
+        *out++ = volk_arctan(*in++);
     }
 }
 #endif /* LV_HAVE_AVX for unaligned */
@@ -392,7 +266,7 @@ volk_32f_atan_32f_u_sse4_1(float* out, const float* in, unsigned int num_points)
 
     number = quarter_points * 4;
     for (; number < num_points; number++) {
-        *out++ = arctan(*in++);
+        *out++ = volk_arctan(*in++);
     }
 }
 #endif /* LV_HAVE_SSE4_1 for unaligned */
@@ -403,7 +277,7 @@ volk_32f_atan_32f_polynomial(float* out, const float* in, unsigned int num_point
 {
     unsigned int number = 0;
     for (; number < num_points; number++) {
-        *out++ = arctan(*in++);
+        *out++ = volk_arctan(*in++);
     }
 }
 #endif /* LV_HAVE_GENERIC */
