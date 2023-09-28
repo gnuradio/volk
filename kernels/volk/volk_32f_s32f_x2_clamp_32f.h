@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2023 Free Software Foundation, Inc.
+ * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
