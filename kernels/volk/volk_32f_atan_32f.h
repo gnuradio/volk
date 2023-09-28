@@ -77,7 +77,7 @@ volk_32f_atan_32f_a_avx2_fma(float* out, const float* in, unsigned int num_point
         __m256 swap_mask = _mm256_cmp_ps(_mm256_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m256 x_star = _mm256_div_ps(_mm256_blendv_ps(x, one, swap_mask),
                                       _mm256_blendv_ps(one, x, swap_mask));
-        __m256 result = _m256_arctan_approximation_avx2_fma(x_star);
+        __m256 result = _m256_arctan_poly_avx2_fma(x_star);
         __m256 term = _mm256_and_ps(x_star, sign_mask);
         term = _mm256_or_ps(pi_over_2, term);
         term = _mm256_sub_ps(term, result);
@@ -112,7 +112,7 @@ volk_32f_atan_32f_a_avx2(float* out, const float* in, unsigned int num_points)
         __m256 swap_mask = _mm256_cmp_ps(_mm256_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m256 x_star = _mm256_div_ps(_mm256_blendv_ps(x, one, swap_mask),
                                       _mm256_blendv_ps(one, x, swap_mask));
-        __m256 result = _m256_arctan_approximation_avx(x_star);
+        __m256 result = _m256_arctan_poly_avx(x_star);
         __m256 term = _mm256_and_ps(x_star, sign_mask);
         term = _mm256_or_ps(pi_over_2, term);
         term = _mm256_sub_ps(term, result);
@@ -147,7 +147,7 @@ volk_32f_atan_32f_a_sse4_1(float* out, const float* in, unsigned int num_points)
         __m128 swap_mask = _mm_cmpgt_ps(_mm_and_ps(x, abs_mask), one);
         __m128 x_star = _mm_div_ps(_mm_blendv_ps(x, one, swap_mask),
                                    _mm_blendv_ps(one, x, swap_mask));
-        __m128 result = _mm_arctan_approximation_sse(x_star);
+        __m128 result = _mm_arctan_poly_sse(x_star);
         __m128 term = _mm_and_ps(x_star, sign_mask);
         term = _mm_or_ps(pi_over_2, term);
         term = _mm_sub_ps(term, result);
@@ -185,7 +185,7 @@ volk_32f_atan_32f_u_avx2_fma(float* out, const float* in, unsigned int num_point
         __m256 swap_mask = _mm256_cmp_ps(_mm256_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m256 x_star = _mm256_div_ps(_mm256_blendv_ps(x, one, swap_mask),
                                       _mm256_blendv_ps(one, x, swap_mask));
-        __m256 result = _m256_arctan_approximation_avx2_fma(x_star);
+        __m256 result = _m256_arctan_poly_avx2_fma(x_star);
         __m256 term = _mm256_and_ps(x_star, sign_mask);
         term = _mm256_or_ps(pi_over_2, term);
         term = _mm256_sub_ps(term, result);
@@ -219,7 +219,7 @@ volk_32f_atan_32f_u_avx2(float* out, const float* in, unsigned int num_points)
         __m256 swap_mask = _mm256_cmp_ps(_mm256_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m256 x_star = _mm256_div_ps(_mm256_blendv_ps(x, one, swap_mask),
                                       _mm256_blendv_ps(one, x, swap_mask));
-        __m256 result = _m256_arctan_approximation_avx(x_star);
+        __m256 result = _m256_arctan_poly_avx(x_star);
         __m256 term = _mm256_and_ps(x_star, sign_mask);
         term = _mm256_or_ps(pi_over_2, term);
         term = _mm256_sub_ps(term, result);
@@ -254,7 +254,7 @@ volk_32f_atan_32f_u_sse4_1(float* out, const float* in, unsigned int num_points)
         __m128 swap_mask = _mm_cmpgt_ps(_mm_and_ps(x, abs_mask), one);
         __m128 x_star = _mm_div_ps(_mm_blendv_ps(x, one, swap_mask),
                                    _mm_blendv_ps(one, x, swap_mask));
-        __m128 result = _mm_arctan_approximation_sse(x_star);
+        __m128 result = _mm_arctan_poly_sse(x_star);
         __m128 term = _mm_and_ps(x_star, sign_mask);
         term = _mm_or_ps(pi_over_2, term);
         term = _mm_sub_ps(term, result);

@@ -24,7 +24,7 @@
  * Maximum relative error ~6.5e-7
  * Polynomial evaluated via Horner's method
  */
-static inline __m128 _mm_arctan_approximation_sse(const __m128 x)
+static inline __m128 _mm_arctan_poly_sse(const __m128 x)
 {
     const __m128 a1 = _mm_set1_ps(+0x1.ffffeap-1f);
     const __m128 a3 = _mm_set1_ps(-0x1.55437p-2f);
