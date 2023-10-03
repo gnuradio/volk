@@ -1,6 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2015 Free Software Foundation, Inc.
+ * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -15,6 +16,43 @@
 #ifndef INCLUDE_VOLK_VOLK_SSE_INTRINSICS_H_
 #define INCLUDE_VOLK_VOLK_SSE_INTRINSICS_H_
 #include <xmmintrin.h>
+
+/*
+ * Approximate arctan(x) via polynomial expansion
+ * on the interval [-1, 1]
+ *
+ * Maximum relative error ~6.5e-7
+ * Polynomial evaluated via Horner's method
+ */
+static inline __m128 _mm_arctan_poly_sse(const __m128 x)
+{
+    const __m128 a1 = _mm_set1_ps(+0x1.ffffeap-1f);
+    const __m128 a3 = _mm_set1_ps(-0x1.55437p-2f);
+    const __m128 a5 = _mm_set1_ps(+0x1.972be6p-3f);
+    const __m128 a7 = _mm_set1_ps(-0x1.1436ap-3f);
+    const __m128 a9 = _mm_set1_ps(+0x1.5785aap-4f);
+    const __m128 a11 = _mm_set1_ps(-0x1.2f3004p-5f);
+    const __m128 a13 = _mm_set1_ps(+0x1.01a37cp-7f);
+
+    const __m128 x_times_x = _mm_mul_ps(x, x);
+    __m128 arctan;
+    arctan = a13;
+    arctan = _mm_mul_ps(x_times_x, arctan);
+    arctan = _mm_add_ps(arctan, a11);
+    arctan = _mm_mul_ps(x_times_x, arctan);
+    arctan = _mm_add_ps(arctan, a9);
+    arctan = _mm_mul_ps(x_times_x, arctan);
+    arctan = _mm_add_ps(arctan, a7);
+    arctan = _mm_mul_ps(x_times_x, arctan);
+    arctan = _mm_add_ps(arctan, a5);
+    arctan = _mm_mul_ps(x_times_x, arctan);
+    arctan = _mm_add_ps(arctan, a3);
+    arctan = _mm_mul_ps(x_times_x, arctan);
+    arctan = _mm_add_ps(arctan, a1);
+    arctan = _mm_mul_ps(x, arctan);
+
+    return arctan;
+}
 
 static inline __m128 _mm_magnitudesquared_ps(__m128 cplxValue1, __m128 cplxValue2)
 {

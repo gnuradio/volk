@@ -1,5 +1,6 @@
 #
 # Copyright 2011-2020 Free Software Foundation, Inc.
+# Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
 #
 # This file is part of VOLK
 #
@@ -249,6 +250,7 @@ install(FILES
     ${CMAKE_SOURCE_DIR}/include/volk/saturation_arithmetic.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
+    ${CMAKE_SOURCE_DIR}/include/volk/volk_avx2_fma_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_sse_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
     ${CMAKE_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
