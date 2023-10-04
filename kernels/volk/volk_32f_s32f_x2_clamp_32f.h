@@ -40,10 +40,31 @@
  *
  * \endcode
  */
-#include <inttypes.h>
 
 #ifndef INCLUDED_volk_32fc_s32f_x2_clamp_32f_a_H
 #define INCLUDED_volk_32fc_s32f_x2_clamp_32f_a_H
+
+#ifdef LV_HAVE_GENERIC
+static inline void volk_32f_s32f_x2_clamp_32f_generic(float* out,
+                                                      const float* in,
+                                                      const float min,
+                                                      const float max,
+                                                      unsigned int num_points)
+{
+    unsigned int number = 0;
+    for (; number < num_points; number++) {
+        if (*in > max) {
+            *out = max;
+        } else if (*in < min) {
+            *out = min;
+        } else {
+            *out = *in;
+        }
+        in++;
+        out++;
+    }
+}
+#endif /* LV_HAVE_GENERIC */
 
 #if LV_HAVE_AVX2
 #include <immintrin.h>
@@ -56,8 +77,8 @@ static inline void volk_32f_s32f_x2_clamp_32f_a_avx2(float* out,
     const __m256 vmin = _mm256_set1_ps(min);
     const __m256 vmax = _mm256_set1_ps(max);
 
-    uint32_t number = 0;
-    uint32_t eighth_points = num_points / 8;
+    unsigned int number = 0;
+    unsigned int eighth_points = num_points / 8;
     for (; number < eighth_points; number++) {
         __m256 res = _mm256_load_ps(in);
         __m256 max_mask = _mm256_cmp_ps(vmax, res, _CMP_LT_OS);
@@ -70,10 +91,7 @@ static inline void volk_32f_s32f_x2_clamp_32f_a_avx2(float* out,
     }
 
     number = eighth_points * 8;
-    for (; number < num_points; number++) {
-        *out++ = (*in > max) ? max : (*in < min) ? min : *in;
-        in++;
-    }
+    volk_32f_s32f_x2_clamp_32f_generic(out, in, min, max, num_points - number);
 }
 #endif /* LV_HAVE_AVX2 */
 
@@ -88,8 +106,8 @@ static inline void volk_32f_s32f_x2_clamp_32f_a_sse4_1(float* out,
     const __m128 vmin = _mm_set1_ps(min);
     const __m128 vmax = _mm_set1_ps(max);
 
-    uint32_t number = 0;
-    uint32_t quarter_points = num_points / 4;
+    unsigned int number = 0;
+    unsigned int quarter_points = num_points / 4;
     for (; number < quarter_points; number++) {
         __m128 res = _mm_load_ps(in);
         __m128 max_mask = _mm_cmplt_ps(vmax, res);
@@ -102,10 +120,7 @@ static inline void volk_32f_s32f_x2_clamp_32f_a_sse4_1(float* out,
     }
 
     number = quarter_points * 4;
-    for (; number < num_points; number++) {
-        *out++ = (*in > max) ? max : (*in < min) ? min : *in;
-        in++;
-    }
+    volk_32f_s32f_x2_clamp_32f_generic(out, in, min, max, num_points - number);
 }
 #endif /* LV_HAVE_SSE4_1 */
 
@@ -125,8 +140,8 @@ static inline void volk_32f_s32f_x2_clamp_32f_u_avx2(float* out,
     const __m256 vmin = _mm256_set1_ps(min);
     const __m256 vmax = _mm256_set1_ps(max);
 
-    uint32_t number = 0;
-    uint32_t eighth_points = num_points / 8;
+    unsigned int number = 0;
+    unsigned int eighth_points = num_points / 8;
     for (; number < eighth_points; number++) {
         __m256 res = _mm256_loadu_ps(in);
         __m256 max_mask = _mm256_cmp_ps(vmax, res, _CMP_LT_OS);
@@ -139,10 +154,7 @@ static inline void volk_32f_s32f_x2_clamp_32f_u_avx2(float* out,
     }
 
     number = eighth_points * 8;
-    for (; number < num_points; number++) {
-        *out++ = (*in > max) ? max : (*in < min) ? min : *in;
-        in++;
-    }
+    volk_32f_s32f_x2_clamp_32f_generic(out, in, min, max, num_points - number);
 }
 #endif /* LV_HAVE_AVX2 */
 
@@ -157,8 +169,8 @@ static inline void volk_32f_s32f_x2_clamp_32f_u_sse4_1(float* out,
     const __m128 vmin = _mm_set1_ps(min);
     const __m128 vmax = _mm_set1_ps(max);
 
-    uint32_t number = 0;
-    uint32_t quarter_points = num_points / 4;
+    unsigned int number = 0;
+    unsigned int quarter_points = num_points / 4;
     for (; number < quarter_points; number++) {
         __m128 res = _mm_loadu_ps(in);
         __m128 max_mask = _mm_cmplt_ps(vmax, res);
@@ -171,26 +183,8 @@ static inline void volk_32f_s32f_x2_clamp_32f_u_sse4_1(float* out,
     }
 
     number = quarter_points * 4;
-    for (; number < num_points; number++) {
-        *out++ = (*in > max) ? max : (*in < min) ? min : *in;
-        in++;
-    }
+    volk_32f_s32f_x2_clamp_32f_generic(out, in, min, max, num_points - number);
 }
 #endif /* LV_HAVE_SSE4_1 */
-
-#ifdef LV_HAVE_GENERIC
-static inline void volk_32f_s32f_x2_clamp_32f_generic(float* out,
-                                                      const float* in,
-                                                      const float min,
-                                                      const float max,
-                                                      unsigned int num_points)
-{
-    uint32_t number = 0;
-    for (; number < num_points; number++) {
-        *out++ = (*in > max) ? max : (*in < min) ? min : *in;
-        in++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32fc_s32f_x2_clamp_32f_u_H */
