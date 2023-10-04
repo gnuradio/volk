@@ -206,12 +206,12 @@ static inline float volk_arctan(const float x)
     /*
      *  arctan(x) + arctan(1 / x) == sign(x) * pi / 2
      */
-    const float pi_over_2 = 0x1.921fb6p0f;
+    const float pi_2 = 0x1.921fb6p0f;
 
     if (fabs(x) < 1.f) {
         return volk_arctan_poly(x);
     } else {
-        return copysignf(pi_over_2, x) - volk_arctan_poly(1.f / x);
+        return copysignf(pi_2, x) - volk_arctan_poly(1.f / x);
     }
 }
 ////////////////////////////////////////////////////////////////////////
