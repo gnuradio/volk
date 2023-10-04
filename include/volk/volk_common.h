@@ -170,7 +170,7 @@ static inline float log2f_non_ieee(float f)
 #define volk_log2to10factor (0x1.815182p1) // 3.01029995663981209120
 
 ////////////////////////////////////////////////////////////////////////
-// arctan(x)
+// arctan(x) polynomial expansion
 ////////////////////////////////////////////////////////////////////////
 static inline float volk_arctan_poly(const float x)
 {
@@ -198,7 +198,9 @@ static inline float volk_arctan_poly(const float x)
 
     return arctan;
 }
-
+////////////////////////////////////////////////////////////////////////
+// arctan(x)
+////////////////////////////////////////////////////////////////////////
 static inline float volk_arctan(const float x)
 {
     /*
@@ -211,6 +213,34 @@ static inline float volk_arctan(const float x)
     } else {
         return copysignf(pi_over_2, x) - volk_arctan_poly(1.f / x);
     }
+}
+////////////////////////////////////////////////////////////////////////
+// arctan2(y, x)
+////////////////////////////////////////////////////////////////////////
+static inline float volk_atan2(const float y, const float x)
+{
+    /*
+     *                /  arctan(y / x)         if x > 0
+     *                |  arctan(y / x)  + PI   if x < 0 and y >= 0
+     * atan2(y, x) =  |  arctan(y / x)  - PI   if x < 0 and y <  0
+     *                |  sign(y) * PI / 2      if x = 0
+     *                \  undefined             if x = 0 and y = 0
+     * atan2f(0.f, 0.f) shall return 0.f
+     */
+    const float pi = 0x1.921fb6p1f;
+    const float pi_2 = 0x1.921fb6p0f;
+
+    if (x == 0.f) {
+        return (y == 0.f) ? copysignf(0.f, y) : copysignf(pi_2, y);
+    }
+    const int swap = fabs(x) < fabs(y);
+    const float input = swap ? (x / y) : (y / x);
+    float result = volk_arctan_poly(input);
+    result = swap ? (input >= 0.f ? pi_2 : -pi_2) - result : result;
+    if (x < 0.f) {
+        result += copysignf(pi, y);
+    }
+    return result;
 }
 
 #endif /*INCLUDED_LIBVOLK_COMMON_H*/
