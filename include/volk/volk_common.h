@@ -225,13 +225,14 @@ static inline float volk_atan2(const float y, const float x)
      * atan2(y, x) =  |  arctan(y / x)  - PI   if x < 0 and y <  0
      *                |  sign(y) * PI / 2      if x = 0
      *                \  undefined             if x = 0 and y = 0
-     * atan2f(0.f, 0.f) shall return 0.f
+     * atan2f(0.f,  0.f) shall return  0.f
+     * atan2f(0.f, -0.f) shall return -0.f
      */
     const float pi = 0x1.921fb6p1f;
     const float pi_2 = 0x1.921fb6p0f;
 
-    if (x == 0.f) {
-        return (y == 0.f) ? copysignf(0.f, y) : copysignf(pi_2, y);
+    if (fabs(x) == 0.f) {
+        return (fabs(y) == 0.f) ? copysignf(0.f, y) : copysignf(pi_2, y);
     }
     const int swap = fabs(x) < fabs(y);
     const float input = swap ? (x / y) : (y / x);
