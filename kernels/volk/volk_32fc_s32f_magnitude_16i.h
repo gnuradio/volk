@@ -57,8 +57,15 @@
  * \endcode
  */
 
-#ifdef LV_HAVE_GENERIC
+#ifndef INCLUDED_volk_32fc_s32f_magnitude_16i_a_H
+#define INCLUDED_volk_32fc_s32f_magnitude_16i_a_H
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdio.h>
 #include <volk/volk_common.h>
+
+#ifdef LV_HAVE_GENERIC
 
 static inline void volk_32fc_s32f_magnitude_16i_generic(int16_t* magnitudeVector,
                                                         const lv_32fc_t* complexVector,
@@ -77,14 +84,6 @@ static inline void volk_32fc_s32f_magnitude_16i_generic(int16_t* magnitudeVector
     }
 }
 #endif /* LV_HAVE_GENERIC */
-
-#ifndef INCLUDED_volk_32fc_s32f_magnitude_16i_a_H
-#define INCLUDED_volk_32fc_s32f_magnitude_16i_a_H
-
-#include <inttypes.h>
-#include <math.h>
-#include <stdio.h>
-#include <volk/volk_common.h>
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
