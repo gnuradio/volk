@@ -168,6 +168,7 @@ volk_32f_sqrt_32f_generic(float* cVector, const float* aVector, unsigned int num
 
 
 #ifdef LV_HAVE_ORC
+#ifndef LV_HAVE_NEON /* ORC sqrtf instruction is broken */
 
 extern void volk_32f_sqrt_32f_a_orc_impl(float*, const float*, unsigned int);
 
@@ -177,6 +178,7 @@ volk_32f_sqrt_32f_u_orc(float* cVector, const float* aVector, unsigned int num_p
     volk_32f_sqrt_32f_a_orc_impl(cVector, aVector, num_points);
 }
 
+#endif /* LV_HAVE_NEON */
 #endif /* LV_HAVE_ORC */
 
 #endif /* INCLUDED_volk_32f_sqrt_32f_a_H */

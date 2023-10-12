@@ -440,6 +440,7 @@ static inline void volk_32fc_magnitude_32f_neon_fancy_sweet(
 
 
 #ifdef LV_HAVE_ORC
+#ifndef LV_HAVE_NEON /* ORC sqrtf instruction is broken */
 
 extern void volk_32fc_magnitude_32f_a_orc_impl(float* magnitudeVector,
                                                const lv_32fc_t* complexVector,
@@ -451,6 +452,7 @@ static inline void volk_32fc_magnitude_32f_u_orc(float* magnitudeVector,
 {
     volk_32fc_magnitude_32f_a_orc_impl(magnitudeVector, complexVector, num_points);
 }
+#endif /* LV_HAVE_NEON */
 #endif /* LV_HAVE_ORC */
 
 
