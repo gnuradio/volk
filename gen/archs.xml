@@ -19,29 +19,6 @@ at the top, as a last resort.
   <flag compiler="clang">-mfloat-abi=hard</flag>
 </arch>
 
-<arch name="neon">
-  <flag compiler="gnu">-funsafe-math-optimizations</flag>
-  <flag compiler="clang">-funsafe-math-optimizations</flag>
-  <alignment>16</alignment>
-  <check name="neon"></check>
-</arch>
-
-<arch name="neonv7">
-  <flag compiler="gnu">-mfpu=neon</flag>
-  <flag compiler="gnu">-funsafe-math-optimizations</flag>
-  <flag compiler="clang">-mfpu=neon</flag>
-  <flag compiler="clang">-funsafe-math-optimizations</flag>
-  <alignment>16</alignment>
-  <check name="neon"></check>
-</arch>
-
-<arch name="neonv8">
-  <flag compiler="gnu">-funsafe-math-optimizations</flag>
-  <flag compiler="clang">-funsafe-math-optimizations</flag>
-  <alignment>16</alignment>
-  <check name="neon"></check>
-</arch>
-
 <arch name="32">
   <flag compiler="gnu">-m32</flag>
   <flag compiler="clang">-m32</flag>
@@ -103,6 +80,29 @@ at the top, as a last resort.
 
 <!-- it's here for overrule stuff. -->
 <arch name="norc">
+</arch>
+
+<arch name="neon">
+  <flag compiler="gnu">-funsafe-math-optimizations</flag>
+  <flag compiler="clang">-funsafe-math-optimizations</flag>
+  <alignment>16</alignment>
+  <check name="neon"></check>
+</arch>
+
+<arch name="neonv7">
+  <flag compiler="gnu">-mfpu=neon</flag>
+  <flag compiler="gnu">-funsafe-math-optimizations</flag>
+  <flag compiler="clang">-mfpu=neon</flag>
+  <flag compiler="clang">-funsafe-math-optimizations</flag>
+  <alignment>16</alignment>
+  <check name="neon"></check>
+</arch>
+
+<arch name="neonv8">
+  <flag compiler="gnu">-funsafe-math-optimizations</flag>
+  <flag compiler="clang">-funsafe-math-optimizations</flag>
+  <alignment>16</alignment>
+  <check name="neon"></check>
 </arch>
 
 <arch name="sse3">
