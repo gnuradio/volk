@@ -258,23 +258,6 @@ static inline void volk_16ic_s32f_magnitude_32f_generic(float* magnitudeVector,
 }
 #endif /* LV_HAVE_GENERIC */
 
-#ifdef LV_HAVE_ORC_DISABLED
-
-extern void volk_16ic_s32f_magnitude_32f_a_orc_impl(float* magnitudeVector,
-                                                    const lv_16sc_t* complexVector,
-                                                    const float scalar,
-                                                    unsigned int num_points);
-
-static inline void volk_16ic_s32f_magnitude_32f_u_orc(float* magnitudeVector,
-                                                      const lv_16sc_t* complexVector,
-                                                      const float scalar,
-                                                      unsigned int num_points)
-{
-    volk_16ic_s32f_magnitude_32f_a_orc_impl(
-        magnitudeVector, complexVector, scalar, num_points);
-}
-#endif /* LV_HAVE_ORC */
-
 
 #endif /* INCLUDED_volk_16ic_s32f_magnitude_32f_a_H */
 
