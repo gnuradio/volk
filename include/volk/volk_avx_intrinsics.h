@@ -18,7 +18,7 @@
 #include <immintrin.h>
 
 /*
- * First order Newton-Rapson approximation of 1 / x
+ * First order Newton-Raphson approximation of 1 / x
  */
 static inline __m256 _mm256_rcp1_avx_ps(const __m256 x)
 {
