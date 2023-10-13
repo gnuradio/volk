@@ -18,6 +18,17 @@
 #include <immintrin.h>
 
 /*
+ * First order Newton-Rapson approximation of 1 / x
+ */
+static inline __m256 _mm256_rcp1_avx_ps(const __m256 x)
+{
+    const __m256 TWO = _mm256_set1_ps(0x1.0p1f); // 2.0f
+    const __m256 x_inv = _mm256_rcp_ps(x);
+    const __m256 y = _mm256_sub_ps(TWO, _mm256_mul_ps(x_inv, x));
+    return _mm256_mul_ps(x_inv, y);
+}
+
+/*
  * Approximate arctan(x) via polynomial expansion
  * on the interval [-1, 1]
  *
