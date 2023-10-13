@@ -94,12 +94,12 @@ volk_32f_reciprocal_32f_a_avx2_fma(float* out, const float* in, unsigned int num
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
 static inline void
-volk_32f_reciprocal_32f_a_avx_nr(float* out, const float* in, unsigned int num_points)
+volk_32f_reciprocal_32f_a_avx(float* out, const float* in, unsigned int num_points)
 {
     unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
+    const unsigned int eighth_points = num_points / 8;
 
-    for (; number < eighthPoints; number++) {
+    for (; number < eighth_points; number++) {
         __m256 x = _mm256_load_ps(in);
         in += 8;
 
@@ -109,7 +109,7 @@ volk_32f_reciprocal_32f_a_avx_nr(float* out, const float* in, unsigned int num_p
         out += 8;
     }
 
-    number = eighthPoints * 8;
+    number = eighth_points * 8;
     for (; number < num_points; number++) {
         *out++ = 1.f / (*in++);
     }
@@ -122,10 +122,10 @@ static inline void
 volk_32f_reciprocal_32f_a_avx_div(float* out, const float* in, unsigned int num_points)
 {
     unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
+    const unsigned int eighth_points = num_points / 8;
     const __m256 ONE = _mm256_set1_ps(1.0f);
 
-    for (; number < eighthPoints; number++) {
+    for (; number < eighth_points; number++) {
         __m256 x = _mm256_load_ps(in);
         in += 8;
 
@@ -135,7 +135,7 @@ volk_32f_reciprocal_32f_a_avx_div(float* out, const float* in, unsigned int num_
         out += 8;
     }
 
-    number = eighthPoints * 8;
+    number = eighth_points * 8;
     for (; number < num_points; number++) {
         *out++ = 1.f / (*in++);
     }
@@ -177,12 +177,12 @@ volk_32f_reciprocal_32f_u_avx2_fma(float* out, const float* in, unsigned int num
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
 static inline void
-volk_32f_reciprocal_32f_u_avx_nr(float* out, const float* in, unsigned int num_points)
+volk_32f_reciprocal_32f_u_avx(float* out, const float* in, unsigned int num_points)
 {
     unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
+    const unsigned int eighth_points = num_points / 8;
 
-    for (; number < eighthPoints; number++) {
+    for (; number < eighth_points; number++) {
         __m256 x = _mm256_loadu_ps(in);
         in += 8;
 
@@ -192,7 +192,7 @@ volk_32f_reciprocal_32f_u_avx_nr(float* out, const float* in, unsigned int num_p
         out += 8;
     }
 
-    number = eighthPoints * 8;
+    number = eighth_points * 8;
     for (; number < num_points; number++) {
         *out++ = 1.f / (*in++);
     }
@@ -205,10 +205,10 @@ static inline void
 volk_32f_reciprocal_32f_u_avx_div(float* out, const float* in, unsigned int num_points)
 {
     unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
+    const unsigned int eighth_points = num_points / 8;
     const __m256 ONE = _mm256_set1_ps(1.0f);
 
-    for (; number < eighthPoints; number++) {
+    for (; number < eighth_points; number++) {
         __m256 x = _mm256_loadu_ps(in);
         in += 8;
 
@@ -218,7 +218,7 @@ volk_32f_reciprocal_32f_u_avx_div(float* out, const float* in, unsigned int num_
         out += 8;
     }
 
-    number = eighthPoints * 8;
+    number = eighth_points * 8;
     for (; number < num_points; number++) {
         *out++ = 1.f / (*in++);
     }
