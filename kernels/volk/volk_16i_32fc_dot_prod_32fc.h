@@ -147,8 +147,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_sse(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    float res[2];
-    float *realpt = &res[0], *imagpt = &res[1];
+    lv_32fc_t returnValue;
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -207,18 +206,17 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_sse(lv_32fc_t* result,
     _mm_store_ps(dotProductVector,
                  dotProdVal0); // Store the results back into the dot product vector
 
-    *realpt = dotProductVector[0];
-    *imagpt = dotProductVector[1];
-    *realpt += dotProductVector[2];
-    *imagpt += dotProductVector[3];
+    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *realpt += ((*aPtr) * (*bPtr++));
-        *imagpt += ((*aPtr++) * (*bPtr++));
+        returnValue += lv_cmake(aPtr[0] * bPtr[0], aPtr[0] * bPtr[1]);
+        aPtr += 1;
+        bPtr += 2;
     }
 
-    *result = *(lv_32fc_t*)(&res[0]);
+    *result = returnValue;
 }
 
 #endif /*LV_HAVE_SSE && LV_HAVE_MMX*/
@@ -235,8 +233,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2_fma(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    float res[2];
-    float *realpt = &res[0], *imagpt = &res[1];
+    lv_32fc_t returnValue;
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -294,22 +291,19 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2_fma(lv_32fc_t* result,
     _mm256_store_ps(dotProductVector,
                     dotProdVal0); // Store the results back into the dot product vector
 
-    *realpt = dotProductVector[0];
-    *imagpt = dotProductVector[1];
-    *realpt += dotProductVector[2];
-    *imagpt += dotProductVector[3];
-    *realpt += dotProductVector[4];
-    *imagpt += dotProductVector[5];
-    *realpt += dotProductVector[6];
-    *imagpt += dotProductVector[7];
+    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
+    returnValue += lv_cmake(dotProductVector[4], dotProductVector[5]);
+    returnValue += lv_cmake(dotProductVector[6], dotProductVector[7]);
 
     number = sixteenthPoints * 16;
     for (; number < num_points; number++) {
-        *realpt += ((*aPtr) * (*bPtr++));
-        *imagpt += ((*aPtr++) * (*bPtr++));
+        returnValue += lv_cmake(aPtr[0] * bPtr[0], aPtr[0] * bPtr[1]);
+        aPtr += 1;
+        bPtr += 2;
     }
 
-    *result = *(lv_32fc_t*)(&res[0]);
+    *result = returnValue;
 }
 
 #endif /*LV_HAVE_AVX2 && lV_HAVE_FMA*/
@@ -326,8 +320,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    float res[2];
-    float *realpt = &res[0], *imagpt = &res[1];
+    lv_32fc_t returnValue;
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -391,22 +384,19 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2(lv_32fc_t* result,
     _mm256_store_ps(dotProductVector,
                     dotProdVal0); // Store the results back into the dot product vector
 
-    *realpt = dotProductVector[0];
-    *imagpt = dotProductVector[1];
-    *realpt += dotProductVector[2];
-    *imagpt += dotProductVector[3];
-    *realpt += dotProductVector[4];
-    *imagpt += dotProductVector[5];
-    *realpt += dotProductVector[6];
-    *imagpt += dotProductVector[7];
+    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
+    returnValue += lv_cmake(dotProductVector[4], dotProductVector[5]);
+    returnValue += lv_cmake(dotProductVector[6], dotProductVector[7]);
 
     number = sixteenthPoints * 16;
     for (; number < num_points; number++) {
-        *realpt += ((*aPtr) * (*bPtr++));
-        *imagpt += ((*aPtr++) * (*bPtr++));
+        returnValue += lv_cmake(aPtr[0] * bPtr[0], aPtr[0] * bPtr[1]);
+        aPtr += 1;
+        bPtr += 2;
     }
 
-    *result = *(lv_32fc_t*)(&res[0]);
+    *result = returnValue;
 }
 
 #endif /*LV_HAVE_AVX2*/
@@ -424,8 +414,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_sse(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    float res[2];
-    float *realpt = &res[0], *imagpt = &res[1];
+    lv_32fc_t returnValue;
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -484,18 +473,17 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_sse(lv_32fc_t* result,
     _mm_store_ps(dotProductVector,
                  dotProdVal0); // Store the results back into the dot product vector
 
-    *realpt = dotProductVector[0];
-    *imagpt = dotProductVector[1];
-    *realpt += dotProductVector[2];
-    *imagpt += dotProductVector[3];
+    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *realpt += ((*aPtr) * (*bPtr++));
-        *imagpt += ((*aPtr++) * (*bPtr++));
+        returnValue += lv_cmake(aPtr[0] * bPtr[0], aPtr[0] * bPtr[1]);
+        aPtr += 1;
+        bPtr += 2;
     }
 
-    *result = *(lv_32fc_t*)(&res[0]);
+    *result = returnValue;
 }
 
 #endif /*LV_HAVE_SSE && LV_HAVE_MMX*/
@@ -511,8 +499,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    float res[2];
-    float *realpt = &res[0], *imagpt = &res[1];
+    lv_32fc_t returnValue;
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -576,22 +563,19 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2(lv_32fc_t* result,
     _mm256_store_ps(dotProductVector,
                     dotProdVal0); // Store the results back into the dot product vector
 
-    *realpt = dotProductVector[0];
-    *imagpt = dotProductVector[1];
-    *realpt += dotProductVector[2];
-    *imagpt += dotProductVector[3];
-    *realpt += dotProductVector[4];
-    *imagpt += dotProductVector[5];
-    *realpt += dotProductVector[6];
-    *imagpt += dotProductVector[7];
+    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
+    returnValue += lv_cmake(dotProductVector[4], dotProductVector[5]);
+    returnValue += lv_cmake(dotProductVector[6], dotProductVector[7]);
 
     number = sixteenthPoints * 16;
     for (; number < num_points; number++) {
-        *realpt += ((*aPtr) * (*bPtr++));
-        *imagpt += ((*aPtr++) * (*bPtr++));
+        returnValue += lv_cmake(aPtr[0] * bPtr[0], aPtr[0] * bPtr[1]);
+        aPtr += 1;
+        bPtr += 2;
     }
 
-    *result = *(lv_32fc_t*)(&res[0]);
+    *result = returnValue;
 }
 
 
@@ -608,8 +592,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2_fma(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    float res[2];
-    float *realpt = &res[0], *imagpt = &res[1];
+    lv_32fc_t returnValue;
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -667,22 +650,19 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2_fma(lv_32fc_t* result,
     _mm256_store_ps(dotProductVector,
                     dotProdVal0); // Store the results back into the dot product vector
 
-    *realpt = dotProductVector[0];
-    *imagpt = dotProductVector[1];
-    *realpt += dotProductVector[2];
-    *imagpt += dotProductVector[3];
-    *realpt += dotProductVector[4];
-    *imagpt += dotProductVector[5];
-    *realpt += dotProductVector[6];
-    *imagpt += dotProductVector[7];
+    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
+    returnValue += lv_cmake(dotProductVector[4], dotProductVector[5]);
+    returnValue += lv_cmake(dotProductVector[6], dotProductVector[7]);
 
     number = sixteenthPoints * 16;
     for (; number < num_points; number++) {
-        *realpt += ((*aPtr) * (*bPtr++));
-        *imagpt += ((*aPtr++) * (*bPtr++));
+        returnValue += lv_cmake(aPtr[0] * bPtr[0], aPtr[0] * bPtr[1]);
+        aPtr += 1;
+        bPtr += 2;
     }
 
-    *result = *(lv_32fc_t*)(&res[0]);
+    *result = returnValue;
 }
 
 
