@@ -373,8 +373,8 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_avx2_fma(lv_32fc_t* result,
         a2Val = _mm256_loadu_ps(aPtr + 16);
         a3Val = _mm256_loadu_ps(aPtr + 24);
 
-        x0Val = _mm256_load_ps(bPtr); // t0|t1|t2|t3|t4|t5|t6|t7
-        x1Val = _mm256_load_ps(bPtr + 8);
+        x0Val = _mm256_loadu_ps(bPtr); // t0|t1|t2|t3|t4|t5|t6|t7
+        x1Val = _mm256_loadu_ps(bPtr + 8);
         x0loVal = _mm256_unpacklo_ps(x0Val, x0Val); // t0|t0|t1|t1|t4|t4|t5|t5
         x0hiVal = _mm256_unpackhi_ps(x0Val, x0Val); // t2|t2|t3|t3|t6|t6|t7|t7
         x1loVal = _mm256_unpacklo_ps(x1Val, x1Val);

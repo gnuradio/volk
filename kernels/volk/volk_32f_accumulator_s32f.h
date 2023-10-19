@@ -196,7 +196,7 @@ static inline void volk_32f_accumulator_s32f_u_sse(float* result,
     __m128 aVal = _mm_setzero_ps();
 
     for (; number < quarterPoints; number++) {
-        aVal = _mm_load_ps(aPtr);
+        aVal = _mm_loadu_ps(aPtr);
         accumulator = _mm_add_ps(accumulator, aVal);
         aPtr += 4;
     }
