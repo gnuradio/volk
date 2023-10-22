@@ -363,10 +363,20 @@ volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_
     }
 }
 
-#else
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
+#if defined(__aarch64__)
+#define DO_RBIT                             \
+    __VOLK_ASM("rbit %w[result], %w[value]" \
+               : [result] "=r"(*out_ptr)    \
+               : [value] "r"(*in_ptr)       \
+               :);                          \
+    in_ptr++;                               \
+    out_ptr++;
+#else
 #define DO_RBIT                           \
     __VOLK_ASM("rbit %[result], %[value]" \
                : [result] "=r"(*out_ptr)  \
@@ -374,6 +384,7 @@ volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_
                :);                        \
     in_ptr++;                             \
     out_ptr++;
+#endif
 
 static inline void
 volk_32u_reverse_32u_arm(uint32_t* out, const uint32_t* in, unsigned int num_points)
@@ -401,7 +412,6 @@ volk_32u_reverse_32u_arm(uint32_t* out, const uint32_t* in, unsigned int num_poi
 }
 #undef DO_RBIT
 #endif /* LV_HAVE_NEON */
-#endif /* LV_HAVE_NEONV8 */
 
 
 #endif /* INCLUDED_volk_32u_reverse_32u_u_H */
