@@ -439,19 +439,4 @@ static inline void volk_32fc_magnitude_32f_neon_fancy_sweet(
 #endif /* LV_HAVE_NEON */
 
 
-#ifdef LV_HAVE_ORC
-
-extern void volk_32fc_magnitude_32f_a_orc_impl(float* magnitudeVector,
-                                               const lv_32fc_t* complexVector,
-                                               unsigned int num_points);
-
-static inline void volk_32fc_magnitude_32f_u_orc(float* magnitudeVector,
-                                                 const lv_32fc_t* complexVector,
-                                                 unsigned int num_points)
-{
-    volk_32fc_magnitude_32f_a_orc_impl(magnitudeVector, complexVector, num_points);
-}
-#endif /* LV_HAVE_ORC */
-
-
 #endif /* INCLUDED_volk_32fc_magnitude_32f_a_H */
