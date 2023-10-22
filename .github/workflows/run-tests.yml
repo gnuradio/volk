@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: 
+        compiler:
           - { name: g++-7, cc: gcc-7, cxx: g++-7, distro: ubuntu-20.04 }
           - { name: g++-8, cc: gcc-8, cxx: g++-8, distro: ubuntu-20.04 }
           - { name: g++-9, cc: gcc-9, cxx: g++-9, distro: ubuntu-latest }
@@ -33,7 +33,7 @@ jobs:
           # - { name: clang-15, cc: clang-15, cxx: clang++-15, distro: ubuntu-latest }
 
     runs-on: ${{ matrix.compiler.distro }}
-    
+
     steps:
     - uses: actions/checkout@v3.1.0
       with:
@@ -107,14 +107,14 @@ jobs:
           - arch: riscv64
             distro: ubuntu22.04
             compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
-    
+
     steps:
       - uses: actions/checkout@v3.1.0
         with:
           submodules: 'recursive'
       - uses: uraimo/run-on-arch-action@v2.5.0
         name: Build in non-x86 container
-        continue-on-error: ${{ contains(fromJson('["ppc64le", "s390x"]'), matrix.arch) || contains(fromJson('["clang-14"]'), matrix.compiler.name) }}
+        continue-on-error: ${{ contains(fromJson('["ppc64le", "s390x"]'), matrix.arch) }}
         id: build
         with:
           arch: ${{ matrix.arch }}
@@ -206,7 +206,7 @@ jobs:
 
   # build-windows-msys2:
   #   name: Build on windows-latest using MinGW and MSYS2
-    
+
   #   runs-on: windows-latest
   #   steps:
   #     - uses: msys2/setup-msys2@v2
@@ -231,7 +231,7 @@ jobs:
   #     - name: Build
   #       shell: msys2 {0}
   #       run: cd build && make -j$(nproc)
-  #     - name: Test 
+  #     - name: Test
   #       shell: msys2 {0}
   #       run: |
   #         cd build
