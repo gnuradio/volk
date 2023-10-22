@@ -147,7 +147,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_sse(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    lv_32fc_t returnValue;
+    lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -206,7 +206,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_sse(lv_32fc_t* result,
     _mm_store_ps(dotProductVector,
                  dotProdVal0); // Store the results back into the dot product vector
 
-    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[0], dotProductVector[1]);
     returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
 
     number = eighthPoints * 8;
@@ -233,7 +233,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2_fma(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    lv_32fc_t returnValue;
+    lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -291,7 +291,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2_fma(lv_32fc_t* result,
     _mm256_store_ps(dotProductVector,
                     dotProdVal0); // Store the results back into the dot product vector
 
-    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[0], dotProductVector[1]);
     returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
     returnValue += lv_cmake(dotProductVector[4], dotProductVector[5]);
     returnValue += lv_cmake(dotProductVector[6], dotProductVector[7]);
@@ -320,7 +320,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    lv_32fc_t returnValue;
+    lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -384,7 +384,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2(lv_32fc_t* result,
     _mm256_store_ps(dotProductVector,
                     dotProdVal0); // Store the results back into the dot product vector
 
-    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[0], dotProductVector[1]);
     returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
     returnValue += lv_cmake(dotProductVector[4], dotProductVector[5]);
     returnValue += lv_cmake(dotProductVector[6], dotProductVector[7]);
@@ -414,7 +414,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_sse(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    lv_32fc_t returnValue;
+    lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -473,7 +473,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_sse(lv_32fc_t* result,
     _mm_store_ps(dotProductVector,
                  dotProdVal0); // Store the results back into the dot product vector
 
-    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[0], dotProductVector[1]);
     returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
 
     number = eighthPoints * 8;
@@ -499,7 +499,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    lv_32fc_t returnValue;
+    lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -563,7 +563,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2(lv_32fc_t* result,
     _mm256_store_ps(dotProductVector,
                     dotProdVal0); // Store the results back into the dot product vector
 
-    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[0], dotProductVector[1]);
     returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
     returnValue += lv_cmake(dotProductVector[4], dotProductVector[5]);
     returnValue += lv_cmake(dotProductVector[6], dotProductVector[7]);
@@ -592,7 +592,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2_fma(lv_32fc_t* result,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    lv_32fc_t returnValue;
+    lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
     const float* bPtr = (float*)taps;
 
@@ -650,7 +650,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2_fma(lv_32fc_t* result,
     _mm256_store_ps(dotProductVector,
                     dotProdVal0); // Store the results back into the dot product vector
 
-    returnValue = lv_cmake(dotProductVector[0], dotProductVector[1]);
+    returnValue += lv_cmake(dotProductVector[0], dotProductVector[1]);
     returnValue += lv_cmake(dotProductVector[2], dotProductVector[3]);
     returnValue += lv_cmake(dotProductVector[4], dotProductVector[5]);
     returnValue += lv_cmake(dotProductVector[6], dotProductVector[7]);
