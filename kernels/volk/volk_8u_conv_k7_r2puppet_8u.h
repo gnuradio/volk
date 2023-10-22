@@ -101,7 +101,9 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* syms,
                                                       unsigned char* dec,
                                                       unsigned int framebits)
 {
-
+    if (framebits < 12) {
+        return;
+    }
 
     static int once = 1;
     int d_numstates = (1 << 6);
@@ -183,7 +185,9 @@ static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* syms,
                                                           unsigned char* dec,
                                                           unsigned int framebits)
 {
-
+    if (framebits < 12) {
+        return;
+    }
 
     static int once = 1;
     int d_numstates = (1 << 6);
@@ -266,7 +270,9 @@ static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* syms,
 //                                                    unsigned char* dec,
 //                                                    unsigned int framebits)
 //{
-//
+//    if (framebits < 12) {
+//        return;
+//    }
 //
 //    static int once = 1;
 //    int d_numstates = (1 << 6);
@@ -347,7 +353,9 @@ static inline void volk_8u_conv_k7_r2puppet_8u_generic(unsigned char* syms,
                                                        unsigned char* dec,
                                                        unsigned int framebits)
 {
-
+    if (framebits < 12) {
+        return;
+    }
 
     static int once = 1;
     int d_numstates = (1 << 6);
