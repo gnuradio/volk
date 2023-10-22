@@ -184,7 +184,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse2(float* outputVector,
     float* outPtr = outputVector;
     const size_t quarter_points = num_points / 4;
     for (size_t counter = 0; counter < quarter_points; counter++) {
-        input = _mm_load_ps(inPtr);
+        input = _mm_loadu_ps(inPtr);
         // calculate mask: input < lower, input > upper
         is_smaller = _mm_cmplt_ps(input, lower);
         is_bigger = _mm_cmpgt_ps(input, upper);
@@ -204,7 +204,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse2(float* outputVector,
         // scale by distance, sign
         excess = _mm_mul_ps(_mm_mul_ps(excess, adj), distance);
         output = _mm_add_ps(input, excess);
-        _mm_store_ps(outPtr, output);
+        _mm_storeu_ps(outPtr, output);
         inPtr += 4;
         outPtr += 4;
     }
@@ -281,7 +281,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector,
     float* outPtr = outputVector;
     const size_t quarter_points = num_points / 4;
     for (size_t counter = 0; counter < quarter_points; counter++) {
-        input = _mm_load_ps(inPtr);
+        input = _mm_loadu_ps(inPtr);
         // calculate mask: input < lower, input > upper
         is_smaller = _mm_cmplt_ps(input, lower);
         is_bigger = _mm_cmpgt_ps(input, upper);
@@ -302,7 +302,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector,
         // scale by distance, sign
         excess = _mm_mul_ps(_mm_mul_ps(excess, adj), distance);
         output = _mm_add_ps(input, excess);
-        _mm_store_ps(outPtr, output);
+        _mm_storeu_ps(outPtr, output);
         inPtr += 4;
         outPtr += 4;
     }
