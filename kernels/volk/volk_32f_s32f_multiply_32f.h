@@ -59,6 +59,18 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_GENERIC
+static inline void volk_32f_s32f_multiply_32f_generic(float* cVector,
+                                                      const float* aVector,
+                                                      const float scalar,
+                                                      unsigned int num_points)
+{
+    for (unsigned int number = 0; number < num_points; number++) {
+        *cVector++ = (*aVector++) * scalar;
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
@@ -67,18 +79,16 @@ static inline void volk_32f_s32f_multiply_32f_u_sse(float* cVector,
                                                     const float scalar,
                                                     unsigned int num_points)
 {
-    unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
     float* cPtr = cVector;
     const float* aPtr = aVector;
 
-    __m128 aVal, bVal, cVal;
-    bVal = _mm_set_ps1(scalar);
-    for (; number < quarterPoints; number++) {
-        aVal = _mm_loadu_ps(aPtr);
+    const __m128 bVal = _mm_set_ps1(scalar);
+    for (unsigned int number = 0; number < quarterPoints; number++) {
+        __m128 aVal = _mm_loadu_ps(aPtr);
 
-        cVal = _mm_mul_ps(aVal, bVal);
+        __m128 cVal = _mm_mul_ps(aVal, bVal);
 
         _mm_storeu_ps(cPtr, cVal); // Store the results back into the C container
 
@@ -86,8 +96,7 @@ static inline void volk_32f_s32f_multiply_32f_u_sse(float* cVector,
         cPtr += 4;
     }
 
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
+    for (unsigned int number = quarterPoints * 4; number < num_points; number++) {
         *cPtr++ = (*aPtr++) * scalar;
     }
 }
@@ -101,19 +110,16 @@ static inline void volk_32f_s32f_multiply_32f_u_avx(float* cVector,
                                                     const float scalar,
                                                     unsigned int num_points)
 {
-    unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
     float* cPtr = cVector;
     const float* aPtr = aVector;
 
-    __m256 aVal, bVal, cVal;
-    bVal = _mm256_set1_ps(scalar);
-    for (; number < eighthPoints; number++) {
+    const __m256 bVal = _mm256_set1_ps(scalar);
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        __m256 aVal = _mm256_loadu_ps(aPtr);
 
-        aVal = _mm256_loadu_ps(aPtr);
-
-        cVal = _mm256_mul_ps(aVal, bVal);
+        __m256 cVal = _mm256_mul_ps(aVal, bVal);
 
         _mm256_storeu_ps(cPtr, cVal); // Store the results back into the C container
 
@@ -121,8 +127,7 @@ static inline void volk_32f_s32f_multiply_32f_u_avx(float* cVector,
         cPtr += 8;
     }
 
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
         *cPtr++ = (*aPtr++) * scalar;
     }
 }
@@ -135,22 +140,6 @@ extern void volk_32f_s32f_multiply_32f_sifive_u74(float* cVector,
                                                   unsigned int num_points);
 #endif /* LV_HAVE_RISCV64 */
 
-#ifdef LV_HAVE_GENERIC
-static inline void volk_32f_s32f_multiply_32f_generic(float* cVector,
-                                                      const float* aVector,
-                                                      const float scalar,
-                                                      unsigned int num_points)
-{
-    unsigned int number = 0;
-    const float* inputPtr = aVector;
-    float* outputPtr = cVector;
-    for (number = 0; number < num_points; number++) {
-        *outputPtr = (*inputPtr) * scalar;
-        inputPtr++;
-        outputPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32f_s32f_multiply_32f_u_H */
 
@@ -169,18 +158,16 @@ static inline void volk_32f_s32f_multiply_32f_a_sse(float* cVector,
                                                     const float scalar,
                                                     unsigned int num_points)
 {
-    unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
     float* cPtr = cVector;
     const float* aPtr = aVector;
 
-    __m128 aVal, bVal, cVal;
-    bVal = _mm_set_ps1(scalar);
-    for (; number < quarterPoints; number++) {
-        aVal = _mm_load_ps(aPtr);
+    const __m128 bVal = _mm_set_ps1(scalar);
+    for (unsigned int number = 0; number < quarterPoints; number++) {
+        __m128 aVal = _mm_load_ps(aPtr);
 
-        cVal = _mm_mul_ps(aVal, bVal);
+        __m128 cVal = _mm_mul_ps(aVal, bVal);
 
         _mm_store_ps(cPtr, cVal); // Store the results back into the C container
 
@@ -188,8 +175,7 @@ static inline void volk_32f_s32f_multiply_32f_a_sse(float* cVector,
         cPtr += 4;
     }
 
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
+    for (unsigned int number = quarterPoints * 4; number < num_points; number++) {
         *cPtr++ = (*aPtr++) * scalar;
     }
 }
@@ -203,18 +189,16 @@ static inline void volk_32f_s32f_multiply_32f_a_avx(float* cVector,
                                                     const float scalar,
                                                     unsigned int num_points)
 {
-    unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
     float* cPtr = cVector;
     const float* aPtr = aVector;
 
-    __m256 aVal, bVal, cVal;
-    bVal = _mm256_set1_ps(scalar);
-    for (; number < eighthPoints; number++) {
-        aVal = _mm256_load_ps(aPtr);
+    const __m256 bVal = _mm256_set1_ps(scalar);
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        __m256 aVal = _mm256_load_ps(aPtr);
 
-        cVal = _mm256_mul_ps(aVal, bVal);
+        __m256 cVal = _mm256_mul_ps(aVal, bVal);
 
         _mm256_store_ps(cPtr, cVal); // Store the results back into the C container
 
@@ -222,8 +206,7 @@ static inline void volk_32f_s32f_multiply_32f_a_avx(float* cVector,
         cPtr += 8;
     }
 
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
         *cPtr++ = (*aPtr++) * scalar;
     }
 }
@@ -237,44 +220,24 @@ static inline void volk_32f_s32f_multiply_32f_u_neon(float* cVector,
                                                      const float scalar,
                                                      unsigned int num_points)
 {
-    unsigned int number = 0;
-    const float* inputPtr = aVector;
-    float* outputPtr = cVector;
     const unsigned int quarterPoints = num_points / 4;
 
-    float32x4_t aVal, cVal;
+    const float* inputPtr = aVector;
+    float* outputPtr = cVector;
 
-    for (number = 0; number < quarterPoints; number++) {
-        aVal = vld1q_f32(inputPtr);       // Load into NEON regs
-        cVal = vmulq_n_f32(aVal, scalar); // Do the multiply
-        vst1q_f32(outputPtr, cVal);       // Store results back to output
+    for (unsigned int number = 0; number < quarterPoints; number++) {
+        float32x4_t aVal = vld1q_f32(inputPtr);       // Load into NEON regs
+        float32x4_t cVal = vmulq_n_f32(aVal, scalar); // Do the multiply
+        vst1q_f32(outputPtr, cVal);                   // Store results back to output
         inputPtr += 4;
         outputPtr += 4;
     }
-    for (number = quarterPoints * 4; number < num_points; number++) {
+
+    for (unsigned int number = quarterPoints * 4; number < num_points; number++) {
         *outputPtr++ = (*inputPtr++) * scalar;
     }
 }
 #endif /* LV_HAVE_NEON */
-
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_s32f_multiply_32f_a_generic(float* cVector,
-                                                        const float* aVector,
-                                                        const float scalar,
-                                                        unsigned int num_points)
-{
-    unsigned int number = 0;
-    const float* inputPtr = aVector;
-    float* outputPtr = cVector;
-    for (number = 0; number < num_points; number++) {
-        *outputPtr = (*inputPtr) * scalar;
-        inputPtr++;
-        outputPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 
 #ifdef LV_HAVE_ORC
@@ -292,6 +255,6 @@ static inline void volk_32f_s32f_multiply_32f_u_orc(float* cVector,
     volk_32f_s32f_multiply_32f_a_orc_impl(cVector, aVector, scalar, num_points);
 }
 
-#endif /* LV_HAVE_GENERIC */
+#endif /* LV_HAVE_ORC */
 
 #endif /* INCLUDED_volk_32f_s32f_multiply_32f_a_H */
