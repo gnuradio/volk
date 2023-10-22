@@ -401,10 +401,6 @@ bool fcompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
 template <class t>
 bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
 {
-    if (absolute_mode) {
-        std::cout << "ccompare does not support absolute mode" << std::endl;
-        return true;
-    }
     bool fail = false;
     int print_max_errs = 10;
     for (unsigned int i = 0; i < 2 * vlen; i += 2) {
@@ -423,9 +419,7 @@ bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
         t err = std::sqrt(diff[0] * diff[0] + diff[1] * diff[1]);
         t norm = std::sqrt(in1[i] * in1[i] + in1[i + 1] * in1[i + 1]);
 
-        // for very small numbers we'll see round off errors due to limited
-        // precision. So a special test case...
-        if (norm < 1e-30) {
+        if (absolute_mode) {
             if (err > tol) {
                 fail = true;
                 if (print_max_errs-- > 0) {
@@ -435,15 +429,29 @@ bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
                     std::cout << " tolerance was: " << tol << std::endl;
                 }
             }
-        }
-        // the primary test is the percent different greater than given tol
-        else if ((err / norm) > tol) {
-            fail = true;
-            if (print_max_errs-- > 0) {
-                std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
-                          << in1[i + 1] << "j  in2: " << in2[i] << " + " << in2[i + 1]
-                          << "j";
-                std::cout << " tolerance was: " << tol << std::endl;
+        } else {
+            // for very small numbers we'll see round off errors due to limited
+            // precision. So a special test case...
+            if (norm < 1e-30) {
+                if (err > tol) {
+                    fail = true;
+                    if (print_max_errs-- > 0) {
+                        std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
+                                  << in1[i + 1] << "j  in2: " << in2[i] << " + "
+                                  << in2[i + 1] << "j";
+                        std::cout << " tolerance was: " << tol << std::endl;
+                    }
+                }
+            }
+            // the primary test is the percent different greater than given tol
+            else if ((err / norm) > tol) {
+                fail = true;
+                if (print_max_errs-- > 0) {
+                    std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
+                              << in1[i + 1] << "j  in2: " << in2[i] << " + " << in2[i + 1]
+                              << "j";
+                    std::cout << " tolerance was: " << tol << std::endl;
+                }
             }
         }
     }
@@ -454,10 +462,6 @@ bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
 template <class t>
 bool icompare(t* in1, t* in2, unsigned int vlen, unsigned int tol, bool absolute_mode)
 {
-    if (absolute_mode) {
-        std::cout << "icompare does not support absolute mode" << std::endl;
-        return true;
-    }
     bool fail = false;
     int print_max_errs = 10;
     for (unsigned int i = 0; i < vlen; i++) {
