@@ -267,7 +267,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_sse(lv_32fc_t* result,
 {
 
     unsigned int number = 0;
-    const unsigned int sixteenthPoints = num_points / 8;
+    const unsigned int eighthPoints = num_points / 8;
 
     float res[2];
     float *realpt = &res[0], *imagpt = &res[1];
@@ -284,7 +284,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_sse(lv_32fc_t* result,
     __m128 dotProdVal2 = _mm_setzero_ps();
     __m128 dotProdVal3 = _mm_setzero_ps();
 
-    for (; number < sixteenthPoints; number++) {
+    for (; number < eighthPoints; number++) {
 
         a0Val = _mm_load_ps(aPtr);
         a1Val = _mm_load_ps(aPtr + 4);
@@ -328,7 +328,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_sse(lv_32fc_t* result,
     *realpt += dotProductVector[2];
     *imagpt += dotProductVector[3];
 
-    number = sixteenthPoints * 8;
+    number = eighthPoints * 8;
     for (; number < num_points; number++) {
         *realpt += ((*aPtr++) * (*bPtr));
         *imagpt += ((*aPtr++) * (*bPtr++));
@@ -698,7 +698,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_sse(lv_32fc_t* result,
 {
 
     unsigned int number = 0;
-    const unsigned int sixteenthPoints = num_points / 8;
+    const unsigned int eighthPoints = num_points / 8;
 
     float res[2];
     float *realpt = &res[0], *imagpt = &res[1];
@@ -715,7 +715,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_sse(lv_32fc_t* result,
     __m128 dotProdVal2 = _mm_setzero_ps();
     __m128 dotProdVal3 = _mm_setzero_ps();
 
-    for (; number < sixteenthPoints; number++) {
+    for (; number < eighthPoints; number++) {
 
         a0Val = _mm_loadu_ps(aPtr);
         a1Val = _mm_loadu_ps(aPtr + 4);
@@ -759,7 +759,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_sse(lv_32fc_t* result,
     *realpt += dotProductVector[2];
     *imagpt += dotProductVector[3];
 
-    number = sixteenthPoints * 8;
+    number = eighthPoints * 8;
     for (; number < num_points; number++) {
         *realpt += ((*aPtr++) * (*bPtr));
         *imagpt += ((*aPtr++) * (*bPtr++));
