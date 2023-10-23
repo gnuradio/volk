@@ -203,6 +203,19 @@ endif(ENABLE_ORC)
 add_subdirectory(docs)
 
 ########################################################################
+# Setup Coverage
+########################################################################
+if(${CMAKE_BUILD_TYPE} STREQUAL "Coverage")
+    include(CodeCoverage)
+    append_coverage_compiler_flags()
+    setup_target_for_coverage_gcovr_html(
+        NAME coverage
+        EXECUTABLE "ctest"  
+        DEPENDENCIES volk_profile
+        )
+endif()
+
+########################################################################
 # Detect /lib versus /lib64
 ########################################################################
 if (${CMAKE_INSTALL_LIBDIR} MATCHES lib64)
