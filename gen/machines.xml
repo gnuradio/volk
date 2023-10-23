@@ -13,7 +13,7 @@
 </machine>
 
 <machine name="neonv8">
-<archs>generic neon neonv8</archs>
+<archs>generic neon neonv8 orc|</archs>
 </machine>
 
 <!-- trailing | bar means generate without either for MSVC -->
