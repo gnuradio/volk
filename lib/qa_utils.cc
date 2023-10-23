@@ -485,7 +485,7 @@ bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
 }
 
 template <class t>
-bool icompare(t* in1, t* in2, unsigned int vlen, unsigned int tol, bool absolute_mode)
+bool icompare(t* in1, t* in2, unsigned int vlen, unsigned int tol)
 {
     bool fail = false;
     int print_max_errs = 10;
@@ -573,7 +573,7 @@ bool run_volk_tests(volk_func_desc_t desc,
     vlen = vlen + vlen_twiddle;
 
     const float tol_f = tol;
-    const unsigned int tol_i = static_cast<const unsigned int>(tol);
+    const unsigned int tol_i = static_cast<unsigned int>(tol);
 
     // first let's get a list of available architectures for the test
     std::vector<std::string> arch_list = get_arch_list(desc);
@@ -799,14 +799,12 @@ bool run_volk_tests(volk_func_desc_t desc,
                             fail = icompare((int64_t*)test_data[generic_offset][j],
                                             (int64_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         } else {
                             fail = icompare((uint64_t*)test_data[generic_offset][j],
                                             (uint64_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         }
                         break;
                     case 4:
@@ -815,28 +813,24 @@ bool run_volk_tests(volk_func_desc_t desc,
                                 fail = icompare((int16_t*)test_data[generic_offset][j],
                                                 (int16_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                absolute_mode);
+                                                tol_i);
                             } else {
                                 fail = icompare((uint16_t*)test_data[generic_offset][j],
                                                 (uint16_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                absolute_mode);
+                                                tol_i);
                             }
                         } else {
                             if (both_sigs[j].is_signed) {
                                 fail = icompare((int32_t*)test_data[generic_offset][j],
                                                 (int32_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                absolute_mode);
+                                                tol_i);
                             } else {
                                 fail = icompare((uint32_t*)test_data[generic_offset][j],
                                                 (uint32_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                absolute_mode);
+                                                tol_i);
                             }
                         }
                         break;
@@ -845,14 +839,12 @@ bool run_volk_tests(volk_func_desc_t desc,
                             fail = icompare((int16_t*)test_data[generic_offset][j],
                                             (int16_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         } else {
                             fail = icompare((uint16_t*)test_data[generic_offset][j],
                                             (uint16_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         }
                         break;
                     case 1:
@@ -860,14 +852,12 @@ bool run_volk_tests(volk_func_desc_t desc,
                             fail = icompare((int8_t*)test_data[generic_offset][j],
                                             (int8_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         } else {
                             fail = icompare((uint8_t*)test_data[generic_offset][j],
                                             (uint8_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         }
                         break;
                     default:
