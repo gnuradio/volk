@@ -56,6 +56,30 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_GENERIC
+/* Adapted from https://graphics.stanford.edu/~seander/bithacks.html#ReverseParallel
+ * Where they reverse the bits in an N-bit word. But who's stoppng me from doing the same
+ * on byte level?
+ * Idea is simple: swap the elementary units with half of them "selected" each step, in a
+ * Hadamard kind of selection.
+ */
+
+static inline void volk_64u_byteswap_generic(uint64_t* intsToSwap,
+                                             unsigned int num_points)
+{
+    for (unsigned int point = 0; point < num_points; point++, intsToSwap++) {
+        uint64_t in = *intsToSwap;
+        /* swap individual bytes */
+        in = (in & 0x00FF00FF00FF00FF) << 8 | (in & 0xFF00FF00FF00FF00) >> 8;
+        /* swap individual shorts */
+        in = (in & 0x0000FFFF0000FFFF) << 16 | (in & 0xFFFF0000FFFF0000) >> 16;
+        /* swap the two 32 bit words */
+        in = (in & 0x00000000FFFFFFFF) << 32 | (in & 0xFFFFFFFF00000000) >> 32;
+        *intsToSwap = in;
+    }
+}
+#endif
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
@@ -108,30 +132,6 @@ static inline void volk_64u_byteswap_u_sse2(uint64_t* intsToSwap, unsigned int n
     }
 }
 #endif /* LV_HAVE_SSE2 */
-
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_64u_byteswap_generic(uint64_t* intsToSwap,
-                                             unsigned int num_points)
-{
-    uint32_t* inputPtr = (uint32_t*)intsToSwap;
-    unsigned int point;
-    for (point = 0; point < num_points; point++) {
-        uint32_t output1 = *inputPtr;
-        uint32_t output2 = inputPtr[1];
-
-        output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) |
-                   ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
-
-        output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) |
-                   ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
-
-        *inputPtr++ = output2;
-        *inputPtr++ = output1;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 #if LV_HAVE_AVX2
 #include <immintrin.h>
@@ -476,8 +476,8 @@ static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
 
 #ifdef LV_HAVE_GENERIC
 
-static inline void volk_64u_byteswap_a_generic(uint64_t* intsToSwap,
-                                               unsigned int num_points)
+static inline void volk_64u_byteswap_generic_decompose(uint64_t* intsToSwap,
+                                                       unsigned int num_points)
 {
     uint32_t* inputPtr = (uint32_t*)intsToSwap;
     unsigned int point;
