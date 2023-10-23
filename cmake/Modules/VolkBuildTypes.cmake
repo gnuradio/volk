@@ -187,9 +187,9 @@ endif(NOT WIN32)
 # NOTE: This is not defined on Windows systems.
 ########################################################################
 if(NOT WIN32)
-  SET(CMAKE_CXX_FLAGS_ASAN "-Wall -Wextra -g -O2 -fsanitize=address -fno-omit-frame-pointer" CACHE STRING
+  SET(CMAKE_CXX_FLAGS_ASAN "-Wall -Wextra -g -O2 -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer" CACHE STRING
     "Flags used by the C++ compiler during Address Sanitized builds." FORCE)
-  SET(CMAKE_C_FLAGS_ASAN "-Wall -Wextra -g -O2 -fsanitize=address -fno-omit-frame-pointer" CACHE STRING
+  SET(CMAKE_C_FLAGS_ASAN "-Wall -Wextra -g -O2 -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer" CACHE STRING
     "Flags used by the C compiler during Address Sanitized builds." FORCE)
   MARK_AS_ADVANCED(
     CMAKE_CXX_FLAGS_ASAN
