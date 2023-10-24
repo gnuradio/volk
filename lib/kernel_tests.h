@@ -164,6 +164,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32u_reverse_32u, test_params))
     QA(VOLK_INIT_TEST(volk_32f_tanh_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32fc_x2_s32fc_multiply_conjugate_add_32fc, test_params))
+    QA(VOLK_INIT_TEST(volk_32f_exp_32f, test_params))
     QA(VOLK_INIT_PUPP(
         volk_32f_s32f_mod_rangepuppet_32f, volk_32f_s32f_s32f_mod_range_32f, test_params))
     QA(VOLK_INIT_PUPP(
