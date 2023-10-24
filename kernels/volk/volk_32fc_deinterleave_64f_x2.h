@@ -277,25 +277,6 @@ static inline void volk_32fc_deinterleave_64f_x2_a_sse2(double* iBuffer,
 }
 #endif /* LV_HAVE_SSE */
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_deinterleave_64f_x2_a_generic(double* iBuffer,
-                                                           double* qBuffer,
-                                                           const lv_32fc_t* complexVector,
-                                                           unsigned int num_points)
-{
-    unsigned int number = 0;
-    const float* complexVectorPtr = (float*)complexVector;
-    double* iBufferPtr = iBuffer;
-    double* qBufferPtr = qBuffer;
-
-    for (number = 0; number < num_points; number++) {
-        *iBufferPtr++ = (double)*complexVectorPtr++;
-        *qBufferPtr++ = (double)*complexVectorPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
 #ifdef LV_HAVE_NEONV8
 #include <arm_neon.h>
 

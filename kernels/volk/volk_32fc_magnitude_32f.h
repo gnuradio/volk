@@ -308,24 +308,6 @@ static inline void volk_32fc_magnitude_32f_a_sse(float* magnitudeVector,
 #endif /* LV_HAVE_SSE */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_magnitude_32f_a_generic(float* magnitudeVector,
-                                                     const lv_32fc_t* complexVector,
-                                                     unsigned int num_points)
-{
-    const float* complexVectorPtr = (float*)complexVector;
-    float* magnitudeVectorPtr = magnitudeVector;
-    unsigned int number = 0;
-    for (number = 0; number < num_points; number++) {
-        const float real = *complexVectorPtr++;
-        const float imag = *complexVectorPtr++;
-        *magnitudeVectorPtr++ = sqrtf((real * real) + (imag * imag));
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 

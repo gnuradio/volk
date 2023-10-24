@@ -217,23 +217,6 @@ static inline void volk_8i_convert_16i_a_sse4_1(int16_t* outputVector,
 #endif /* LV_HAVE_SSE4_1 */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_8i_convert_16i_a_generic(int16_t* outputVector,
-                                                 const int8_t* inputVector,
-                                                 unsigned int num_points)
-{
-    int16_t* outputVectorPtr = outputVector;
-    const int8_t* inputVectorPtr = inputVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *outputVectorPtr++ = ((int16_t)(*inputVectorPtr++)) * 256;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 

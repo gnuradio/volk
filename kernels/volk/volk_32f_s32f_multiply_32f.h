@@ -258,25 +258,6 @@ static inline void volk_32f_s32f_multiply_32f_u_neon(float* cVector,
 #endif /* LV_HAVE_NEON */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_s32f_multiply_32f_a_generic(float* cVector,
-                                                        const float* aVector,
-                                                        const float scalar,
-                                                        unsigned int num_points)
-{
-    unsigned int number = 0;
-    const float* inputPtr = aVector;
-    float* outputPtr = cVector;
-    for (number = 0; number < num_points; number++) {
-        *outputPtr = (*inputPtr) * scalar;
-        inputPtr++;
-        outputPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #ifdef LV_HAVE_ORC
 
 extern void volk_32f_s32f_multiply_32f_a_orc_impl(float* dst,

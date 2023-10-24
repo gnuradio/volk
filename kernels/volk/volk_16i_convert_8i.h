@@ -276,20 +276,4 @@ static inline void volk_16i_convert_8i_neon(int8_t* outputVector,
 #endif /* LV_HAVE_NEON */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_16i_convert_8i_a_generic(int8_t* outputVector,
-                                                 const int16_t* inputVector,
-                                                 unsigned int num_points)
-{
-    int8_t* outputVectorPtr = outputVector;
-    const int16_t* inputVectorPtr = inputVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *outputVectorPtr++ = ((int8_t)(*inputVectorPtr++ >> 8));
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
 #endif /* INCLUDED_volk_16i_convert_8i_a_H */

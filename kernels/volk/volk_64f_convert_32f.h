@@ -316,21 +316,4 @@ static inline void volk_64f_convert_32f_a_sse2(float* outputVector,
 #endif /* LV_HAVE_SSE2 */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_64f_convert_32f_a_generic(float* outputVector,
-                                                  const double* inputVector,
-                                                  unsigned int num_points)
-{
-    float* outputVectorPtr = outputVector;
-    const double* inputVectorPtr = inputVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *outputVectorPtr++ = ((float)(*inputVectorPtr++));
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #endif /* INCLUDED_volk_64f_convert_32f_a_H */

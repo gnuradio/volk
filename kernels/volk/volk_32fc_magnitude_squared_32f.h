@@ -351,20 +351,4 @@ static inline void volk_32fc_magnitude_squared_32f_neon(float* magnitudeVector,
 #endif /* LV_HAVE_NEON */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_magnitude_squared_32f_a_generic(
-    float* magnitudeVector, const lv_32fc_t* complexVector, unsigned int num_points)
-{
-    const float* complexVectorPtr = (float*)complexVector;
-    float* magnitudeVectorPtr = magnitudeVector;
-    unsigned int number = 0;
-    for (number = 0; number < num_points; number++) {
-        const float real = *complexVectorPtr++;
-        const float imag = *complexVectorPtr++;
-        *magnitudeVectorPtr++ = (real * real) + (imag * imag);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
 #endif /* INCLUDED_volk_32fc_magnitude_32f_a_H */

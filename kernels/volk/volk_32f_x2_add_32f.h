@@ -373,24 +373,6 @@ extern void volk_32f_x2_add_32f_a_neonpipeline(float* cVector,
                                                unsigned int num_points);
 #endif /* LV_HAVE_NEONV7 */
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_x2_add_32f_a_generic(float* cVector,
-                                                 const float* aVector,
-                                                 const float* bVector,
-                                                 unsigned int num_points)
-{
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr = bVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) + (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
 
 #ifdef LV_HAVE_ORC
 

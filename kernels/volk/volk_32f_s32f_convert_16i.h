@@ -553,29 +553,4 @@ static inline void volk_32f_s32f_convert_16i_a_sse(int16_t* outputVector,
 #endif /* LV_HAVE_SSE */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_s32f_convert_16i_a_generic(int16_t* outputVector,
-                                                       const float* inputVector,
-                                                       const float scalar,
-                                                       unsigned int num_points)
-{
-    int16_t* outputVectorPtr = outputVector;
-    const float* inputVectorPtr = inputVector;
-    unsigned int number = 0;
-    float min_val = SHRT_MIN;
-    float max_val = SHRT_MAX;
-    float r;
-
-    for (number = 0; number < num_points; number++) {
-        r = *inputVectorPtr++ * scalar;
-        if (r < min_val)
-            r = min_val;
-        else if (r > max_val)
-            r = max_val;
-        *outputVectorPtr++ = (int16_t)rintf(r);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
 #endif /* INCLUDED_volk_32f_s32f_convert_16i_a_H */
