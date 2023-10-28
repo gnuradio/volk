@@ -52,7 +52,7 @@ void load_random_data(void* data, volk_type_t type, unsigned int n)
         }
     } else {
         float int_max, int_min;
-        switch(type.size) {
+        switch (type.size) {
         case 8:
             if (type.is_signed) {
                 int_max = static_cast<float>(std::numeric_limits<int64_t>::max());
@@ -91,7 +91,7 @@ void load_random_data(void* data, volk_type_t type, unsigned int n)
             break;
         default:
             throw "load_random_data: no support for data size > 8 or < 1"; // no
-	    }
+        }
         std::uniform_real_distribution<float> uniform_dist(int_min, int_max);
         for (unsigned int i = 0; i < n; i++) {
             float scaled_rand = uniform_dist(rnd_engine);
