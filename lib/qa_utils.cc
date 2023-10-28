@@ -51,10 +51,48 @@ void load_random_data(void* data, volk_type_t type, unsigned int n)
             random_floats<float>(data, n, rnd_engine);
         }
     } else {
-        float int_max = float(uint64_t(2) << (type.size * 8));
-        if (type.is_signed)
-            int_max /= 2.0;
-        std::uniform_real_distribution<float> uniform_dist(-int_max, int_max);
+        float int_max, int_min;
+        switch(type.size) {
+        case 8:
+            if (type.is_signed) {
+                int_max = static_cast<float>(std::numeric_limits<int64_t>::max());
+                int_min = static_cast<float>(std::numeric_limits<int64_t>::min());
+            } else {
+                int_max = static_cast<float>(std::numeric_limits<uint64_t>::max());
+                int_min = static_cast<float>(std::numeric_limits<uint64_t>::min());
+            }
+            break;
+        case 4:
+            if (type.is_signed) {
+                int_max = static_cast<float>(std::numeric_limits<int32_t>::max());
+                int_min = static_cast<float>(std::numeric_limits<int32_t>::min());
+            } else {
+                int_max = static_cast<float>(std::numeric_limits<uint32_t>::max());
+                int_min = static_cast<float>(std::numeric_limits<uint32_t>::min());
+            }
+            break;
+        case 2:
+            if (type.is_signed) {
+                int_max = static_cast<float>(std::numeric_limits<int16_t>::max());
+                int_min = static_cast<float>(std::numeric_limits<int16_t>::min());
+            } else {
+                int_max = static_cast<float>(std::numeric_limits<uint16_t>::max());
+                int_min = static_cast<float>(std::numeric_limits<uint16_t>::min());
+            }
+            break;
+        case 1:
+            if (type.is_signed) {
+                int_max = static_cast<float>(std::numeric_limits<int8_t>::max());
+                int_min = static_cast<float>(std::numeric_limits<int8_t>::min());
+            } else {
+                int_max = static_cast<float>(std::numeric_limits<uint8_t>::max());
+                int_min = static_cast<float>(std::numeric_limits<uint8_t>::min());
+            }
+            break;
+        default:
+            throw "load_random_data: no support for data size > 8 or < 1"; // no
+	    }
+        std::uniform_real_distribution<float> uniform_dist(int_min, int_max);
         for (unsigned int i = 0; i < n; i++) {
             float scaled_rand = uniform_dist(rnd_engine);
             // man i really don't know how to do this in a more clever way, you have to
