@@ -48,6 +48,10 @@ volk_8u_x3_encodepolarpuppet_8u_generic(unsigned char* frame,
                                         const unsigned char* info_bits,
                                         unsigned int frame_size)
 {
+    if (frame_size < 1) {
+        return;
+    }
+
     frame_size = next_lower_power_of_two(frame_size);
     unsigned char* temp = (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size,
                                                       volk_get_alignment());
@@ -67,6 +71,10 @@ volk_8u_x3_encodepolarpuppet_8u_u_ssse3(unsigned char* frame,
                                         const unsigned char* info_bits,
                                         unsigned int frame_size)
 {
+    if (frame_size < 1) {
+        return;
+    }
+
     frame_size = next_lower_power_of_two(frame_size);
     unsigned char* temp = (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size,
                                                       volk_get_alignment());
@@ -85,6 +93,10 @@ volk_8u_x3_encodepolarpuppet_8u_u_avx2(unsigned char* frame,
                                        const unsigned char* info_bits,
                                        unsigned int frame_size)
 {
+    if (frame_size < 1) {
+        return;
+    }
+
     frame_size = next_lower_power_of_two(frame_size);
     unsigned char* temp = (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size,
                                                       volk_get_alignment());
@@ -108,6 +120,10 @@ volk_8u_x3_encodepolarpuppet_8u_a_ssse3(unsigned char* frame,
                                         const unsigned char* info_bits,
                                         unsigned int frame_size)
 {
+    if (frame_size < 1) {
+        return;
+    }
+
     frame_size = next_lower_power_of_two(frame_size);
     unsigned char* temp = (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size,
                                                       volk_get_alignment());
@@ -126,6 +142,10 @@ volk_8u_x3_encodepolarpuppet_8u_a_avx2(unsigned char* frame,
                                        const unsigned char* info_bits,
                                        unsigned int frame_size)
 {
+    if (frame_size < 1) {
+        return;
+    }
+
     frame_size = next_lower_power_of_two(frame_size);
     unsigned char* temp = (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size,
                                                       volk_get_alignment());

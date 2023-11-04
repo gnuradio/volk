@@ -38,7 +38,7 @@
 void* volk_malloc(size_t size, size_t alignment)
 {
     if ((size == 0) || (alignment == 0)) {
-        fprintf(stderr, "VOLK: Error allocating memory: either size or alignment is 0");
+        fprintf(stderr, "VOLK: Error allocating memory: either size or alignment is 0\n");
         return NULL;
     }
     // Tweak size to satisfy ASAN (the GCC address sanitizer).
