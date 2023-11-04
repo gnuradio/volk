@@ -334,25 +334,6 @@ static inline void volk_8i_s32f_convert_32f_neon(float* outputVector,
 
 #endif /* LV_HAVE_NEON */
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_8i_s32f_convert_32f_a_generic(float* outputVector,
-                                                      const int8_t* inputVector,
-                                                      const float scalar,
-                                                      unsigned int num_points)
-{
-    float* outputVectorPtr = outputVector;
-    const int8_t* inputVectorPtr = inputVector;
-    unsigned int number = 0;
-    const float iScalar = 1.0 / scalar;
-
-    for (number = 0; number < num_points; number++) {
-        *outputVectorPtr++ = ((float)(*inputVectorPtr++)) * iScalar;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #ifdef LV_HAVE_ORC
 extern void volk_8i_s32f_convert_32f_a_orc_impl(float* outputVector,
                                                 const int8_t* inputVector,

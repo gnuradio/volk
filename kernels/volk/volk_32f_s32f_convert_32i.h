@@ -406,16 +406,4 @@ static inline void volk_32f_s32f_convert_32i_a_sse(int32_t* outputVector,
 #endif /* LV_HAVE_SSE */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_s32f_convert_32i_a_generic(int32_t* outputVector,
-                                                       const float* inputVector,
-                                                       const float scalar,
-                                                       unsigned int num_points)
-{
-    volk_32f_s32f_convert_32i_generic(outputVector, inputVector, scalar, num_points);
-}
-
-#endif /* LV_HAVE_GENERIC */
-
 #endif /* INCLUDED_volk_32f_s32f_convert_32i_a_H */

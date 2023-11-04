@@ -97,9 +97,8 @@ static const unsigned char BitReverseTable256[] = {
     0x3F, 0xBF, 0x7F, 0xFF
 };
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32u_reverse_32u_dword_shuffle(uint32_t* out,
-                                                      const uint32_t* in,
-                                                      unsigned int num_points)
+static inline void
+volk_32u_reverse_32u_generic(uint32_t* out, const uint32_t* in, unsigned int num_points)
 {
     const struct dword_split* in_ptr = (const struct dword_split*)in;
     struct dword_split* out_ptr = (struct dword_split*)out;

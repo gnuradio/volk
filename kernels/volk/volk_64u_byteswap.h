@@ -382,28 +382,5 @@ static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
 }
 #endif /* LV_HAVE_SSSE3 */
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_64u_byteswap_a_generic(uint64_t* intsToSwap,
-                                               unsigned int num_points)
-{
-    uint32_t* inputPtr = (uint32_t*)intsToSwap;
-    unsigned int point;
-    for (point = 0; point < num_points; point++) {
-        uint32_t output1 = *inputPtr;
-        uint32_t output2 = inputPtr[1];
-
-        output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) |
-                   ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
-
-        output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) |
-                   ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
-
-        *inputPtr++ = output2;
-        *inputPtr++ = output1;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
 
 #endif /* INCLUDED_volk_64u_byteswap_a_H */

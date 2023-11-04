@@ -470,30 +470,6 @@ static inline void volk_32f_x2_dot_prod_32f_u_avx512f(float* result,
 #include <volk/volk_common.h>
 
 
-#ifdef LV_HAVE_GENERIC
-
-
-static inline void volk_32f_x2_dot_prod_32f_a_generic(float* result,
-                                                      const float* input,
-                                                      const float* taps,
-                                                      unsigned int num_points)
-{
-
-    float dotProduct = 0;
-    const float* aPtr = input;
-    const float* bPtr = taps;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        dotProduct += ((*aPtr++) * (*bPtr++));
-    }
-
-    *result = dotProduct;
-}
-
-#endif /*LV_HAVE_GENERIC*/
-
-
 #ifdef LV_HAVE_SSE
 
 
