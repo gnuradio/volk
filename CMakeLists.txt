@@ -206,6 +206,9 @@ add_subdirectory(docs)
 # Setup Coverage
 ########################################################################
 if(${CMAKE_BUILD_TYPE} STREQUAL "Coverage")
+    # Use CodeCoverage based on Lars Bilke's
+    # https://github.com/bilke/cmake-modules , with extensive
+    # modifications as done in the past for GNU Radio.
     include(CodeCoverage)
     append_coverage_compiler_flags()
     setup_target_for_coverage_gcovr_html(
