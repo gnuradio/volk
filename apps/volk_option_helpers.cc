@@ -188,6 +188,7 @@ void option_list::parse(int argc, char** argv)
                     } catch (std::exception& exc) {
                         throw std::exception();
                     };
+                    break;
                 case STRING:
                     std::cout << this_option->printval << std::endl;
                     break;
@@ -225,15 +226,8 @@ void option_list::help()
             help_line += this_option->shortform + " [ " + this_option->longform + " ]";
         }
 
-        switch (help_line.size() / 8) {
-        case 0:
-            help_line += "\t";
-        case 1:
-            help_line += "\t";
-        case 2:
-            help_line += "\t";
-        case 3:
-            help_line += "\t";
+        while (help_line.size() < 32) {
+            help_line += " ";
         }
         help_line += this_option->msg;
         std::cout << help_line << std::endl;
