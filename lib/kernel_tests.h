@@ -42,6 +42,9 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     volk_test_params_t test_params_power(test_params);
     test_params_power.set_scalar(2.5);
 
+    volk_test_params_t test_params_clamp(test_params);
+    test_params_clamp.set_scalar(-.5f);
+
     volk_test_params_t test_params_rotator(test_params);
     test_params_rotator.set_scalar(std::polar(1.0f, 0.1f));
     test_params_rotator.set_tol(1e-3);
@@ -175,6 +178,8 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_PUPP(volk_32fc_s32f_power_spectral_densitypuppet_32f,
                       volk_32fc_s32f_x2_power_spectral_density_32f,
                       test_params))
+    QA(VOLK_INIT_PUPP(
+        volk_32f_s32f_clamppuppet_32f, volk_32f_s32f_x2_clamp_32f, test_params_clamp))
     QA(VOLK_INIT_PUPP(volk_32f_s32f_convertpuppet_8u,
                       volk_32f_s32f_x2_convert_8u,
                       test_params.make_tol(1)))
