@@ -344,24 +344,4 @@ static inline void volk_32u_byteswap_a_sse2(uint32_t* intsToSwap, unsigned int n
 #endif /* LV_HAVE_SSE2 */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32u_byteswap_a_generic(uint32_t* intsToSwap,
-                                               unsigned int num_points)
-{
-    uint32_t* inputPtr = intsToSwap;
-
-    unsigned int point;
-    for (point = 0; point < num_points; point++) {
-        uint32_t output = *inputPtr;
-        output = (((output >> 24) & 0xff) | ((output >> 8) & 0x0000ff00) |
-                  ((output << 8) & 0x00ff0000) | ((output << 24) & 0xff000000));
-
-        *inputPtr = output;
-        inputPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #endif /* INCLUDED_volk_32u_byteswap_a_H */

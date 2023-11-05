@@ -181,40 +181,24 @@ static inline void volk_32fc_x2_square_dist_32f_a_sse3(float* target,
 
     xmm1 = _mm_setzero_ps();
     xmm1 = _mm_loadl_pi(xmm1, (__m64*)src0);
-    xmm2 = _mm_load_ps((float*)&points[0]);
     xmm1 = _mm_movelh_ps(xmm1, xmm1);
-    xmm3 = _mm_load_ps((float*)&points[2]);
 
-    for (; i < bound - 1; ++i) {
+    for (; i < bound; ++i) {
+        xmm2 = _mm_load_ps((float*)&points[0]);
         xmm4 = _mm_sub_ps(xmm1, xmm2);
+        xmm3 = _mm_load_ps((float*)&points[2]);
         xmm5 = _mm_sub_ps(xmm1, xmm3);
-        points += 4;
+
         xmm6 = _mm_mul_ps(xmm4, xmm4);
         xmm7 = _mm_mul_ps(xmm5, xmm5);
 
-        xmm2 = _mm_load_ps((float*)&points[0]);
-
         xmm4 = _mm_hadd_ps(xmm6, xmm7);
-
-        xmm3 = _mm_load_ps((float*)&points[2]);
 
         _mm_store_ps(target, xmm4);
 
+        points += 4;
         target += 4;
     }
-
-    xmm4 = _mm_sub_ps(xmm1, xmm2);
-    xmm5 = _mm_sub_ps(xmm1, xmm3);
-
-    points += 4;
-    xmm6 = _mm_mul_ps(xmm4, xmm4);
-    xmm7 = _mm_mul_ps(xmm5, xmm5);
-
-    xmm4 = _mm_hadd_ps(xmm6, xmm7);
-
-    _mm_store_ps(target, xmm4);
-
-    target += 4;
 
     if (num_bytes >> 4 & 1) {
 

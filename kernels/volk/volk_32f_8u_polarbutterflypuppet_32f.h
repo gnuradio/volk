@@ -81,6 +81,10 @@ static inline void volk_32f_8u_polarbutterflypuppet_32f_generic(float* llrs,
                                                                 unsigned char* u,
                                                                 const int elements)
 {
+    if (elements < 2) {
+        return;
+    }
+
     unsigned int frame_size = maximum_frame_size(elements);
     unsigned int frame_exp = log2_of_power_of_2(frame_size);
 
@@ -104,6 +108,10 @@ static inline void volk_32f_8u_polarbutterflypuppet_32f_u_avx(float* llrs,
                                                               unsigned char* u,
                                                               const int elements)
 {
+    if (elements < 2) {
+        return;
+    }
+
     unsigned int frame_size = maximum_frame_size(elements);
     unsigned int frame_exp = log2_of_power_of_2(frame_size);
 
@@ -127,6 +135,10 @@ static inline void volk_32f_8u_polarbutterflypuppet_32f_u_avx2(float* llrs,
                                                                unsigned char* u,
                                                                const int elements)
 {
+    if (elements < 2) {
+        return;
+    }
+
     unsigned int frame_size = maximum_frame_size(elements);
     unsigned int frame_exp = log2_of_power_of_2(frame_size);
 

@@ -165,22 +165,6 @@ volk_32f_exp_32f_a_sse2(float* bVector, const float* aVector, unsigned int num_p
 #endif /* LV_HAVE_SSE2 for aligned */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void
-volk_32f_exp_32f_a_generic(float* bVector, const float* aVector, unsigned int num_points)
-{
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *bPtr++ = expf(*aPtr++);
-    }
-}
-
-#endif /* LV_HAVE_GENERIC */
-
 #endif /* INCLUDED_volk_32f_exp_32f_a_H */
 
 #ifndef INCLUDED_volk_32f_exp_32f_u_H
@@ -269,7 +253,7 @@ volk_32f_exp_32f_u_sse2(float* bVector, const float* aVector, unsigned int num_p
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32f_exp_32f_u_generic(float* bVector, const float* aVector, unsigned int num_points)
+volk_32f_exp_32f_generic(float* bVector, const float* aVector, unsigned int num_points)
 {
     float* bPtr = bVector;
     const float* aPtr = aVector;

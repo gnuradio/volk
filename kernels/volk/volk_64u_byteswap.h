@@ -227,106 +227,14 @@ static inline void volk_64u_byteswap_a_ssse3(uint64_t* intsToSwap,
     }
 }
 #endif /* LV_HAVE_SSSE3 */
-
-
-#ifdef LV_HAVE_NEONV8
-#include <arm_neon.h>
-
-static inline void volk_64u_byteswap_neonv8(uint64_t* intsToSwap, unsigned int num_points)
-{
-    uint32_t* inputPtr = (uint32_t*)intsToSwap;
-    const unsigned int n4points = num_points / 4;
-    uint8x16x2_t input;
-    uint8x16_t idx = { 7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8 };
-
-    unsigned int number = 0;
-    for (number = 0; number < n4points; ++number) {
-        __VOLK_PREFETCH(inputPtr + 8);
-        input = vld2q_u8((uint8_t*)inputPtr);
-        input.val[0] = vqtbl1q_u8(input.val[0], idx);
-        input.val[1] = vqtbl1q_u8(input.val[1], idx);
-        vst2q_u8((uint8_t*)inputPtr, input);
-
-        inputPtr += 8;
-    }
-
-    for (number = n4points * 4; number < num_points; ++number) {
-        uint32_t output1 = *inputPtr;
-        uint32_t output2 = inputPtr[1];
-
-        output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) |
-                   ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
-        output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) |
-                   ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
-
-        *inputPtr++ = output2;
-        *inputPtr++ = output1;
-    }
-}
-#else
-#ifdef LV_HAVE_NEON
-#include <arm_neon.h>
-
-static inline void volk_64u_byteswap_neon(uint64_t* intsToSwap, unsigned int num_points)
-{
-    uint32_t* inputPtr = (uint32_t*)intsToSwap;
-    unsigned int number = 0;
-    unsigned int n8points = num_points / 4;
-
-    uint8x8x4_t input_table;
-    uint8x8_t int_lookup01, int_lookup23, int_lookup45, int_lookup67;
-    uint8x8_t swapped_int01, swapped_int23, swapped_int45, swapped_int67;
-
-    /* these magic numbers are used as byte-indices in the LUT.
-       they are pre-computed to save time. A simple C program
-       can calculate them; for example for lookup01:
-      uint8_t chars[8] = {24, 16, 8, 0, 25, 17, 9, 1};
-      for(ii=0; ii < 8; ++ii) {
-          index += ((uint64_t)(*(chars+ii))) << (ii*8);
-      }
-    */
-    int_lookup01 = vcreate_u8(2269495096316185);
-    int_lookup23 = vcreate_u8(146949840772469531);
-    int_lookup45 = vcreate_u8(291630186448622877);
-    int_lookup67 = vcreate_u8(436310532124776223);
-
-    for (number = 0; number < n8points; ++number) {
-        input_table = vld4_u8((uint8_t*)inputPtr);
-        swapped_int01 = vtbl4_u8(input_table, int_lookup01);
-        swapped_int23 = vtbl4_u8(input_table, int_lookup23);
-        swapped_int45 = vtbl4_u8(input_table, int_lookup45);
-        swapped_int67 = vtbl4_u8(input_table, int_lookup67);
-        vst1_u8((uint8_t*)inputPtr, swapped_int01);
-        vst1_u8((uint8_t*)(inputPtr + 2), swapped_int23);
-        vst1_u8((uint8_t*)(inputPtr + 4), swapped_int45);
-        vst1_u8((uint8_t*)(inputPtr + 6), swapped_int67);
-
-        inputPtr += 4;
-    }
-
-    for (number = n8points * 4; number < num_points; ++number) {
-        uint32_t output1 = *inputPtr;
-        uint32_t output2 = inputPtr[1];
-
-        output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) |
-                   ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
-        output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) |
-                   ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
-
-        *inputPtr++ = output2;
-        *inputPtr++ = output1;
-    }
-}
-#endif /* LV_HAVE_NEON */
-#endif
-
 #endif /* INCLUDED_volk_64u_byteswap_u_H */
+
+
 #ifndef INCLUDED_volk_64u_byteswap_a_H
 #define INCLUDED_volk_64u_byteswap_a_H
 
 #include <inttypes.h>
 #include <stdio.h>
-
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
@@ -473,29 +381,6 @@ static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
     }
 }
 #endif /* LV_HAVE_SSSE3 */
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_64u_byteswap_a_generic(uint64_t* intsToSwap,
-                                               unsigned int num_points)
-{
-    uint32_t* inputPtr = (uint32_t*)intsToSwap;
-    unsigned int point;
-    for (point = 0; point < num_points; point++) {
-        uint32_t output1 = *inputPtr;
-        uint32_t output2 = inputPtr[1];
-
-        output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) |
-                   ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
-
-        output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) |
-                   ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
-
-        *inputPtr++ = output2;
-        *inputPtr++ = output1;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 
 #endif /* INCLUDED_volk_64u_byteswap_a_H */

@@ -422,47 +422,6 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse3(lv_32fc_t* result
 #endif /*LV_HAVE_SSE3*/
 
 
-#ifdef LV_HAVE_GENERIC
-
-
-static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_generic(lv_32fc_t* result,
-                                                                  const lv_32fc_t* input,
-                                                                  const lv_32fc_t* taps,
-                                                                  unsigned int num_points)
-{
-
-    const unsigned int num_bytes = num_points * 8;
-
-    float* res = (float*)result;
-    float* in = (float*)input;
-    float* tp = (float*)taps;
-    unsigned int n_2_ccomplex_blocks = num_bytes >> 4;
-
-    float sum0[2] = { 0, 0 };
-    float sum1[2] = { 0, 0 };
-    unsigned int i = 0;
-
-    for (i = 0; i < n_2_ccomplex_blocks; ++i) {
-        sum0[0] += in[0] * tp[0] + in[1] * tp[1];
-        sum0[1] += (-in[0] * tp[1]) + in[1] * tp[0];
-        sum1[0] += in[2] * tp[2] + in[3] * tp[3];
-        sum1[1] += (-in[2] * tp[3]) + in[3] * tp[2];
-
-        in += 4;
-        tp += 4;
-    }
-
-    res[0] = sum0[0] + sum1[0];
-    res[1] = sum0[1] + sum1[1];
-
-    if (num_bytes >> 3 & 1) {
-        *result += input[(num_bytes >> 3) - 1] * lv_conj(taps[(num_bytes >> 3) - 1]);
-    }
-}
-
-#endif /*LV_HAVE_GENERIC*/
-
-
 #if LV_HAVE_SSE && LV_HAVE_64
 
 static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse(lv_32fc_t* result,

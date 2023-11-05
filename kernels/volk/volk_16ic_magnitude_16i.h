@@ -278,21 +278,6 @@ static inline void volk_16ic_magnitude_16i_generic(int16_t* magnitudeVector,
 }
 #endif /* LV_HAVE_GENERIC */
 
-#ifdef LV_HAVE_ORC_DISABLED
-extern void volk_16ic_magnitude_16i_a_orc_impl(int16_t* magnitudeVector,
-                                               const lv_16sc_t* complexVector,
-                                               float scalar,
-                                               unsigned int num_points);
-
-static inline void volk_16ic_magnitude_16i_u_orc(int16_t* magnitudeVector,
-                                                 const lv_16sc_t* complexVector,
-                                                 unsigned int num_points)
-{
-    volk_16ic_magnitude_16i_a_orc_impl(
-        magnitudeVector, complexVector, SHRT_MAX, num_points);
-}
-#endif /* LV_HAVE_ORC */
-
 
 #endif /* INCLUDED_volk_16ic_magnitude_16i_a_H */
 

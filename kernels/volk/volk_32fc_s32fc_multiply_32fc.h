@@ -410,34 +410,4 @@ static inline void volk_32fc_s32fc_multiply_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_s32fc_multiply_32fc_a_generic(lv_32fc_t* cVector,
-                                                           const lv_32fc_t* aVector,
-                                                           const lv_32fc_t scalar,
-                                                           unsigned int num_points)
-{
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    unsigned int number = num_points;
-
-    // unwrap loop
-    while (number >= 8) {
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        number -= 8;
-    }
-
-    // clean up any remaining
-    while (number-- > 0)
-        *cPtr++ = *aPtr++ * scalar;
-}
-#endif /* LV_HAVE_GENERIC */
-
 #endif /* INCLUDED_volk_32fc_x2_multiply_32fc_a_H */

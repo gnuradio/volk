@@ -51,44 +51,69 @@ void load_random_data(void* data, volk_type_t type, unsigned int n)
             random_floats<float>(data, n, rnd_engine);
         }
     } else {
-        float int_max = float(uint64_t(2) << (type.size * 8));
-        if (type.is_signed)
-            int_max /= 2.0;
-        std::uniform_real_distribution<float> uniform_dist(-int_max, int_max);
-        for (unsigned int i = 0; i < n; i++) {
-            float scaled_rand = uniform_dist(rnd_engine);
-            // man i really don't know how to do this in a more clever way, you have to
-            // cast down at some point
-            switch (type.size) {
-            case 8:
-                if (type.is_signed)
-                    ((int64_t*)data)[i] = (int64_t)scaled_rand;
-                else
-                    ((uint64_t*)data)[i] = (uint64_t)scaled_rand;
-                break;
-            case 4:
-                if (type.is_signed)
-                    ((int32_t*)data)[i] = (int32_t)scaled_rand;
-                else
-                    ((uint32_t*)data)[i] = (uint32_t)scaled_rand;
-                break;
-            case 2:
-                if (type.is_signed)
-                    ((int16_t*)data)[i] = (int16_t)((int16_t)scaled_rand % 8);
-                else
-                    ((uint16_t*)data)[i] = (uint16_t)((int16_t)scaled_rand % 8);
-                break;
-            case 1:
-                if (type.is_signed)
-                    ((int8_t*)data)[i] = (int8_t)scaled_rand;
-                else
-                    ((uint8_t*)data)[i] = (uint8_t)scaled_rand;
-                break;
-            default:
-                throw "load_random_data: no support for data size > 8 or < 1"; // no
-                                                                               // shenanigans
-                                                                               // here
+        switch (type.size) {
+        case 8:
+            if (type.is_signed) {
+                std::uniform_int_distribution<int64_t> uniform_dist(
+                    std::numeric_limits<int64_t>::min(),
+                    std::numeric_limits<int64_t>::max());
+                for (unsigned int i = 0; i < n; i++)
+                    ((int64_t*)data)[i] = uniform_dist(rnd_engine);
+            } else {
+                std::uniform_int_distribution<uint64_t> uniform_dist(
+                    std::numeric_limits<uint64_t>::min(),
+                    std::numeric_limits<uint64_t>::max());
+                for (unsigned int i = 0; i < n; i++)
+                    ((uint64_t*)data)[i] = uniform_dist(rnd_engine);
             }
+            break;
+        case 4:
+            if (type.is_signed) {
+                std::uniform_int_distribution<int32_t> uniform_dist(
+                    std::numeric_limits<int32_t>::min(),
+                    std::numeric_limits<int32_t>::max());
+                for (unsigned int i = 0; i < n; i++)
+                    ((int32_t*)data)[i] = uniform_dist(rnd_engine);
+            } else {
+                std::uniform_int_distribution<uint32_t> uniform_dist(
+                    std::numeric_limits<uint32_t>::min(),
+                    std::numeric_limits<uint32_t>::max());
+                for (unsigned int i = 0; i < n; i++)
+                    ((uint32_t*)data)[i] = uniform_dist(rnd_engine);
+            }
+            break;
+        case 2:
+            if (type.is_signed) {
+                std::uniform_int_distribution<int16_t> uniform_dist(-7, 7);
+                for (unsigned int i = 0; i < n; i++)
+                    ((int16_t*)data)[i] = uniform_dist(rnd_engine);
+            } else {
+                std::uniform_int_distribution<uint16_t> uniform_dist(
+                    std::numeric_limits<uint16_t>::min(),
+                    std::numeric_limits<uint16_t>::max());
+                for (unsigned int i = 0; i < n; i++)
+                    ((uint16_t*)data)[i] = uniform_dist(rnd_engine);
+            }
+            break;
+        case 1:
+            if (type.is_signed) {
+                std::uniform_int_distribution<int16_t> uniform_dist(
+                    std::numeric_limits<int8_t>::min(),
+                    std::numeric_limits<int8_t>::max());
+                for (unsigned int i = 0; i < n; i++)
+                    ((int8_t*)data)[i] = uniform_dist(rnd_engine);
+            } else {
+                std::uniform_int_distribution<uint16_t> uniform_dist(
+                    std::numeric_limits<uint8_t>::min(),
+                    std::numeric_limits<uint8_t>::max());
+                for (unsigned int i = 0; i < n; i++)
+                    ((uint8_t*)data)[i] = uniform_dist(rnd_engine);
+            }
+            break;
+        default:
+            throw "load_random_data: no support for data size > 8 or < 1"; // no
+                                                                           // shenanigans
+                                                                           // here
         }
     }
 }
@@ -401,10 +426,6 @@ bool fcompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
 template <class t>
 bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
 {
-    if (absolute_mode) {
-        std::cout << "ccompare does not support absolute mode" << std::endl;
-        return true;
-    }
     bool fail = false;
     int print_max_errs = 10;
     for (unsigned int i = 0; i < 2 * vlen; i += 2) {
@@ -423,9 +444,7 @@ bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
         t err = std::sqrt(diff[0] * diff[0] + diff[1] * diff[1]);
         t norm = std::sqrt(in1[i] * in1[i] + in1[i + 1] * in1[i + 1]);
 
-        // for very small numbers we'll see round off errors due to limited
-        // precision. So a special test case...
-        if (norm < 1e-30) {
+        if (absolute_mode) {
             if (err > tol) {
                 fail = true;
                 if (print_max_errs-- > 0) {
@@ -435,15 +454,29 @@ bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
                     std::cout << " tolerance was: " << tol << std::endl;
                 }
             }
-        }
-        // the primary test is the percent different greater than given tol
-        else if ((err / norm) > tol) {
-            fail = true;
-            if (print_max_errs-- > 0) {
-                std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
-                          << in1[i + 1] << "j  in2: " << in2[i] << " + " << in2[i + 1]
-                          << "j";
-                std::cout << " tolerance was: " << tol << std::endl;
+        } else {
+            // for very small numbers we'll see round off errors due to limited
+            // precision. So a special test case...
+            if (norm < 1e-30) {
+                if (err > tol) {
+                    fail = true;
+                    if (print_max_errs-- > 0) {
+                        std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
+                                  << in1[i + 1] << "j  in2: " << in2[i] << " + "
+                                  << in2[i + 1] << "j";
+                        std::cout << " tolerance was: " << tol << std::endl;
+                    }
+                }
+            }
+            // the primary test is the percent different greater than given tol
+            else if ((err / norm) > tol) {
+                fail = true;
+                if (print_max_errs-- > 0) {
+                    std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
+                              << in1[i + 1] << "j  in2: " << in2[i] << " + " << in2[i + 1]
+                              << "j";
+                    std::cout << " tolerance was: " << tol << std::endl;
+                }
             }
         }
     }
@@ -452,12 +485,8 @@ bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
 }
 
 template <class t>
-bool icompare(t* in1, t* in2, unsigned int vlen, unsigned int tol, bool absolute_mode)
+bool icompare(t* in1, t* in2, unsigned int vlen, unsigned int tol)
 {
-    if (absolute_mode) {
-        std::cout << "icompare does not support absolute mode" << std::endl;
-        return true;
-    }
     bool fail = false;
     int print_max_errs = 10;
     for (unsigned int i = 0; i < vlen; i++) {
@@ -544,7 +573,7 @@ bool run_volk_tests(volk_func_desc_t desc,
     vlen = vlen + vlen_twiddle;
 
     const float tol_f = tol;
-    const unsigned int tol_i = static_cast<const unsigned int>(tol);
+    const unsigned int tol_i = static_cast<unsigned int>(tol);
 
     // first let's get a list of available architectures for the test
     std::vector<std::string> arch_list = get_arch_list(desc);
@@ -770,14 +799,12 @@ bool run_volk_tests(volk_func_desc_t desc,
                             fail = icompare((int64_t*)test_data[generic_offset][j],
                                             (int64_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         } else {
                             fail = icompare((uint64_t*)test_data[generic_offset][j],
                                             (uint64_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         }
                         break;
                     case 4:
@@ -786,28 +813,24 @@ bool run_volk_tests(volk_func_desc_t desc,
                                 fail = icompare((int16_t*)test_data[generic_offset][j],
                                                 (int16_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                absolute_mode);
+                                                tol_i);
                             } else {
                                 fail = icompare((uint16_t*)test_data[generic_offset][j],
                                                 (uint16_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                absolute_mode);
+                                                tol_i);
                             }
                         } else {
                             if (both_sigs[j].is_signed) {
                                 fail = icompare((int32_t*)test_data[generic_offset][j],
                                                 (int32_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                absolute_mode);
+                                                tol_i);
                             } else {
                                 fail = icompare((uint32_t*)test_data[generic_offset][j],
                                                 (uint32_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                absolute_mode);
+                                                tol_i);
                             }
                         }
                         break;
@@ -816,14 +839,12 @@ bool run_volk_tests(volk_func_desc_t desc,
                             fail = icompare((int16_t*)test_data[generic_offset][j],
                                             (int16_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         } else {
                             fail = icompare((uint16_t*)test_data[generic_offset][j],
                                             (uint16_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         }
                         break;
                     case 1:
@@ -831,14 +852,12 @@ bool run_volk_tests(volk_func_desc_t desc,
                             fail = icompare((int8_t*)test_data[generic_offset][j],
                                             (int8_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         } else {
                             fail = icompare((uint8_t*)test_data[generic_offset][j],
                                             (uint8_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            absolute_mode);
+                                            tol_i);
                         }
                         break;
                     default:

@@ -77,7 +77,7 @@ static inline void volk_32f_s32f_convert_32i_u_avx(int32_t* outputVector,
     int32_t* outputVectorPtr = outputVector;
 
     float min_val = INT_MIN;
-    float max_val = INT_MAX;
+    float max_val = (uint32_t)INT_MAX + 1;
     float r;
 
     __m256 vScalar = _mm256_set1_ps(scalar);
@@ -127,7 +127,7 @@ static inline void volk_32f_s32f_convert_32i_u_sse2(int32_t* outputVector,
     int32_t* outputVectorPtr = outputVector;
 
     float min_val = INT_MIN;
-    float max_val = INT_MAX;
+    float max_val = (uint32_t)INT_MAX + 1;
     float r;
 
     __m128 vScalar = _mm_set_ps1(scalar);
@@ -178,7 +178,7 @@ static inline void volk_32f_s32f_convert_32i_u_sse(int32_t* outputVector,
     int32_t* outputVectorPtr = outputVector;
 
     float min_val = INT_MIN;
-    float max_val = INT_MAX;
+    float max_val = (uint32_t)INT_MAX + 1;
     float r;
 
     __m128 vScalar = _mm_set_ps1(scalar);
@@ -225,7 +225,7 @@ static inline void volk_32f_s32f_convert_32i_generic(int32_t* outputVector,
     int32_t* outputVectorPtr = outputVector;
     const float* inputVectorPtr = inputVector;
     const float min_val = (float)INT_MIN;
-    const float max_val = (float)INT_MAX;
+    const float max_val = (float)((uint32_t)INT_MAX + 1);
 
     for (unsigned int number = 0; number < num_points; number++) {
         const float r = *inputVectorPtr++ * scalar;
@@ -267,7 +267,7 @@ static inline void volk_32f_s32f_convert_32i_a_avx(int32_t* outputVector,
     int32_t* outputVectorPtr = outputVector;
 
     float min_val = INT_MIN;
-    float max_val = INT_MAX;
+    float max_val = (uint32_t)INT_MAX + 1;
     float r;
 
     __m256 vScalar = _mm256_set1_ps(scalar);
@@ -318,7 +318,7 @@ static inline void volk_32f_s32f_convert_32i_a_sse2(int32_t* outputVector,
     int32_t* outputVectorPtr = outputVector;
 
     float min_val = INT_MIN;
-    float max_val = INT_MAX;
+    float max_val = (uint32_t)INT_MAX + 1;
     float r;
 
     __m128 vScalar = _mm_set_ps1(scalar);
@@ -369,7 +369,7 @@ static inline void volk_32f_s32f_convert_32i_a_sse(int32_t* outputVector,
     int32_t* outputVectorPtr = outputVector;
 
     float min_val = INT_MIN;
-    float max_val = INT_MAX;
+    float max_val = (uint32_t)INT_MAX + 1;
     float r;
 
     __m128 vScalar = _mm_set_ps1(scalar);
@@ -405,17 +405,5 @@ static inline void volk_32f_s32f_convert_32i_a_sse(int32_t* outputVector,
 
 #endif /* LV_HAVE_SSE */
 
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_s32f_convert_32i_a_generic(int32_t* outputVector,
-                                                       const float* inputVector,
-                                                       const float scalar,
-                                                       unsigned int num_points)
-{
-    volk_32f_s32f_convert_32i_generic(outputVector, inputVector, scalar, num_points);
-}
-
-#endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32f_s32f_convert_32i_a_H */

@@ -474,7 +474,7 @@ volk_32f_asin_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
 #ifdef LV_HAVE_GENERIC
 
 static inline void
-volk_32f_asin_32f_u_generic(float* bVector, const float* aVector, unsigned int num_points)
+volk_32f_asin_32f_generic(float* bVector, const float* aVector, unsigned int num_points)
 {
     float* bPtr = bVector;
     const float* aPtr = aVector;

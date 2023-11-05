@@ -166,19 +166,6 @@ volk_32f_sqrt_32f_generic(float* cVector, const float* aVector, unsigned int num
 
 #endif /* LV_HAVE_GENERIC */
 
-
-#ifdef LV_HAVE_ORC
-
-extern void volk_32f_sqrt_32f_a_orc_impl(float*, const float*, unsigned int);
-
-static inline void
-volk_32f_sqrt_32f_u_orc(float* cVector, const float* aVector, unsigned int num_points)
-{
-    volk_32f_sqrt_32f_a_orc_impl(cVector, aVector, num_points);
-}
-
-#endif /* LV_HAVE_ORC */
-
 #endif /* INCLUDED_volk_32f_sqrt_32f_a_H */
 
 #ifndef INCLUDED_volk_32f_sqrt_32f_u_H

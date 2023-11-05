@@ -467,6 +467,7 @@ message(STATUS "Loading version ${VERSION} into constants...")
 
 #double escape for windows backslash path separators
 string(REPLACE "\\" "\\\\" prefix "${prefix}")
+string(REPLACE "${CMAKE_SOURCE_DIR}" "$BUILD_DIR" COMPILER_INFO "${COMPILER_INFO}")
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/constants.c.in
@@ -520,15 +521,9 @@ target_include_directories(volk_obj
 )
 if(VOLK_CPU_FEATURES)
   set_source_files_properties(volk_cpu.c PROPERTIES COMPILE_DEFINITIONS "VOLK_CPU_FEATURES=1")
-  if(CpuFeatures_FOUND)
-    target_include_directories(volk_obj
-        PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>
-    )
-  else()
-    target_include_directories(volk_obj
-        PRIVATE $<TARGET_PROPERTY:cpu_features,INTERFACE_INCLUDE_DIRECTORIES>
-    )
-  endif()
+  target_include_directories(volk_obj
+      PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>
+  )
 endif()
 
 #Configure object target properties
@@ -547,7 +542,7 @@ endif()
 add_library(volk SHARED $<TARGET_OBJECTS:volk_obj>)
 target_link_libraries(volk PUBLIC ${volk_libraries})
 if(VOLK_CPU_FEATURES)
-  target_link_libraries(volk PRIVATE cpu_features)
+  target_link_libraries(volk PRIVATE $<BUILD_INTERFACE:CpuFeatures::cpu_features>)
 endif()
 target_include_directories(volk
     PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
@@ -590,7 +585,7 @@ if(ENABLE_STATIC_LIBS)
   add_library(volk_static STATIC $<TARGET_OBJECTS:volk_obj>)
   target_link_libraries(volk_static PUBLIC ${volk_libraries})
   if(VOLK_CPU_FEATURES)
-    target_link_libraries(volk_static PRIVATE cpu_features)
+    target_link_libraries(volk_static PRIVATE $<BUILD_INTERFACE:CpuFeatures::cpu_features>)
   endif()
   if(ORC_FOUND)
     target_link_libraries(volk_static PUBLIC ${ORC_LIBRARIES_STATIC})

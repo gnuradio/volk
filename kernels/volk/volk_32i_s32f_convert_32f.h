@@ -314,23 +314,4 @@ static inline void volk_32i_s32f_convert_32f_a_sse2(float* outputVector,
 #endif /* LV_HAVE_SSE2 */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32i_s32f_convert_32f_a_generic(float* outputVector,
-                                                       const int32_t* inputVector,
-                                                       const float scalar,
-                                                       unsigned int num_points)
-{
-    float* outputVectorPtr = outputVector;
-    const int32_t* inputVectorPtr = inputVector;
-    unsigned int number = 0;
-    const float iScalar = 1.0 / scalar;
-
-    for (number = 0; number < num_points; number++) {
-        *outputVectorPtr++ = ((float)(*inputVectorPtr++)) * iScalar;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #endif /* INCLUDED_volk_32i_s32f_convert_32f_a_H */

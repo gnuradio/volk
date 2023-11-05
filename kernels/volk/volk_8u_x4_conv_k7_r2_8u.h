@@ -82,7 +82,8 @@ static inline void BFLY(int i,
                         decision_t* d,
                         unsigned char* Branchtab)
 {
-    int j, decision0, decision1;
+    int j;
+    unsigned int decision0, decision1;
     unsigned char metric, m0, m1, m2, m3;
 
     int NUMSTATES = 64;

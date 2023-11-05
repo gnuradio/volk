@@ -341,25 +341,6 @@ static inline void volk_32fc_x2_multiply_32fc_a_sse3(lv_32fc_t* cVector,
 #endif /* LV_HAVE_SSE */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_x2_multiply_32fc_a_generic(lv_32fc_t* cVector,
-                                                        const lv_32fc_t* aVector,
-                                                        const lv_32fc_t* bVector,
-                                                        unsigned int num_points)
-{
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    const lv_32fc_t* bPtr = bVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) * (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 

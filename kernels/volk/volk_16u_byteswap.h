@@ -271,21 +271,6 @@ static inline void volk_16u_byteswap_neon_table(uint16_t* intsToSwap,
 }
 #endif /* LV_HAVE_NEON */
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_16u_byteswap_a_generic(uint16_t* intsToSwap,
-                                               unsigned int num_points)
-{
-    uint16_t* inputPtr = intsToSwap;
-    for (unsigned int point = 0; point < num_points; point++) {
-        uint16_t output = *inputPtr;
-        output = (((output >> 8) & 0xff) | ((output << 8) & 0xff00));
-        *inputPtr = output;
-        inputPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
 #ifdef LV_HAVE_ORC
 
 extern void volk_16u_byteswap_a_orc_impl(uint16_t* intsToSwap, unsigned int num_points);

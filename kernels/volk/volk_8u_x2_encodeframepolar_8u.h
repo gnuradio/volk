@@ -77,6 +77,11 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
                                                           unsigned char* temp,
                                                           unsigned int frame_size)
 {
+    if (frame_size < 16) {
+        volk_8u_x2_encodeframepolar_8u_generic(frame, temp, frame_size);
+        return;
+    }
+
     const unsigned int po2 = log2_of_power_of_2(frame_size);
 
     unsigned int stage = po2;
@@ -256,6 +261,11 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
                                                          unsigned char* temp,
                                                          unsigned int frame_size)
 {
+    if (frame_size < 32) {
+        volk_8u_x2_encodeframepolar_8u_generic(frame, temp, frame_size);
+        return;
+    }
+
     const unsigned int po2 = log2_of_power_of_2(frame_size);
 
     unsigned int stage = po2;
@@ -612,6 +622,11 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
                                                           unsigned char* temp,
                                                           unsigned int frame_size)
 {
+    if (frame_size < 16) {
+        volk_8u_x2_encodeframepolar_8u_generic(frame, temp, frame_size);
+        return;
+    }
+
     const unsigned int po2 = log2_of_power_of_2(frame_size);
 
     unsigned int stage = po2;
@@ -790,6 +805,11 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
                                                          unsigned char* temp,
                                                          unsigned int frame_size)
 {
+    if (frame_size < 32) {
+        volk_8u_x2_encodeframepolar_8u_generic(frame, temp, frame_size);
+        return;
+    }
+
     const unsigned int po2 = log2_of_power_of_2(frame_size);
 
     unsigned int stage = po2;

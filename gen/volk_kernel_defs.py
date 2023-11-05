@@ -162,6 +162,8 @@ class kernel_class(object):
                     kern_name=self.name, header=sub_hdr, body=body,
                 ))
         assert(self._impls)
+        if "generic" not in [impl.name for impl in self._impls]:
+            raise Exception(f"{self.name} does not have a generic protokernel.")
         self.has_dispatcher = False
         for impl in self._impls:
             if impl.name == 'dispatcher':
@@ -194,4 +196,3 @@ kernels = list(map(kernel_class, kernel_files))
 
 if __name__ == '__main__':
     print(kernels)
-    

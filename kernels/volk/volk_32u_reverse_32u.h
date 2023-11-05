@@ -97,9 +97,8 @@ static const unsigned char BitReverseTable256[] = {
     0x3F, 0xBF, 0x7F, 0xFF
 };
 #ifdef LV_HAVE_GENERIC
-static inline void volk_32u_reverse_32u_dword_shuffle(uint32_t* out,
-                                                      const uint32_t* in,
-                                                      unsigned int num_points)
+static inline void
+volk_32u_reverse_32u_generic(uint32_t* out, const uint32_t* in, unsigned int num_points)
 {
     const struct dword_split* in_ptr = (const struct dword_split*)in;
     struct dword_split* out_ptr = (struct dword_split*)out;
@@ -206,7 +205,7 @@ volk_32u_reverse_32u_lut(uint32_t* out, const uint32_t* in, unsigned int num_poi
     uint32_t* out_ptr = out;
     unsigned int number = 0;
     for (; number < num_points; ++number) {
-        *out_ptr = (BitReverseTable256[*in_ptr & 0xff] << 24) |
+        *out_ptr = ((uint32_t)BitReverseTable256[*in_ptr & 0xff] << 24) |
                    (BitReverseTable256[(*in_ptr >> 8) & 0xff] << 16) |
                    (BitReverseTable256[(*in_ptr >> 16) & 0xff] << 8) |
                    (BitReverseTable256[(*in_ptr >> 24) & 0xff]);
@@ -354,7 +353,7 @@ volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_
     }
     number = quarterPoints * 4;
     for (; number < num_points; ++number) {
-        *out_ptr = (BitReverseTable256[*in_ptr & 0xff] << 24) |
+        *out_ptr = ((uint32_t)BitReverseTable256[*in_ptr & 0xff] << 24) |
                    (BitReverseTable256[(*in_ptr >> 8) & 0xff] << 16) |
                    (BitReverseTable256[(*in_ptr >> 16) & 0xff] << 8) |
                    (BitReverseTable256[(*in_ptr >> 24) & 0xff]);
@@ -363,10 +362,20 @@ volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_
     }
 }
 
-#else
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
+#if defined(__aarch64__)
+#define DO_RBIT                             \
+    __VOLK_ASM("rbit %w[result], %w[value]" \
+               : [result] "=r"(*out_ptr)    \
+               : [value] "r"(*in_ptr)       \
+               :);                          \
+    in_ptr++;                               \
+    out_ptr++;
+#else
 #define DO_RBIT                           \
     __VOLK_ASM("rbit %[result], %[value]" \
                : [result] "=r"(*out_ptr)  \
@@ -374,6 +383,7 @@ volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_
                :);                        \
     in_ptr++;                             \
     out_ptr++;
+#endif
 
 static inline void
 volk_32u_reverse_32u_arm(uint32_t* out, const uint32_t* in, unsigned int num_points)
@@ -401,7 +411,6 @@ volk_32u_reverse_32u_arm(uint32_t* out, const uint32_t* in, unsigned int num_poi
 }
 #undef DO_RBIT
 #endif /* LV_HAVE_NEON */
-#endif /* LV_HAVE_NEONV8 */
 
 
 #endif /* INCLUDED_volk_32u_reverse_32u_u_H */

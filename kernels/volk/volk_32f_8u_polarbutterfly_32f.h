@@ -232,11 +232,7 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs,
         unsigned char* u_temp = u + 2 * frame_size;
         memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
 
-        if (stage_size > 15) {
-            volk_8u_x2_encodeframepolar_8u_u_ssse3(u_target, u_temp, stage_size);
-        } else {
-            volk_8u_x2_encodeframepolar_8u_generic(u_target, u_temp, stage_size);
-        }
+        volk_8u_x2_encodeframepolar_8u_u_ssse3(u_target, u_temp, stage_size);
 
         src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
         dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
@@ -331,11 +327,7 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs,
         unsigned char* u_temp = u + 2 * frame_size;
         memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
 
-        if (stage_size > 15) {
-            volk_8u_x2_encodeframepolar_8u_u_ssse3(u_target, u_temp, stage_size);
-        } else {
-            volk_8u_x2_encodeframepolar_8u_generic(u_target, u_temp, stage_size);
-        }
+        volk_8u_x2_encodeframepolar_8u_u_avx2(u_target, u_temp, stage_size);
 
         src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
         dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
