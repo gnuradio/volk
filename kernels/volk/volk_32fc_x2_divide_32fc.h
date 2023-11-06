@@ -54,6 +54,44 @@
  *   volk_free(input_vector);
  *   volk_free(out);
  * \endcode
+ *
+ * \b Numerical accuracy
+ *
+ * The division of complex numbers (a + bj)/(c + dj) is calculated as
+ * (a*c + b*d)/(c*c + d*d) + (b*c - a*d)/(c*c + d*d) j.
+ *
+ * Since Volk is built using unsafe math optimizations
+ * (-fcx-limited-range -funsafe-math-optimizations with gcc), after computing
+ * the two numerators and the denominator in the above formula, the compiler
+ * can either:
+ *
+ * a) compute the two divisions;
+ * b) compute the inverse of the denominator, 1.0/(c*c + d*d), and then
+ * multiply this number by each of the numerators.
+ *
+ * Under gcc, b) is allowed by -freciprocal-math, which is included in
+ * -funsafe-math-optimizations.
+ *
+ * Depending on the architecture and the estimated cost of multiply and divide
+ * instructions, the compiler can perform a) or b). gcc performs a) under x86_64
+ * and armv7, and b) under aarch64.
+ *
+ * To avoid obtaining inf or nan in some architectures, care should be taken
+ * that c*c + d*d is not too small. In particular, if c*c + d*d < FLT_MAX, then
+ * the calculation of 1.0/(c*c + d*d) will yield inf.
+ *
+ * For more information about numerical accuracy of complex division, see the
+ * following:
+ *
+ * - https://godbolt.org/z/z9z5b9oM5 Compiler Explorer example showing how
+ *   complex division is done in different architectures and with different
+ *   optimization options.
+ *
+ * -
+ * https://github.com/gcc-mirror/gcc/blob/7e3c58bfc1d957e48faf0752758da0fed811ed58/libgcc/libgcc2.c#L2707
+ *   gcc's implementation of the __divsc3 function, which implements C99 complex
+ *   division semantics and handles several potential numerical problems. This
+ *   function is used whenever -fcx-limited-range is not enabled.
  */
 
 #ifndef INCLUDED_volk_32fc_x2_divide_32fc_u_H
