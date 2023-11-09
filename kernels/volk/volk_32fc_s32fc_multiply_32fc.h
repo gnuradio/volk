@@ -10,6 +10,12 @@
 /*!
  * \page volk_32fc_s32fc_multiply_32fc
  *
+ * \b Deprecation
+ *
+ * This kernel is deprecated, because passing in `lv_32fc_t` by value results in
+ * Undefined Behaviour, causing a segmentation fault on some architectures.
+ * Use `volk_32fc_s32fc_multiply2_32fc` instead.
+ *
  * \b Overview
  *
  * Multiplies the input complex vector by a complex scalar and returns
@@ -66,137 +72,39 @@
 #include <float.h>
 #include <inttypes.h>
 #include <stdio.h>
+#include <volk/volk_32fc_s32fc_multiply2_32fc.h>
 #include <volk/volk_complex.h>
 
 #if LV_HAVE_AVX && LV_HAVE_FMA
-#include <immintrin.h>
 
 static inline void volk_32fc_s32fc_multiply_32fc_u_avx_fma(lv_32fc_t* cVector,
                                                            const lv_32fc_t* aVector,
                                                            const lv_32fc_t scalar,
                                                            unsigned int num_points)
 {
-    unsigned int number = 0;
-    unsigned int i = 0;
-    const unsigned int quarterPoints = num_points / 4;
-    unsigned int isodd = num_points & 3;
-    __m256 x, yl, yh, z, tmp1, tmp2;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-
-    // Set up constant scalar vector
-    yl = _mm256_set1_ps(lv_creal(scalar));
-    yh = _mm256_set1_ps(lv_cimag(scalar));
-
-    for (; number < quarterPoints; number++) {
-        x = _mm256_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-
-        tmp1 = x;
-
-        x = _mm256_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm256_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm256_fmaddsub_ps(
-            tmp1, yl, tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        _mm256_storeu_ps((float*)c, z); // Store the results back into the C container
-
-        a += 4;
-        c += 4;
-    }
-
-    for (i = num_points - isodd; i < num_points; i++) {
-        *c++ = (*a++) * scalar;
-    }
+    volk_32fc_s32fc_multiply2_32fc_u_avx_fma(cVector, aVector, &scalar, num_points);
 }
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 
 #ifdef LV_HAVE_AVX
-#include <immintrin.h>
 
 static inline void volk_32fc_s32fc_multiply_32fc_u_avx(lv_32fc_t* cVector,
                                                        const lv_32fc_t* aVector,
                                                        const lv_32fc_t scalar,
                                                        unsigned int num_points)
 {
-    unsigned int number = 0;
-    unsigned int i = 0;
-    const unsigned int quarterPoints = num_points / 4;
-    unsigned int isodd = num_points & 3;
-    __m256 x, yl, yh, z, tmp1, tmp2;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-
-    // Set up constant scalar vector
-    yl = _mm256_set1_ps(lv_creal(scalar));
-    yh = _mm256_set1_ps(lv_cimag(scalar));
-
-    for (; number < quarterPoints; number++) {
-        x = _mm256_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-
-        tmp1 = _mm256_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-        x = _mm256_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm256_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm256_addsub_ps(tmp1,
-                             tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        _mm256_storeu_ps((float*)c, z); // Store the results back into the C container
-
-        a += 4;
-        c += 4;
-    }
-
-    for (i = num_points - isodd; i < num_points; i++) {
-        *c++ = (*a++) * scalar;
-    }
+    volk_32fc_s32fc_multiply2_32fc_u_avx(cVector, aVector, &scalar, num_points);
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_SSE3
-#include <pmmintrin.h>
 
 static inline void volk_32fc_s32fc_multiply_32fc_u_sse3(lv_32fc_t* cVector,
                                                         const lv_32fc_t* aVector,
                                                         const lv_32fc_t scalar,
                                                         unsigned int num_points)
 {
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_points / 2;
-
-    __m128 x, yl, yh, z, tmp1, tmp2;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-
-    // Set up constant scalar vector
-    yl = _mm_set_ps1(lv_creal(scalar));
-    yh = _mm_set_ps1(lv_cimag(scalar));
-
-    for (; number < halfPoints; number++) {
-
-        x = _mm_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-
-        tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-        x = _mm_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm_addsub_ps(tmp1,
-                          tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        _mm_storeu_ps((float*)c, z); // Store the results back into the C container
-
-        a += 2;
-        c += 2;
-    }
-
-    if ((num_points % 2) != 0) {
-        *c = (*a) * scalar;
-    }
+    volk_32fc_s32fc_multiply2_32fc_u_sse3(cVector, aVector, &scalar, num_points);
 }
 #endif /* LV_HAVE_SSE */
 
@@ -207,26 +115,7 @@ static inline void volk_32fc_s32fc_multiply_32fc_generic(lv_32fc_t* cVector,
                                                          const lv_32fc_t scalar,
                                                          unsigned int num_points)
 {
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    unsigned int number = num_points;
-
-    // unwrap loop
-    while (number >= 8) {
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        *cPtr++ = (*aPtr++) * scalar;
-        number -= 8;
-    }
-
-    // clean up any remaining
-    while (number-- > 0)
-        *cPtr++ = *aPtr++ * scalar;
+    volk_32fc_s32fc_multiply2_32fc_generic(cVector, aVector, &scalar, num_points);
 }
 #endif /* LV_HAVE_GENERIC */
 
@@ -241,172 +130,47 @@ static inline void volk_32fc_s32fc_multiply_32fc_generic(lv_32fc_t* cVector,
 #include <volk/volk_complex.h>
 
 #if LV_HAVE_AVX && LV_HAVE_FMA
-#include <immintrin.h>
 
 static inline void volk_32fc_s32fc_multiply_32fc_a_avx_fma(lv_32fc_t* cVector,
                                                            const lv_32fc_t* aVector,
                                                            const lv_32fc_t scalar,
                                                            unsigned int num_points)
 {
-    unsigned int number = 0;
-    unsigned int i = 0;
-    const unsigned int quarterPoints = num_points / 4;
-    unsigned int isodd = num_points & 3;
-    __m256 x, yl, yh, z, tmp1, tmp2;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-
-    // Set up constant scalar vector
-    yl = _mm256_set1_ps(lv_creal(scalar));
-    yh = _mm256_set1_ps(lv_cimag(scalar));
-
-    for (; number < quarterPoints; number++) {
-        x = _mm256_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-
-        tmp1 = x;
-
-        x = _mm256_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm256_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm256_fmaddsub_ps(
-            tmp1, yl, tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        _mm256_store_ps((float*)c, z); // Store the results back into the C container
-
-        a += 4;
-        c += 4;
-    }
-
-    for (i = num_points - isodd; i < num_points; i++) {
-        *c++ = (*a++) * scalar;
-    }
+    volk_32fc_s32fc_multiply2_32fc_a_avx_fma(cVector, aVector, &scalar, num_points);
 }
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 
 
 #ifdef LV_HAVE_AVX
-#include <immintrin.h>
 
 static inline void volk_32fc_s32fc_multiply_32fc_a_avx(lv_32fc_t* cVector,
                                                        const lv_32fc_t* aVector,
                                                        const lv_32fc_t scalar,
                                                        unsigned int num_points)
 {
-    unsigned int number = 0;
-    unsigned int i = 0;
-    const unsigned int quarterPoints = num_points / 4;
-    unsigned int isodd = num_points & 3;
-    __m256 x, yl, yh, z, tmp1, tmp2;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-
-    // Set up constant scalar vector
-    yl = _mm256_set1_ps(lv_creal(scalar));
-    yh = _mm256_set1_ps(lv_cimag(scalar));
-
-    for (; number < quarterPoints; number++) {
-        x = _mm256_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-
-        tmp1 = _mm256_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-        x = _mm256_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm256_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm256_addsub_ps(tmp1,
-                             tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        _mm256_store_ps((float*)c, z); // Store the results back into the C container
-
-        a += 4;
-        c += 4;
-    }
-
-    for (i = num_points - isodd; i < num_points; i++) {
-        *c++ = (*a++) * scalar;
-    }
+    volk_32fc_s32fc_multiply2_32fc_a_avx(cVector, aVector, &scalar, num_points);
 }
 #endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_SSE3
-#include <pmmintrin.h>
 
 static inline void volk_32fc_s32fc_multiply_32fc_a_sse3(lv_32fc_t* cVector,
                                                         const lv_32fc_t* aVector,
                                                         const lv_32fc_t scalar,
                                                         unsigned int num_points)
 {
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_points / 2;
-
-    __m128 x, yl, yh, z, tmp1, tmp2;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-
-    // Set up constant scalar vector
-    yl = _mm_set_ps1(lv_creal(scalar));
-    yh = _mm_set_ps1(lv_cimag(scalar));
-
-    for (; number < halfPoints; number++) {
-
-        x = _mm_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-
-        tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-        x = _mm_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm_addsub_ps(tmp1,
-                          tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        _mm_store_ps((float*)c, z); // Store the results back into the C container
-
-        a += 2;
-        c += 2;
-    }
-
-    if ((num_points % 2) != 0) {
-        *c = (*a) * scalar;
-    }
+    volk_32fc_s32fc_multiply2_32fc_a_sse3(cVector, aVector, &scalar, num_points);
 }
 #endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_NEON
-#include <arm_neon.h>
 
 static inline void volk_32fc_s32fc_multiply_32fc_neon(lv_32fc_t* cVector,
                                                       const lv_32fc_t* aVector,
                                                       const lv_32fc_t scalar,
                                                       unsigned int num_points)
 {
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    unsigned int number = num_points;
-    unsigned int quarter_points = num_points / 4;
-
-    float32x4x2_t a_val, scalar_val;
-    float32x4x2_t tmp_imag;
-
-    scalar_val.val[0] = vld1q_dup_f32((const float*)&scalar);
-    scalar_val.val[1] = vld1q_dup_f32(((const float*)&scalar) + 1);
-    for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)aPtr);
-        tmp_imag.val[1] = vmulq_f32(a_val.val[1], scalar_val.val[0]);
-        tmp_imag.val[0] = vmulq_f32(a_val.val[0], scalar_val.val[0]);
-
-        tmp_imag.val[1] = vmlaq_f32(tmp_imag.val[1], a_val.val[0], scalar_val.val[1]);
-        tmp_imag.val[0] = vmlsq_f32(tmp_imag.val[0], a_val.val[1], scalar_val.val[1]);
-
-        vst2q_f32((float*)cPtr, tmp_imag);
-        aPtr += 4;
-        cPtr += 4;
-    }
-
-    for (number = quarter_points * 4; number < num_points; number++) {
-        *cPtr++ = *aPtr++ * scalar;
-    }
+    volk_32fc_s32fc_multiply2_32fc_neon(cVector, aVector, &scalar, num_points);
 }
 #endif /* LV_HAVE_NEON */
 

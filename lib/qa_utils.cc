@@ -355,7 +355,7 @@ inline void run_cast_test1_s32fc(volk_fn_1arg_s32fc func,
                                  std::string arch)
 {
     while (iter--)
-        func(buffs[0], scalar, vlen, arch.c_str());
+        func(buffs[0], &scalar, vlen, arch.c_str());
 }
 
 inline void run_cast_test2_s32fc(volk_fn_2arg_s32fc func,
@@ -366,7 +366,7 @@ inline void run_cast_test2_s32fc(volk_fn_2arg_s32fc func,
                                  std::string arch)
 {
     while (iter--)
-        func(buffs[0], buffs[1], scalar, vlen, arch.c_str());
+        func(buffs[0], buffs[1], &scalar, vlen, arch.c_str());
 }
 
 inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func,
@@ -377,7 +377,7 @@ inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func,
                                  std::string arch)
 {
     while (iter--)
-        func(buffs[0], buffs[1], buffs[2], scalar, vlen, arch.c_str());
+        func(buffs[0], buffs[1], buffs[2], &scalar, vlen, arch.c_str());
 }
 
 template <class t>

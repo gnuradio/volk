@@ -55,8 +55,8 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_PUPP(volk_32u_byteswappuppet_32u, volk_32u_byteswap, test_params))
     QA(VOLK_INIT_PUPP(volk_32u_popcntpuppet_32u, volk_32u_popcnt_32u, test_params))
     QA(VOLK_INIT_PUPP(volk_64u_byteswappuppet_64u, volk_64u_byteswap, test_params))
-    QA(VOLK_INIT_PUPP(volk_32fc_s32fc_rotatorpuppet_32fc,
-                      volk_32fc_s32fc_x2_rotator_32fc,
+    QA(VOLK_INIT_PUPP(volk_32fc_s32fc_rotator2puppet_32fc,
+                      volk_32fc_s32fc_x2_rotator2_32fc,
                       test_params_rotator))
     QA(VOLK_INIT_PUPP(
         volk_8u_conv_k7_r2puppet_8u, volk_8u_x4_conv_k7_r2_8u, test_params.make_tol(0)))
@@ -159,14 +159,14 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_8ic_x2_s32f_multiply_conjugate_32fc, test_params))
     QA(VOLK_INIT_TEST(volk_8i_convert_16i, test_params))
     QA(VOLK_INIT_TEST(volk_8i_s32f_convert_32f, test_params))
-    QA(VOLK_INIT_TEST(volk_32fc_s32fc_multiply_32fc, test_params))
+    QA(VOLK_INIT_TEST(volk_32fc_s32fc_multiply2_32fc, test_params))
     QA(VOLK_INIT_TEST(volk_32f_s32f_multiply_32f, test_params))
     QA(VOLK_INIT_TEST(volk_32f_s32f_add_32f, test_params))
     QA(VOLK_INIT_TEST(volk_32f_binary_slicer_32i, test_params))
     QA(VOLK_INIT_TEST(volk_32f_binary_slicer_8i, test_params))
     QA(VOLK_INIT_TEST(volk_32u_reverse_32u, test_params))
     QA(VOLK_INIT_TEST(volk_32f_tanh_32f, test_params_inacc))
-    QA(VOLK_INIT_TEST(volk_32fc_x2_s32fc_multiply_conjugate_add_32fc, test_params))
+    QA(VOLK_INIT_TEST(volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc, test_params))
     QA(VOLK_INIT_TEST(volk_32f_exp_32f, test_params))
     QA(VOLK_INIT_PUPP(
         volk_32f_s32f_mod_rangepuppet_32f, volk_32f_s32f_s32f_mod_range_32f, test_params))

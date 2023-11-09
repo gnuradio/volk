@@ -50,7 +50,9 @@
 \li \subpage volk_32f_cos_32f
 \li \subpage volk_32fc_s32f_atan2_32f
 \li \subpage volk_32fc_s32fc_multiply_32fc
+\li \subpage volk_32fc_s32fc_multiply2_32fc
 \li \subpage volk_32fc_s32fc_x2_rotator_32fc
+\li \subpage volk_32fc_s32fc_x2_rotator2_32fc
 \li \subpage volk_32fc_s32f_deinterleave_real_16i
 \li \subpage volk_32fc_s32f_magnitude_16i
 \li \subpage volk_32fc_s32f_power_32fc
@@ -63,6 +65,7 @@
 \li \subpage volk_32fc_x2_multiply_32fc
 \li \subpage volk_32fc_x2_multiply_conjugate_32fc
 \li \subpage volk_32fc_x2_s32fc_multiply_conjugate_add_32fc
+\li \subpage volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc
 \li \subpage volk_32fc_x2_s32f_square_dist_scalar_mult_32f
 \li \subpage volk_32fc_x2_square_dist_32f
 \li \subpage volk_32f_exp_32f
