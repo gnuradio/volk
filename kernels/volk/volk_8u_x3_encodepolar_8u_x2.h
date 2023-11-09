@@ -8,7 +8,7 @@
  */
 
 /*!
- * \page volk_8u_x3_encodepolar_8u
+ * \page volk_8u_x3_encodepolar_8u_x2
  *
  * \b Overview
  *
@@ -16,7 +16,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_8u_x3_encodepolar_8u(unsigned char* frame, const unsigned char*
+ * void volk_8u_x3_encodepolar_8u_x2(unsigned char* frame, const unsigned char*
  * frozen_bit_mask, const unsigned char* frozen_bits, const unsigned char* info_bits,
  * unsigned int frame_size, unsigned int info_bit_size) \endcode
  *
@@ -51,8 +51,8 @@
  *
  * unsigned char* info_bits = get_info_bits_to_encode(num_info_bits);
  *
- * volk_8u_x3_encodepolar_8u_x2_generic(frame, temp, frozen_bit_mask, frozen_bits,
- * info_bits, frame_size);
+ * volk_8u_x3_encodepolar_8u_x2(
+ *     frame, temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
  *
  * volk_free(frozen_bit_mask);
  * volk_free(frozen_bits);
