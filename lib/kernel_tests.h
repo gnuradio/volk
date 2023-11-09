@@ -53,7 +53,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt, test_params))
     QA(VOLK_INIT_PUPP(volk_16u_byteswappuppet_16u, volk_16u_byteswap, test_params))
     QA(VOLK_INIT_PUPP(volk_32u_byteswappuppet_32u, volk_32u_byteswap, test_params))
-    QA(VOLK_INIT_PUPP(volk_32u_popcntpuppet_32u, volk_32u_popcnt_32u, test_params))
+    QA(VOLK_INIT_PUPP(volk_32u_popcntpuppet_32u, volk_32u_popcnt, test_params))
     QA(VOLK_INIT_PUPP(volk_64u_byteswappuppet_64u, volk_64u_byteswap, test_params))
     QA(VOLK_INIT_PUPP(volk_32fc_s32fc_rotatorpuppet_32fc,
                       volk_32fc_s32fc_x2_rotator_32fc,
