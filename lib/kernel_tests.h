@@ -49,6 +49,10 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     test_params_rotator.set_scalar(std::polar(1.0f, 0.1f));
     test_params_rotator.set_tol(1e-3);
 
+    volk_test_params_t test_params_snf(test_params);
+    test_params_snf.set_scalar(0.5);
+    test_params_snf.set_tol(1e-4);
+
     std::vector<volk_test_case_t> test_cases;
     QA(VOLK_INIT_PUPP(volk_64u_popcntpuppet_64u, volk_64u_popcnt, test_params))
     QA(VOLK_INIT_PUPP(volk_16u_byteswappuppet_16u, volk_16u_byteswap, test_params))
@@ -93,7 +97,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32f_asin_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_acos_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32fc_s32f_power_32fc, test_params_power))
-    QA(VOLK_INIT_TEST(volk_32f_s32f_calc_spectral_noise_floor_32f, test_params_inacc))
+    QA(VOLK_INIT_TEST(volk_32f_s32f_calc_spectral_noise_floor_32f, test_params_snf))
     QA(VOLK_INIT_TEST(volk_32fc_s32f_atan2_32f, test_params))
     QA(VOLK_INIT_TEST(volk_32fc_x2_conjugate_dot_prod_32fc, test_params_inacc_tenth))
     QA(VOLK_INIT_TEST(volk_32fc_deinterleave_32f_x2, test_params))
