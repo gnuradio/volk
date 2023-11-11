@@ -84,7 +84,7 @@ void load_random_data(void* data, volk_type_t type, unsigned int n)
             break;
         case 2:
             if (type.is_signed) {
-                std::uniform_int_distribution<int16_t> uniform_dist(-7, 7);
+                std::uniform_int_distribution<int16_t> uniform_dist(-6, 6);
                 for (unsigned int i = 0; i < n; i++)
                     ((int16_t*)data)[i] = uniform_dist(rnd_engine);
             } else {
