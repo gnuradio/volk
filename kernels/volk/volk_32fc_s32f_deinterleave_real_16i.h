@@ -100,7 +100,6 @@ volk_32fc_s32f_deinterleave_real_16i_a_avx2(int16_t* iBuffer,
 
         iValue = _mm256_mul_ps(iValue, vScalar);
 
-        iValue = _mm256_round_ps(iValue, _MM_FROUND_TO_ZERO);
         a = _mm256_cvtps_epi32(iValue);
         a = _mm256_packs_epi32(a, a);
         a = _mm256_permutevar8x32_epi32(a, idx);
@@ -113,7 +112,7 @@ volk_32fc_s32f_deinterleave_real_16i_a_avx2(int16_t* iBuffer,
     number = eighthPoints * 8;
     iBufferPtr = &iBuffer[number];
     for (; number < num_points; number++) {
-        *iBufferPtr++ = (int16_t)(*complexVectorPtr++ * scalar);
+        *iBufferPtr++ = (int16_t)rintf(*complexVectorPtr++ * scalar);
         complexVectorPtr++;
     }
 }
@@ -155,16 +154,16 @@ volk_32fc_s32f_deinterleave_real_16i_a_sse(int16_t* iBuffer,
         iValue = _mm_mul_ps(iValue, vScalar);
 
         _mm_store_ps(floatBuffer, iValue);
-        *iBufferPtr++ = (int16_t)(floatBuffer[0]);
-        *iBufferPtr++ = (int16_t)(floatBuffer[1]);
-        *iBufferPtr++ = (int16_t)(floatBuffer[2]);
-        *iBufferPtr++ = (int16_t)(floatBuffer[3]);
+        *iBufferPtr++ = (int16_t)rintf(floatBuffer[0]);
+        *iBufferPtr++ = (int16_t)rintf(floatBuffer[1]);
+        *iBufferPtr++ = (int16_t)rintf(floatBuffer[2]);
+        *iBufferPtr++ = (int16_t)rintf(floatBuffer[3]);
     }
 
     number = quarterPoints * 4;
     iBufferPtr = &iBuffer[number];
     for (; number < num_points; number++) {
-        *iBufferPtr++ = (int16_t)(*complexVectorPtr++ * scalar);
+        *iBufferPtr++ = (int16_t)rintf(*complexVectorPtr++ * scalar);
         complexVectorPtr++;
     }
 }
@@ -184,7 +183,7 @@ volk_32fc_s32f_deinterleave_real_16i_generic(int16_t* iBuffer,
     int16_t* iBufferPtr = iBuffer;
     unsigned int number = 0;
     for (number = 0; number < num_points; number++) {
-        *iBufferPtr++ = (int16_t)(*complexVectorPtr++ * scalar);
+        *iBufferPtr++ = (int16_t)rintf(*complexVectorPtr++ * scalar);
         complexVectorPtr++;
     }
 }
@@ -235,7 +234,6 @@ volk_32fc_s32f_deinterleave_real_16i_u_avx2(int16_t* iBuffer,
 
         iValue = _mm256_mul_ps(iValue, vScalar);
 
-        iValue = _mm256_round_ps(iValue, _MM_FROUND_TO_ZERO);
         a = _mm256_cvtps_epi32(iValue);
         a = _mm256_packs_epi32(a, a);
         a = _mm256_permutevar8x32_epi32(a, idx);
@@ -248,7 +246,7 @@ volk_32fc_s32f_deinterleave_real_16i_u_avx2(int16_t* iBuffer,
     number = eighthPoints * 8;
     iBufferPtr = &iBuffer[number];
     for (; number < num_points; number++) {
-        *iBufferPtr++ = (int16_t)(*complexVectorPtr++ * scalar);
+        *iBufferPtr++ = (int16_t)rintf(*complexVectorPtr++ * scalar);
         complexVectorPtr++;
     }
 }
