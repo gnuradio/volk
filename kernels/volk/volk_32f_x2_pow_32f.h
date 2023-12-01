@@ -16,6 +16,8 @@
  *
  * c[i] = pow(a[i], b[i])
  *
+ * Note that the aVector values must be positive; otherwise the output may be inaccurate.
+ *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_32f_x2_pow_32f(float* cVector, const float* bVector, const float* aVector,
