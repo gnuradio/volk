@@ -1,6 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2015 Free Software Foundation, Inc.
+ * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -16,6 +17,20 @@
 #define INCLUDE_VOLK_VOLK_AVX2_INTRINSICS_H_
 #include "volk/volk_avx_intrinsics.h"
 #include <immintrin.h>
+
+static inline __m256 _mm256_real(const __m256 z1, const __m256 z2)
+{
+    const __m256i permute_mask = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
+    __m256 r = _mm256_shuffle_ps(z1, z2, _MM_SHUFFLE(2, 0, 2, 0));
+    return _mm256_permutevar8x32_ps(r, permute_mask);
+}
+
+static inline __m256 _mm256_imag(const __m256 z1, const __m256 z2)
+{
+    const __m256i permute_mask = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
+    __m256 i = _mm256_shuffle_ps(z1, z2, _MM_SHUFFLE(3, 1, 3, 1));
+    return _mm256_permutevar8x32_ps(i, permute_mask);
+}
 
 static inline __m256 _mm256_polar_sign_mask_avx2(__m128i fbits)
 {
