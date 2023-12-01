@@ -8,7 +8,7 @@
  */
 
 /*!
- * \page volk_32fc_s32f_x2_clamp_32f
+ * \page volk_32f_s32f_x2_clamp_32f
  *
  * \b Overview
  *
