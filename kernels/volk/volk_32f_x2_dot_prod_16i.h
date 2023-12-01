@@ -67,7 +67,7 @@ static inline void volk_32f_x2_dot_prod_16i_generic(int16_t* result,
         dotProduct += ((*aPtr++) * (*bPtr++));
     }
 
-    *result = (int16_t)dotProduct;
+    *result = (int16_t)rintf(dotProduct);
 }
 
 #endif /*LV_HAVE_GENERIC*/
@@ -141,7 +141,7 @@ static inline void volk_32f_x2_dot_prod_16i_a_sse(int16_t* result,
         dotProduct += ((*aPtr++) * (*bPtr++));
     }
 
-    *result = (short)dotProduct;
+    *result = (short)rintf(dotProduct);
 }
 
 #endif /*LV_HAVE_SSE*/
@@ -213,7 +213,7 @@ static inline void volk_32f_x2_dot_prod_16i_a_avx2_fma(int16_t* result,
         dotProduct += ((*aPtr++) * (*bPtr++));
     }
 
-    *result = (short)dotProduct;
+    *result = (short)rintf(dotProduct);
 }
 
 #endif /*LV_HAVE_AVX2 && LV_HAVE_FMA*/
@@ -291,7 +291,7 @@ static inline void volk_32f_x2_dot_prod_16i_a_avx(int16_t* result,
         dotProduct += ((*aPtr++) * (*bPtr++));
     }
 
-    *result = (short)dotProduct;
+    *result = (short)rintf(dotProduct);
 }
 
 #endif /*LV_HAVE_AVX*/
@@ -370,7 +370,7 @@ static inline void volk_32f_x2_dot_prod_16i_a_avx512f(int16_t* result,
         dotProduct += ((*aPtr++) * (*bPtr++));
     }
 
-    *result = (short)dotProduct;
+    *result = (short)rintf(dotProduct);
 }
 
 #endif /*LV_HAVE_AVX512F*/
@@ -444,7 +444,7 @@ static inline void volk_32f_x2_dot_prod_16i_u_sse(int16_t* result,
         dotProduct += ((*aPtr++) * (*bPtr++));
     }
 
-    *result = (short)dotProduct;
+    *result = (short)rintf(dotProduct);
 }
 
 #endif /*LV_HAVE_SSE*/
@@ -516,7 +516,7 @@ static inline void volk_32f_x2_dot_prod_16i_u_avx2_fma(int16_t* result,
         dotProduct += ((*aPtr++) * (*bPtr++));
     }
 
-    *result = (short)dotProduct;
+    *result = (short)rintf(dotProduct);
 }
 
 #endif /*LV_HAVE_AVX2 && lV_HAVE_FMA*/
@@ -594,7 +594,7 @@ static inline void volk_32f_x2_dot_prod_16i_u_avx(int16_t* result,
         dotProduct += ((*aPtr++) * (*bPtr++));
     }
 
-    *result = (short)dotProduct;
+    *result = (short)rintf(dotProduct);
 }
 
 #endif /*LV_HAVE_AVX*/
@@ -673,7 +673,7 @@ static inline void volk_32f_x2_dot_prod_16i_u_avx512f(int16_t* result,
         dotProduct += ((*aPtr++) * (*bPtr++));
     }
 
-    *result = (short)dotProduct;
+    *result = (short)rintf(dotProduct);
 }
 
 #endif /*LV_HAVE_AVX512F*/
