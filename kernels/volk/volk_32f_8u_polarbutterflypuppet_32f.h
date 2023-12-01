@@ -81,6 +81,8 @@ static inline void volk_32f_8u_polarbutterflypuppet_32f_generic(float* llrs,
                                                                 unsigned char* u,
                                                                 const int elements)
 {
+    (void)input; // suppress unused parameter warning
+
     if (elements < 2) {
         return;
     }
@@ -108,6 +110,8 @@ static inline void volk_32f_8u_polarbutterflypuppet_32f_u_avx(float* llrs,
                                                               unsigned char* u,
                                                               const int elements)
 {
+    (void)input; // suppress unused parameter warning
+
     if (elements < 2) {
         return;
     }
@@ -135,6 +139,8 @@ static inline void volk_32f_8u_polarbutterflypuppet_32f_u_avx2(float* llrs,
                                                                unsigned char* u,
                                                                const int elements)
 {
+    (void)input; // suppress unused parameter warning
+
     if (elements < 2) {
         return;
     }
