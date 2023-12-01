@@ -114,7 +114,6 @@ jobs:
           submodules: 'recursive'
       - uses: uraimo/run-on-arch-action@v2.5.0
         name: Build in non-x86 container
-        continue-on-error: ${{ contains(fromJson('["ppc64le", "s390x"]'), matrix.arch) }}
         id: build
         with:
           arch: ${{ matrix.arch }}
@@ -153,7 +152,9 @@ jobs:
             cmake -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
             echo "Build with $(nproc) thread(s)"
             make -j$(nproc)
-            ./cpu_features/list_cpu_features
+            if [ -f ./cpu_features/list_cpu_features ]; then
+              ./cpu_features/list_cpu_features
+            fi
             ./apps/volk-config-info --alignment
             ./apps/volk-config-info --avail-machines
             ./apps/volk-config-info --all-machines
