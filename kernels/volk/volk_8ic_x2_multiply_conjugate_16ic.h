@@ -11,6 +11,7 @@
 #define INCLUDED_volk_8ic_x2_multiply_conjugate_16ic_a_H
 
 #include <inttypes.h>
+#include <limits.h>
 #include <stdio.h>
 #include <volk/volk_complex.h>
 
@@ -81,7 +82,7 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_a_avx2(lv_16sc_t* cVector
         lv_32fc_t bVal = lv_cmake(bReal, -bImag);
         lv_32fc_t temp = aVal * bVal;
 
-        *c16Ptr++ = (int16_t)lv_creal(temp);
+        *c16Ptr++ = (int16_t)(lv_creal(temp) > SHRT_MAX ? SHRT_MAX : lv_creal(temp));
         *c16Ptr++ = (int16_t)lv_cimag(temp);
     }
 }
@@ -152,7 +153,7 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_a_sse4_1(lv_16sc_t* cVect
         lv_32fc_t bVal = lv_cmake(bReal, -bImag);
         lv_32fc_t temp = aVal * bVal;
 
-        *c16Ptr++ = (int16_t)lv_creal(temp);
+        *c16Ptr++ = (int16_t)(lv_creal(temp) > SHRT_MAX ? SHRT_MAX : lv_creal(temp));
         *c16Ptr++ = (int16_t)lv_cimag(temp);
     }
 }
@@ -185,7 +186,7 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_generic(lv_16sc_t* cVecto
         lv_32fc_t bVal = lv_cmake(bReal, -bImag);
         lv_32fc_t temp = aVal * bVal;
 
-        *c16Ptr++ = (int16_t)lv_creal(temp);
+        *c16Ptr++ = (int16_t)(lv_creal(temp) > SHRT_MAX ? SHRT_MAX : lv_creal(temp));
         *c16Ptr++ = (int16_t)lv_cimag(temp);
     }
 }
@@ -267,7 +268,7 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_u_avx2(lv_16sc_t* cVector
         lv_32fc_t bVal = lv_cmake(bReal, -bImag);
         lv_32fc_t temp = aVal * bVal;
 
-        *c16Ptr++ = (int16_t)lv_creal(temp);
+        *c16Ptr++ = (int16_t)(lv_creal(temp) > SHRT_MAX ? SHRT_MAX : lv_creal(temp));
         *c16Ptr++ = (int16_t)lv_cimag(temp);
     }
 }
