@@ -11,6 +11,7 @@
 #include <fmt/ranges.h>
 #include <gtest/gtest.h>
 #include <volk/volk.h>
+#include <algorithm>
 #include <tuple>
 
 

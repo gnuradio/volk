@@ -51,6 +51,7 @@ protected:
     {
         volk_32fc_x2_multiply_32fc_manual(
             result.data(), vec0.data(), vec1.data(), vector_length, impl_name.c_str());
+        EXPECT_TRUE(AreComplexFloatingPointArraysAlmostEqual(expected, result));
     }
 
     void execute_unaligned(const std::string impl_name)
@@ -91,6 +92,9 @@ TEST_P(volk_32fc_x2_multiply_32fc_test, aligned)
 TEST_P(volk_32fc_x2_multiply_32fc_test, unaligned)
 {
     for (auto name : unaligned_impl_names) {
+        RecordProperty("aligned", false);
+        RecordProperty("implementation", name);
+        RecordProperty("size", vector_length);
         fmt::print(
             "test unaligned implementation: {:>12}, size={} ...", name, vector_length);
         auto start = std::chrono::steady_clock::now();
@@ -106,4 +110,9 @@ TEST_P(volk_32fc_x2_multiply_32fc_test, unaligned)
 
 INSTANTIATE_TEST_SUITE_P(volk_32fc_x2_multiply_32fc,
                          volk_32fc_x2_multiply_32fc_test,
-                         testing::Values(7, 32, 128, 1023, 131071));
+                         testing::Values(7, 32, 128, 1023, 131071),
+                         testing::PrintToStringParamName()
+                         // [](const testing::TestParamInfo<int>& info) {
+                         //  return fmt::format("{}", info.param);
+                         // }
+);
