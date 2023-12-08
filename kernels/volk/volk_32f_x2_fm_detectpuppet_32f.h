@@ -20,7 +20,7 @@ static inline void volk_32f_x2_fm_detectpuppet_32f_a_avx(float* outputVector,
                                                          float* saveValue,
                                                          unsigned int num_points)
 {
-    const float bound = 1.0f;
+    const float bound = 2.0f;
 
     volk_32f_s32f_32f_fm_detect_32f_a_avx(
         outputVector, inputVector, bound, saveValue, num_points);
@@ -35,7 +35,7 @@ static inline void volk_32f_x2_fm_detectpuppet_32f_a_sse(float* outputVector,
                                                          float* saveValue,
                                                          unsigned int num_points)
 {
-    const float bound = 1.0f;
+    const float bound = 2.0f;
 
     volk_32f_s32f_32f_fm_detect_32f_a_sse(
         outputVector, inputVector, bound, saveValue, num_points);
@@ -49,7 +49,7 @@ static inline void volk_32f_x2_fm_detectpuppet_32f_generic(float* outputVector,
                                                            float* saveValue,
                                                            unsigned int num_points)
 {
-    const float bound = 1.0f;
+    const float bound = 2.0f;
 
     volk_32f_s32f_32f_fm_detect_32f_generic(
         outputVector, inputVector, bound, saveValue, num_points);
@@ -73,7 +73,7 @@ static inline void volk_32f_x2_fm_detectpuppet_32f_u_avx(float* outputVector,
                                                          float* saveValue,
                                                          unsigned int num_points)
 {
-    const float bound = 1.0f;
+    const float bound = 2.0f;
 
     volk_32f_s32f_32f_fm_detect_32f_u_avx(
         outputVector, inputVector, bound, saveValue, num_points);
