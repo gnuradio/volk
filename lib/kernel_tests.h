@@ -64,8 +64,9 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
                       test_params_rotator))
     QA(VOLK_INIT_PUPP(
         volk_8u_conv_k7_r2puppet_8u, volk_8u_x4_conv_k7_r2_8u, test_params.make_tol(0)))
-    QA(VOLK_INIT_PUPP(
-        volk_32f_x2_fm_detectpuppet_32f, volk_32f_s32f_32f_fm_detect_32f, test_params))
+    QA(VOLK_INIT_PUPP(volk_32f_x2_fm_detectpuppet_32f,
+                      volk_32f_s32f_32f_fm_detect_32f,
+                      test_params.make_absolute(1e-6)))
     QA(VOLK_INIT_TEST(volk_16ic_s32f_deinterleave_real_32f, test_params))
     QA(VOLK_INIT_TEST(volk_16ic_deinterleave_real_8i, test_params))
     QA(VOLK_INIT_TEST(volk_16ic_deinterleave_16i_x2, test_params))
