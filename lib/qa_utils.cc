@@ -490,12 +490,12 @@ bool icompare(t* in1, t* in2, unsigned int vlen, unsigned int tol)
     bool fail = false;
     int print_max_errs = 10;
     for (unsigned int i = 0; i < vlen; i++) {
-        if (((unsigned int)abs(int(((t*)(in1))[i]) - int(((t*)(in2))[i]))) > tol) {
+        if (((uint64_t)abs(int64_t(((t*)(in1))[i]) - int64_t(((t*)(in2))[i]))) > tol) {
             fail = true;
             if (print_max_errs-- > 0) {
                 std::cout << "offset " << i
-                          << " in1: " << static_cast<int>(t(((t*)(in1))[i]))
-                          << " in2: " << static_cast<int>(t(((t*)(in2))[i]));
+                          << " in1: " << static_cast<int64_t>(t(((t*)(in1))[i]))
+                          << " in2: " << static_cast<int64_t>(t(((t*)(in2))[i]));
                 std::cout << " tolerance was: " << tol << std::endl;
             }
         }
