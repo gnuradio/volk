@@ -15,36 +15,6 @@
 #include <volk/volk_32fc_s32f_x2_power_spectral_density_32f.h>
 
 
-#ifdef LV_HAVE_AVX
-
-static inline void
-volk_32fc_s32f_power_spectral_densitypuppet_32f_a_avx(float* logPowerOutput,
-                                                      const lv_32fc_t* complexFFTInput,
-                                                      const float normalizationFactor,
-                                                      unsigned int num_points)
-{
-    volk_32fc_s32f_x2_power_spectral_density_32f_a_avx(
-        logPowerOutput, complexFFTInput, normalizationFactor, 2.5, num_points);
-}
-
-#endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_SSE3
-
-static inline void
-volk_32fc_s32f_power_spectral_densitypuppet_32f_a_sse3(float* logPowerOutput,
-                                                       const lv_32fc_t* complexFFTInput,
-                                                       const float normalizationFactor,
-                                                       unsigned int num_points)
-{
-    volk_32fc_s32f_x2_power_spectral_density_32f_a_sse3(
-        logPowerOutput, complexFFTInput, normalizationFactor, 2.5, num_points);
-}
-
-#endif /* LV_HAVE_SSE3 */
-
-
 #ifdef LV_HAVE_GENERIC
 
 static inline void
