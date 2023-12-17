@@ -57,19 +57,17 @@ typedef union {
 #endif
 
 
-static inline void renormalize(unsigned char* X, unsigned char threshold)
+static inline void renormalize(unsigned char* X)
 {
     int NUMSTATES = 64;
     int i;
 
     unsigned char min = X[0];
-    // if(min > threshold) {
     for (i = 0; i < NUMSTATES; i++)
         if (min > X[i])
             min = X[i];
     for (i = 0; i < NUMSTATES; i++)
         X[i] -= min;
-    //}
 }
 
 
@@ -298,7 +296,7 @@ static inline void BFLY(int i,
 //        }
 //    }
 //
-//    renormalize(X, 210);
+//    renormalize(X);
 //
 //    unsigned int j;
 //    for (j = 0; j < (framebits + excess) % 2; ++j) {
@@ -313,7 +311,7 @@ static inline void BFLY(int i,
 //                 Branchtab);
 //        }
 //
-//        renormalize(Y, 210);
+//        renormalize(Y);
 //    }
 //    /*skip*/
 //}
@@ -580,7 +578,7 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         ((__m128i*)X)[3] = _mm_subs_epu8(((__m128i*)X)[3], m13);
     }
 
-    renormalize(X, 210);
+    renormalize(X);
 
     /*int ch;
     for(ch = 0; ch < 64; ch++) {
@@ -602,7 +600,7 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         }
 
 
-        renormalize(Y, 210);
+        renormalize(Y);
 
         /*printf("\n");
         for(ch = 0; ch < 64; ch++) {
@@ -870,7 +868,7 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         ((__m128i*)X)[3] = _mm_subs_epu8(((__m128i*)X)[3], m13);
     }
 
-    renormalize(X, 210);
+    renormalize(X);
 
     /*int ch;
     for(ch = 0; ch < 64; ch++) {
@@ -892,7 +890,7 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         }
 
 
-        renormalize(Y, 210);
+        renormalize(Y);
 
         /*printf("\n");
         for(ch = 0; ch < 64; ch++) {
@@ -917,7 +915,6 @@ static inline void volk_8u_x4_conv_k7_r2_8u_generic(unsigned char* Y,
 {
     int nbits = framebits + excess;
     int NUMSTATES = 64;
-    int RENORMALIZE_THRESHOLD = 210;
 
     int s, i;
     for (s = 0; s < nbits; s++) {
@@ -926,7 +923,7 @@ static inline void volk_8u_x4_conv_k7_r2_8u_generic(unsigned char* Y,
             BFLY(i, s, syms, Y, X, (decision_t*)dec, Branchtab);
         }
 
-        renormalize(Y, RENORMALIZE_THRESHOLD);
+        renormalize(Y);
 
         ///     Swap pointers to old and new metrics
         tmp = (void*)X;
