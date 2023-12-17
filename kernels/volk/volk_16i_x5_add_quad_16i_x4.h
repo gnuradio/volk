@@ -116,43 +116,6 @@ static inline void volk_16i_x5_add_quad_16i_x4_a_sse2(short* target0,
         p_target2 += 1;
         p_target3 += 1;
     }
-    /*__VOLK_ASM __VOLK_VOLATILE
-      (
-      ".%=volk_16i_x5_add_quad_16i_x4_a_sse2_L1:\n\t"
-      "cmp $0, %[bound]\n\t"
-      "je .%=volk_16i_x5_add_quad_16i_x4_a_sse2_END\n\t"
-      "movaps (%[src0]), %%xmm1\n\t"
-      "movaps (%[src1]), %%xmm2\n\t"
-      "movaps (%[src2]), %%xmm3\n\t"
-      "movaps (%[src3]), %%xmm4\n\t"
-      "movaps (%[src4]), %%xmm5\n\t"
-      "add $16, %[src0]\n\t"
-      "add $16, %[src1]\n\t"
-      "add $16, %[src2]\n\t"
-      "add $16, %[src3]\n\t"
-      "add $16, %[src4]\n\t"
-      "paddw %%xmm1, %%xmm2\n\t"
-      "paddw %%xmm1, %%xmm3\n\t"
-      "paddw %%xmm1, %%xmm4\n\t"
-      "paddw %%xmm1, %%xmm5\n\t"
-      "add $-1, %[bound]\n\t"
-      "movaps %%xmm2, (%[target0])\n\t"
-      "movaps %%xmm3, (%[target1])\n\t"
-      "movaps %%xmm4, (%[target2])\n\t"
-      "movaps %%xmm5, (%[target3])\n\t"
-      "add $16, %[target0]\n\t"
-      "add $16, %[target1]\n\t"
-      "add $16, %[target2]\n\t"
-      "add $16, %[target3]\n\t"
-      "jmp .%=volk_16i_x5_add_quad_16i_x4_a_sse2_L1\n\t"
-      ".%=volk_16i_x5_add_quad_16i_x4_a_sse2_END:\n\t"
-      :
-      :[bound]"r"(bound), [src0]"r"(src0), [src1]"r"(src1), [src2]"r"(src2),
-      [src3]"r"(src3), [src4]"r"(src4), [target0]"r"(target0), [target1]"r"(target1),
-      [target2]"r"(target2), [target3]"r"(target3)
-      :"xmm1", "xmm2", "xmm3", "xmm4", "xmm5"
-      );
-    */
 
     for (i = bound * 8; i < (bound * 8) + leftovers; ++i) {
         target0[i] = src0[i] + src1[i];
