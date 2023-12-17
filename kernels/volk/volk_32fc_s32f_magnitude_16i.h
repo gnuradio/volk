@@ -76,11 +76,10 @@ static inline void volk_32fc_s32f_magnitude_16i_generic(int16_t* magnitudeVector
     int16_t* magnitudeVectorPtr = magnitudeVector;
     unsigned int number = 0;
     for (number = 0; number < num_points; number++) {
-        __VOLK_VOLATILE float real = *complexVectorPtr++;
-        __VOLK_VOLATILE float imag = *complexVectorPtr++;
-        real *= real;
-        imag *= imag;
-        *magnitudeVectorPtr++ = (int16_t)rintf(scalar * sqrtf(real + imag));
+        float real = *complexVectorPtr++;
+        float imag = *complexVectorPtr++;
+        *magnitudeVectorPtr++ =
+            (int16_t)rintf(scalar * sqrtf((real * real) + (imag * imag)));
     }
 }
 #endif /* LV_HAVE_GENERIC */
@@ -219,10 +218,8 @@ static inline void volk_32fc_s32f_magnitude_16i_a_sse(int16_t* magnitudeVector,
         // Arrange in q1q2q3q4 format
         qValue = _mm_shuffle_ps(cplxValue1, cplxValue2, _MM_SHUFFLE(3, 1, 3, 1));
 
-        __VOLK_VOLATILE __m128 iValue2 =
-            _mm_mul_ps(iValue, iValue); // Square the I values
-        __VOLK_VOLATILE __m128 qValue2 =
-            _mm_mul_ps(qValue, qValue); // Square the Q Values
+        __m128 iValue2 = _mm_mul_ps(iValue, iValue); // Square the I values
+        __m128 qValue2 = _mm_mul_ps(qValue, qValue); // Square the Q Values
 
         result = _mm_add_ps(iValue2, qValue2); // Add the I2 and Q2 values
 
