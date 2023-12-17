@@ -85,16 +85,17 @@ static inline void BFLY(int i,
     int j;
     unsigned int decision0, decision1;
     unsigned char metric, m0, m1, m2, m3;
+    unsigned short metricsum;
 
     int NUMSTATES = 64;
     int RATE = 2;
-    int METRICSHIFT = 2;
+    int METRICSHIFT = 1;
     int PRECISIONSHIFT = 2;
 
-    metric = 0;
+    metricsum = 1;
     for (j = 0; j < RATE; j++)
-        metric += (Branchtab[i + j * NUMSTATES / 2] ^ syms[s * RATE + j]) >> METRICSHIFT;
-    metric = metric >> PRECISIONSHIFT;
+        metricsum += (Branchtab[i + j * NUMSTATES / 2] ^ syms[s * RATE + j]);
+    metric = (metricsum >> METRICSHIFT) >> PRECISIONSHIFT;
 
     unsigned char max = ((RATE * ((256 - 1) >> METRICSHIFT)) >> PRECISIONSHIFT);
 
@@ -103,8 +104,8 @@ static inline void BFLY(int i,
     m2 = X[i] + (max - metric);
     m3 = X[i + NUMSTATES / 2] + metric;
 
-    decision0 = (signed int)(m0 - m1) > 0;
-    decision1 = (signed int)(m2 - m3) > 0;
+    decision0 = (signed int)(m0 - m1) >= 0;
+    decision1 = (signed int)(m2 - m3) >= 0;
 
     Y[2 * i] = decision0 ? m1 : m0;
     Y[2 * i + 1] = decision1 ? m3 : m2;
@@ -438,27 +439,25 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         *(a112) = s28;
         a113 = (a95 + 3);
         *(a113) = s29;
-        if ((((unsigned char*)Y)[0] > 210)) {
-            __m128i m5, m6;
-            m5 = ((__m128i*)Y)[0];
-            m5 = _mm_min_epu8(m5, ((__m128i*)Y)[1]);
-            m5 = _mm_min_epu8(m5, ((__m128i*)Y)[2]);
-            m5 = _mm_min_epu8(m5, ((__m128i*)Y)[3]);
-            __m128i m7;
-            m7 = _mm_min_epu8(_mm_srli_si128(m5, 8), m5);
-            m7 =
-                ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 32)), ((__m128i)m7)));
-            m7 =
-                ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 16)), ((__m128i)m7)));
-            m7 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 8)), ((__m128i)m7)));
-            m7 = _mm_unpacklo_epi8(m7, m7);
-            m7 = _mm_shufflelo_epi16(m7, _MM_SHUFFLE(0, 0, 0, 0));
-            m6 = _mm_unpacklo_epi64(m7, m7);
-            ((__m128i*)Y)[0] = _mm_subs_epu8(((__m128i*)Y)[0], m6);
-            ((__m128i*)Y)[1] = _mm_subs_epu8(((__m128i*)Y)[1], m6);
-            ((__m128i*)Y)[2] = _mm_subs_epu8(((__m128i*)Y)[2], m6);
-            ((__m128i*)Y)[3] = _mm_subs_epu8(((__m128i*)Y)[3], m6);
-        }
+
+        __m128i m5, m6;
+        m5 = ((__m128i*)Y)[0];
+        m5 = _mm_min_epu8(m5, ((__m128i*)Y)[1]);
+        m5 = _mm_min_epu8(m5, ((__m128i*)Y)[2]);
+        m5 = _mm_min_epu8(m5, ((__m128i*)Y)[3]);
+        __m128i m7;
+        m7 = _mm_min_epu8(_mm_srli_si128(m5, 8), m5);
+        m7 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 32)), ((__m128i)m7)));
+        m7 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 16)), ((__m128i)m7)));
+        m7 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 8)), ((__m128i)m7)));
+        m7 = _mm_unpacklo_epi8(m7, m7);
+        m7 = _mm_shufflelo_epi16(m7, _MM_SHUFFLE(0, 0, 0, 0));
+        m6 = _mm_unpacklo_epi64(m7, m7);
+        ((__m128i*)Y)[0] = _mm_subs_epu8(((__m128i*)Y)[0], m6);
+        ((__m128i*)Y)[1] = _mm_subs_epu8(((__m128i*)Y)[1], m6);
+        ((__m128i*)Y)[2] = _mm_subs_epu8(((__m128i*)Y)[2], m6);
+        ((__m128i*)Y)[3] = _mm_subs_epu8(((__m128i*)Y)[3], m6);
+
         unsigned char a188, a194;
         int a186, a205;
         short int s48, s49, s54, s55;
@@ -561,28 +560,24 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         *(a225) = s56;
         a226 = (a208 + 3);
         *(a226) = s57;
-        if ((((unsigned char*)X)[0] > 210)) {
-            __m128i m12, m13;
-            m12 = ((__m128i*)X)[0];
-            m12 = _mm_min_epu8(m12, ((__m128i*)X)[1]);
-            m12 = _mm_min_epu8(m12, ((__m128i*)X)[2]);
-            m12 = _mm_min_epu8(m12, ((__m128i*)X)[3]);
-            __m128i m14;
-            m14 = _mm_min_epu8(_mm_srli_si128(m12, 8), m12);
-            m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 32)),
-                                         ((__m128i)m14)));
-            m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 16)),
-                                         ((__m128i)m14)));
-            m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 8)),
-                                         ((__m128i)m14)));
-            m14 = _mm_unpacklo_epi8(m14, m14);
-            m14 = _mm_shufflelo_epi16(m14, _MM_SHUFFLE(0, 0, 0, 0));
-            m13 = _mm_unpacklo_epi64(m14, m14);
-            ((__m128i*)X)[0] = _mm_subs_epu8(((__m128i*)X)[0], m13);
-            ((__m128i*)X)[1] = _mm_subs_epu8(((__m128i*)X)[1], m13);
-            ((__m128i*)X)[2] = _mm_subs_epu8(((__m128i*)X)[2], m13);
-            ((__m128i*)X)[3] = _mm_subs_epu8(((__m128i*)X)[3], m13);
-        }
+
+        __m128i m12, m13;
+        m12 = ((__m128i*)X)[0];
+        m12 = _mm_min_epu8(m12, ((__m128i*)X)[1]);
+        m12 = _mm_min_epu8(m12, ((__m128i*)X)[2]);
+        m12 = _mm_min_epu8(m12, ((__m128i*)X)[3]);
+        __m128i m14;
+        m14 = _mm_min_epu8(_mm_srli_si128(m12, 8), m12);
+        m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 32)), ((__m128i)m14)));
+        m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 16)), ((__m128i)m14)));
+        m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 8)), ((__m128i)m14)));
+        m14 = _mm_unpacklo_epi8(m14, m14);
+        m14 = _mm_shufflelo_epi16(m14, _MM_SHUFFLE(0, 0, 0, 0));
+        m13 = _mm_unpacklo_epi64(m14, m14);
+        ((__m128i*)X)[0] = _mm_subs_epu8(((__m128i*)X)[0], m13);
+        ((__m128i*)X)[1] = _mm_subs_epu8(((__m128i*)X)[1], m13);
+        ((__m128i*)X)[2] = _mm_subs_epu8(((__m128i*)X)[2], m13);
+        ((__m128i*)X)[3] = _mm_subs_epu8(((__m128i*)X)[3], m13);
     }
 
     renormalize(X, 210);
@@ -734,27 +729,25 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         *(a112) = s28;
         a113 = (a95 + 3);
         *(a113) = s29;
-        if ((((unsigned char*)Y)[0] > 210)) {
-            __m128i m5, m6;
-            m5 = ((__m128i*)Y)[0];
-            m5 = _mm_min_epu8(m5, ((__m128i*)Y)[1]);
-            m5 = _mm_min_epu8(m5, ((__m128i*)Y)[2]);
-            m5 = _mm_min_epu8(m5, ((__m128i*)Y)[3]);
-            __m128i m7;
-            m7 = _mm_min_epu8(_mm_srli_si128(m5, 8), m5);
-            m7 =
-                ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 32)), ((__m128i)m7)));
-            m7 =
-                ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 16)), ((__m128i)m7)));
-            m7 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 8)), ((__m128i)m7)));
-            m7 = _mm_unpacklo_epi8(m7, m7);
-            m7 = _mm_shufflelo_epi16(m7, _MM_SHUFFLE(0, 0, 0, 0));
-            m6 = _mm_unpacklo_epi64(m7, m7);
-            ((__m128i*)Y)[0] = _mm_subs_epu8(((__m128i*)Y)[0], m6);
-            ((__m128i*)Y)[1] = _mm_subs_epu8(((__m128i*)Y)[1], m6);
-            ((__m128i*)Y)[2] = _mm_subs_epu8(((__m128i*)Y)[2], m6);
-            ((__m128i*)Y)[3] = _mm_subs_epu8(((__m128i*)Y)[3], m6);
-        }
+
+        __m128i m5, m6;
+        m5 = ((__m128i*)Y)[0];
+        m5 = _mm_min_epu8(m5, ((__m128i*)Y)[1]);
+        m5 = _mm_min_epu8(m5, ((__m128i*)Y)[2]);
+        m5 = _mm_min_epu8(m5, ((__m128i*)Y)[3]);
+        __m128i m7;
+        m7 = _mm_min_epu8(_mm_srli_si128(m5, 8), m5);
+        m7 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 32)), ((__m128i)m7)));
+        m7 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 16)), ((__m128i)m7)));
+        m7 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m7, 8)), ((__m128i)m7)));
+        m7 = _mm_unpacklo_epi8(m7, m7);
+        m7 = _mm_shufflelo_epi16(m7, _MM_SHUFFLE(0, 0, 0, 0));
+        m6 = _mm_unpacklo_epi64(m7, m7);
+        ((__m128i*)Y)[0] = _mm_subs_epu8(((__m128i*)Y)[0], m6);
+        ((__m128i*)Y)[1] = _mm_subs_epu8(((__m128i*)Y)[1], m6);
+        ((__m128i*)Y)[2] = _mm_subs_epu8(((__m128i*)Y)[2], m6);
+        ((__m128i*)Y)[3] = _mm_subs_epu8(((__m128i*)Y)[3], m6);
+
         unsigned char a188, a194;
         int a186, a205;
         short int s48, s49, s54, s55;
@@ -857,28 +850,24 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         *(a225) = s56;
         a226 = (a208 + 3);
         *(a226) = s57;
-        if ((((unsigned char*)X)[0] > 210)) {
-            __m128i m12, m13;
-            m12 = ((__m128i*)X)[0];
-            m12 = _mm_min_epu8(m12, ((__m128i*)X)[1]);
-            m12 = _mm_min_epu8(m12, ((__m128i*)X)[2]);
-            m12 = _mm_min_epu8(m12, ((__m128i*)X)[3]);
-            __m128i m14;
-            m14 = _mm_min_epu8(_mm_srli_si128(m12, 8), m12);
-            m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 32)),
-                                         ((__m128i)m14)));
-            m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 16)),
-                                         ((__m128i)m14)));
-            m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 8)),
-                                         ((__m128i)m14)));
-            m14 = _mm_unpacklo_epi8(m14, m14);
-            m14 = _mm_shufflelo_epi16(m14, _MM_SHUFFLE(0, 0, 0, 0));
-            m13 = _mm_unpacklo_epi64(m14, m14);
-            ((__m128i*)X)[0] = _mm_subs_epu8(((__m128i*)X)[0], m13);
-            ((__m128i*)X)[1] = _mm_subs_epu8(((__m128i*)X)[1], m13);
-            ((__m128i*)X)[2] = _mm_subs_epu8(((__m128i*)X)[2], m13);
-            ((__m128i*)X)[3] = _mm_subs_epu8(((__m128i*)X)[3], m13);
-        }
+
+        __m128i m12, m13;
+        m12 = ((__m128i*)X)[0];
+        m12 = _mm_min_epu8(m12, ((__m128i*)X)[1]);
+        m12 = _mm_min_epu8(m12, ((__m128i*)X)[2]);
+        m12 = _mm_min_epu8(m12, ((__m128i*)X)[3]);
+        __m128i m14;
+        m14 = _mm_min_epu8(_mm_srli_si128(m12, 8), m12);
+        m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 32)), ((__m128i)m14)));
+        m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 16)), ((__m128i)m14)));
+        m14 = ((__m128i)_mm_min_epu8(((__m128i)_mm_srli_epi64(m14, 8)), ((__m128i)m14)));
+        m14 = _mm_unpacklo_epi8(m14, m14);
+        m14 = _mm_shufflelo_epi16(m14, _MM_SHUFFLE(0, 0, 0, 0));
+        m13 = _mm_unpacklo_epi64(m14, m14);
+        ((__m128i*)X)[0] = _mm_subs_epu8(((__m128i*)X)[0], m13);
+        ((__m128i*)X)[1] = _mm_subs_epu8(((__m128i*)X)[1], m13);
+        ((__m128i*)X)[2] = _mm_subs_epu8(((__m128i*)X)[2], m13);
+        ((__m128i*)X)[3] = _mm_subs_epu8(((__m128i*)X)[3], m13);
     }
 
     renormalize(X, 210);
