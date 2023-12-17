@@ -80,19 +80,10 @@ set(VERSION_INFO_MINOR_VERSION 1)
 set(VERSION_INFO_MAINT_VERSION 0)
 include(VolkVersion) #setup version info
 
-macro(set_version_str VAR)
-  set(IN_VER ${VERSION_INFO_${VAR}_VERSION})
-  string(LENGTH "${IN_VER}" VER_LEN)
-  if(${VER_LEN} EQUAL 1)
-    set(VOLK_VERSION_${VAR} "0${IN_VER}")
-  else()
-    set(VOLK_VERSION_${VAR} "${IN_VER}")
-  endif()
-endmacro()
-
-set_version_str(MAJOR)
-set_version_str(MINOR)
-set_version_str(MAINT)
+math(EXPR VOLK_VERSION_DECIMAL
+    "${VERSION_INFO_MAJOR_VERSION} * 10000
+    + ${VERSION_INFO_MINOR_VERSION} * 100
+    + ${VERSION_INFO_MAINT_VERSION}")
 
 configure_file(
     ${CMAKE_SOURCE_DIR}/include/volk/volk_version.h.in
