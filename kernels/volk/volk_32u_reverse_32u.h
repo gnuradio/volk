@@ -28,50 +28,6 @@
  * \endcode
  */
 #ifndef INCLUDED_VOLK_32u_REVERSE_32u_U_H
-struct dword_split {
-    int b00 : 1;
-    int b01 : 1;
-    int b02 : 1;
-    int b03 : 1;
-    int b04 : 1;
-    int b05 : 1;
-    int b06 : 1;
-    int b07 : 1;
-    int b08 : 1;
-    int b09 : 1;
-    int b10 : 1;
-    int b11 : 1;
-    int b12 : 1;
-    int b13 : 1;
-    int b14 : 1;
-    int b15 : 1;
-    int b16 : 1;
-    int b17 : 1;
-    int b18 : 1;
-    int b19 : 1;
-    int b20 : 1;
-    int b21 : 1;
-    int b22 : 1;
-    int b23 : 1;
-    int b24 : 1;
-    int b25 : 1;
-    int b26 : 1;
-    int b27 : 1;
-    int b28 : 1;
-    int b29 : 1;
-    int b30 : 1;
-    int b31 : 1;
-};
-struct char_split {
-    uint8_t b00 : 1;
-    uint8_t b01 : 1;
-    uint8_t b02 : 1;
-    uint8_t b03 : 1;
-    uint8_t b04 : 1;
-    uint8_t b05 : 1;
-    uint8_t b06 : 1;
-    uint8_t b07 : 1;
-};
 
 // Idea from "Bit Twiddling Hacks", which dedicates this method to public domain
 // http://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable
@@ -100,42 +56,26 @@ static const unsigned char BitReverseTable256[] = {
 static inline void
 volk_32u_reverse_32u_generic(uint32_t* out, const uint32_t* in, unsigned int num_points)
 {
-    const struct dword_split* in_ptr = (const struct dword_split*)in;
-    struct dword_split* out_ptr = (struct dword_split*)out;
+    const uint32_t* in_ptr = in;
+    uint32_t* out_ptr = out;
     unsigned int number = 0;
     for (; number < num_points; ++number) {
-        out_ptr->b00 = in_ptr->b31;
-        out_ptr->b01 = in_ptr->b30;
-        out_ptr->b02 = in_ptr->b29;
-        out_ptr->b03 = in_ptr->b28;
-        out_ptr->b04 = in_ptr->b27;
-        out_ptr->b05 = in_ptr->b26;
-        out_ptr->b06 = in_ptr->b25;
-        out_ptr->b07 = in_ptr->b24;
-        out_ptr->b08 = in_ptr->b23;
-        out_ptr->b09 = in_ptr->b22;
-        out_ptr->b10 = in_ptr->b21;
-        out_ptr->b11 = in_ptr->b20;
-        out_ptr->b12 = in_ptr->b19;
-        out_ptr->b13 = in_ptr->b18;
-        out_ptr->b14 = in_ptr->b17;
-        out_ptr->b15 = in_ptr->b16;
-        out_ptr->b16 = in_ptr->b15;
-        out_ptr->b17 = in_ptr->b14;
-        out_ptr->b18 = in_ptr->b13;
-        out_ptr->b19 = in_ptr->b12;
-        out_ptr->b20 = in_ptr->b11;
-        out_ptr->b21 = in_ptr->b10;
-        out_ptr->b22 = in_ptr->b09;
-        out_ptr->b23 = in_ptr->b08;
-        out_ptr->b24 = in_ptr->b07;
-        out_ptr->b25 = in_ptr->b06;
-        out_ptr->b26 = in_ptr->b05;
-        out_ptr->b27 = in_ptr->b04;
-        out_ptr->b28 = in_ptr->b03;
-        out_ptr->b29 = in_ptr->b02;
-        out_ptr->b30 = in_ptr->b01;
-        out_ptr->b31 = in_ptr->b00;
+        *out_ptr = (((*in_ptr >> 31) & 1) << 0) | (((*in_ptr >> 30) & 1) << 1) |
+                   (((*in_ptr >> 29) & 1) << 2) | (((*in_ptr >> 28) & 1) << 3) |
+                   (((*in_ptr >> 27) & 1) << 4) | (((*in_ptr >> 26) & 1) << 5) |
+                   (((*in_ptr >> 25) & 1) << 6) | (((*in_ptr >> 24) & 1) << 7) |
+                   (((*in_ptr >> 23) & 1) << 8) | (((*in_ptr >> 22) & 1) << 9) |
+                   (((*in_ptr >> 21) & 1) << 10) | (((*in_ptr >> 20) & 1) << 11) |
+                   (((*in_ptr >> 19) & 1) << 12) | (((*in_ptr >> 18) & 1) << 13) |
+                   (((*in_ptr >> 17) & 1) << 14) | (((*in_ptr >> 16) & 1) << 15) |
+                   (((*in_ptr >> 15) & 1) << 16) | (((*in_ptr >> 14) & 1) << 17) |
+                   (((*in_ptr >> 13) & 1) << 18) | (((*in_ptr >> 12) & 1) << 19) |
+                   (((*in_ptr >> 11) & 1) << 20) | (((*in_ptr >> 10) & 1) << 21) |
+                   (((*in_ptr >> 9) & 1) << 22) | (((*in_ptr >> 8) & 1) << 23) |
+                   (((*in_ptr >> 7) & 1) << 24) | (((*in_ptr >> 6) & 1) << 25) |
+                   (((*in_ptr >> 5) & 1) << 26) | (((*in_ptr >> 4) & 1) << 27) |
+                   (((*in_ptr >> 3) & 1) << 28) | (((*in_ptr >> 2) & 1) << 29) |
+                   (((*in_ptr >> 1) & 1) << 30) | (((*in_ptr >> 0) & 1) << 31);
         ++in_ptr;
         ++out_ptr;
     }
@@ -151,44 +91,28 @@ static inline void volk_32u_reverse_32u_byte_shuffle(uint32_t* out,
     uint32_t* out_ptr = out;
     unsigned int number = 0;
     for (; number < num_points; ++number) {
-        const struct char_split* in8 = (const struct char_split*)in_ptr;
-        struct char_split* out8 = (struct char_split*)out_ptr;
+        const uint8_t* in8 = (const uint8_t*)in_ptr;
+        uint8_t* out8 = (uint8_t*)out_ptr;
 
-        out8[3].b00 = in8[0].b07;
-        out8[3].b01 = in8[0].b06;
-        out8[3].b02 = in8[0].b05;
-        out8[3].b03 = in8[0].b04;
-        out8[3].b04 = in8[0].b03;
-        out8[3].b05 = in8[0].b02;
-        out8[3].b06 = in8[0].b01;
-        out8[3].b07 = in8[0].b00;
+        out8[3] = (((in8[0] >> 7) & 1) << 0) | (((in8[0] >> 6) & 1) << 1) |
+                  (((in8[0] >> 5) & 1) << 2) | (((in8[0] >> 4) & 1) << 3) |
+                  (((in8[0] >> 3) & 1) << 4) | (((in8[0] >> 2) & 1) << 5) |
+                  (((in8[0] >> 1) & 1) << 6) | (((in8[0] >> 0) & 1) << 7);
 
-        out8[2].b00 = in8[1].b07;
-        out8[2].b01 = in8[1].b06;
-        out8[2].b02 = in8[1].b05;
-        out8[2].b03 = in8[1].b04;
-        out8[2].b04 = in8[1].b03;
-        out8[2].b05 = in8[1].b02;
-        out8[2].b06 = in8[1].b01;
-        out8[2].b07 = in8[1].b00;
+        out8[2] = (((in8[1] >> 7) & 1) << 0) | (((in8[1] >> 6) & 1) << 1) |
+                  (((in8[1] >> 5) & 1) << 2) | (((in8[1] >> 4) & 1) << 3) |
+                  (((in8[1] >> 3) & 1) << 4) | (((in8[1] >> 2) & 1) << 5) |
+                  (((in8[1] >> 1) & 1) << 6) | (((in8[1] >> 0) & 1) << 7);
 
-        out8[1].b00 = in8[2].b07;
-        out8[1].b01 = in8[2].b06;
-        out8[1].b02 = in8[2].b05;
-        out8[1].b03 = in8[2].b04;
-        out8[1].b04 = in8[2].b03;
-        out8[1].b05 = in8[2].b02;
-        out8[1].b06 = in8[2].b01;
-        out8[1].b07 = in8[2].b00;
+        out8[1] = (((in8[2] >> 7) & 1) << 0) | (((in8[2] >> 6) & 1) << 1) |
+                  (((in8[2] >> 5) & 1) << 2) | (((in8[2] >> 4) & 1) << 3) |
+                  (((in8[2] >> 3) & 1) << 4) | (((in8[2] >> 2) & 1) << 5) |
+                  (((in8[2] >> 1) & 1) << 6) | (((in8[2] >> 0) & 1) << 7);
 
-        out8[0].b00 = in8[3].b07;
-        out8[0].b01 = in8[3].b06;
-        out8[0].b02 = in8[3].b05;
-        out8[0].b03 = in8[3].b04;
-        out8[0].b04 = in8[3].b03;
-        out8[0].b05 = in8[3].b02;
-        out8[0].b06 = in8[3].b01;
-        out8[0].b07 = in8[3].b00;
+        out8[0] = (((in8[3] >> 7) & 1) << 0) | (((in8[3] >> 6) & 1) << 1) |
+                  (((in8[3] >> 5) & 1) << 2) | (((in8[3] >> 4) & 1) << 3) |
+                  (((in8[3] >> 3) & 1) << 4) | (((in8[3] >> 2) & 1) << 5) |
+                  (((in8[3] >> 1) & 1) << 6) | (((in8[3] >> 0) & 1) << 7);
         ++in_ptr;
         ++out_ptr;
     }
