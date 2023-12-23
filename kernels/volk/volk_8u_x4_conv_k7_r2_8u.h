@@ -191,6 +191,7 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         __m256i m5, m6;
         m5 = ((__m256i*)Y)[0];
         m5 = _mm256_min_epu8(m5, ((__m256i*)Y)[1]);
+        m5 = ((__m256i)_mm256_min_epu8(_mm256_permute2x128_si256(m5, m5, 0x21), m5));
         __m256i m7;
         m7 = _mm256_min_epu8(_mm256_srli_si256(m5, 8), m5);
         m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 32)),
@@ -270,6 +271,7 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         __m256i m12, m13;
         m12 = ((__m256i*)X)[0];
         m12 = _mm256_min_epu8(m12, ((__m256i*)X)[1]);
+        m12 = ((__m256i)_mm256_min_epu8(_mm256_permute2x128_si256(m12, m12, 0x21), m12));
         __m256i m14;
         m14 = _mm256_min_epu8(_mm256_srli_si256(m12, 8), m12);
         m14 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m14, 32)),
