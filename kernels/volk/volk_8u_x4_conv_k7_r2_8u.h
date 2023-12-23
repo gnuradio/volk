@@ -190,27 +190,27 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         s23 = _mm256_permute2x128_si256(s22, s23, 0x31);
         a112 = (a95 + 1);
         *(a112) = s23;
-        if ((((unsigned char*)Y)[0] > 210)) {
-            __m256i m5, m6;
-            m5 = ((__m256i*)Y)[0];
-            m5 = _mm256_min_epu8(m5, ((__m256i*)Y)[1]);
-            __m256i m7;
-            m7 = _mm256_min_epu8(_mm256_srli_si256(m5, 8), m5);
-            m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 32)),
-                                           ((__m256i)m7)));
-            m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 16)),
-                                           ((__m256i)m7)));
-            m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 8)),
-                                           ((__m256i)m7)));
-            m7 = _mm256_unpacklo_epi8(m7, m7);
-            m7 = _mm256_shufflelo_epi16(m7, 0);
-            m6 = _mm256_unpacklo_epi64(m7, m7);
-            m6 = _mm256_permute2x128_si256(
-                m6, m6, 0); // copy lower half of m6 to upper half, since above ops
-                            // operate on 128 bit lanes
-            ((__m256i*)Y)[0] = _mm256_subs_epu8(((__m256i*)Y)[0], m6);
-            ((__m256i*)Y)[1] = _mm256_subs_epu8(((__m256i*)Y)[1], m6);
-        }
+
+        __m256i m5, m6;
+        m5 = ((__m256i*)Y)[0];
+        m5 = _mm256_min_epu8(m5, ((__m256i*)Y)[1]);
+        __m256i m7;
+        m7 = _mm256_min_epu8(_mm256_srli_si256(m5, 8), m5);
+        m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 32)),
+                                       ((__m256i)m7)));
+        m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 16)),
+                                       ((__m256i)m7)));
+        m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 8)),
+                                       ((__m256i)m7)));
+        m7 = _mm256_unpacklo_epi8(m7, m7);
+        m7 = _mm256_shufflelo_epi16(m7, 0);
+        m6 = _mm256_unpacklo_epi64(m7, m7);
+        m6 = _mm256_permute2x128_si256(
+            m6, m6, 0); // copy lower half of m6 to upper half, since above ops
+                        // operate on 128 bit lanes
+        ((__m256i*)Y)[0] = _mm256_subs_epu8(((__m256i*)Y)[0], m6);
+        ((__m256i*)Y)[1] = _mm256_subs_epu8(((__m256i*)Y)[1], m6);
+
         unsigned char a188, a194;
         int a205;
         int s48, s54;
@@ -273,25 +273,23 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         a225 = (a208 + 1);
         *(a225) = s51;
 
-        if ((((unsigned char*)X)[0] > 210)) {
-            __m256i m12, m13;
-            m12 = ((__m256i*)X)[0];
-            m12 = _mm256_min_epu8(m12, ((__m256i*)X)[1]);
-            __m256i m14;
-            m14 = _mm256_min_epu8(_mm256_srli_si256(m12, 8), m12);
-            m14 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m14, 32)),
-                                            ((__m256i)m14)));
-            m14 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m14, 16)),
-                                            ((__m256i)m14)));
-            m14 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m14, 8)),
-                                            ((__m256i)m14)));
-            m14 = _mm256_unpacklo_epi8(m14, m14);
-            m14 = _mm256_shufflelo_epi16(m14, 0);
-            m13 = _mm256_unpacklo_epi64(m14, m14);
-            m13 = _mm256_permute2x128_si256(m13, m13, 0);
-            ((__m256i*)X)[0] = _mm256_subs_epu8(((__m256i*)X)[0], m13);
-            ((__m256i*)X)[1] = _mm256_subs_epu8(((__m256i*)X)[1], m13);
-        }
+        __m256i m12, m13;
+        m12 = ((__m256i*)X)[0];
+        m12 = _mm256_min_epu8(m12, ((__m256i*)X)[1]);
+        __m256i m14;
+        m14 = _mm256_min_epu8(_mm256_srli_si256(m12, 8), m12);
+        m14 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m14, 32)),
+                                        ((__m256i)m14)));
+        m14 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m14, 16)),
+                                        ((__m256i)m14)));
+        m14 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m14, 8)),
+                                        ((__m256i)m14)));
+        m14 = _mm256_unpacklo_epi8(m14, m14);
+        m14 = _mm256_shufflelo_epi16(m14, 0);
+        m13 = _mm256_unpacklo_epi64(m14, m14);
+        m13 = _mm256_permute2x128_si256(m13, m13, 0);
+        ((__m256i*)X)[0] = _mm256_subs_epu8(((__m256i*)X)[0], m13);
+        ((__m256i*)X)[1] = _mm256_subs_epu8(((__m256i*)X)[1], m13);
     }
 
     renormalize(X);
