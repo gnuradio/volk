@@ -142,9 +142,6 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         s18 = *(a71);
         a72 = (a71 + 1);
         s19 = *(a72);
-        s22 = _mm256_permute2x128_si256(s18, s19, 0x20);
-        s19 = _mm256_permute2x128_si256(s18, s19, 0x31);
-        s18 = s22;
         a73 = (4 * i9);
         b6 = (syms + a73);
         a75 = *(b6);
@@ -224,9 +221,6 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         s46 = *(a184);
         a185 = (a184 + 1);
         s47 = *(a185);
-        s50 = _mm256_permute2x128_si256(s46, s47, 0x20);
-        s47 = _mm256_permute2x128_si256(s46, s47, 0x31);
-        s46 = s50;
         a187 = (b6 + 2);
         a188 = *(a187);
         a189 = _mm256_set1_epi8(a188);
