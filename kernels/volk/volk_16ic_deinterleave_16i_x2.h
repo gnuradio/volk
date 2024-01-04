@@ -274,7 +274,7 @@ static inline void volk_16ic_deinterleave_16i_x2_generic(int16_t* iBuffer,
 extern void volk_16ic_deinterleave_16i_x2_a_orc_impl(int16_t* iBuffer,
                                                      int16_t* qBuffer,
                                                      const lv_16sc_t* complexVector,
-                                                     unsigned int num_points);
+                                                     int num_points);
 static inline void volk_16ic_deinterleave_16i_x2_u_orc(int16_t* iBuffer,
                                                        int16_t* qBuffer,
                                                        const lv_16sc_t* complexVector,

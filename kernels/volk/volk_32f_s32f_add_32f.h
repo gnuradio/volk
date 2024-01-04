@@ -247,7 +247,7 @@ static inline void volk_32f_s32f_add_32f_a_avx(float* cVector,
 extern void volk_32f_s32f_add_32f_a_orc_impl(float* dst,
                                              const float* src,
                                              const float scalar,
-                                             unsigned int num_points);
+                                             int num_points);
 
 static inline void volk_32f_s32f_add_32f_u_orc(float* cVector,
                                                const float* aVector,

@@ -253,7 +253,7 @@ static inline void volk_32f_x2_divide_32f_generic(float* cVector,
 extern void volk_32f_x2_divide_32f_a_orc_impl(float* cVector,
                                               const float* aVector,
                                               const float* bVector,
-                                              unsigned int num_points);
+                                              int num_points);
 
 static inline void volk_32f_x2_divide_32f_u_orc(float* cVector,
                                                 const float* aVector,

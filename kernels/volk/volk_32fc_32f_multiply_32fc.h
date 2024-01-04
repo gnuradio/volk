@@ -212,7 +212,7 @@ static inline void volk_32fc_32f_multiply_32fc_neon(lv_32fc_t* cVector,
 extern void volk_32fc_32f_multiply_32fc_a_orc_impl(lv_32fc_t* cVector,
                                                    const lv_32fc_t* aVector,
                                                    const float* bVector,
-                                                   unsigned int num_points);
+                                                   int num_points);
 
 static inline void volk_32fc_32f_multiply_32fc_u_orc(lv_32fc_t* cVector,
                                                      const lv_32fc_t* aVector,

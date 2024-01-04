@@ -275,7 +275,7 @@ static inline void volk_16ic_deinterleave_real_8i_neon(int8_t* iBuffer,
 
 extern void volk_16ic_deinterleave_real_8i_a_orc_impl(int8_t* iBuffer,
                                                       const lv_16sc_t* complexVector,
-                                                      unsigned int num_points);
+                                                      int num_points);
 
 static inline void volk_16ic_deinterleave_real_8i_u_orc(int8_t* iBuffer,
                                                         const lv_16sc_t* complexVector,

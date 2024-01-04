@@ -338,7 +338,7 @@ static inline void volk_8i_s32f_convert_32f_neon(float* outputVector,
 extern void volk_8i_s32f_convert_32f_a_orc_impl(float* outputVector,
                                                 const int8_t* inputVector,
                                                 const float scalar,
-                                                unsigned int num_points);
+                                                int num_points);
 
 static inline void volk_8i_s32f_convert_32f_u_orc(float* outputVector,
                                                   const int8_t* inputVector,
