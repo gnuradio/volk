@@ -120,66 +120,6 @@ static inline void volk_16i_x4_quad_max_star_16i_a_sse2(short* target,
         p_target += 1;
     }
 
-
-    /*__VOLK_ASM __VOLK_VOLATILE
-      (
-      "volk_16i_x4_quad_max_star_16i_a_sse2_L1:\n\t"
-      "cmp $0, %[bound]\n\t"
-      "je volk_16i_x4_quad_max_star_16i_a_sse2_END\n\t"
-
-      "movaps (%[src0]), %%xmm1\n\t"
-      "movaps (%[src1]), %%xmm2\n\t"
-      "movaps (%[src2]), %%xmm3\n\t"
-      "movaps (%[src3]), %%xmm4\n\t"
-
-      "pxor %%xmm5, %%xmm5\n\t"
-      "pxor %%xmm6, %%xmm6\n\t"
-      "movaps %%xmm1, %%xmm7\n\t"
-      "movaps %%xmm3, %%xmm8\n\t"
-      "psubw %%xmm2, %%xmm1\n\t"
-      "psubw %%xmm4, %%xmm3\n\t"
-
-      "pcmpgtw %%xmm1, %%xmm5\n\t"
-      "pcmpgtw %%xmm3, %%xmm6\n\t"
-
-      "pand %%xmm5, %%xmm2\n\t"
-      "pand %%xmm6, %%xmm4\n\t"
-      "pandn %%xmm7, %%xmm5\n\t"
-      "pandn %%xmm8, %%xmm6\n\t"
-
-      "paddw %%xmm2, %%xmm5\n\t"
-      "paddw %%xmm4, %%xmm6\n\t"
-
-      "pxor %%xmm1, %%xmm1\n\t"
-      "movaps %%xmm5, %%xmm2\n\t"
-
-      "psubw %%xmm6, %%xmm5\n\t"
-      "add $16, %[src0]\n\t"
-      "add $-1, %[bound]\n\t"
-
-      "pcmpgtw %%xmm5, %%xmm1\n\t"
-      "add $16, %[src1]\n\t"
-
-      "pand %%xmm1, %%xmm6\n\t"
-
-      "pandn %%xmm2, %%xmm1\n\t"
-      "add $16, %[src2]\n\t"
-
-      "paddw %%xmm6, %%xmm1\n\t"
-      "add $16, %[src3]\n\t"
-
-      "movaps %%xmm1, (%[target])\n\t"
-      "addw $16, %[target]\n\t"
-      "jmp volk_16i_x4_quad_max_star_16i_a_sse2_L1\n\t"
-
-      "volk_16i_x4_quad_max_star_16i_a_sse2_END:\n\t"
-      :
-      :[bound]"r"(bound), [src0]"r"(src0), [src1]"r"(src1), [src2]"r"(src2),
-      [src3]"r"(src3), [target]"r"(target)
-      :
-      );
-    */
-
     short temp0 = 0;
     short temp1 = 0;
     for (i = bound * 8; i < (bound * 8) + leftovers; ++i) {
