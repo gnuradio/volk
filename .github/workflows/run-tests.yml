@@ -96,7 +96,8 @@ jobs:
             compiler: { name: clang-14, cc: clang-14, cxx: clang++-14 }
           - arch: armv7
             distro: ubuntu22.04
-            compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
+            compiler: { name: g++, cc: gcc, cxx: g++ }
+            cmakeargs: "-DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm_cortex_a72_hardfp_native.cmake"
           - arch: ppc64le
             distro: ubuntu22.04
             compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
@@ -149,7 +150,7 @@ jobs:
           run: |
             cd /volk
             cd build
-            cmake -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
+            cmake -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ${{ matrix.cmakeargs }} ..
             echo "Build with $(nproc) thread(s)"
             make -j$(nproc)
             if [ -f ./cpu_features/list_cpu_features ]; then
