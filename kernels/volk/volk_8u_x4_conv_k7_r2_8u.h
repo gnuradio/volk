@@ -615,7 +615,7 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
 
 #if LV_HAVE_NEON
 
-#include "volk/sse2neon.h"
+#include "volk/sse2neon/sse2neon.h"
 
 static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
                                                        unsigned char* X,
