@@ -97,8 +97,8 @@ static inline int chainback_viterbi(unsigned char* data,
 #include <stdio.h>
 #include <xmmintrin.h>
 
-static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* syms,
-                                                      unsigned char* dec,
+static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* dec,
+                                                      unsigned char* syms,
                                                       unsigned int framebits)
 {
     if (framebits < 12) {
@@ -181,8 +181,8 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* syms,
 
 #include "volk/sse2neon.h"
 
-static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* syms,
-                                                          unsigned char* dec,
+static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* dec,
+                                                          unsigned char* syms,
                                                           unsigned int framebits)
 {
     if (framebits < 12) {
@@ -266,8 +266,8 @@ static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* syms,
 //#include <immintrin.h>
 //#include <stdio.h>
 //
-// static inline void volk_8u_conv_k7_r2puppet_8u_avx2(unsigned char* syms,
-//                                                    unsigned char* dec,
+// static inline void volk_8u_conv_k7_r2puppet_8u_avx2(unsigned char* dec,
+//                                                    unsigned char* syms,
 //                                                    unsigned int framebits)
 //{
 //    if (framebits < 12) {
@@ -349,8 +349,8 @@ static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* syms,
 #if LV_HAVE_GENERIC
 
 
-static inline void volk_8u_conv_k7_r2puppet_8u_generic(unsigned char* syms,
-                                                       unsigned char* dec,
+static inline void volk_8u_conv_k7_r2puppet_8u_generic(unsigned char* dec,
+                                                       unsigned char* syms,
                                                        unsigned int framebits)
 {
     if (framebits < 12) {
