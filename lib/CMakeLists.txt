@@ -568,9 +568,9 @@ set_target_properties(volk PROPERTIES DEFINE_SYMBOL "volk_EXPORTS")
 #Install locations
 install(TARGETS volk
   EXPORT VOLK-export
-  LIBRARY DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_runtime" # .so file
-  ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"   # .lib file
-  RUNTIME DESTINATION bin              COMPONENT "volk_runtime" # .dll file
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT "volk_runtime" # .so file
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT "volk_devel"   # .lib file
+  RUNTIME DESTINATION bin                     COMPONENT "volk_runtime" # .dll file
   )
 
 #Configure static library
@@ -609,7 +609,7 @@ if(ENABLE_STATIC_LIBS)
 
   install(TARGETS volk_static
     EXPORT VOLK-export
-    ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT "volk_devel"
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT "volk_devel"
     )
 endif(ENABLE_STATIC_LIBS)
 
