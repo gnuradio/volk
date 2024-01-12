@@ -256,7 +256,7 @@ static inline void volk_8i_convert_16i_neon(int16_t* outputVector,
 #ifdef LV_HAVE_ORC
 extern void volk_8i_convert_16i_a_orc_impl(int16_t* outputVector,
                                            const int8_t* inputVector,
-                                           unsigned int num_points);
+                                           int num_points);
 
 static inline void volk_8i_convert_16i_u_orc(int16_t* outputVector,
                                              const int8_t* inputVector,

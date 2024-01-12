@@ -240,7 +240,7 @@ extern void volk_16ic_s32f_deinterleave_32f_x2_a_orc_impl(float* iBuffer,
                                                           float* qBuffer,
                                                           const lv_16sc_t* complexVector,
                                                           const float scalar,
-                                                          unsigned int num_points);
+                                                          int num_points);
 
 static inline void
 volk_16ic_s32f_deinterleave_32f_x2_u_orc(float* iBuffer,

@@ -151,7 +151,7 @@ static inline void volk_32f_s32f_normalize_generic(float* vecBuffer,
 extern void volk_32f_s32f_normalize_a_orc_impl(float* dst,
                                                float* src,
                                                const float scalar,
-                                               unsigned int num_points);
+                                               int num_points);
 static inline void volk_32f_s32f_normalize_u_orc(float* vecBuffer,
                                                  const float scalar,
                                                  unsigned int num_points)

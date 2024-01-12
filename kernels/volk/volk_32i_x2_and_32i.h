@@ -241,7 +241,7 @@ static inline void volk_32i_x2_and_32i_generic(int32_t* cVector,
 extern void volk_32i_x2_and_32i_a_orc_impl(int32_t* cVector,
                                            const int32_t* aVector,
                                            const int32_t* bVector,
-                                           unsigned int num_points);
+                                           int num_points);
 
 static inline void volk_32i_x2_and_32i_u_orc(int32_t* cVector,
                                              const int32_t* aVector,

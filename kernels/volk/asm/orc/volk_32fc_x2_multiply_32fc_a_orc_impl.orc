@@ -1,7 +1,7 @@
 .function volk_32fc_x2_multiply_32fc_a_orc_impl
-.source 8 src1
-.source 8 src2
-.dest 8 dst
+.source 8 src1 lv_32fc_t
+.source 8 src2 lv_32fc_t
+.dest 8 dst lv_32fc_t
 .temp 8 iqprod
 .temp 4 real
 .temp 4 imag

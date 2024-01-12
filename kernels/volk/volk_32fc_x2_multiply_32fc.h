@@ -448,7 +448,7 @@ extern void volk_32fc_x2_multiply_32fc_a_neonasm(lv_32fc_t* cVector,
 extern void volk_32fc_x2_multiply_32fc_a_orc_impl(lv_32fc_t* cVector,
                                                   const lv_32fc_t* aVector,
                                                   const lv_32fc_t* bVector,
-                                                  unsigned int num_points);
+                                                  int num_points);
 
 static inline void volk_32fc_x2_multiply_32fc_u_orc(lv_32fc_t* cVector,
                                                     const lv_32fc_t* aVector,
