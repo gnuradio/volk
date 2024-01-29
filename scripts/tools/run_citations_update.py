@@ -50,7 +50,8 @@ name_aliases = {
     'namccart': "Nicholas McCarthy",
     'hcab14': "Christoph Mayer",
     'cmayer': "Christoph Mayer",
-    'root': "Philip Balister", }
+    'root': "Philip Balister",
+    'jsallay': "John Sallay"}
 
 
 def fix_known_names(contributors):
