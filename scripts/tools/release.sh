@@ -56,12 +56,12 @@ if git --no-pager reflog "${last_release}" > /dev/null 2>&1 ; then
   echo "Found last tag ${last_release}"
 else
   echo "Last release tag ${last_release} does not exist, aborting…"
-  exit -1
+  exit 255
 fi
 # Check for whether tag already exists
 if git --no-pager reflog "${releaseprefix}${version}" > /dev/null 2>&1 ; then
   echo "Tag ${releaseprefix}${version} already exists, aborting…"
-  exit -2
+  exit 254
 fi
 
 echo "Releasing version ${version}"
