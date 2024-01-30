@@ -241,7 +241,11 @@ jobs:
 
   build-macos:
 
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: [macos-latest, flyci-macos-large-latest-m2]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3.1.0
