@@ -49,6 +49,21 @@ version_maint=$(grep -i 'set(version_info_maint' CMakeLists.txt |\
                     sed 's/.*VERSION_INFO_MAINT_VERSION[[:space:]]*\([[:digit:]a-zA-z-]*\))/\1/i')
 version="${version_major}.${version_minor}.${version_maint}"
 last_release="$(cat ${lastreleasefile})"
+
+# Check whether tag of last release exists
+if git --no-pager reflog "${last_release}" > /dev/null 2>&1 ; then
+  # all right
+  echo "Found last tag ${last_release}"
+else
+  echo "Last release tag ${last_release} does not exist, aborting…"
+  exit -1
+fi
+# Check for whether tag already exists
+if git --no-pager reflog "${releaseprefix}${version}" > /dev/null 2>&1 ; then
+  echo "Tag ${releaseprefix}${version} already exists, aborting…"
+  exit -2
+fi
+
 echo "Releasing version ${version}"
 
 # 2. Prepare Changelog
@@ -94,12 +109,15 @@ tarprefix="${project}-${version}"
 outfile="${tempdir}/${tarprefix}.tar"
 git archive "--output=${outfile}" "--prefix=${tarprefix}/" HEAD
 # Append submodule archives
-git submodule foreach --recursive "git archive --output ${tempdir}/${tarprefix}-sub-\${sha1}.tar --prefix=${tarprefix}/\${sm_path}/ HEAD"
-if [[ $(ls "${tempdir}/${tarprefix}"-sub*.tar | wc -l) != 0  ]]; then
-  # combine all archives into one tar
-  tar --concatenate --file "${outfile}" "${tempdir}/${tarprefix}"-sub*.tar
-fi
-echo "Created tape archive ${outfile} of size $(du -h "${outfile}")."
+git submodule update --init --recursive
+git submodule foreach --recursive "git archive --output \"${tempdir}/${tarprefix}-sub-\${sha1}.tar\" --prefix=${tarprefix}/\${sm_path}/ HEAD"
+submodule_tars=( "${tempdir}/${tarprefix}-sub-*.tar" )
+# if the number of entries isn't zero
+for submod_tar in $submodule_tars ; do
+  echo "Appending submodule tar ${submod_tar} to ${outfile}…"
+  tar --concatenate --file "${outfile}" "${submod_tar}"
+done
+echo "Created tape archive ${outfile} of size $(du -h "${outfile}")"
 
 # 6. compress
 echo  "compressing:"
