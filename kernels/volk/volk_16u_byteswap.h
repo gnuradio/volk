@@ -271,14 +271,5 @@ static inline void volk_16u_byteswap_neon_table(uint16_t* intsToSwap,
 }
 #endif /* LV_HAVE_NEON */
 
-#ifdef LV_HAVE_ORC
-
-extern void volk_16u_byteswap_a_orc_impl(uint16_t* intsToSwap, int num_points);
-static inline void volk_16u_byteswap_u_orc(uint16_t* intsToSwap, unsigned int num_points)
-{
-    volk_16u_byteswap_a_orc_impl(intsToSwap, num_points);
-}
-#endif /* LV_HAVE_ORC */
-
 
 #endif /* INCLUDED_volk_16u_byteswap_a_H */
