@@ -22,6 +22,12 @@ typedef struct volk_arch_pref {
     char impl_u[128]; // best unaligned impl
 } volk_arch_pref_t;
 
+
+VOLK_API void volk_initialize_preferences();
+VOLK_API void volk_free_preferences();
+VOLK_API const size_t volk_get_num_arch_prefs();
+VOLK_API const volk_arch_pref_t* volk_get_arch_prefs();
+
 ////////////////////////////////////////////////////////////////////////
 // get path to volk_config profiling info; second arguments specifies
 // if config file should be tested on existence for reading.
