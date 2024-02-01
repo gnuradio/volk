@@ -127,39 +127,24 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
                                                  unsigned int excess,
                                                  unsigned char* Branchtab)
 {
-    unsigned int i9;
-    for (i9 = 0; i9 < framebits + excess; i9++) {
+    unsigned int i;
+    for (i = 0; i < framebits + excess; i++) {
         unsigned char* tmp;
-        unsigned char a75, a81;
-        int a73, a92;
-        int s20, s21;
-        unsigned char *a80, *b6;
-        int *a110, *a91, *a93;
-        __m256i *a112, *a71, *a72, *a77, *a83, *a95;
-        __m256i a86, a87;
-        __m256i a76, a78, a79, a82, a84, a85, a88, a89, a90, d10, d9, m23, m24, m25, m26,
-            s18, s19, s22, s23, s24, t13, t14, t15;
-        a71 = ((__m256i*)X);
-        s18 = *(a71);
-        a72 = (a71 + 1);
-        s19 = *(a72);
-        a73 = (2 * i9);
-        b6 = (syms + a73);
-        a75 = *(b6);
-        a76 = _mm256_set1_epi8(a75);
-        a77 = ((__m256i*)Branchtab);
-        a78 = *(a77);
+        unsigned int* dec_int = (unsigned int*)dec;
+        __m256i a76, a78, a79, a82, a84, a85, a86, a88, a89, a90, d10, d9, m23, m24, m25,
+            m26, s18, s19, s22, s23, t14, t15;
+
+        // Butterfly
+        s18 = ((__m256i*)X)[0];
+        s19 = ((__m256i*)X)[1];
+        a76 = _mm256_set1_epi8(syms[2 * i]);
+        a78 = ((__m256i*)Branchtab)[0];
         a79 = _mm256_xor_si256(a76, a78);
-        a80 = (b6 + 1);
-        a81 = *(a80);
-        a82 = _mm256_set1_epi8(a81);
-        a83 = (a77 + 1);
-        a84 = *(a83);
+        a82 = _mm256_set1_epi8(syms[2 * i + 1]);
+        a84 = ((__m256i*)Branchtab)[1];
         a85 = _mm256_xor_si256(a82, a84);
-        t13 = _mm256_avg_epu8(a79, a85);
-        a86 = ((__m256i)t13);
-        a87 = _mm256_srli_epi16(a86, 2);
-        a88 = ((__m256i)a87);
+        a86 = _mm256_avg_epu8(a79, a85);
+        a88 = _mm256_srli_epi16(a86, 2);
         t14 = _mm256_and_si256(a88, _mm256_set1_epi8(63));
         t15 = _mm256_subs_epu8(_mm256_set1_epi8(63), t14);
         m23 = _mm256_adds_epu8(s18, t14);
@@ -172,23 +157,15 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         d10 = _mm256_cmpeq_epi8(a90, m26);
         s22 = _mm256_unpacklo_epi8(d9, d10);
         s23 = _mm256_unpackhi_epi8(d9, d10);
-        s20 = _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x20));
-        a91 = ((int*)dec);
-        a92 = (2 * i9);
-        a93 = (a91 + a92);
-        *(a93) = s20;
-        s21 = _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x31));
-        a110 = (a93 + 1);
-        *(a110) = s21;
+        dec_int[2 * i] = _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x20));
+        dec_int[2 * i + 1] =
+            _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x31));
         s22 = _mm256_unpacklo_epi8(a89, a90);
         s23 = _mm256_unpackhi_epi8(a89, a90);
-        a95 = ((__m256i*)Y);
-        s24 = _mm256_permute2x128_si256(s22, s23, 0x20);
-        *(a95) = s24;
-        s23 = _mm256_permute2x128_si256(s22, s23, 0x31);
-        a112 = (a95 + 1);
-        *(a112) = s23;
+        ((__m256i*)Y)[0] = _mm256_permute2x128_si256(s22, s23, 0x20);
+        ((__m256i*)Y)[1] = _mm256_permute2x128_si256(s22, s23, 0x31);
 
+        // Renormalize
         __m256i m5, m6;
         m5 = ((__m256i*)Y)[0];
         m5 = _mm256_min_epu8(m5, ((__m256i*)Y)[1]);
@@ -236,47 +213,27 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
                                                    unsigned int excess,
                                                    unsigned char* Branchtab)
 {
-    unsigned int i9;
-    for (i9 = 0; i9 < framebits + excess; i9++) {
+    unsigned int i;
+    for (i = 0; i < framebits + excess; i++) {
         unsigned char* tmp;
-        unsigned char a75, a81;
-        int a73, a92;
-        short int s20, s21, s26, s27;
-        unsigned char *a74, *a80, *b6;
-        short int *a110, *a111, *a91, *a93, *a94;
-        __m128i *a102, *a112, *a113, *a71, *a72, *a77, *a83, *a95, *a96, *a97, *a98, *a99;
-        __m128i a105, a106, a86, a87;
-        __m128i a100, a101, a103, a104, a107, a108, a109, a76, a78, a79, a82, a84, a85,
-            a88, a89, a90, d10, d11, d12, d9, m23, m24, m25, m26, m27, m28, m29, m30, s18,
-            s19, s22, s23, s24, s25, s28, s29, t13, t14, t15, t16, t17, t18;
-        a71 = ((__m128i*)X);
-        s18 = *(a71);
-        a72 = (a71 + 2);
-        s19 = *(a72);
-        a73 = (2 * i9);
-        a74 = (syms + a73);
-        a75 = *(a74);
-        a76 = _mm_set1_epi8(a75);
-        a77 = ((__m128i*)Branchtab);
-        a78 = *(a77);
+        unsigned short* dec_short = (unsigned short*)dec;
+        __m128i a100, a101, a103, a104, a105, a107, a108, a109, a76, a78, a79, a82, a84,
+            a85, a86, a88, a89, a90, d10, d11, d12, d9, m23, m24, m25, m26, m27, m28, m29,
+            m30, s18, s19, s24, s25, t14, t15, t17, t18;
+
+        // First half of butterfly
+        s18 = ((__m128i*)X)[0];
+        s19 = ((__m128i*)X)[2];
+        a76 = _mm_set1_epi8(syms[2 * i]);
+        a78 = ((__m128i*)Branchtab)[0];
         a79 = _mm_xor_si128(a76, a78);
-        b6 = (a73 + syms);
-        a80 = (b6 + 1);
-        a81 = *(a80);
-        a82 = _mm_set1_epi8(a81);
-        a83 = (a77 + 2);
-        a84 = *(a83);
+        a82 = _mm_set1_epi8(syms[2 * i + 1]);
+        a84 = ((__m128i*)Branchtab)[2];
         a85 = _mm_xor_si128(a82, a84);
-        t13 = _mm_avg_epu8(a79, a85);
-        a86 = ((__m128i)t13);
-        a87 = _mm_srli_epi16(a86, 2);
-        a88 = ((__m128i)a87);
-        t14 = _mm_and_si128(
-            a88,
-            _mm_set_epi8(63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63));
-        t15 = _mm_subs_epu8(
-            _mm_set_epi8(63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63),
-            t14);
+        a86 = _mm_avg_epu8(a79, a85);
+        a88 = _mm_srli_epi16(a86, 2);
+        t14 = _mm_and_si128(a88, _mm_set1_epi8(63));
+        t15 = _mm_subs_epu8(_mm_set1_epi8(63), t14);
         m23 = _mm_adds_epu8(s18, t14);
         m24 = _mm_adds_epu8(s19, t15);
         m25 = _mm_adds_epu8(s18, t15);
@@ -285,40 +242,22 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         d9 = _mm_cmpeq_epi8(a89, m24);
         a90 = _mm_min_epu8(m26, m25);
         d10 = _mm_cmpeq_epi8(a90, m26);
-        s20 = _mm_movemask_epi8(_mm_unpacklo_epi8(d9, d10));
-        a91 = ((short int*)dec);
-        a92 = (4 * i9);
-        a93 = (a91 + a92);
-        *(a93) = s20;
-        s21 = _mm_movemask_epi8(_mm_unpackhi_epi8(d9, d10));
-        a94 = (a93 + 1);
-        *(a94) = s21;
-        s22 = _mm_unpacklo_epi8(a89, a90);
-        s23 = _mm_unpackhi_epi8(a89, a90);
-        a95 = ((__m128i*)Y);
-        *(a95) = s22;
-        a96 = (a95 + 1);
-        *(a96) = s23;
-        a97 = (a71 + 1);
-        s24 = *(a97);
-        a98 = (a71 + 3);
-        s25 = *(a98);
-        a99 = (a77 + 1);
-        a100 = *(a99);
+        dec_short[4 * i] = _mm_movemask_epi8(_mm_unpacklo_epi8(d9, d10));
+        dec_short[4 * i + 1] = _mm_movemask_epi8(_mm_unpackhi_epi8(d9, d10));
+        ((__m128i*)Y)[0] = _mm_unpacklo_epi8(a89, a90);
+        ((__m128i*)Y)[1] = _mm_unpackhi_epi8(a89, a90);
+
+        // Second half of butterfly
+        s24 = ((__m128i*)X)[1];
+        s25 = ((__m128i*)X)[3];
+        a100 = ((__m128i*)Branchtab)[1];
         a101 = _mm_xor_si128(a76, a100);
-        a102 = (a77 + 3);
-        a103 = *(a102);
+        a103 = ((__m128i*)Branchtab)[3];
         a104 = _mm_xor_si128(a82, a103);
-        t16 = _mm_avg_epu8(a101, a104);
-        a105 = ((__m128i)t16);
-        a106 = _mm_srli_epi16(a105, 2);
-        a107 = ((__m128i)a106);
-        t17 = _mm_and_si128(
-            a107,
-            _mm_set_epi8(63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63));
-        t18 = _mm_subs_epu8(
-            _mm_set_epi8(63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63),
-            t17);
+        a105 = _mm_avg_epu8(a101, a104);
+        a107 = _mm_srli_epi16(a105, 2);
+        t17 = _mm_and_si128(a107, _mm_set1_epi8(63));
+        t18 = _mm_subs_epu8(_mm_set1_epi8(63), t17);
         m27 = _mm_adds_epu8(s24, t17);
         m28 = _mm_adds_epu8(s25, t18);
         m29 = _mm_adds_epu8(s24, t18);
@@ -327,19 +266,12 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         d11 = _mm_cmpeq_epi8(a108, m28);
         a109 = _mm_min_epu8(m30, m29);
         d12 = _mm_cmpeq_epi8(a109, m30);
-        s26 = _mm_movemask_epi8(_mm_unpacklo_epi8(d11, d12));
-        a110 = (a93 + 2);
-        *(a110) = s26;
-        s27 = _mm_movemask_epi8(_mm_unpackhi_epi8(d11, d12));
-        a111 = (a93 + 3);
-        *(a111) = s27;
-        s28 = _mm_unpacklo_epi8(a108, a109);
-        s29 = _mm_unpackhi_epi8(a108, a109);
-        a112 = (a95 + 2);
-        *(a112) = s28;
-        a113 = (a95 + 3);
-        *(a113) = s29;
+        dec_short[4 * i + 2] = _mm_movemask_epi8(_mm_unpacklo_epi8(d11, d12));
+        dec_short[4 * i + 3] = _mm_movemask_epi8(_mm_unpackhi_epi8(d11, d12));
+        ((__m128i*)Y)[2] = _mm_unpacklo_epi8(a108, a109);
+        ((__m128i*)Y)[3] = _mm_unpackhi_epi8(a108, a109);
 
+        // Renormalize
         __m128i m5, m6;
         m5 = ((__m128i*)Y)[0];
         m5 = _mm_min_epu8(m5, ((__m128i*)Y)[1]);
@@ -379,45 +311,29 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
                                                        unsigned int excess,
                                                        unsigned char* Branchtab)
 {
-    unsigned int i9;
-    for (i9 = 0; i9 < framebits + excess; i9++) {
+    unsigned int i;
+    for (i = 0; i < framebits + excess; i++) {
         unsigned char* tmp;
-        unsigned char a75, a81;
-        int a73, a92;
-        unsigned int s20, s26;
-        unsigned char *a74, *a80, *b6;
-        unsigned int *a110, *a91, *a93;
-        uint8x16_t *a102, *a112, *a113, *a71, *a72, *a77, *a83, *a95, *a96, *a97, *a98,
-            *a99;
-        uint8x16_t a105, a86;
-        uint8x16_t a100, a101, a103, a104, a108, a109, a76, a78, a79, a82, a84, a85, a89,
-            a90, d10, d11, d12, d9, m23, m24, m25, m26, m27, m28, m29, m30, s18, s19, s22,
-            s23, s24, s25, s28, s29, t13, t14, t15, t16, t17, t18;
+        unsigned int* dec_int = (unsigned int*)dec;
+        uint8x16_t a100, a101, a103, a104, a105, a108, a109, a76, a78, a79, a82, a84, a85,
+            a86, a89, a90, d10, d11, d12, d9, m23, m24, m25, m26, m27, m28, m29, m30, s18,
+            s19, s24, s25, t14, t15, t17, t18;
         uint16x8_t high_bits;
         uint32x4_t paired16;
         uint8x16_t paired32;
         uint8x8_t left, right;
         uint8x8x2_t both;
-        a71 = ((uint8x16_t*)X);
-        s18 = *(a71);
-        a72 = (a71 + 2);
-        s19 = *(a72);
-        a73 = (2 * i9);
-        a74 = (syms + a73);
-        a75 = *(a74);
-        a76 = vdupq_n_u8(a75);
-        a77 = ((uint8x16_t*)Branchtab);
-        a78 = *(a77);
+
+        // First half of butterfly
+        s18 = ((uint8x16_t*)X)[0];
+        s19 = ((uint8x16_t*)X)[2];
+        a76 = vdupq_n_u8(syms[2 * i]);
+        a78 = ((uint8x16_t*)Branchtab)[0];
         a79 = veorq_u8(a76, a78);
-        b6 = (a73 + syms);
-        a80 = (b6 + 1);
-        a81 = *(a80);
-        a82 = vdupq_n_u8(a81);
-        a83 = (a77 + 2);
-        a84 = *(a83);
+        a82 = vdupq_n_u8(syms[2 * i + 1]);
+        a84 = ((uint8x16_t*)Branchtab)[2];
         a85 = veorq_u8(a82, a84);
-        t13 = vrhaddq_u8(a79, a85);
-        a86 = ((uint8x16_t)t13);
+        a86 = vrhaddq_u8(a79, a85);
         t14 = vshrq_n_u8(a86, 2);
         t15 = vqsubq_u8(vdupq_n_u8(63), t14);
         m23 = vqaddq_u8(s18, t14);
@@ -431,45 +347,34 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         high_bits = vreinterpretq_u16_u8(vshrq_n_u8(d9, 7));
         paired16 = vreinterpretq_u32_u16(vsraq_n_u16(high_bits, high_bits, 6));
         paired32 = vreinterpretq_u8_u32(vsraq_n_u32(paired16, paired16, 12));
-        s20 = ((unsigned int)vgetq_lane_u8(paired32, 0) << 0) |
-              ((unsigned int)vgetq_lane_u8(paired32, 4) << 8) |
-              ((unsigned int)vgetq_lane_u8(paired32, 8) << 16) |
-              ((unsigned int)vgetq_lane_u8(paired32, 12) << 24);
+        dec_int[2 * i] = ((unsigned int)vgetq_lane_u8(paired32, 0) << 0) |
+                         ((unsigned int)vgetq_lane_u8(paired32, 4) << 8) |
+                         ((unsigned int)vgetq_lane_u8(paired32, 8) << 16) |
+                         ((unsigned int)vgetq_lane_u8(paired32, 12) << 24);
         high_bits = vreinterpretq_u16_u8(vshrq_n_u8(d10, 7));
         paired16 = vreinterpretq_u32_u16(vsraq_n_u16(high_bits, high_bits, 6));
         paired32 = vreinterpretq_u8_u32(vsraq_n_u32(paired16, paired16, 12));
-        s20 |= ((unsigned int)vgetq_lane_u8(paired32, 0) << 1) |
-               ((unsigned int)vgetq_lane_u8(paired32, 4) << 9) |
-               ((unsigned int)vgetq_lane_u8(paired32, 8) << 17) |
-               ((unsigned int)vgetq_lane_u8(paired32, 12) << 25);
-        a91 = ((unsigned int*)dec);
-        a92 = (2 * i9);
-        a93 = (a91 + a92);
-        *(a93) = s20;
+        dec_int[2 * i] |= ((unsigned int)vgetq_lane_u8(paired32, 0) << 1) |
+                          ((unsigned int)vgetq_lane_u8(paired32, 4) << 9) |
+                          ((unsigned int)vgetq_lane_u8(paired32, 8) << 17) |
+                          ((unsigned int)vgetq_lane_u8(paired32, 12) << 25);
         left = vget_low_u8(a89);
         right = vget_low_u8(a90);
         both = vzip_u8(left, right);
-        s22 = vcombine_u8(both.val[0], both.val[1]);
+        ((uint8x16_t*)Y)[0] = vcombine_u8(both.val[0], both.val[1]);
         left = vget_high_u8(a89);
         right = vget_high_u8(a90);
         both = vzip_u8(left, right);
-        s23 = vcombine_u8(both.val[0], both.val[1]);
-        a95 = ((uint8x16_t*)Y);
-        *(a95) = s22;
-        a96 = (a95 + 1);
-        *(a96) = s23;
-        a97 = (a71 + 1);
-        s24 = *(a97);
-        a98 = (a71 + 3);
-        s25 = *(a98);
-        a99 = (a77 + 1);
-        a100 = *(a99);
+        ((uint8x16_t*)Y)[1] = vcombine_u8(both.val[0], both.val[1]);
+
+        // Second half of butterfly
+        s24 = ((uint8x16_t*)X)[1];
+        s25 = ((uint8x16_t*)X)[3];
+        a100 = ((uint8x16_t*)Branchtab)[1];
         a101 = veorq_u8(a76, a100);
-        a102 = (a77 + 3);
-        a103 = *(a102);
+        a103 = ((uint8x16_t*)Branchtab)[3];
         a104 = veorq_u8(a82, a103);
-        t16 = vrhaddq_u8(a101, a104);
-        a105 = ((uint8x16_t)t16);
+        a105 = vrhaddq_u8(a101, a104);
         t17 = vshrq_n_u8(a105, 2);
         t18 = vqsubq_u8(vdupq_n_u8(63), t17);
         m27 = vqaddq_u8(s24, t17);
@@ -483,32 +388,27 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         high_bits = vreinterpretq_u16_u8(vshrq_n_u8(d11, 7));
         paired16 = vreinterpretq_u32_u16(vsraq_n_u16(high_bits, high_bits, 6));
         paired32 = vreinterpretq_u8_u32(vsraq_n_u32(paired16, paired16, 12));
-        s26 = ((unsigned int)vgetq_lane_u8(paired32, 0) << 0) |
-              ((unsigned int)vgetq_lane_u8(paired32, 4) << 8) |
-              ((unsigned int)vgetq_lane_u8(paired32, 8) << 16) |
-              ((unsigned int)vgetq_lane_u8(paired32, 12) << 24);
+        dec_int[2 * i + 1] = ((unsigned int)vgetq_lane_u8(paired32, 0) << 0) |
+                             ((unsigned int)vgetq_lane_u8(paired32, 4) << 8) |
+                             ((unsigned int)vgetq_lane_u8(paired32, 8) << 16) |
+                             ((unsigned int)vgetq_lane_u8(paired32, 12) << 24);
         high_bits = vreinterpretq_u16_u8(vshrq_n_u8(d12, 7));
         paired16 = vreinterpretq_u32_u16(vsraq_n_u16(high_bits, high_bits, 6));
         paired32 = vreinterpretq_u8_u32(vsraq_n_u32(paired16, paired16, 12));
-        s26 |= ((unsigned int)vgetq_lane_u8(paired32, 0) << 1) |
-               ((unsigned int)vgetq_lane_u8(paired32, 4) << 9) |
-               ((unsigned int)vgetq_lane_u8(paired32, 8) << 17) |
-               ((unsigned int)vgetq_lane_u8(paired32, 12) << 25);
-        a110 = (a93 + 1);
-        *(a110) = s26;
+        dec_int[2 * i + 1] |= ((unsigned int)vgetq_lane_u8(paired32, 0) << 1) |
+                              ((unsigned int)vgetq_lane_u8(paired32, 4) << 9) |
+                              ((unsigned int)vgetq_lane_u8(paired32, 8) << 17) |
+                              ((unsigned int)vgetq_lane_u8(paired32, 12) << 25);
         left = vget_low_u8(a108);
         right = vget_low_u8(a109);
         both = vzip_u8(left, right);
-        s28 = vcombine_u8(both.val[0], both.val[1]);
+        ((uint8x16_t*)Y)[2] = vcombine_u8(both.val[0], both.val[1]);
         left = vget_high_u8(a108);
         right = vget_high_u8(a109);
         both = vzip_u8(left, right);
-        s29 = vcombine_u8(both.val[0], both.val[1]);
-        a112 = (a95 + 2);
-        *(a112) = s28;
-        a113 = (a95 + 3);
-        *(a113) = s29;
+        ((uint8x16_t*)Y)[3] = vcombine_u8(both.val[0], both.val[1]);
 
+        // Renormalize
         uint8x16_t m5, m6;
         m5 = ((uint8x16_t*)Y)[0];
         m5 = vminq_u8(m5, ((uint8x16_t*)Y)[1]);
