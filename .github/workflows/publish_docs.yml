@@ -22,8 +22,12 @@ jobs:
       run: |
         ssh-agent -a $SSH_AUTH_SOCK > /dev/null
         ssh-add - <<< "${{ secrets.SSH_KEY }}"
+        mkdir $HOME/.ssh
+        echo -n "${{ secrets.SSH_KNOWN_HOST }}" > $HOME/.ssh/known_hosts
     - name: Upload via SSH
-      run: 'tar -cz build/html/ | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /www/$(date +%Y.%m.%d); cd /www/$(date +%Y.%m.%d); tar --strip-components=1 -xz; rm /www/live; cd /www; ln -sf $(date +%Y.%m.%d) live;"'
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: 'tar -cz build/html/ | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }} "mkdir -p /www/$(date +%Y.%m.%d); cd /www/$(date +%Y.%m.%d); tar --strip-components=1 -xz; rm /www/live; cd /www; ln -sf $(date +%Y.%m.%d) live;"'
     - uses: actions/upload-artifact@v4
       with:
         name: volk_docs
