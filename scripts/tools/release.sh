@@ -6,7 +6,9 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-setopt ERR_EXIT #exit on error
+set -e
+set -u
+
 #Project name
 project=volk
 #What to prefix in release tags in front of the version number
@@ -47,6 +49,21 @@ version_maint=$(grep -i 'set(version_info_maint' CMakeLists.txt |\
                     sed 's/.*VERSION_INFO_MAINT_VERSION[[:space:]]*\([[:digit:]a-zA-z-]*\))/\1/i')
 version="${version_major}.${version_minor}.${version_maint}"
 last_release="$(cat ${lastreleasefile})"
+
+# Check whether tag of last release exists
+if git --no-pager reflog "${last_release}" > /dev/null 2>&1 ; then
+  # all right
+  echo "Found last tag ${last_release}"
+else
+  echo "Last release tag ${last_release} does not exist, aborting…"
+  exit 255
+fi
+# Check for whether tag already exists
+if git --no-pager reflog "${releaseprefix}${version}" > /dev/null 2>&1 ; then
+  echo "Tag ${releaseprefix}${version} already exists, aborting…"
+  exit 254
+fi
+
 echo "Releasing version ${version}"
 
 # 2. Prepare Changelog
@@ -55,22 +72,22 @@ shortlog="
 
 ## [${version}] - $(date +'%Y-%m-%d')
 
-$(git shortlog -e ${last_release}..HEAD)
+$(git shortlog -e "${last_release}"..HEAD)
 "
 echo "${shortlog}"
 
-echo "${shortlog}" > ${deltafile}
+echo "${shortlog}" > "${deltafile}"
 
-${EDITOR} ${deltafile}
+${EDITOR} "${deltafile}"
 
-echo "$(cat ${deltafile})" >> ${changelog}
-echo "${releaseprefix}${version}" > ${lastreleasefile}
+cat "${deltafile}" >> "${changelog}"
+echo "${releaseprefix}${version}" > "${lastreleasefile}"
 
 # 3. Commit changelog
 git commit -m "Release ${version}" "${changelog}" "${lastreleasefile}" CMakeLists.txt
 
 # 4. prepare tag
-cat "${deltafile}" > ${annotationfile}
+cat "${deltafile}" > "${annotationfile}"
 # Append the HEAD commit hash to the annotation
 echo "git-describes-hash: $(git rev-parse --verify HEAD)" >> "${annotationfile}"
 
@@ -92,12 +109,15 @@ tarprefix="${project}-${version}"
 outfile="${tempdir}/${tarprefix}.tar"
 git archive "--output=${outfile}" "--prefix=${tarprefix}/" HEAD
 # Append submodule archives
-git submodule foreach --recursive "git archive --output ${tempdir}/${tarprefix}-sub-\${sha1}.tar --prefix=${tarprefix}/\${sm_path}/ HEAD"
-if [[ $(ls ${tempdir}/${tarprefix}-sub*.tar | wc -l) != 0  ]]; then
-  # combine all archives into one tar
-  tar --concatenate --file ${outfile} ${tempdir}/${tarprefix}-sub*.tar
-fi
-echo "Created tape archive '${outfile}' of size $(du -h ${outfile})."
+git submodule update --init --recursive
+git submodule foreach --recursive "git archive --output \"${tempdir}/${tarprefix}-sub-\${sha1}.tar\" --prefix=${tarprefix}/\${sm_path}/ HEAD"
+submodule_tars=( "${tempdir}/${tarprefix}-sub-*.tar" )
+# if the number of entries isn't zero
+for submod_tar in $submodule_tars ; do
+  echo "Appending submodule tar ${submod_tar} to ${outfile}…"
+  tar --concatenate --file "${outfile}" "${submod_tar}"
+done
+echo "Created tape archive ${outfile} of size $(du -h "${outfile}")"
 
 # 6. compress
 echo  "compressing:"
@@ -113,15 +133,17 @@ echo "…compressed."
 # 7. sign
 
 # 7.1 with openbsd-signify
-echo "signing file list…"
-filelist="${tempdir}/${version}.sha256"
-pushd "${tempdir}"
-sha256sum --tag *.tar.* > "${filelist}"
-signify-openbsd -S -e -s "${seckey}" -m "${filelist}"
-echo "…signed. Check with 'signify -C -p \"${pubkey}\" -x \"${filelist}\"'."
-signify-openbsd -C -p "${pubkey}" -x "${filelist}.sig"
-popd
-echo "checked."
+if type 'signify-openbsd' > /dev/null; then
+  echo "signing file list…"
+  filelist="${tempdir}/${version}.sha256"
+  pushd "${tempdir}" || exit 1
+  sha256sum --tag -- *.tar.* > "${filelist}"
+  signify-openbsd -S -e -s "${seckey}" -m "${filelist}"
+  echo "…signed. Check with 'signify -C -p \"${pubkey}\" -x \"${filelist}\"'."
+  signify-openbsd -C -p "${pubkey}" -x "${filelist}.sig"
+  popd
+  echo "checked."
+fi
 
 # 7.2 with GPG
 echo "signing tarballs with GPG ..."
@@ -143,4 +165,3 @@ echo "Release tag: 'git push ${remote} v${releaseprefix}${version}'"
 #    git push "${remote}" HEAD
 #    git push "${remote}" "v${releaseprefix}${version}"
 #fi
-
