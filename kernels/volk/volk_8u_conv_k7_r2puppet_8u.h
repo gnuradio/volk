@@ -179,8 +179,6 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* dec,
 
 #if LV_HAVE_NEON
 
-#include "volk/sse2neon/sse2neon.h"
-
 static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* dec,
                                                           unsigned char* syms,
                                                           unsigned int framebits)
