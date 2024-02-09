@@ -35,7 +35,7 @@ jobs:
     runs-on: ${{ matrix.compiler.distro }}
 
     steps:
-    - uses: actions/checkout@v3.1.0
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: Install dependencies
@@ -110,7 +110,7 @@ jobs:
             compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
 
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
       - uses: uraimo/run-on-arch-action@v2.5.0
@@ -169,7 +169,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3.1.0
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: dependencies
@@ -194,7 +194,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3.1.0
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: dependencies
@@ -248,7 +248,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3.1.0
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: dependencies
