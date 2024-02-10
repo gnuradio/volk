@@ -17,26 +17,24 @@ if(HAVE_POSIX_MEMALIGN)
 endif(HAVE_POSIX_MEMALIGN)
 
 # MAKE volk_profile
-add_executable(volk_profile
-    ${CMAKE_CURRENT_SOURCE_DIR}/volk_profile.cc
-    ${PROJECT_SOURCE_DIR}/lib/qa_utils.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc
-)
+add_executable(
+    volk_profile
+    ${CMAKE_CURRENT_SOURCE_DIR}/volk_profile.cc ${PROJECT_SOURCE_DIR}/lib/qa_utils.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc)
 
 if(MSVC)
-    target_include_directories(volk_profile
-        PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/cmake/msvc>
-    )
+    target_include_directories(
+        volk_profile PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/cmake/msvc>)
 endif(MSVC)
 
-target_include_directories(volk_profile
+target_include_directories(
+    volk_profile
     PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/lib>
     PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib>
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-)
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_definitions(-DHAS_STD_FILESYSTEM=1)
 if(${find_experimental})
@@ -54,12 +52,11 @@ endif()
 install(
     TARGETS volk_profile
     DESTINATION bin
-    COMPONENT "volk"
-)
+    COMPONENT "volk")
 
 # MAKE volk-config-info
-add_executable(volk-config-info volk-config-info.cc ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc
-        )
+add_executable(volk-config-info volk-config-info.cc
+                                ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc)
 
 if(ENABLE_STATIC_LIBS)
     target_link_libraries(volk-config-info volk_static)
@@ -71,21 +68,20 @@ endif()
 install(
     TARGETS volk-config-info
     DESTINATION bin
-    COMPONENT "volk"
-)
+    COMPONENT "volk")
 
 # Launch volk_profile if requested to do so
 if(ENABLE_PROFILING)
-   if(DEFINED VOLK_CONFIGPATH)
-        set( VOLK_CONFIG_ARG "-p${VOLK_CONFIGPATH}" )
-        set( VOLK_CONFIG "${VOLK_CONFIGPATH}/volk_config" )
-   endif()
+    if(DEFINED VOLK_CONFIGPATH)
+        set(VOLK_CONFIG_ARG "-p${VOLK_CONFIGPATH}")
+        set(VOLK_CONFIG "${VOLK_CONFIGPATH}/volk_config")
+    endif()
 
-   add_custom_command(OUTPUT ${VOLK_CONFIG}
+    add_custom_command(
+        OUTPUT ${VOLK_CONFIG}
         COMMAND volk_profile "${VOLK_CONFIG_ARG}"
         DEPENDS volk_profile
-        COMMENT "Launching profiler, this may take a few minutes..."
-    )
+        COMMENT "Launching profiler, this may take a few minutes...")
     add_custom_target(volk-profile-run ALL DEPENDS ${VOLK_CONFIG})
 
 endif()

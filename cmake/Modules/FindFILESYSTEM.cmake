@@ -104,7 +104,6 @@ Using `find_package(FILESYSTEM)` with no component arguments:
 
 #]=======================================================================]
 
-
 if(TARGET std::filesystem)
     # This module has already been processed. Don't do it again.
     return()
@@ -121,16 +120,19 @@ set(CMAKE_REQUIRED_QUIET ${FILESYSTEM_FIND_QUIETLY})
 # All of our tests require C++17 or later
 set(OLD_CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD 17)
-if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "8.0.0"))
+if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER
+                                               "8.0.0"))
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.99")
         set(UNDEFINED_BEHAVIOR_WITHOUT_LINKING TRUE)
     endif()
     set(CMAKE_REQUIRED_FLAGS "-std=c++17")
 endif()
-if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.99"))
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND NOT (CMAKE_CXX_COMPILER_VERSION
+                                                     VERSION_LESS "8.99"))
     set(CMAKE_REQUIRED_FLAGS "-std=c++17")
 endif()
-if((CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "11"))
+if((CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND NOT (CMAKE_CXX_COMPILER_VERSION
+                                                          VERSION_LESS "11"))
     set(CMAKE_REQUIRED_FLAGS "-std=c++17")
 endif()
 if(MSVC AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18"))
@@ -173,7 +175,8 @@ else()
 endif()
 
 if(find_experimental)
-    check_include_file_cxx("experimental/filesystem" _CXX_FILESYSTEM_HAVE_EXPERIMENTAL_HEADER)
+    check_include_file_cxx("experimental/filesystem"
+                           _CXX_FILESYSTEM_HAVE_EXPERIMENTAL_HEADER)
     mark_as_advanced(_CXX_FILESYSTEM_HAVE_EXPERIMENTAL_HEADER)
 else()
     set(_CXX_FILESYSTEM_HAVE_EXPERIMENTAL_HEADER FALSE)
@@ -191,22 +194,32 @@ else()
     set(_have_fs FALSE)
 endif()
 
-set(CXX_FILESYSTEM_HAVE_FS ${_have_fs} CACHE BOOL "TRUE if we have the C++ filesystem headers")
-set(CXX_FILESYSTEM_HEADER ${_fs_header} CACHE STRING "The header that should be included to obtain the filesystem APIs")
-set(CXX_FILESYSTEM_NAMESPACE ${_fs_namespace} CACHE STRING "The C++ namespace that contains the filesystem APIs")
+set(CXX_FILESYSTEM_HAVE_FS
+    ${_have_fs}
+    CACHE BOOL "TRUE if we have the C++ filesystem headers")
+set(CXX_FILESYSTEM_HEADER
+    ${_fs_header}
+    CACHE STRING "The header that should be included to obtain the filesystem APIs")
+set(CXX_FILESYSTEM_NAMESPACE
+    ${_fs_namespace}
+    CACHE STRING "The C++ namespace that contains the filesystem APIs")
 
 set(_found FALSE)
 
 if(CXX_FILESYSTEM_HAVE_FS)
     # We have some filesystem library available. Do link checks
-    string(CONFIGURE [[
+    string(
+        CONFIGURE
+            [[
         #include <@CXX_FILESYSTEM_HEADER@>
 
         int main() {
             auto cwd = @CXX_FILESYSTEM_NAMESPACE@::current_path();
             return static_cast<int>(cwd.string().size());
         }
-    ]] code @ONLY)
+    ]]
+            code
+        @ONLY)
 
     # Try to compile a simple filesystem program without any linker flags
     if(NOT UNDEFINED_BEHAVIOR_WITHOUT_LINKING)
@@ -254,7 +267,9 @@ endif()
 
 cmake_pop_check_state()
 
-set(FILESYSTEM_FOUND ${_found} CACHE BOOL "TRUE if we can compile and link a program using std::filesystem" FORCE)
+set(FILESYSTEM_FOUND
+    ${_found}
+    CACHE BOOL "TRUE if we can compile and link a program using std::filesystem" FORCE)
 
 if(FILESYSTEM_FIND_REQUIRED AND NOT FILESYSTEM_FOUND)
     message(FATAL_ERROR "Cannot compile a simple program using std::filesystem")

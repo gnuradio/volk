@@ -37,7 +37,7 @@ if(PYTHON_EXECUTABLE)
 
     set(PYTHONINTERP_FOUND TRUE)
 
-#otherwise if not set, try to automatically find it
+    #otherwise if not set, try to automatically find it
 else(PYTHON_EXECUTABLE)
 
     #use the built-in find script
@@ -55,8 +55,9 @@ else(PYTHON_EXECUTABLE)
 endif(PYTHON_EXECUTABLE)
 
 #make the path to the executable appear in the cmake gui
-set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE} CACHE FILEPATH "python interpreter")
-
+set(PYTHON_EXECUTABLE
+    ${PYTHON_EXECUTABLE}
+    CACHE FILEPATH "python interpreter")
 
 ########################################################################
 # Check for the existence of a python module:
@@ -69,7 +70,8 @@ macro(VOLK_PYTHON_CHECK_MODULE desc mod cmd have)
     message(STATUS "")
     message(STATUS "Python checking for ${desc}")
     execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -c "
+        COMMAND
+            ${PYTHON_EXECUTABLE} -c "
 #########################################
 try: import ${mod}
 except:
@@ -78,8 +80,7 @@ except:
 try: assert ${cmd}
 except: exit(-1)
 #########################################"
-        RESULT_VARIABLE ${have}
-    )
+        RESULT_VARIABLE ${have})
     if(${have} EQUAL 0)
         message(STATUS "Python checking for ${desc} - found")
         set(${have} TRUE)
@@ -96,8 +97,9 @@ endmacro(VOLK_PYTHON_CHECK_MODULE)
 # https://github.com/pothosware/SoapySDR/blob/master/LICENSE_1_0.txt
 ########################################################################
 if(NOT DEFINED VOLK_PYTHON_DIR)
-execute_process(
-    COMMAND ${PYTHON_EXECUTABLE} -c "import os
+    execute_process(
+        COMMAND
+            ${PYTHON_EXECUTABLE} -c "import os
 import sysconfig
 import site
 
@@ -128,9 +130,8 @@ if not install_dir:
 
 #strip the prefix to return a relative path
 print(os.path.relpath(install_dir, prefix))"
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    OUTPUT_VARIABLE VOLK_PYTHON_DIR
-)
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        OUTPUT_VARIABLE VOLK_PYTHON_DIR)
 endif()
 file(TO_CMAKE_PATH ${VOLK_PYTHON_DIR} VOLK_PYTHON_DIR)
 
@@ -140,10 +141,12 @@ file(TO_CMAKE_PATH ${VOLK_PYTHON_DIR} VOLK_PYTHON_DIR)
 ########################################################################
 function(VOLK_UNIQUE_TARGET desc)
     file(RELATIVE_PATH reldir ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-    execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import re, hashlib
+    execute_process(
+        COMMAND ${PYTHON_EXECUTABLE} -c "import re, hashlib
 unique = hashlib.sha256(b'${reldir}${ARGN}').hexdigest()[:5]
 print(re.sub('\\W', '_', '${desc} ${reldir} ' + unique))"
-    OUTPUT_VARIABLE _target OUTPUT_STRIP_TRAILING_WHITESPACE)
+        OUTPUT_VARIABLE _target
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
     add_custom_target(${_target} ALL DEPENDS ${ARGN})
 endfunction(VOLK_UNIQUE_TARGET)
 
@@ -152,11 +155,12 @@ endfunction(VOLK_UNIQUE_TARGET)
 ########################################################################
 function(VOLK_PYTHON_INSTALL)
     include(CMakeParseArgumentsCopy)
-    CMAKE_PARSE_ARGUMENTS(VOLK_PYTHON_INSTALL "" "DESTINATION;COMPONENT" "FILES;PROGRAMS" ${ARGN})
+    cmake_parse_arguments(VOLK_PYTHON_INSTALL "" "DESTINATION;COMPONENT" "FILES;PROGRAMS"
+                          ${ARGN})
 
     ####################################################################
     if(VOLK_PYTHON_INSTALL_FILES)
-    ####################################################################
+        ####################################################################
         install(${ARGN}) #installs regular python files
 
         #create a list of all generated files
@@ -190,49 +194,52 @@ function(VOLK_PYTHON_INSTALL)
 
         #the command to generate the pyc files
         add_custom_command(
-            DEPENDS ${pysrcfiles} OUTPUT ${pycfiles}
-            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/python_compile_helper.py ${pysrcfiles} ${pycfiles}
-        )
+            DEPENDS ${pysrcfiles}
+            OUTPUT ${pycfiles}
+            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/python_compile_helper.py
+                    ${pysrcfiles} ${pycfiles})
 
         #the command to generate the pyo files
         add_custom_command(
-            DEPENDS ${pysrcfiles} OUTPUT ${pyofiles}
-            COMMAND ${PYTHON_EXECUTABLE} -O ${CMAKE_BINARY_DIR}/python_compile_helper.py ${pysrcfiles} ${pyofiles}
-        )
+            DEPENDS ${pysrcfiles}
+            OUTPUT ${pyofiles}
+            COMMAND ${PYTHON_EXECUTABLE} -O ${CMAKE_BINARY_DIR}/python_compile_helper.py
+                    ${pysrcfiles} ${pyofiles})
 
         #create install rule and add generated files to target list
         set(python_install_gen_targets ${pycfiles} ${pyofiles})
-        install(FILES ${python_install_gen_targets}
+        install(
+            FILES ${python_install_gen_targets}
             DESTINATION ${VOLK_PYTHON_INSTALL_DESTINATION}
-            COMPONENT ${VOLK_PYTHON_INSTALL_COMPONENT}
-        )
+            COMPONENT ${VOLK_PYTHON_INSTALL_COMPONENT})
 
-
-    ####################################################################
+        ####################################################################
     elseif(VOLK_PYTHON_INSTALL_PROGRAMS)
-    ####################################################################
+        ####################################################################
         file(TO_NATIVE_PATH ${PYTHON_EXECUTABLE} pyexe_native)
 
-        if (CMAKE_CROSSCOMPILING)
-           set(pyexe_native "/usr/bin/env python")
+        if(CMAKE_CROSSCOMPILING)
+            set(pyexe_native "/usr/bin/env python")
         endif()
 
         foreach(pyfile ${VOLK_PYTHON_INSTALL_PROGRAMS})
             get_filename_component(pyfile_name ${pyfile} NAME)
             get_filename_component(pyfile ${pyfile} ABSOLUTE)
-            string(REPLACE "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" pyexefile "${pyfile}.exe")
+            string(REPLACE "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" pyexefile
+                           "${pyfile}.exe")
             list(APPEND python_install_gen_targets ${pyexefile})
 
             get_filename_component(pyexefile_path ${pyexefile} PATH)
             file(MAKE_DIRECTORY ${pyexefile_path})
 
             add_custom_command(
-                OUTPUT ${pyexefile} DEPENDS ${pyfile}
-                COMMAND ${PYTHON_EXECUTABLE} -c
-                "open('${pyexefile}','w').write(r'\#!${pyexe_native}'+'\\n'+open('${pyfile}').read())"
+                OUTPUT ${pyexefile}
+                DEPENDS ${pyfile}
+                COMMAND
+                    ${PYTHON_EXECUTABLE} -c
+                    "open('${pyexefile}','w').write(r'\#!${pyexe_native}'+'\\n'+open('${pyfile}').read())"
                 COMMENT "Shebangin ${pyfile_name}"
-                VERBATIM
-            )
+                VERBATIM)
 
             #on windows, python files need an extension to execute
             get_filename_component(pyfile_ext ${pyfile} EXT)
@@ -240,22 +247,25 @@ function(VOLK_PYTHON_INSTALL)
                 set(pyfile_name "${pyfile_name}.py")
             endif()
 
-            install(PROGRAMS ${pyexefile} RENAME ${pyfile_name}
+            install(
+                PROGRAMS ${pyexefile}
+                RENAME ${pyfile_name}
                 DESTINATION ${VOLK_PYTHON_INSTALL_DESTINATION}
-                COMPONENT ${VOLK_PYTHON_INSTALL_COMPONENT}
-            )
+                COMPONENT ${VOLK_PYTHON_INSTALL_COMPONENT})
         endforeach(pyfile)
 
     endif()
 
-    VOLK_UNIQUE_TARGET("pygen" ${python_install_gen_targets})
+    volk_unique_target("pygen" ${python_install_gen_targets})
 
 endfunction(VOLK_PYTHON_INSTALL)
 
 ########################################################################
 # Write the python helper script that generates byte code files
 ########################################################################
-file(WRITE ${CMAKE_BINARY_DIR}/python_compile_helper.py "
+file(
+    WRITE ${CMAKE_BINARY_DIR}/python_compile_helper.py
+    "
 import sys, py_compile
 files = sys.argv[1:]
 srcs, gens = files[:len(files)//2], files[len(files)//2:]

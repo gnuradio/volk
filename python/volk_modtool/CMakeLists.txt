@@ -11,18 +11,15 @@
 ########################################################################
 include(VolkPython)
 
-VOLK_PYTHON_INSTALL(
+volk_python_install(
     FILES
     __init__.py
     cfg.py
     volk_modtool_generate.py
-    DESTINATION ${VOLK_PYTHON_DIR}/volk_modtool
-    COMPONENT "volk"
-)
+    DESTINATION
+    ${VOLK_PYTHON_DIR}/volk_modtool
+    COMPONENT
+    "volk")
 
-VOLK_PYTHON_INSTALL(
-    PROGRAMS
-    volk_modtool
-    DESTINATION ${VOLK_RUNTIME_DIR}
-    COMPONENT "volk"
-)
+volk_python_install(PROGRAMS volk_modtool DESTINATION ${VOLK_RUNTIME_DIR} COMPONENT
+                    "volk")
