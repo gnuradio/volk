@@ -194,6 +194,22 @@ endif(ENABLE_ORC)
 add_subdirectory(docs)
 
 ########################################################################
+# Setup Coverage
+########################################################################
+if(${CMAKE_BUILD_TYPE} STREQUAL "Coverage")
+    # Use CodeCoverage based on Lars Bilke's
+    # https://github.com/bilke/cmake-modules , with extensive
+    # modifications as done in the past for GNU Radio.
+    include(CodeCoverage)
+    append_coverage_compiler_flags()
+    setup_target_for_coverage_gcovr_html(
+        NAME coverage
+        EXECUTABLE "ctest"  
+        DEPENDENCIES volk_profile
+        )
+endif()
+
+########################################################################
 # Detect /lib versus /lib64
 ########################################################################
 include(GNUInstallDirs)
