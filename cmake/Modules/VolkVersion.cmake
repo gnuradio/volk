@@ -24,19 +24,20 @@ if(GIT_FOUND AND EXISTS ${CMAKE_SOURCE_DIR}/.git)
     message(STATUS "Extracting version information from git describe...")
     execute_process(
         COMMAND ${GIT_EXECUTABLE} describe --always --abbrev=8 --long
-        OUTPUT_VARIABLE GIT_DESCRIBE OUTPUT_STRIP_TRAILING_WHITESPACE
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    )
+        OUTPUT_VARIABLE GIT_DESCRIBE
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 else()
-  if(NOT VOLK_GIT_COUNT)
-    set(VOLK_GIT_COUNT "0")
-  endif()
+    if(NOT VOLK_GIT_COUNT)
+        set(VOLK_GIT_COUNT "0")
+    endif()
 
-  if(NOT VOLK_GIT_HASH)
-    set(VOLK_GIT_HASH "unknown")
-  endif()
+    if(NOT VOLK_GIT_HASH)
+        set(VOLK_GIT_HASH "unknown")
+    endif()
 
-  set(GIT_DESCRIBE "v${MAJOR_VERSION}.${MINOR_VERSION}-${VOLK_GIT_COUNT}-${VOLK_GIT_HASH}")
+    set(GIT_DESCRIBE
+        "v${MAJOR_VERSION}.${MINOR_VERSION}-${VOLK_GIT_COUNT}-${VOLK_GIT_HASH}")
 endif()
 
 ########################################################################
@@ -47,8 +48,8 @@ if("${MINOR_VERSION}" STREQUAL "git")
     # DOCVER:  1.0git
     # SOVERSION:  1.0git
     set(VERSION "${GIT_DESCRIBE}")
-    set(DOCVER  "${MAJOR_VERSION}.0${MINOR_VERSION}")
-    set(SOVERSION  "${MAJOR_VERSION}.0${MINOR_VERSION}")
+    set(DOCVER "${MAJOR_VERSION}.0${MINOR_VERSION}")
+    set(SOVERSION "${MAJOR_VERSION}.0${MINOR_VERSION}")
     set(RC_MINOR_VERSION "0")
     set(RC_MAINT_VERSION "0")
 elseif("${MAINT_VERSION}" STREQUAL "git")
@@ -56,8 +57,8 @@ elseif("${MAINT_VERSION}" STREQUAL "git")
     # DOCVER:  1.xgit
     # SOVERSION:  1.xgit
     set(VERSION "${GIT_DESCRIBE}")
-    set(DOCVER  "${MAJOR_VERSION}.${MINOR_VERSION}${MAINT_VERSION}")
-    set(SOVERSION  "${MAJOR_VERSION}.${MINOR_VERSION}${MAINT_VERSION}")
+    set(DOCVER "${MAJOR_VERSION}.${MINOR_VERSION}${MAINT_VERSION}")
+    set(SOVERSION "${MAJOR_VERSION}.${MINOR_VERSION}${MAINT_VERSION}")
     math(EXPR RC_MINOR_VERSION "${MINOR_VERSION} - 1")
     set(RC_MAINT_VERSION "0")
 else()
