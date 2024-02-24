@@ -48,8 +48,15 @@ $ volk_profile
 ```
 
 #### Missing submodule
-We use [cpu_features](https://github.com/google/cpu_features) as a git submodule to detect CPU features, e.g. AVX.
-There are two options to get the required code:
+We use [cpu_features](https://github.com/google/cpu_features) to detect CPU features, e.g. AVX.
+Some platforms require a very recent version that is not available through the appropriate package manager.
+In this case you must use `cpu_features` as a submodule.
+
+**NOTE**: Most package managers provide recent enough `cpu_features` versions by now. 
+Please default to the provided `cpu_features` version first, and only use the submodule in cases where this fails. 
+Please open an issue if this is the case.
+
+There are two options to get the required code in a submodule:
 ```bash
 git clone --recursive https://github.com/gnuradio/volk.git
 ```
