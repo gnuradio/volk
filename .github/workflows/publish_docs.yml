@@ -27,7 +27,8 @@ jobs:
     - name: Upload via SSH
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: 'tar -cz build/html/ | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }} "mkdir -p /www/$(date +%Y.%m.%d); cd /www/$(date +%Y.%m.%d); tar --strip-components=1 -xz; rm /www/live; cd /www; ln -sf $(date +%Y.%m.%d) live;"'
+        TARGET_DIR: "${{ github.ref_type }}/${{ github.ref_name }}"
+      run: 'tar -cz build/html/ | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }} "mkdir -p /www/${{ env.TARGET_DIR }}/$(date +%Y.%m.%d); cd /www/${{ env.TARGET_DIR }}/$(date +%Y.%m.%d); tar --strip-components=2 -xz; rm /www/${{ env.TARGET_DIR }}/live; cd /www/${{ env.TARGET_DIR }}; ln -sf $(date +%Y.%m.%d) live;"'
     - uses: actions/upload-artifact@v4
       with:
         name: volk_docs
