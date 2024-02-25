@@ -18,19 +18,16 @@
 
 static inline __m512 _mm512_real(const __m512 z1, const __m512 z2)
 {
-    // r = z1_0 z1_2 ... z1_6 z2_0 z2_2 ... z2_6
     const __m512i idx =
         _mm512_set_epi32(30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
-    const __m512 r = _mm512_permutex2var_ps(z1, idx, z2);
-    return r;
+    return _mm512_permutex2var_ps(z1, idx, z2);
 }
 
 static inline __m512 _mm512_imag(const __m512 z1, const __m512 z2)
 {
     const __m512i idx =
         _mm512_set_epi32(31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1);
-    const __m512 i = _mm512_permutex2var_ps(z1, idx, z2);
-    return i;
+    return _mm512_permutex2var_ps(z1, idx, z2);
 }
 
 /*
