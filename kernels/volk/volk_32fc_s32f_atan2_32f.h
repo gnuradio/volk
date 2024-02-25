@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2012, 2014 Free Software Foundation, Inc.
- * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2023, 2024 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -100,6 +100,66 @@ static inline void volk_32fc_s32f_atan2_32f_polynomial(float* outputVector,
 }
 #endif /* LV_HAVE_GENERIC */
 
+#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+static inline void volk_32fc_s32f_atan2_32f_a_avx512(float* outputVector,
+                                                     const lv_32fc_t* complexVector,
+                                                     const float normalizeFactor,
+                                                     unsigned int num_points)
+{
+    const float* in = (float*)complexVector;
+    float* out = (float*)outputVector;
+
+    const float invNormalizeFactor = 1.f / normalizeFactor;
+    const __m512 vinvNormalizeFactor = _mm512_set1_ps(invNormalizeFactor);
+    const __m512 pi = _mm512_set1_ps(0x1.921fb6p1f);
+    const __m512 pi_2 = _mm512_set1_ps(0x1.921fb6p0f);
+    const __m512 abs_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x7FFFFFFF));
+    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x80000000));
+    const __m512 zero = _mm512_setzero_ps();
+
+    unsigned int number = 0;
+    unsigned int sixteenth_points = num_points / 16;
+    for (; number < sixteenth_points; number++) {
+        __m512 z1 = _mm512_load_ps(in);
+        in += 16;
+        __m512 z2 = _mm512_load_ps(in);
+        in += 16;
+
+        __m512 x = _mm512_real(z1, z2);
+        __m512 y = _mm512_imag(z1, z2);
+
+        __mmask16 swap_mask = _mm512_cmp_ps_mask(
+            _mm512_and_ps(y, abs_mask), _mm512_and_ps(x, abs_mask), _CMP_GT_OS);
+        __m512 input = _mm512_div_ps(_mm512_mask_blend_ps(swap_mask, y, x),
+                                     _mm512_mask_blend_ps(swap_mask, x, y));
+        __mmask16 nan_mask = _mm512_cmp_ps_mask(input, input, _CMP_UNORD_Q);
+        input = _mm512_mask_blend_ps(nan_mask, input, zero);
+        __m512 result = _mm512_arctan_poly_avx512(input);
+
+        input =
+            _mm512_sub_ps(_mm512_or_ps(pi_2, _mm512_and_ps(input, sign_mask)), result);
+        result = _mm512_mask_blend_ps(swap_mask, result, input);
+
+        __m512 x_sign_mask =
+            _mm512_castsi512_ps(_mm512_srai_epi32(_mm512_castps_si512(x), 31));
+
+        result = _mm512_add_ps(
+            _mm512_and_ps(_mm512_xor_ps(pi, _mm512_and_ps(sign_mask, y)), x_sign_mask),
+            result);
+        result = _mm512_mul_ps(result, vinvNormalizeFactor);
+
+        _mm512_store_ps(out, result);
+        out += 16;
+    }
+
+    number = sixteenth_points * 16;
+    volk_32fc_s32f_atan2_32f_polynomial(
+        out, (lv_32fc_t*)in, normalizeFactor, num_points - number);
+}
+#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for aligned */
+
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
 #include <volk/volk_avx2_fma_intrinsics.h>
@@ -136,7 +196,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2_fma(float* outputVector,
                                      _mm256_blendv_ps(x, y, swap_mask));
         __m256 nan_mask = _mm256_cmp_ps(input, input, _CMP_UNORD_Q);
         input = _mm256_blendv_ps(input, zero, nan_mask);
-        __m256 result = _m256_arctan_poly_avx2_fma(input);
+        __m256 result = _mm256_arctan_poly_avx2_fma(input);
 
         input =
             _mm256_sub_ps(_mm256_or_ps(pi_2, _mm256_and_ps(input, sign_mask)), result);
@@ -196,7 +256,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2(float* outputVector,
                                      _mm256_blendv_ps(x, y, swap_mask));
         __m256 nan_mask = _mm256_cmp_ps(input, input, _CMP_UNORD_Q);
         input = _mm256_blendv_ps(input, zero, nan_mask);
-        __m256 result = _m256_arctan_poly_avx(input);
+        __m256 result = _mm256_arctan_poly_avx(input);
 
         input =
             _mm256_sub_ps(_mm256_or_ps(pi_2, _mm256_and_ps(input, sign_mask)), result);
@@ -223,6 +283,66 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2(float* outputVector,
 
 #ifndef INCLUDED_volk_32fc_s32f_atan2_32f_u_H
 #define INCLUDED_volk_32fc_s32f_atan2_32f_u_H
+
+#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+static inline void volk_32fc_s32f_atan2_32f_u_avx512(float* outputVector,
+                                                     const lv_32fc_t* complexVector,
+                                                     const float normalizeFactor,
+                                                     unsigned int num_points)
+{
+    const float* in = (float*)complexVector;
+    float* out = (float*)outputVector;
+
+    const float invNormalizeFactor = 1.f / normalizeFactor;
+    const __m512 vinvNormalizeFactor = _mm512_set1_ps(invNormalizeFactor);
+    const __m512 pi = _mm512_set1_ps(0x1.921fb6p1f);
+    const __m512 pi_2 = _mm512_set1_ps(0x1.921fb6p0f);
+    const __m512 abs_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x7FFFFFFF));
+    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x80000000));
+    const __m512 zero = _mm512_setzero_ps();
+
+    unsigned int number = 0;
+    unsigned int sixteenth_points = num_points / 16;
+    for (; number < sixteenth_points; number++) {
+        __m512 z1 = _mm512_loadu_ps(in);
+        in += 16;
+        __m512 z2 = _mm512_loadu_ps(in);
+        in += 16;
+
+        __m512 x = _mm512_real(z1, z2);
+        __m512 y = _mm512_imag(z1, z2);
+
+        __mmask16 swap_mask = _mm512_cmp_ps_mask(
+            _mm512_and_ps(y, abs_mask), _mm512_and_ps(x, abs_mask), _CMP_GT_OS);
+        __m512 input = _mm512_div_ps(_mm512_mask_blend_ps(swap_mask, y, x),
+                                     _mm512_mask_blend_ps(swap_mask, x, y));
+        __mmask16 nan_mask = _mm512_cmp_ps_mask(input, input, _CMP_UNORD_Q);
+        input = _mm512_mask_blend_ps(nan_mask, input, zero);
+        __m512 result = _mm512_arctan_poly_avx512(input);
+
+        input =
+            _mm512_sub_ps(_mm512_or_ps(pi_2, _mm512_and_ps(input, sign_mask)), result);
+        result = _mm512_mask_blend_ps(swap_mask, result, input);
+
+        __m512 x_sign_mask =
+            _mm512_castsi512_ps(_mm512_srai_epi32(_mm512_castps_si512(x), 31));
+
+        result = _mm512_add_ps(
+            _mm512_and_ps(_mm512_xor_ps(pi, _mm512_and_ps(sign_mask, y)), x_sign_mask),
+            result);
+        result = _mm512_mul_ps(result, vinvNormalizeFactor);
+
+        _mm512_storeu_ps(out, result);
+        out += 16;
+    }
+
+    number = sixteenth_points * 16;
+    volk_32fc_s32f_atan2_32f_polynomial(
+        out, (lv_32fc_t*)in, normalizeFactor, num_points - number);
+}
+#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for unaligned */
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
@@ -260,7 +380,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2_fma(float* outputVector,
                                      _mm256_blendv_ps(x, y, swap_mask));
         __m256 nan_mask = _mm256_cmp_ps(input, input, _CMP_UNORD_Q);
         input = _mm256_blendv_ps(input, zero, nan_mask);
-        __m256 result = _m256_arctan_poly_avx2_fma(input);
+        __m256 result = _mm256_arctan_poly_avx2_fma(input);
 
         input =
             _mm256_sub_ps(_mm256_or_ps(pi_2, _mm256_and_ps(input, sign_mask)), result);
@@ -320,7 +440,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2(float* outputVector,
                                      _mm256_blendv_ps(x, y, swap_mask));
         __m256 nan_mask = _mm256_cmp_ps(input, input, _CMP_UNORD_Q);
         input = _mm256_blendv_ps(input, zero, nan_mask);
-        __m256 result = _m256_arctan_poly_avx(input);
+        __m256 result = _mm256_arctan_poly_avx(input);
 
         input =
             _mm256_sub_ps(_mm256_or_ps(pi_2, _mm256_and_ps(input, sign_mask)), result);

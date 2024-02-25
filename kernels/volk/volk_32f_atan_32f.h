@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2014 Free Software Foundation, Inc.
- * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2023, 2024 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -13,19 +13,19 @@
  *
  * \b Overview
  *
- * Computes arcsine of input vector and stores results in output vector.
+ * Computes arctan of input vector and stores results in output vector.
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_atan_32f(float* bVector, const float* aVector, unsigned int num_points)
+ * void volk_32f_atan_32f(float* out, const float* in, unsigned int num_points)
  * \endcode
  *
  * \b Inputs
- * \li aVector: The input vector of floats.
+ * \li in_ptr: The input vector of floats.
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li bVector: The vector where results will be stored.
+ * \li out_ptr: The vector where results will be stored.
  *
  * \b Example
  * Calculate common angles around the top half of the unit circle.
@@ -59,6 +59,64 @@
 #ifndef INCLUDED_volk_32f_atan_32f_a_H
 #define INCLUDED_volk_32f_atan_32f_a_H
 
+#ifdef LV_HAVE_GENERIC
+static inline void
+volk_32f_atan_32f_generic(float* out, const float* in, unsigned int num_points)
+{
+    unsigned int number = 0;
+    for (; number < num_points; number++) {
+        *out++ = atanf(*in++);
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
+#ifdef LV_HAVE_GENERIC
+static inline void
+volk_32f_atan_32f_polynomial(float* out, const float* in, unsigned int num_points)
+{
+    unsigned int number = 0;
+    for (; number < num_points; number++) {
+        *out++ = volk_arctan(*in++);
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
+#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+static inline void
+volk_32f_atan_32f_a_avx512(float* out, const float* in, unsigned int num_points)
+{
+    const __m512 one = _mm512_set1_ps(1.f);
+    const __m512 pi_over_2 = _mm512_set1_ps(0x1.921fb6p0f);
+    const __m512 abs_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x7FFFFFFF));
+    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x80000000));
+
+    unsigned int number = 0;
+    unsigned int sixteenth_points = num_points / 16;
+    for (; number < sixteenth_points; number++) {
+        __m512 x = _mm512_load_ps(in);
+        __mmask16 swap_mask =
+            _mm512_cmp_ps_mask(_mm512_and_ps(x, abs_mask), one, _CMP_GT_OS);
+        __m512 x_star = _mm512_div_ps(_mm512_mask_blend_ps(swap_mask, x, one),
+                                      _mm512_mask_blend_ps(swap_mask, one, x));
+        __m512 result = _mm512_arctan_poly_avx512(x_star);
+        __m512 term = _mm512_and_ps(x_star, sign_mask);
+        term = _mm512_or_ps(pi_over_2, term);
+        term = _mm512_sub_ps(term, result);
+        result = _mm512_mask_blend_ps(swap_mask, result, term);
+        _mm512_store_ps(out, result);
+        in += 16;
+        out += 16;
+    }
+
+    number = sixteenth_points * 16;
+    for (; number < num_points; number++) {
+        *out++ = volk_arctan(*in++);
+    }
+}
+#endif /* LV_HAVE_AVX512F for aligned */
+
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
 #include <volk/volk_avx2_fma_intrinsics.h>
@@ -77,7 +135,7 @@ volk_32f_atan_32f_a_avx2_fma(float* out, const float* in, unsigned int num_point
         __m256 swap_mask = _mm256_cmp_ps(_mm256_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m256 x_star = _mm256_div_ps(_mm256_blendv_ps(x, one, swap_mask),
                                       _mm256_blendv_ps(one, x, swap_mask));
-        __m256 result = _m256_arctan_poly_avx2_fma(x_star);
+        __m256 result = _mm256_arctan_poly_avx2_fma(x_star);
         __m256 term = _mm256_and_ps(x_star, sign_mask);
         term = _mm256_or_ps(pi_over_2, term);
         term = _mm256_sub_ps(term, result);
@@ -112,7 +170,7 @@ volk_32f_atan_32f_a_avx2(float* out, const float* in, unsigned int num_points)
         __m256 swap_mask = _mm256_cmp_ps(_mm256_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m256 x_star = _mm256_div_ps(_mm256_blendv_ps(x, one, swap_mask),
                                       _mm256_blendv_ps(one, x, swap_mask));
-        __m256 result = _m256_arctan_poly_avx(x_star);
+        __m256 result = _mm256_arctan_poly_avx(x_star);
         __m256 term = _mm256_and_ps(x_star, sign_mask);
         term = _mm256_or_ps(pi_over_2, term);
         term = _mm256_sub_ps(term, result);
@@ -168,6 +226,42 @@ volk_32f_atan_32f_a_sse4_1(float* out, const float* in, unsigned int num_points)
 #ifndef INCLUDED_volk_32f_atan_32f_u_H
 #define INCLUDED_volk_32f_atan_32f_u_H
 
+#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+static inline void
+volk_32f_atan_32f_u_avx512(float* out, const float* in, unsigned int num_points)
+{
+    const __m512 one = _mm512_set1_ps(1.f);
+    const __m512 pi_over_2 = _mm512_set1_ps(0x1.921fb6p0f);
+    const __m512 abs_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x7FFFFFFF));
+    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x80000000));
+
+    unsigned int number = 0;
+    unsigned int sixteenth_points = num_points / 16;
+    for (; number < sixteenth_points; number++) {
+        __m512 x = _mm512_loadu_ps(in);
+        __mmask16 swap_mask =
+            _mm512_cmp_ps_mask(_mm512_and_ps(x, abs_mask), one, _CMP_GT_OS);
+        __m512 x_star = _mm512_div_ps(_mm512_mask_blend_ps(swap_mask, x, one),
+                                      _mm512_mask_blend_ps(swap_mask, one, x));
+        __m512 result = _mm512_arctan_poly_avx512(x_star);
+        __m512 term = _mm512_and_ps(x_star, sign_mask);
+        term = _mm512_or_ps(pi_over_2, term);
+        term = _mm512_sub_ps(term, result);
+        result = _mm512_mask_blend_ps(swap_mask, result, term);
+        _mm512_storeu_ps(out, result);
+        in += 16;
+        out += 16;
+    }
+
+    number = sixteenth_points * 16;
+    for (; number < num_points; number++) {
+        *out++ = volk_arctan(*in++);
+    }
+}
+#endif /* LV_HAVE_AVX512F for unaligned */
+
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
 static inline void
@@ -185,7 +279,7 @@ volk_32f_atan_32f_u_avx2_fma(float* out, const float* in, unsigned int num_point
         __m256 swap_mask = _mm256_cmp_ps(_mm256_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m256 x_star = _mm256_div_ps(_mm256_blendv_ps(x, one, swap_mask),
                                       _mm256_blendv_ps(one, x, swap_mask));
-        __m256 result = _m256_arctan_poly_avx2_fma(x_star);
+        __m256 result = _mm256_arctan_poly_avx2_fma(x_star);
         __m256 term = _mm256_and_ps(x_star, sign_mask);
         term = _mm256_or_ps(pi_over_2, term);
         term = _mm256_sub_ps(term, result);
@@ -219,7 +313,7 @@ volk_32f_atan_32f_u_avx2(float* out, const float* in, unsigned int num_points)
         __m256 swap_mask = _mm256_cmp_ps(_mm256_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m256 x_star = _mm256_div_ps(_mm256_blendv_ps(x, one, swap_mask),
                                       _mm256_blendv_ps(one, x, swap_mask));
-        __m256 result = _m256_arctan_poly_avx(x_star);
+        __m256 result = _mm256_arctan_poly_avx(x_star);
         __m256 term = _mm256_and_ps(x_star, sign_mask);
         term = _mm256_or_ps(pi_over_2, term);
         term = _mm256_sub_ps(term, result);
@@ -270,27 +364,5 @@ volk_32f_atan_32f_u_sse4_1(float* out, const float* in, unsigned int num_points)
     }
 }
 #endif /* LV_HAVE_SSE4_1 for unaligned */
-
-#ifdef LV_HAVE_GENERIC
-static inline void
-volk_32f_atan_32f_polynomial(float* out, const float* in, unsigned int num_points)
-{
-    unsigned int number = 0;
-    for (; number < num_points; number++) {
-        *out++ = volk_arctan(*in++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-#ifdef LV_HAVE_GENERIC
-static inline void
-volk_32f_atan_32f_generic(float* out, const float* in, unsigned int num_points)
-{
-    unsigned int number = 0;
-    for (; number < num_points; number++) {
-        *out++ = atanf(*in++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32f_atan_32f_u_H */
