@@ -1,14 +1,14 @@
 #
-#Copyright 2011 - 2020 Free Software Foundation, Inc.
-#Copyright 2023 Magnus Lundmark < magnuslundmark @gmail.com>
+# Copyright 2011-2020 Free Software Foundation, Inc.
+# Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
 #
-#This file is part of VOLK
+# This file is part of VOLK
 #
-#SPDX - License - Identifier : LGPL - 3.0 - or -later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 #
 
 ########################################################################
-#Project setup
+# Project setup
 ########################################################################
 cmake_minimum_required(VERSION 3.8)
 set(CMAKE_BUILD_TYPE
@@ -25,10 +25,10 @@ set(CMAKE_CXX_STANDARD 17)
 enable_testing()
 
 ########################################################################
-#Common compile flags
+# Common compile flags
 ########################################################################
 
-#Disable complex math NaN / INFO range checking for performance
+# Disable complex math NaN/INFO range checking for performance
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-fcx-limited-range HAVE_CX_LIMITED_RANGE)
 if(HAVE_CX_LIMITED_RANGE)
@@ -46,15 +46,15 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
-#Abort compilation if kernel implementations have inconsistent function
-#prototypes, i.e.if
-#
-#kernel_foo_sse(uint32_t* dst, lv32fc_t* src)
-#kernel_foo_avx(uint16_t* dst, lv32fc_t* src)
-#
-#are defined.Note the different data type of the first argument).By
-#default 'incompatible-pointer-types' is a warning only and 'pointer-sign'
-#is a warning enabled by '-Wall'.These warnings are only applicable to C.
+    # Abort compilation if kernel implementations have inconsistent function
+    # prototypes, i.e. if
+    #
+    #     kernel_foo_sse(uint32_t *dst, lv32fc_t *src)
+    #     kernel_foo_avx(uint16_t *dst, lv32fc_t *src)
+    #
+    # are defined. Note the different data type of the first argument). By
+    # default 'incompatible-pointer-types' is a warning only and 'pointer-sign'
+    # is a warning enabled by '-Wall'. These warnings are only applicable to C.
     set(CMAKE_C_FLAGS
         "${CMAKE_C_FLAGS} -Werror=incompatible-pointer-types -Werror=pointer-sign")
 endif()
@@ -77,7 +77,7 @@ set(CMAKE_BUILD_TYPE
 message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 
 ########################################################################
-#Version setup
+# Version setup
 ########################################################################
 
 set(VERSION_INFO_MAJOR_VERSION 3)
@@ -87,14 +87,13 @@ include(VolkVersion) #setup version info
 
 math(EXPR VOLK_VERSION_DECIMAL "${VERSION_INFO_MAJOR_VERSION} * 10000
     + ${VERSION_INFO_MINOR_VERSION} * 100
-    + ${
-    VERSION_INFO_MAINT_VERSION}")
+    + ${VERSION_INFO_MAINT_VERSION}")
 
 configure_file(${CMAKE_SOURCE_DIR}/include/volk/volk_version.h.in
                ${CMAKE_BINARY_DIR}/include/volk/volk_version.h @ONLY)
 
 ########################################################################
-#Environment setup
+# Environment setup
 ########################################################################
 if(NOT DEFINED CROSSCOMPILE_MULTILIB)
     set(CROSSCOMPILE_MULTILIB "")
@@ -117,10 +116,10 @@ if(MSVC)
 endif(MSVC)
 
 ########################################################################
-#Dependencies setup
+# Dependencies setup
 ########################################################################
 
-#cpu_features - sensible defaults, user settable option
+# cpu_features - sensible defaults, user settable option
 if(CMAKE_SYSTEM_PROCESSOR MATCHES
    "(^mips)|(^arm)|(^aarch64)|(x86_64)|(AMD64|amd64)|(^i.86$)|(^powerpc)|(^ppc)|(^riscv)")
     option(VOLK_CPU_FEATURES "Volk uses cpu_features" ON)
@@ -159,7 +158,7 @@ else()
     message(STATUS "Building Volk without cpu_features")
 endif()
 
-#Python
+# Python
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
 volk_python_check_module("python >= 3.4" sys "sys.version_info >= (3, 4)"
                          PYTHON_MIN_VER_FOUND)
@@ -169,12 +168,12 @@ if(NOT PYTHON_MIN_VER_FOUND)
     message(FATAL_ERROR "Python 3.4 or greater required to build VOLK")
 endif()
 
-#Mako
+# Mako
 if(NOT MAKO_FOUND)
     message(FATAL_ERROR "Mako templates required to build VOLK")
 endif()
 
-#Check if we have std::filesystem
+# Check if we have std::filesystem
 find_package(
     FILESYSTEM
     COMPONENTS Final Experimental
@@ -184,9 +183,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ########################################################################
-#check for aligned_alloc, since some compilers lack this C11 feature.
-#For Apple - clang use `posix_memalign`
-#For MSVC use `_aligned_malloc`.
+# check for aligned_alloc, since some compilers lack this C11 feature.
+# For Apple-clang use `posix_memalign`
+# For MSVC use `_aligned_malloc`.
 ########################################################################
 include(CheckSymbolExists)
 if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
@@ -197,7 +196,7 @@ if(NOT USE_ALIGNED_ALLOC)
 endif()
 
 ########################################################################
-#Check if Orc is available
+# Check if Orc is available
 ########################################################################
 option(ENABLE_ORC "Enable Orc" True)
 if(ENABLE_ORC)
@@ -207,17 +206,17 @@ else(ENABLE_ORC)
 endif(ENABLE_ORC)
 
 ########################################################################
-#Setup doxygen
+# Setup doxygen
 ########################################################################
 add_subdirectory(docs)
 
 ########################################################################
-#Detect / lib versus / lib64
+# Detect /lib versus /lib64
 ########################################################################
 include(GNUInstallDirs)
 
 ########################################################################
-#Setup the package config file
+# Setup the package config file
 ########################################################################
 #set variables found in the pc.in file
 set(prefix ${CMAKE_INSTALL_PREFIX})
@@ -234,7 +233,7 @@ install(
     COMPONENT "volk_devel")
 
 ########################################################################
-#Install all headers in the include directories
+# Install all headers in the include directories
 ########################################################################
 set(VOLK_RUNTIME_DIR bin)
 set(VOLK_LIBRARY_DIR ${CMAKE_INSTALL_LIBDIR})
@@ -271,7 +270,7 @@ install(
     COMPONENT "volk_devel")
 
 ########################################################################
-#On Apple only, set install name and use rpath correctly, if not already set
+# On Apple only, set install name and use rpath correctly, if not already set
 ########################################################################
 if(APPLE)
     if(NOT CMAKE_INSTALL_NAME_DIR)
@@ -292,21 +291,21 @@ if(APPLE)
 endif(APPLE)
 
 ########################################################################
-#Create uninstall target
+# Create uninstall target
 ########################################################################
 configure_file(${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in
                ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
 
-#Only add the target if there isn't one defined already
+# Only add the target if there isn't one defined already
 if(NOT TARGET uninstall)
     add_custom_target(uninstall ${CMAKE_COMMAND} -P
                                 ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 endif()
 
 ########################################################################
-#Install our Cmake modules into $prefix / lib / cmake / volk
-#See "Package Configuration Files" on page:
-#http: // www.cmake.org/Wiki/CMake/Tutorials/Packaging
+# Install our Cmake modules into $prefix/lib/cmake/volk
+# See "Package Configuration Files" on page:
+#    http://www.cmake.org/Wiki/CMake/Tutorials/Packaging
 ########################################################################
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake.in
@@ -316,7 +315,7 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/Modules/VolkConfigVersion.cmake.in
                ${CMAKE_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake @ONLY)
 
 ########################################################################
-#Install cmake search routine for external use
+# Install cmake search routine for external use
 ########################################################################
 
 if(NOT CMAKE_MODULES_DIR)
@@ -336,7 +335,7 @@ install(
     DESTINATION ${CMAKE_MODULES_DIR}/volk)
 
 ########################################################################
-#Option to enable QA testing, on by default
+# Option to enable QA testing, on by default
 ########################################################################
 option(ENABLE_TESTING "Enable QA testing" ON)
 if(ENABLE_TESTING)
@@ -347,7 +346,7 @@ endif()
 message(STATUS "  Modify using: -DENABLE_TESTING=ON/OFF")
 
 ########################################################################
-#Option to enable post - build profiling using volk_profile, off by default
+# Option to enable post-build profiling using volk_profile, off by default
 ########################################################################
 option(ENABLE_PROFILING "Launch system profiler after build" OFF)
 if(ENABLE_PROFILING)
@@ -373,12 +372,12 @@ endif()
 message(STATUS "  Modify using: -DENABLE_PROFILING=ON/OFF")
 
 ########################################################################
-#Setup the library
+# Setup the library
 ########################################################################
 add_subdirectory(lib)
 
 ########################################################################
-#And the utility apps
+# And the utility apps
 ########################################################################
 add_subdirectory(apps)
 option(ENABLE_MODTOOL "Enable volk_modtool python utility" True)
@@ -387,6 +386,6 @@ if(ENABLE_MODTOOL)
 endif()
 
 ########################################################################
-#Print summary
+# Print summary
 ########################################################################
 message(STATUS "Using install prefix: ${CMAKE_INSTALL_PREFIX}")
