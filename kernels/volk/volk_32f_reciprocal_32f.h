@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2024 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -70,7 +70,6 @@ volk_32f_reciprocal_32f_a_sse(float* out, const float* in, unsigned int num_poin
 {
     const __m128 ONE = _mm_set_ps1(1.f);
     const unsigned int quarter_points = num_points / 4;
-
     for (unsigned int number = 0; number < quarter_points; number++) {
         __m128 x = _mm_load_ps(in);
         in += 4;
@@ -80,7 +79,6 @@ volk_32f_reciprocal_32f_a_sse(float* out, const float* in, unsigned int num_poin
     }
 
     const unsigned int done = quarter_points * 4;
-
     volk_32f_reciprocal_32f_generic(out, in, num_points - done);
 }
 #endif /* LV_HAVE_SSE */
@@ -92,7 +90,6 @@ volk_32f_reciprocal_32f_a_avx(float* out, const float* in, unsigned int num_poin
 {
     const __m256 ONE = _mm256_set1_ps(1.f);
     const unsigned int eighth_points = num_points / 8;
-
     for (unsigned int number = 0; number < eighth_points; number++) {
         __m256 x = _mm256_load_ps(in);
         in += 8;
@@ -102,7 +99,6 @@ volk_32f_reciprocal_32f_a_avx(float* out, const float* in, unsigned int num_poin
     }
 
     const unsigned int done = eighth_points * 8;
-
     volk_32f_reciprocal_32f_generic(out, in, num_points - done);
 }
 #endif /* LV_HAVE_AVX */
@@ -113,7 +109,6 @@ static inline void
 volk_32f_reciprocal_32f_a_avx512(float* out, const float* in, unsigned int num_points)
 {
     const unsigned int sixteenth_points = num_points / 16;
-
     for (unsigned int number = 0; number < sixteenth_points; number++) {
         __m512 x = _mm512_load_ps(in);
         in += 16;
@@ -123,7 +118,6 @@ volk_32f_reciprocal_32f_a_avx512(float* out, const float* in, unsigned int num_p
     }
 
     const unsigned int done = sixteenth_points * 16;
-
     volk_32f_reciprocal_32f_generic(out, in, num_points - done);
 }
 #endif /* LV_HAVE_AVX512F */
@@ -140,7 +134,6 @@ volk_32f_reciprocal_32f_u_sse(float* out, const float* in, unsigned int num_poin
 {
     const __m128 ONE = _mm_set_ps1(1.f);
     const unsigned int quarter_points = num_points / 4;
-
     for (unsigned int number = 0; number < quarter_points; number++) {
         __m128 x = _mm_loadu_ps(in);
         in += 4;
@@ -150,7 +143,6 @@ volk_32f_reciprocal_32f_u_sse(float* out, const float* in, unsigned int num_poin
     }
 
     const unsigned int done = quarter_points * 4;
-
     volk_32f_reciprocal_32f_generic(out, in, num_points - done);
 }
 #endif /* LV_HAVE_SSE */
@@ -162,7 +154,6 @@ volk_32f_reciprocal_32f_u_avx(float* out, const float* in, unsigned int num_poin
 {
     const __m256 ONE = _mm256_set1_ps(1.f);
     const unsigned int eighth_points = num_points / 8;
-
     for (unsigned int number = 0; number < eighth_points; number++) {
         __m256 x = _mm256_loadu_ps(in);
         in += 8;
@@ -172,7 +163,6 @@ volk_32f_reciprocal_32f_u_avx(float* out, const float* in, unsigned int num_poin
     }
 
     const unsigned int done = eighth_points * 8;
-
     volk_32f_reciprocal_32f_generic(out, in, num_points - done);
 }
 #endif /* LV_HAVE_AVX */
@@ -183,7 +173,6 @@ static inline void
 volk_32f_reciprocal_32f_u_avx512(float* out, const float* in, unsigned int num_points)
 {
     const unsigned int sixteenth_points = num_points / 16;
-
     for (unsigned int number = 0; number < sixteenth_points; number++) {
         __m512 x = _mm512_loadu_ps(in);
         in += 16;
@@ -193,24 +182,8 @@ volk_32f_reciprocal_32f_u_avx512(float* out, const float* in, unsigned int num_p
     }
 
     const unsigned int done = sixteenth_points * 16;
-
     volk_32f_reciprocal_32f_generic(out, in, num_points - done);
 }
 #endif /* LV_HAVE_AVX512F */
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-
-static inline void
-volk_32f_reciprocal_32f_rvv(float* out, const float* in, unsigned int num_points)
-{
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
-        vl = __riscv_vsetvl_e32m8(n);
-        vfloat32m8_t v = __riscv_vle32_v_f32m8(in, vl);
-        __riscv_vse32(out, __riscv_vfrdiv(v, 1.0f, vl), vl);
-    }
-}
-#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32f_reciprocal_32f_u_H */
