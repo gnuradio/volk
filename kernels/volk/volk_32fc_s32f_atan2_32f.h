@@ -72,8 +72,8 @@ static inline void volk_32fc_s32f_atan2_32f_generic(float* outputVector,
     float* outPtr = outputVector;
     const float* inPtr = (float*)inputVector;
     const float invNormalizeFactor = 1.f / normalizeFactor;
-    unsigned int number = 0;
-    for (; number < num_points; number++) {
+
+    for (unsigned int number = 0; number < num_points; number++) {
         const float real = *inPtr++;
         const float imag = *inPtr++;
         *outPtr++ = atan2f(imag, real) * invNormalizeFactor;
@@ -91,8 +91,8 @@ static inline void volk_32fc_s32f_atan2_32f_polynomial(float* outputVector,
     float* outPtr = outputVector;
     const float* inPtr = (float*)inputVector;
     const float invNormalizeFactor = 1.f / normalizeFactor;
-    unsigned int number = 0;
-    for (; number < num_points; number++) {
+
+    for (unsigned int number = 0; number < num_points; number++) {
         const float x = *inPtr++;
         const float y = *inPtr++;
         *outPtr++ = volk_atan2(y, x) * invNormalizeFactor;
@@ -103,10 +103,10 @@ static inline void volk_32fc_s32f_atan2_32f_polynomial(float* outputVector,
 #if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
 #include <immintrin.h>
 #include <volk/volk_avx512_intrinsics.h>
-static inline void volk_32fc_s32f_atan2_32f_a_avx512(float* outputVector,
-                                                     const lv_32fc_t* complexVector,
-                                                     const float normalizeFactor,
-                                                     unsigned int num_points)
+static inline void volk_32fc_s32f_atan2_32f_a_avx512dq(float* outputVector,
+                                                       const lv_32fc_t* complexVector,
+                                                       const float normalizeFactor,
+                                                       unsigned int num_points)
 {
     const float* in = (float*)complexVector;
     float* out = (float*)outputVector;
@@ -120,7 +120,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx512(float* outputVector,
     const __m512 zero = _mm512_setzero_ps();
 
     unsigned int number = 0;
-    unsigned int sixteenth_points = num_points / 16;
+    const unsigned int sixteenth_points = num_points / 16;
     for (; number < sixteenth_points; number++) {
         __m512 z1 = _mm512_load_ps(in);
         in += 16;
@@ -156,7 +156,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx512(float* outputVector,
 
     number = sixteenth_points * 16;
     volk_32fc_s32f_atan2_32f_polynomial(
-        out, (lv_32fc_t*)in, normalizeFactor, num_points - number);
+        out, complexVector + number, normalizeFactor, num_points - number);
 }
 #endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for aligned */
 
@@ -180,7 +180,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2_fma(float* outputVector,
     const __m256 zero = _mm256_setzero_ps();
 
     unsigned int number = 0;
-    unsigned int eighth_points = num_points / 8;
+    const unsigned int eighth_points = num_points / 8;
     for (; number < eighth_points; number++) {
         __m256 z1 = _mm256_load_ps(in);
         in += 8;
@@ -240,7 +240,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2(float* outputVector,
     const __m256 zero = _mm256_setzero_ps();
 
     unsigned int number = 0;
-    unsigned int eighth_points = num_points / 8;
+    const unsigned int eighth_points = num_points / 8;
     for (; number < eighth_points; number++) {
         __m256 z1 = _mm256_load_ps(in);
         in += 8;
@@ -287,10 +287,10 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2(float* outputVector,
 #if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
 #include <immintrin.h>
 #include <volk/volk_avx512_intrinsics.h>
-static inline void volk_32fc_s32f_atan2_32f_u_avx512(float* outputVector,
-                                                     const lv_32fc_t* complexVector,
-                                                     const float normalizeFactor,
-                                                     unsigned int num_points)
+static inline void volk_32fc_s32f_atan2_32f_u_avx512dq(float* outputVector,
+                                                       const lv_32fc_t* complexVector,
+                                                       const float normalizeFactor,
+                                                       unsigned int num_points)
 {
     const float* in = (float*)complexVector;
     float* out = (float*)outputVector;
@@ -303,9 +303,9 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx512(float* outputVector,
     const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x80000000));
     const __m512 zero = _mm512_setzero_ps();
 
-    unsigned int number = 0;
-    unsigned int sixteenth_points = num_points / 16;
-    for (; number < sixteenth_points; number++) {
+    const unsigned int sixteenth_points = num_points / 16;
+
+    for (unsigned int number = 0; number < sixteenth_points; number++) {
         __m512 z1 = _mm512_loadu_ps(in);
         in += 16;
         __m512 z2 = _mm512_loadu_ps(in);
@@ -338,9 +338,9 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx512(float* outputVector,
         out += 16;
     }
 
-    number = sixteenth_points * 16;
+    unsigned int number = sixteenth_points * 16;
     volk_32fc_s32f_atan2_32f_polynomial(
-        out, (lv_32fc_t*)in, normalizeFactor, num_points - number);
+        out, complexVector + number, normalizeFactor, num_points - number);
 }
 #endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for unaligned */
 
@@ -364,7 +364,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2_fma(float* outputVector,
     const __m256 zero = _mm256_setzero_ps();
 
     unsigned int number = 0;
-    unsigned int eighth_points = num_points / 8;
+    const unsigned int eighth_points = num_points / 8;
     for (; number < eighth_points; number++) {
         __m256 z1 = _mm256_loadu_ps(in);
         in += 8;
@@ -424,7 +424,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2(float* outputVector,
     const __m256 zero = _mm256_setzero_ps();
 
     unsigned int number = 0;
-    unsigned int eighth_points = num_points / 8;
+    const unsigned int eighth_points = num_points / 8;
     for (; number < eighth_points; number++) {
         __m256 z1 = _mm256_loadu_ps(in);
         in += 8;

@@ -16,6 +16,10 @@
 #define INCLUDE_VOLK_VOLK_AVX512_INTRINSICS_H_
 #include <immintrin.h>
 
+////////////////////////////////////////////////////////////////////////
+// Place real parts of two complex vectors in output
+// Requires AVX512F
+////////////////////////////////////////////////////////////////////////
 static inline __m512 _mm512_real(const __m512 z1, const __m512 z2)
 {
     const __m512i idx =
@@ -23,6 +27,10 @@ static inline __m512 _mm512_real(const __m512 z1, const __m512 z2)
     return _mm512_permutex2var_ps(z1, idx, z2);
 }
 
+////////////////////////////////////////////////////////////////////////
+// Place imaginary parts of two complex vectors in output
+// Requires AVX512F
+////////////////////////////////////////////////////////////////////////
 static inline __m512 _mm512_imag(const __m512 z1, const __m512 z2)
 {
     const __m512i idx =
@@ -30,13 +38,12 @@ static inline __m512 _mm512_imag(const __m512 z1, const __m512 z2)
     return _mm512_permutex2var_ps(z1, idx, z2);
 }
 
-/*
- * Approximate arctan(x) via polynomial expansion
- * on the interval [-1, 1]
- *
- * Maximum relative error ~6.5e-7
- * Polynomial evaluated via Horner's method
- */
+////////////////////////////////////////////////////////////////////////
+// Approximate arctan(x) via polynomial expansion on the interval [-1, 1]
+// Maximum relative error ~6.5e-7
+// Polynomial evaluated via Horner's method
+// Requires AVX512F
+////////////////////////////////////////////////////////////////////////
 static inline __m512 _mm512_arctan_poly_avx512(const __m512 x)
 {
     const __m512 a1 = _mm512_set1_ps(+0x1.ffffeap-1f);
