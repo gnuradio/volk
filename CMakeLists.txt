@@ -10,7 +10,9 @@
 ########################################################################
 # Project setup
 ########################################################################
-cmake_minimum_required(VERSION 3.8)
+# We use `IS_64BIT now: https://cmake.org/cmake/help/latest/command/cmake_host_system_information.html
+cmake_minimum_required(VERSION 3.10)
+
 set(CMAKE_BUILD_TYPE
     ${CMAKE_BUILD_TYPE}
     CACHE STRING "Choose build type: None Debug Release RelWithDebInfo MinSizeRel")
