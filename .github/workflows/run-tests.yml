@@ -254,7 +254,7 @@ jobs:
       with:
         submodules: 'recursive'
     - name: dependencies
-      run: pip3 install mako
+      run: pip3 install --break-system-packages mako && brew install orc
     - name: configure
       run: mkdir build && cd build && cmake -DBUILD_EXECUTABLE=ON ..
     - name: build
