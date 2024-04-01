@@ -181,4 +181,8 @@ at the top, as a last resort.
 <arch name="riscv64">
 </arch>
 
+<arch name="riscv_vector">
+    <check name="V"></check>
+</arch>
+
 </grammar>
