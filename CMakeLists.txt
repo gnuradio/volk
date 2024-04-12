@@ -255,6 +255,7 @@ install(
           ${CMAKE_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
           ${CMAKE_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
           ${CMAKE_SOURCE_DIR}/include/volk/volk_avx2_fma_intrinsics.h
+          ${CMAKE_SOURCE_DIR}/include/volk/volk_avx512_intrinsics.h
           ${CMAKE_SOURCE_DIR}/include/volk/volk_sse_intrinsics.h
           ${CMAKE_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
           ${CMAKE_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
