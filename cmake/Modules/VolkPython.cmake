@@ -144,7 +144,7 @@ function(VOLK_UNIQUE_TARGET desc)
     execute_process(
         COMMAND ${PYTHON_EXECUTABLE} -c "import re, hashlib
 unique = hashlib.sha256(b'${reldir}${ARGN}').hexdigest()[:5]
-print(re.sub('\\W', '_', '${desc} ${reldir} ' + unique))"
+print(re.sub(r'\\W', '_', '${desc} ${reldir} ' + unique))"
         OUTPUT_VARIABLE _target
         OUTPUT_STRIP_TRAILING_WHITESPACE)
     add_custom_target(${_target} ALL DEPENDS ${ARGN})
