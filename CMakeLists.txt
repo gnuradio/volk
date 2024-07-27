@@ -220,12 +220,6 @@ include(GNUInstallDirs)
 ########################################################################
 # Setup the package config file
 ########################################################################
-#set variables found in the pc.in file
-set(prefix ${CMAKE_INSTALL_PREFIX})
-set(exec_prefix "\${prefix}")
-set(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
-set(includedir "\${prefix}/include")
-
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tmpl/volk.pc.in
                ${CMAKE_CURRENT_BINARY_DIR}/volk.pc @ONLY)
 
