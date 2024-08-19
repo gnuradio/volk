@@ -137,5 +137,4 @@ TEST_P(volk_32f_x3_sum_of_poly_32f_test, unaligned)
 
 INSTANTIATE_TEST_SUITE_P(volk_32f_x3_sum_of_poly_32f,
                          volk_32f_x3_sum_of_poly_32f_test,
-                         //  testing::Values(8, 32)
                          testing::Values(7, 32, 128, 1023, 65535, 131071));
