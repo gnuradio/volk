@@ -7,29 +7,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3.1.0
-      with:
-        submodules: 'recursive'
-    - name: Install dependencies
-      run: sudo apt install python3-mako liborc-dev doxygen
-    - name: Configure
-      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
-    - name: Build
-      run: cmake --build build --target volk_doc
-    - name: Setup SSH Keys
-      env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-        ssh-add - <<< "${{ secrets.SSH_KEY }}"
-        mkdir $HOME/.ssh
-        echo -n "${{ secrets.SSH_KNOWN_HOST }}" > $HOME/.ssh/known_hosts
-    - name: Upload via SSH
-      env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        TARGET_DIR: "${{ github.ref_type }}/${{ github.ref_name }}"
-      run: 'tar -cz build/html/ | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }} "mkdir -p /www/${{ env.TARGET_DIR }}/$(date +%Y.%m.%d); cd /www/${{ env.TARGET_DIR }}/$(date +%Y.%m.%d); tar --strip-components=2 -xz; rm /www/${{ env.TARGET_DIR }}/live; cd /www/${{ env.TARGET_DIR }}; ln -sf $(date +%Y.%m.%d) live;"'
-    - uses: actions/upload-artifact@v4
-      with:
-        name: volk_docs
-        path: build/html/
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: Install dependencies
+        run: sudo apt install python3-mako liborc-dev doxygen
+      - name: Configure
+        run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
+      - name: Build
+        run: cmake --build build --target volk_doc
+      - name: Setup SSH Keys
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_KEY }}"
+          mkdir $HOME/.ssh
+          echo -n "${{ secrets.SSH_KNOWN_HOST }}" > $HOME/.ssh/known_hosts
+      - name: Upload via SSH
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          TARGET_DIR: "${{ github.ref_type }}/${{ github.ref_name }}"
+        run: 'tar -cz build/html/ | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }} "mkdir -p /www/${{ env.TARGET_DIR }}/$(date +%Y.%m.%d); cd /www/${{ env.TARGET_DIR }}/$(date +%Y.%m.%d); tar --strip-components=2 -xz; rm /www/${{ env.TARGET_DIR }}/live; cd /www/${{ env.TARGET_DIR }}; ln -sf $(date +%Y.%m.%d) live;"'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: volk_docs
+          path: build/html/
