@@ -26,6 +26,8 @@ add_executable(
   ${volk_test_files}
 )
 
+target_compile_features(volk_tests PUBLIC cxx_std_20)
+
 target_link_libraries(volk_tests
   PRIVATE
     GTest::gtest_main

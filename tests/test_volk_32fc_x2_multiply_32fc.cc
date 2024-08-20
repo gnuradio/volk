@@ -11,19 +11,19 @@
 #include <fmt/chrono.h>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
+#include <gtest/gtest-param-test.h>
 #include <gtest/gtest.h>
 #include <volk/volk.h>
 #include <volk/volk_alloc.hh>
 #include <chrono>
-
 
 class volk_32fc_x2_multiply_32fc_test : public VolkTest
 {
 protected:
     void SetUp() override
     {
-        initialize_implementation_names(volk_32fc_x2_multiply_32fc_get_func_desc());
-        initialize_data(GetParam());
+        initialize_test(GetParam());
+        initialize_data(vector_length);
     }
 
     void initialize_data(const size_t length)
@@ -61,10 +61,9 @@ protected:
                                           vec1.data() + 1,
                                           vector_length - 1,
                                           impl_name.c_str());
+        EXPECT_TRUE(AreComplexFloatingPointArraysAlmostEqual(expected, ua_result));
     }
 
-    // void TearDown() override {}
-    size_t vector_length;
     volk::vector<lv_32fc_t> vec0;
     volk::vector<lv_32fc_t> vec1;
     volk::vector<lv_32fc_t> result;
@@ -73,46 +72,30 @@ protected:
     volk::vector<lv_32fc_t> ua_result;
 };
 
-
-TEST_P(volk_32fc_x2_multiply_32fc_test, aligned)
+TEST_P(volk_32fc_x2_multiply_32fc_test, run)
 {
-    for (auto name : implementation_names) {
-        fmt::print(
-            "test aligned implementation: {:>12}, size={} ...", name, vector_length);
-        auto start = std::chrono::steady_clock::now();
+    fmt::print("test {} implementation: {:>12}, size={} ...",
+               is_aligned_implementation ? "aligned" : "unaligned",
+               implementation_name,
+               vector_length);
+    auto start = std::chrono::steady_clock::now();
 
-        execute_aligned(name);
-
-        std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - start;
-        fmt::print("\tduration={}\n", elapsed);
-        EXPECT_TRUE(AreComplexFloatingPointArraysAlmostEqual(expected, result));
+    if (is_aligned_implementation) {
+        execute_aligned(implementation_name);
+    } else {
+        execute_unaligned(implementation_name);
     }
-}
 
-TEST_P(volk_32fc_x2_multiply_32fc_test, unaligned)
-{
-    for (auto name : unaligned_impl_names) {
-        RecordProperty("aligned", false);
-        RecordProperty("implementation", name);
-        RecordProperty("size", vector_length);
-        fmt::print(
-            "test unaligned implementation: {:>12}, size={} ...", name, vector_length);
-        auto start = std::chrono::steady_clock::now();
 
-        execute_unaligned(name);
-
-        std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - start;
-        fmt::print("\tduration={}\n", elapsed);
-        EXPECT_TRUE(AreComplexFloatingPointArraysAlmostEqual(expected, ua_result));
-    }
+    std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - start;
+    fmt::print("\tduration={}\n", elapsed);
 }
 
 
-INSTANTIATE_TEST_SUITE_P(volk_32fc_x2_multiply_32fc,
-                         volk_32fc_x2_multiply_32fc_test,
-                         testing::Values(7, 32, 128, 1023, 131071),
-                         testing::PrintToStringParamName()
-                         // [](const testing::TestParamInfo<int>& info) {
-                         //  return fmt::format("{}", info.param);
-                         // }
-);
+INSTANTIATE_TEST_SUITE_P(
+    volk_32fc_x2_multiply_32fc,
+    volk_32fc_x2_multiply_32fc_test,
+    testing::Combine(testing::ValuesIn(get_kernel_implementation_name_list(
+                         volk_32fc_x2_multiply_32fc_get_func_desc())),
+                     testing::ValuesIn(default_vector_sizes)),
+    generate_volk_test_name());
