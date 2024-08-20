@@ -11,27 +11,43 @@
 #include <fmt/ranges.h>
 #include <gtest/gtest.h>
 #include <volk/volk.h>
+#include <array>
 #include <tuple>
 
+static constexpr std::array<size_t, 5> default_vector_sizes{ 7, 32, 128, 1023, 131071 };
 
-std::vector<std::string> get_kernel_implementation_name_list(volk_func_desc_t desc);
+std::vector<std::string> get_kernel_implementation_name_list(const volk_func_desc_t desc);
+
+bool is_aligned_implementation_name(const std::string& name);
 
 std::tuple<std::vector<std::string>, std::vector<std::string>>
-separate_implementations_by_alignment(std::vector<std::string> names);
+separate_implementations_by_alignment(const std::vector<std::string>& names);
 
-class VolkTest : public ::testing::TestWithParam<int>
+std::vector<std::string>
+get_aligned_kernel_implementation_names(const volk_func_desc_t desc);
+std::vector<std::string>
+get_unaligned_kernel_implementation_names(const volk_func_desc_t desc);
+
+struct generate_volk_test_name {
+    template <class ParamType>
+    std::string operator()(const ::testing::TestParamInfo<ParamType>& info) const
+    {
+        return fmt::format("{}_{}", std::get<0>(info.param), std::get<1>(info.param));
+    }
+};
+
+class VolkTest : public ::testing::TestWithParam<std::tuple<std::string, size_t>>
 {
 protected:
-    void initialize_implementation_names(volk_func_desc_t desc)
+    void initialize_test(const std::tuple<std::string, size_t>& param)
     {
-        implementation_names = get_kernel_implementation_name_list(desc);
-        std::tie(aligned_impl_names, unaligned_impl_names) =
-            separate_implementations_by_alignment(implementation_names);
+        std::tie(implementation_name, vector_length) = param;
+        is_aligned_implementation = is_aligned_implementation_name(implementation_name);
     }
 
-    std::vector<std::string> implementation_names;
-    std::vector<std::string> aligned_impl_names;
-    std::vector<std::string> unaligned_impl_names;
+    std::string implementation_name;
+    bool is_aligned_implementation;
+    size_t vector_length;
 };
 
 

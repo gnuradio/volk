@@ -22,8 +22,8 @@ class volk_32f_x3_sum_of_poly_32f_test : public VolkTest
 protected:
     void SetUp() override
     {
-        initialize_implementation_names(volk_32f_x3_sum_of_poly_32f_get_func_desc());
-        initialize_data(GetParam());
+        initialize_test(GetParam());
+        initialize_data(vector_length);
     }
 
     void initialize_data(const size_t length)
@@ -66,6 +66,7 @@ protected:
         result = volk::vector<float>(1, 0.0);
         ua_result.push_back(result.at(0));
         ua_result.push_back(result.at(0));
+        tolerance = std::max(expected * 1e-5, 1e-5);
     }
 
     void execute_aligned(const std::string impl_name)
@@ -76,6 +77,7 @@ protected:
                                            cutoff.data(),
                                            vector_length,
                                            impl_name.c_str());
+        EXPECT_NEAR(result.at(0), expected, tolerance);
     }
 
     void execute_unaligned(const std::string impl_name)
@@ -86,6 +88,7 @@ protected:
                                            ua_cutoff.data() + 1,
                                            vector_length,
                                            impl_name.c_str());
+        EXPECT_NEAR(ua_result.at(1), expected, tolerance);
     }
 
     // void TearDown() override {}
@@ -99,42 +102,30 @@ protected:
     volk::vector<float> result;
     volk::vector<float> ua_result;
     float expected = 0.0f;
+    float tolerance = 1.0e-5;
 };
 
-
-TEST_P(volk_32f_x3_sum_of_poly_32f_test, aligned)
+TEST_P(volk_32f_x3_sum_of_poly_32f_test, run)
 {
-    for (auto name : implementation_names) {
-        auto tol = std::max(expected * 1e-5, 1e-5);
-        fmt::print(
-            "test aligned implementation: {:>12}, size={} ...", name, vector_length);
-        auto start = std::chrono::steady_clock::now();
+    fmt::print("test {} implementation: {:>12}, size={} ...",
+               is_aligned_implementation ? "aligned" : "unaligned",
+               implementation_name,
+               vector_length);
+    auto start = std::chrono::steady_clock::now();
 
-        execute_aligned(name);
-
-        std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - start;
-        fmt::print("\tduration={}\n", elapsed);
-        EXPECT_NEAR(result.at(0), expected, tol);
+    if (is_aligned_implementation) {
+        execute_aligned(implementation_name);
+    } else {
+        execute_unaligned(implementation_name);
     }
+    std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - start;
+    fmt::print("\tduration={}\n", elapsed);
 }
 
-TEST_P(volk_32f_x3_sum_of_poly_32f_test, unaligned)
-{
-    for (auto name : unaligned_impl_names) {
-        auto tol = std::max(expected * 1e-5, 1e-5);
-        fmt::print(
-            "test unaligned implementation: {:>12}, size={} ...", name, vector_length);
-        auto start = std::chrono::steady_clock::now();
-
-        execute_unaligned(name);
-
-        std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - start;
-        fmt::print("\tduration={}\n", elapsed);
-        EXPECT_NEAR(ua_result.at(1), expected, tol);
-    }
-}
-
-
-INSTANTIATE_TEST_SUITE_P(volk_32f_x3_sum_of_poly_32f,
-                         volk_32f_x3_sum_of_poly_32f_test,
-                         testing::Values(7, 32, 128, 1023, 65535, 131071));
+INSTANTIATE_TEST_SUITE_P(
+    volk_32f_x3_sum_of_poly_32f,
+    volk_32f_x3_sum_of_poly_32f_test,
+    testing::Combine(testing::ValuesIn(get_kernel_implementation_name_list(
+                         volk_32f_x3_sum_of_poly_32f_get_func_desc())),
+                     testing::ValuesIn(default_vector_sizes)),
+    generate_volk_test_name());
