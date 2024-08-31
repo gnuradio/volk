@@ -85,6 +85,7 @@ at the top, as a last resort.
 <arch name="neon">
   <flag compiler="gnu">-funsafe-math-optimizations</flag>
   <flag compiler="clang">-funsafe-math-optimizations</flag>
+  <flag compiler="msvc"> </flag>
   <alignment>16</alignment>
   <check name="neon"></check>
 </arch>
@@ -101,6 +102,7 @@ at the top, as a last resort.
 <arch name="neonv8">
   <flag compiler="gnu">-funsafe-math-optimizations</flag>
   <flag compiler="clang">-funsafe-math-optimizations</flag>
+  <flag compiler="msvc"> </flag>
   <alignment>16</alignment>
   <check name="neon"></check>
 </arch>
