@@ -229,10 +229,10 @@ static inline void volk_32fc_accumulator_s32fc_neon(lv_32fc_t* result,
     lv_32fc_t returnValue = lv_cmake(0.f, 0.f);
     unsigned int eighthPoints = num_points / 8;
     float32x4_t in_vec;
-    float32x4_t out_vec0 = { 0.f, 0.f, 0.f, 0.f };
-    float32x4_t out_vec1 = { 0.f, 0.f, 0.f, 0.f };
-    float32x4_t out_vec2 = { 0.f, 0.f, 0.f, 0.f };
-    float32x4_t out_vec3 = { 0.f, 0.f, 0.f, 0.f };
+    float32x4_t out_vec0 = { 0.f };
+    float32x4_t out_vec1 = { 0.f };
+    float32x4_t out_vec2 = { 0.f };
+    float32x4_t out_vec3 = { 0.f };
     __VOLK_ATTR_ALIGNED(32) float tempBuffer[4];
 
     for (; number < eighthPoints; number++) {

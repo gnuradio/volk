@@ -201,7 +201,10 @@ static inline void volk_32u_byteswap_neonv8(uint32_t* intsToSwap, unsigned int n
     uint32_t* inputPtr = (uint32_t*)intsToSwap;
     const unsigned int n8points = num_points / 8;
     uint8x16_t input;
-    uint8x16_t idx = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
+
+    uint8x16_t idx;
+    const uint8_t idx_data[] = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
+    idx = vld1q_u8(idx_data);
 
     unsigned int number = 0;
     for (number = 0; number < n8points; ++number) {
