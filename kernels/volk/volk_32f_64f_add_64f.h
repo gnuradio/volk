@@ -230,4 +230,22 @@ static inline void volk_32f_64f_add_64f_a_avx(double* cVector,
 
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_64f_add_64f_rvv(double* cVector,
+                                            const float* aVector,
+                                            const double* bVector,
+                                            unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e64m8(n);
+        vfloat64m8_t va = __riscv_vfwcvt_f(__riscv_vle32_v_f32m4(aVector, vl), vl);
+        vfloat64m8_t vb = __riscv_vle64_v_f64m8(bVector, vl);
+        __riscv_vse64(cVector, __riscv_vfadd(va, vb, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_64f_add_64f_u_H */

@@ -411,4 +411,50 @@ static inline void volk_16ic_magnitude_16i_neonv7(int16_t* magnitudeVector,
 }
 #endif /* LV_HAVE_NEONV7 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_16ic_magnitude_16i_rvv(int16_t* magnitudeVector,
+                                               const lv_16sc_t* complexVector,
+                                               unsigned int num_points)
+{
+    const float scale = SHRT_MAX, iscale = 1.0f / scale;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, complexVector += vl, magnitudeVector += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vint32m8_t vc = __riscv_vle32_v_i32m8((const int32_t*)complexVector, vl);
+        vint16m4_t vr = __riscv_vnsra(vc, 0, vl);
+        vint16m4_t vi = __riscv_vnsra(vc, 16, vl);
+        vfloat32m8_t vrf = __riscv_vfmul(__riscv_vfwcvt_f(vr, vl), iscale, vl);
+        vfloat32m8_t vif = __riscv_vfmul(__riscv_vfwcvt_f(vi, vl), iscale, vl);
+        vfloat32m8_t vf = __riscv_vfmacc(__riscv_vfmul(vif, vif, vl), vrf, vrf, vl);
+        vf = __riscv_vfmul(__riscv_vfsqrt(vf, vl), scale, vl);
+        __riscv_vse16(magnitudeVector, __riscv_vfncvt_x(vf, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_16ic_magnitude_16i_rvvseg(int16_t* magnitudeVector,
+                                                  const lv_16sc_t* complexVector,
+                                                  unsigned int num_points)
+{
+    const float scale = SHRT_MAX, iscale = 1.0f / scale;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, complexVector += vl, magnitudeVector += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vint16m4x2_t vc = __riscv_vlseg2e16_v_i16m4x2((const int16_t*)complexVector, vl);
+        vint16m4_t vr = __riscv_vget_i16m4(vc, 0);
+        vint16m4_t vi = __riscv_vget_i16m4(vc, 1);
+        vfloat32m8_t vrf = __riscv_vfmul(__riscv_vfwcvt_f(vr, vl), iscale, vl);
+        vfloat32m8_t vif = __riscv_vfmul(__riscv_vfwcvt_f(vi, vl), iscale, vl);
+        vfloat32m8_t vf = __riscv_vfmacc(__riscv_vfmul(vif, vif, vl), vrf, vrf, vl);
+        vf = __riscv_vfmul(__riscv_vfsqrt(vf, vl), scale, vl);
+        __riscv_vse16(magnitudeVector, __riscv_vfncvt_x(vf, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVVSEG*/
+
 #endif /* INCLUDED_volk_16ic_magnitude_16i_u_H */

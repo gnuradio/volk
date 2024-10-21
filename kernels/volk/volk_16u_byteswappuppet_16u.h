@@ -102,4 +102,26 @@ static inline void volk_16u_byteswappuppet_16u_u_orc(uint16_t* output,
 }
 #endif /* LV_HAVE_ORC */
 
+#ifdef LV_HAVE_RVV
+static inline void volk_16u_byteswappuppet_16u_rvv(uint16_t* output,
+                                                   uint16_t* intsToSwap,
+                                                   unsigned int num_points)
+{
+
+    volk_16u_byteswap_rvv((uint16_t*)intsToSwap, num_points);
+    memcpy((void*)output, (void*)intsToSwap, num_points * sizeof(uint16_t));
+}
+#endif
+
+#ifdef LV_HAVE_RVA23
+static inline void volk_16u_byteswappuppet_16u_rva23(uint16_t* output,
+                                                     uint16_t* intsToSwap,
+                                                     unsigned int num_points)
+{
+
+    volk_16u_byteswap_rva23((uint16_t*)intsToSwap, num_points);
+    memcpy((void*)output, (void*)intsToSwap, num_points * sizeof(uint16_t));
+}
+#endif
+
 #endif

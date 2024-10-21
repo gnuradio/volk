@@ -383,4 +383,53 @@ static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
 #endif /* LV_HAVE_SSSE3 */
 
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_64u_byteswap_rvv(uint64_t* intsToSwap, unsigned int num_points)
+{
+    size_t n = num_points;
+    size_t vlmax = __riscv_vsetvlmax_e8m1();
+    if (vlmax <= 256) {
+        vuint8m1_t vidx = __riscv_vreinterpret_u8m1(
+            __riscv_vsub(__riscv_vreinterpret_u64m1(__riscv_vid_v_u8m1(vlmax)),
+                         0x0706050403020100 - 0x1020304050607,
+                         vlmax / 8));
+        for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
+            vl = __riscv_vsetvl_e64m8(n);
+            vuint8m8_t v =
+                __riscv_vreinterpret_u8m8(__riscv_vle64_v_u64m8(intsToSwap, vl));
+            v = RISCV_PERM8(__riscv_vrgather, v, vidx);
+            __riscv_vse64(intsToSwap, __riscv_vreinterpret_u64m8(v), vl);
+        }
+    } else {
+        vuint16m2_t vid = __riscv_vid_v_u16m2(vlmax);
+        vuint16m2_t voff1 = __riscv_vand(vid, 0x7, vlmax);
+        vuint16m2_t voff2 = __riscv_vrsub(voff1, 0x7, vlmax);
+        vuint16m2_t vidx = __riscv_vadd(__riscv_vsub(vid, voff1, vlmax), voff2, vlmax);
+        for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
+            vl = __riscv_vsetvl_e64m8(n);
+            vuint8m8_t v =
+                __riscv_vreinterpret_u8m8(__riscv_vle64_v_u64m8(intsToSwap, vl));
+            v = RISCV_PERM8(__riscv_vrgatherei16, v, vidx);
+            __riscv_vse64(intsToSwap, __riscv_vreinterpret_u64m8(v), vl);
+        }
+    }
+}
+#endif /* LV_HAVE_RVV */
+
+#ifdef LV_HAVE_RVA23
+#include <riscv_vector.h>
+
+static inline void volk_64u_byteswap_rva23(uint64_t* intsToSwap, unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
+        vl = __riscv_vsetvl_e64m8(n);
+        vuint64m8_t v = __riscv_vle64_v_u64m8(intsToSwap, vl);
+        __riscv_vse64(intsToSwap, __riscv_vrev8(v, vl), vl);
+    }
+}
+#endif /* LV_HAVE_RVA23 */
+
 #endif /* INCLUDED_volk_64u_byteswap_a_H */

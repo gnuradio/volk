@@ -359,5 +359,37 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector,
 }
 #endif /* LV_HAVE_SSE */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_s32f_s32f_mod_range_32f_rvv(float* outputVector,
+                                                        const float* inputVector,
+                                                        const float lower_bound,
+                                                        const float upper_bound,
+                                                        unsigned int num_points)
+{
+    const float dist = upper_bound - lower_bound;
+    size_t vlmax = __riscv_vsetvlmax_e32m4();
+    vfloat32m4_t vdist = __riscv_vfmv_v_f_f32m4(dist, vlmax);
+    vfloat32m4_t vmdist = __riscv_vfmv_v_f_f32m4(-dist, vlmax);
+    vfloat32m4_t vupper = __riscv_vfmv_v_f_f32m4(upper_bound, vlmax);
+    vfloat32m4_t vlower = __riscv_vfmv_v_f_f32m4(lower_bound, vlmax);
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, outputVector += vl, inputVector += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m4_t v = __riscv_vle32_v_f32m4(inputVector, vl);
+        vfloat32m4_t vlt = __riscv_vfsub(vlower, v, vl);
+        vfloat32m4_t vgt = __riscv_vfsub(v, vupper, vl);
+        vbool8_t mlt = __riscv_vmflt(v, vlower, vl);
+        vfloat32m4_t vmul = __riscv_vmerge(vmdist, vdist, mlt, vl);
+        vfloat32m4_t vcnt = __riscv_vfdiv(__riscv_vmerge(vgt, vlt, mlt, vl), vdist, vl);
+        vcnt = __riscv_vfcvt_f(__riscv_vadd(__riscv_vfcvt_rtz_x(vcnt, vl), 1, vl), vl);
+        vbool8_t mgt = __riscv_vmfgt(v, vupper, vl);
+        v = __riscv_vfmacc_mu(__riscv_vmor(mlt, mgt, vl), v, vcnt, vmul, vl);
+
+        __riscv_vse32(outputVector, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_VOLK_32F_S32F_S32F_MOD_RANGE_32F_A_H */

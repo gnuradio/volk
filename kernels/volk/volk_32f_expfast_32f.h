@@ -301,4 +301,25 @@ static inline void volk_32f_expfast_32f_generic(float* bVector,
 }
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_expfast_32f_rvv(float* bVector, const float* aVector, unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m8();
+    const vfloat32m8_t ca = __riscv_vfmv_v_f_f32m8(A / Mln2, vlmax);
+    const vfloat32m8_t cb = __riscv_vfmv_v_f_f32m8(B - C, vlmax);
+
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(aVector, vl);
+        v = __riscv_vfmadd(v, ca, cb, vl);
+        v = __riscv_vreinterpret_f32m8(__riscv_vfcvt_x(v, vl));
+        __riscv_vse32(bVector, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_expfast_32f_u_H */

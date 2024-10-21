@@ -330,4 +330,22 @@ static inline void volk_32f_x2_max_32f_u_avx(float* cVector,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_x2_max_32f_rvv(float* cVector,
+                                           const float* aVector,
+                                           const float* bVector,
+                                           unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t va = __riscv_vle32_v_f32m8(aVector, vl);
+        vfloat32m8_t vb = __riscv_vle32_v_f32m8(bVector, vl);
+        __riscv_vse32(cVector, __riscv_vfmax(va, vb, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_x2_max_32f_u_H */

@@ -342,4 +342,69 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_rvv(lv_32fc_t* cVector,
+                                                    const lv_32fc_t* aVector,
+                                                    const lv_32fc_t* bVector,
+                                                    const lv_32fc_t* scalar,
+                                                    unsigned int num_points)
+{
+    vfloat32m2_t vbr =
+        __riscv_vfmv_v_f_f32m2(lv_creal(*scalar), __riscv_vsetvlmax_e32m2());
+    vfloat32m2_t vbi =
+        __riscv_vfmv_v_f_f32m2(lv_cimag(*scalar), __riscv_vsetvlmax_e32m2());
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, bVector += vl, aVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m2(n);
+        vuint64m4_t va = __riscv_vle64_v_u64m4((const uint64_t*)bVector, vl);
+        vuint64m4_t vc = __riscv_vle64_v_u64m4((const uint64_t*)aVector, vl);
+        vfloat32m2_t var = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 0, vl));
+        vfloat32m2_t vcr = __riscv_vreinterpret_f32m2(__riscv_vnsrl(vc, 0, vl));
+        vfloat32m2_t vai = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 32, vl));
+        vfloat32m2_t vci = __riscv_vreinterpret_f32m2(__riscv_vnsrl(vc, 32, vl));
+        vfloat32m2_t vr = __riscv_vfmacc(__riscv_vfmul(var, vbr, vl), vai, vbi, vl);
+        vfloat32m2_t vi = __riscv_vfnmsac(__riscv_vfmul(var, vbi, vl), vai, vbr, vl);
+        vuint32m2_t vru = __riscv_vreinterpret_u32m2(__riscv_vfadd(vr, vcr, vl));
+        vuint32m2_t viu = __riscv_vreinterpret_u32m2(__riscv_vfadd(vi, vci, vl));
+        vuint64m4_t v =
+            __riscv_vwmaccu(__riscv_vwaddu_vv(vru, viu, vl), 0xFFFFFFFF, viu, vl);
+        __riscv_vse64((uint64_t*)cVector, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_rvvseg(lv_32fc_t* cVector,
+                                                       const lv_32fc_t* aVector,
+                                                       const lv_32fc_t* bVector,
+                                                       const lv_32fc_t* scalar,
+                                                       unsigned int num_points)
+{
+    vfloat32m4_t vbr =
+        __riscv_vfmv_v_f_f32m4(lv_creal(*scalar), __riscv_vsetvlmax_e32m4());
+    vfloat32m4_t vbi =
+        __riscv_vfmv_v_f_f32m4(lv_cimag(*scalar), __riscv_vsetvlmax_e32m4());
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m4x2_t vc = __riscv_vlseg2e32_v_f32m4x2((const float*)aVector, vl);
+        vfloat32m4x2_t va = __riscv_vlseg2e32_v_f32m4x2((const float*)bVector, vl);
+        vfloat32m4_t vcr = __riscv_vget_f32m4(vc, 0), vci = __riscv_vget_f32m4(vc, 1);
+        vfloat32m4_t var = __riscv_vget_f32m4(va, 0), vai = __riscv_vget_f32m4(va, 1);
+        vfloat32m4_t vr = __riscv_vfmacc(__riscv_vfmul(var, vbr, vl), vai, vbi, vl);
+        vfloat32m4_t vi = __riscv_vfnmsac(__riscv_vfmul(var, vbi, vl), vai, vbr, vl);
+        vr = __riscv_vfadd(vr, vcr, vl);
+        vi = __riscv_vfadd(vi, vci, vl);
+        __riscv_vsseg2e32_v_f32m4x2(
+            (float*)cVector, __riscv_vcreate_v_f32m4x2(vr, vi), vl);
+    }
+}
+#endif /*LV_HAVE_RVVSEG*/
+
 #endif /* INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_H */

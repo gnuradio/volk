@@ -654,4 +654,45 @@ static inline void volk_32f_x3_sum_of_poly_32f_u_avx(float* target,
 }
 #endif // LV_HAVE_AVX
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32f_x3_sum_of_poly_32f_rvv(float* target,
+                                                   float* src0,
+                                                   float* center_point_array,
+                                                   float* cutoff,
+                                                   unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m4();
+    vfloat32m4_t vsum = __riscv_vfmv_v_f_f32m4(0, vlmax);
+    float mul1 = center_point_array[0]; // scalar to avoid register spills
+    float mul2 = center_point_array[1];
+    vfloat32m4_t vmul3 = __riscv_vfmv_v_f_f32m4(center_point_array[2], vlmax);
+    vfloat32m4_t vmul4 = __riscv_vfmv_v_f_f32m4(center_point_array[3], vlmax);
+    vfloat32m4_t vmax = __riscv_vfmv_v_f_f32m4(*cutoff, vlmax);
+
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, src0 += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m4_t v = __riscv_vle32_v_f32m4(src0, vl);
+        vfloat32m4_t v1 = __riscv_vfmax(v, vmax, vl);
+        vfloat32m4_t v2 = __riscv_vfmul(v1, v1, vl);
+        vfloat32m4_t v3 = __riscv_vfmul(v1, v2, vl);
+        vfloat32m4_t v4 = __riscv_vfmul(v2, v2, vl);
+        v2 = __riscv_vfmul(v2, mul2, vl);
+        v4 = __riscv_vfmul(v4, vmul4, vl);
+        v1 = __riscv_vfmadd(v1, mul1, v2, vl);
+        v3 = __riscv_vfmadd(v3, vmul3, v4, vl);
+        v1 = __riscv_vfadd(v1, v3, vl);
+        vsum = __riscv_vfadd_tu(vsum, vsum, v1, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t v = RISCV_SHRINK4(vfadd, f, 32, vsum);
+    vfloat32m1_t z = __riscv_vfmv_s_f_f32m1(0, vl);
+    float sum = __riscv_vfmv_f(__riscv_vfredusum(v, z, vl));
+    *target = sum + num_points * center_point_array[4];
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /*INCLUDED_volk_32f_x3_sum_of_poly_32f_u_H*/

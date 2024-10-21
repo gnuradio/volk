@@ -349,5 +349,24 @@ volk_8ic_s32f_deinterleave_real_32f_u_avx2(float* iBuffer,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_8ic_s32f_deinterleave_real_32f_rvv(float* iBuffer,
+                                                           const lv_8sc_t* complexVector,
+                                                           const float scalar,
+                                                           unsigned int num_points)
+{
+    const uint16_t* in = (const uint16_t*)complexVector;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in += vl, iBuffer += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vuint16m4_t vc = __riscv_vle16_v_u16m4(in, vl);
+        vint8m2_t vr = __riscv_vreinterpret_i8m2(__riscv_vnsrl(vc, 0, vl));
+        vfloat32m8_t vrf = __riscv_vfwcvt_f(__riscv_vsext_vf2(vr, vl), vl);
+        __riscv_vse32(iBuffer, __riscv_vfmul(vrf, 1.0f / scalar, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_8ic_s32f_deinterleave_real_32f_u_H */

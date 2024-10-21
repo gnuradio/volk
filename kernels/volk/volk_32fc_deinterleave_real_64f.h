@@ -240,4 +240,21 @@ static inline void volk_32fc_deinterleave_real_64f_u_avx2(double* iBuffer,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32fc_deinterleave_real_64f_rvv(double* iBuffer,
+                                                       const lv_32fc_t* complexVector,
+                                                       unsigned int num_points)
+{
+    const uint64_t* in = (const uint64_t*)complexVector;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in += vl, iBuffer += vl) {
+        vl = __riscv_vsetvl_e64m8(n);
+        vuint32m4_t vi = __riscv_vnsrl(__riscv_vle64_v_u64m8(in, vl), 0, vl);
+        __riscv_vse64(iBuffer, __riscv_vfwcvt_f(__riscv_vreinterpret_f32m4(vi), vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32fc_deinterleave_real_64f_u_H */

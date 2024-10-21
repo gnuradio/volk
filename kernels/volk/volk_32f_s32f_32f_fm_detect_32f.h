@@ -335,4 +335,41 @@ static inline void volk_32f_s32f_32f_fm_detect_32f_u_avx(float* outputVector,
 #endif /* LV_HAVE_AVX */
 
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_s32f_32f_fm_detect_32f_rvv(float* outputVector,
+                                                       const float* inputVector,
+                                                       const float bound,
+                                                       float* saveValue,
+                                                       unsigned int num_points)
+{
+    if (num_points < 1)
+        return;
+
+    *outputVector = *inputVector - *saveValue;
+    if (*outputVector > bound)
+        *outputVector -= 2 * bound;
+    if (*outputVector < -bound)
+        *outputVector += 2 * bound;
+    ++inputVector;
+    ++outputVector;
+
+    vfloat32m8_t v2bound = __riscv_vfmv_v_f_f32m8(bound * 2, __riscv_vsetvlmax_e32m8());
+
+    size_t n = num_points - 1;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t va = __riscv_vle32_v_f32m8(inputVector, vl);
+        vfloat32m8_t vb = __riscv_vle32_v_f32m8(inputVector - 1, vl);
+        vfloat32m8_t v = __riscv_vfsub(va, vb, vl);
+        v = __riscv_vfsub_mu(__riscv_vmfgt(v, bound, vl), v, v, v2bound, vl);
+        v = __riscv_vfadd_mu(__riscv_vmflt(v, -bound, vl), v, v, v2bound, vl);
+        __riscv_vse32(outputVector, v, vl);
+    }
+
+    *saveValue = inputVector[-1];
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_s32f_32f_fm_detect_32f_u_H */
