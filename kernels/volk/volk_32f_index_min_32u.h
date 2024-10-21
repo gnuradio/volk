@@ -42,7 +42,7 @@
  *
  *   volk_32f_index_min_32u(out, in, N);
  *
- *   printf("minimum is %1.2f at index %u\n", in[*out], *out);
+ *   ("minimum is %1.2f at index %u\n", in[*out], *out);
  *
  *   volk_free(in);
  *   volk_free(out);
