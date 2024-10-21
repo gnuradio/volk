@@ -412,4 +412,38 @@ volk_32f_tanh_32f_u_avx_fma(float* cVector, const float* aVector, unsigned int n
 }
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_tanh_32f_rvv(float* bVector, const float* aVector, unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m2();
+
+    const vfloat32m2_t c1 = __riscv_vfmv_v_f_f32m2(135135.0f, vlmax);
+    const vfloat32m2_t c2 = __riscv_vfmv_v_f_f32m2(17325.0f, vlmax);
+    const vfloat32m2_t c3 = __riscv_vfmv_v_f_f32m2(378.0f, vlmax);
+    const vfloat32m2_t c4 = __riscv_vfmv_v_f_f32m2(62370.0f, vlmax);
+    const vfloat32m2_t c5 = __riscv_vfmv_v_f_f32m2(3150.0f, vlmax);
+    const vfloat32m2_t c6 = __riscv_vfmv_v_f_f32m2(28.0f, vlmax);
+
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl) {
+        vl = __riscv_vsetvl_e32m2(n);
+        vfloat32m2_t x = __riscv_vle32_v_f32m2(aVector, vl);
+        vfloat32m2_t xx = __riscv_vfmul(x, x, vl);
+        vfloat32m2_t a, b;
+        a = __riscv_vfadd(xx, c3, vl);
+        a = __riscv_vfmadd(a, xx, c2, vl);
+        a = __riscv_vfmadd(a, xx, c1, vl);
+        a = __riscv_vfmul(a, x, vl);
+        b = c6;
+        b = __riscv_vfmadd(b, xx, c5, vl);
+        b = __riscv_vfmadd(b, xx, c4, vl);
+        b = __riscv_vfmadd(b, xx, c1, vl);
+        __riscv_vse32(bVector, __riscv_vfdiv(a, b, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_tanh_32f_u_H */

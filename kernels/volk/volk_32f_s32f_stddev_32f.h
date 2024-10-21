@@ -344,4 +344,32 @@ static inline void volk_32f_s32f_stddev_32f_u_avx(float* stddev,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32f_s32f_stddev_32f_rvv(float* stddev,
+                                                const float* inputBuffer,
+                                                const float mean,
+                                                unsigned int num_points)
+{
+    if (num_points == 0) {
+        *stddev = 0;
+        return;
+    }
+    vfloat32m8_t vsum = __riscv_vfmv_v_f_f32m8(0, __riscv_vsetvlmax_e32m8());
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputBuffer += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(inputBuffer, vl);
+        vsum = __riscv_vfmacc_tu(vsum, v, v, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t v = RISCV_SHRINK8(vfadd, f, 32, vsum);
+    v = __riscv_vfredusum(v, __riscv_vfmv_s_f_f32m1(0, vl), vl);
+    float sum = __riscv_vfmv_f(v);
+    *stddev = sqrtf((sum / num_points) - (mean * mean));
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_s32f_stddev_32f_u_H */

@@ -260,4 +260,21 @@ static inline void volk_32fc_conjugate_32fc_a_neon(lv_32fc_t* cVector,
 #endif /* LV_HAVE_NEON */
 
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32fc_conjugate_32fc_rvv(lv_32fc_t* cVector,
+                                                const lv_32fc_t* aVector,
+                                                unsigned int num_points)
+{
+    size_t n = num_points;
+    vuint64m8_t m = __riscv_vmv_v_x_u64m8(1ull << 63, __riscv_vsetvlmax_e64m8());
+    for (size_t vl; n > 0; n -= vl, aVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e64m8(n);
+        vuint64m8_t v = __riscv_vle64_v_u64m8((const uint64_t*)aVector, vl);
+        __riscv_vse64((uint64_t*)cVector, __riscv_vxor(v, m, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32fc_conjugate_32fc_a_H */

@@ -995,5 +995,65 @@ volk_32f_cos_32f_neon(float* bVector, const float* aVector, unsigned int num_poi
 
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_cos_32f_rvv(float* bVector, const float* aVector, unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m2();
+
+    const vfloat32m2_t c4oPi = __riscv_vfmv_v_f_f32m2(1.2732395f, vlmax);
+    const vfloat32m2_t cPio4a = __riscv_vfmv_v_f_f32m2(0.7853982f, vlmax);
+    const vfloat32m2_t cPio4b = __riscv_vfmv_v_f_f32m2(7.946627e-09f, vlmax);
+    const vfloat32m2_t cPio4c = __riscv_vfmv_v_f_f32m2(3.061617e-17f, vlmax);
+
+    const vfloat32m2_t cf1 = __riscv_vfmv_v_f_f32m2(1.0f, vlmax);
+    const vfloat32m2_t cf4 = __riscv_vfmv_v_f_f32m2(4.0f, vlmax);
+
+    const vfloat32m2_t c2 = __riscv_vfmv_v_f_f32m2(0.0833333333f, vlmax);
+    const vfloat32m2_t c3 = __riscv_vfmv_v_f_f32m2(0.0027777778f, vlmax);
+    const vfloat32m2_t c4 = __riscv_vfmv_v_f_f32m2(4.9603175e-05f, vlmax);
+    const vfloat32m2_t c5 = __riscv_vfmv_v_f_f32m2(5.5114638e-07f, vlmax);
+
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl) {
+        vl = __riscv_vsetvl_e32m2(n);
+        vfloat32m2_t v = __riscv_vle32_v_f32m2(aVector, vl);
+        vfloat32m2_t s = __riscv_vfabs(v, vl);
+        vint32m2_t q = __riscv_vfcvt_x(__riscv_vfmul(s, c4oPi, vl), vl);
+        vfloat32m2_t r = __riscv_vfcvt_f(__riscv_vadd(q, __riscv_vand(q, 1, vl), vl), vl);
+
+        s = __riscv_vfnmsac(s, cPio4a, r, vl);
+        s = __riscv_vfnmsac(s, cPio4b, r, vl);
+        s = __riscv_vfnmsac(s, cPio4c, r, vl);
+
+        s = __riscv_vfmul(s, 1 / 8.0f, vl);
+        s = __riscv_vfmul(s, s, vl);
+        vfloat32m2_t t = s;
+        s = __riscv_vfmsub(s, c5, c4, vl);
+        s = __riscv_vfmadd(s, t, c3, vl);
+        s = __riscv_vfmsub(s, t, c2, vl);
+        s = __riscv_vfmadd(s, t, cf1, vl);
+        s = __riscv_vfmul(s, t, vl);
+        s = __riscv_vfmul(s, __riscv_vfsub(cf4, s, vl), vl);
+        s = __riscv_vfmul(s, __riscv_vfsub(cf4, s, vl), vl);
+        s = __riscv_vfmul(s, __riscv_vfsub(cf4, s, vl), vl);
+        s = __riscv_vfmul(s, 1 / 2.0f, vl);
+
+        vfloat32m2_t sine =
+            __riscv_vfsqrt(__riscv_vfmul(__riscv_vfrsub(s, 2.0f, vl), s, vl), vl);
+        vfloat32m2_t cosine = __riscv_vfsub(cf1, s, vl);
+
+        vbool16_t m1 = __riscv_vmsne(__riscv_vand(__riscv_vadd(q, 1, vl), 2, vl), 0, vl);
+        vbool16_t m2 = __riscv_vmsne(__riscv_vand(__riscv_vadd(q, 2, vl), 4, vl), 0, vl);
+
+        cosine = __riscv_vmerge(cosine, sine, m1, vl);
+        cosine = __riscv_vfneg_mu(m2, cosine, cosine, vl);
+
+        __riscv_vse32(bVector, cosine, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32f_cos_32f_u_H */

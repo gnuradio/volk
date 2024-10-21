@@ -326,5 +326,51 @@ static inline void volk_32f_x2_s32f_interleave_16ic_u_avx2(lv_16sc_t* complexVec
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_x2_s32f_interleave_16ic_rvv(lv_16sc_t* complexVector,
+                                                        const float* iBuffer,
+                                                        const float* qBuffer,
+                                                        const float scalar,
+                                                        unsigned int num_points)
+{
+    uint32_t* out = (uint32_t*)complexVector;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, out += vl, iBuffer += vl, qBuffer += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t vrf = __riscv_vle32_v_f32m8(iBuffer, vl);
+        vfloat32m8_t vif = __riscv_vle32_v_f32m8(qBuffer, vl);
+        vint16m4_t vri = __riscv_vfncvt_x(__riscv_vfmul(vrf, scalar, vl), vl);
+        vint16m4_t vii = __riscv_vfncvt_x(__riscv_vfmul(vif, scalar, vl), vl);
+        vuint16m4_t vr = __riscv_vreinterpret_u16m4(vri);
+        vuint16m4_t vi = __riscv_vreinterpret_u16m4(vii);
+        vuint32m8_t vc = __riscv_vwmaccu(__riscv_vwaddu_vv(vr, vi, vl), 0xFFFF, vi, vl);
+        __riscv_vse32(out, vc, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_32f_x2_s32f_interleave_16ic_rvvseg(lv_16sc_t* complexVector,
+                                                           const float* iBuffer,
+                                                           const float* qBuffer,
+                                                           const float scalar,
+                                                           unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, complexVector += vl, iBuffer += vl, qBuffer += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t vrf = __riscv_vle32_v_f32m8(iBuffer, vl);
+        vfloat32m8_t vif = __riscv_vle32_v_f32m8(qBuffer, vl);
+        vint16m4_t vri = __riscv_vfncvt_x(__riscv_vfmul(vrf, scalar, vl), vl);
+        vint16m4_t vii = __riscv_vfncvt_x(__riscv_vfmul(vif, scalar, vl), vl);
+        __riscv_vsseg2e16(
+            (int16_t*)complexVector, __riscv_vcreate_v_i16m4x2(vri, vii), vl);
+    }
+}
+#endif /*LV_HAVE_RVVSEG*/
 
 #endif /* INCLUDED_volk_32f_x2_s32f_interleave_16ic_u_H */

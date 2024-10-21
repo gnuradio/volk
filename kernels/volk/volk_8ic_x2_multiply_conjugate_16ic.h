@@ -274,4 +274,55 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_u_avx2(lv_16sc_t* cVector
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_8ic_x2_multiply_conjugate_16ic_rvv(lv_16sc_t* cVector,
+                                                           const lv_8sc_t* aVector,
+                                                           const lv_8sc_t* bVector,
+                                                           unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e8m2(n);
+        vint16m4_t va = __riscv_vle16_v_i16m4((const int16_t*)aVector, vl);
+        vint16m4_t vb = __riscv_vle16_v_i16m4((const int16_t*)bVector, vl);
+        vint8m2_t var = __riscv_vnsra(va, 0, vl), vai = __riscv_vnsra(va, 8, vl);
+        vint8m2_t vbr = __riscv_vnsra(vb, 0, vl), vbi = __riscv_vnsra(vb, 8, vl);
+        vint16m4_t vr = __riscv_vwmacc(__riscv_vwmul(var, vbr, vl), vai, vbi, vl);
+        vint16m4_t vi =
+            __riscv_vsub(__riscv_vwmul(vai, vbr, vl), __riscv_vwmul(var, vbi, vl), vl);
+        vuint16m4_t vru = __riscv_vreinterpret_u16m4(vr);
+        vuint16m4_t viu = __riscv_vreinterpret_u16m4(vi);
+        vuint32m8_t v = __riscv_vwmaccu(__riscv_vwaddu_vv(vru, viu, vl), 0xFFFF, viu, vl);
+        __riscv_vse32((uint32_t*)cVector, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_8ic_x2_multiply_conjugate_16ic_rvvseg(lv_16sc_t* cVector,
+                                                              const lv_8sc_t* aVector,
+                                                              const lv_8sc_t* bVector,
+                                                              unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e8m2(n);
+        vint8m2x2_t va = __riscv_vlseg2e8_v_i8m2x2((const int8_t*)aVector, vl);
+        vint8m2x2_t vb = __riscv_vlseg2e8_v_i8m2x2((const int8_t*)bVector, vl);
+        vint8m2_t var = __riscv_vget_i8m2(va, 0), vai = __riscv_vget_i8m2(va, 1);
+        vint8m2_t vbr = __riscv_vget_i8m2(vb, 0), vbi = __riscv_vget_i8m2(vb, 1);
+        vint16m4_t vr = __riscv_vwmacc(__riscv_vwmul(var, vbr, vl), vai, vbi, vl);
+        vint16m4_t vi =
+            __riscv_vsub(__riscv_vwmul(vai, vbr, vl), __riscv_vwmul(var, vbi, vl), vl);
+        __riscv_vsseg2e16_v_i16m4x2(
+            (int16_t*)cVector, __riscv_vcreate_v_i16m4x2(vr, vi), vl);
+    }
+}
+
+#endif /*LV_HAVE_RVVSEG*/
+
 #endif /* INCLUDED_volk_8ic_x2_multiply_conjugate_16ic_u_H */

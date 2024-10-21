@@ -52,6 +52,8 @@
 #include <stdio.h>
 #include <volk/volk_common.h>
 
+#include <volk/volk_32f_accumulator_s32f.h>
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -458,4 +460,37 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_u_avx(float* noiseFloorAmplitude,
     *noiseFloorAmplitude = localNoiseFloorAmplitude;
 }
 #endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_s32f_calc_spectral_noise_floor_32f_rvv(float* noiseFloorAmplitude,
+                                                const float* realDataPoints,
+                                                const float spectralExclusionValue,
+                                                const unsigned int num_points)
+{
+    float sum;
+    volk_32f_accumulator_s32f_rvv(&sum, realDataPoints, num_points);
+    float meanAmplitude = sum / num_points + spectralExclusionValue;
+
+    vfloat32m8_t vbin = __riscv_vfmv_v_f_f32m8(meanAmplitude, __riscv_vsetvlmax_e32m8());
+    vfloat32m8_t vsum = __riscv_vfmv_v_f_f32m8(0, __riscv_vsetvlmax_e32m8());
+    size_t n = num_points, binCount = 0;
+    for (size_t vl; n > 0; n -= vl, realDataPoints += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(realDataPoints, vl);
+        vbool4_t m = __riscv_vmfle(v, vbin, vl);
+        binCount += __riscv_vcpop(m, vl);
+        vsum = __riscv_vfadd_tumu(m, vsum, vsum, v, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t v = RISCV_SHRINK8(vfadd, f, 32, vsum);
+    vfloat32m1_t z = __riscv_vfmv_s_f_f32m1(0, vl);
+    sum = __riscv_vfmv_f(__riscv_vfredusum(v, z, vl));
+
+    *noiseFloorAmplitude = binCount == 0 ? meanAmplitude : sum / binCount;
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_s32f_calc_spectral_noise_floor_32f_u_H */

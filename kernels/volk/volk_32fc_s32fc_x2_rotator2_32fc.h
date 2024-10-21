@@ -779,4 +779,160 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx_fma(lv_32fc_t* outVect
 
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA*/
 
+/* Note on the RVV implementation:
+ * The complex multiply was expanded, because we don't care about the corner cases.
+ * Otherwise, without -ffast-math, the compiler would inserts function calls,
+ * which invalidates all vector registers and spills them on each loop iteration. */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32fc_s32fc_x2_rotator2_32fc_rvv(lv_32fc_t* outVector,
+                                                        const lv_32fc_t* inVector,
+                                                        const lv_32fc_t* phase_inc,
+                                                        lv_32fc_t* phase,
+                                                        unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m2();
+    vlmax = vlmax < ROTATOR_RELOAD ? vlmax : ROTATOR_RELOAD;
+
+    lv_32fc_t inc = 1.0f;
+    vfloat32m2_t phr = __riscv_vfmv_v_f_f32m2(0, vlmax), phi = phr;
+    for (size_t i = 0; i < vlmax; ++i) {
+        lv_32fc_t ph =
+            lv_cmake(lv_creal(*phase) * lv_creal(inc) - lv_cimag(*phase) * lv_cimag(inc),
+                     lv_creal(*phase) * lv_cimag(inc) + lv_cimag(*phase) * lv_creal(inc));
+        phr = __riscv_vfslide1down(phr, lv_creal(ph), vlmax);
+        phi = __riscv_vfslide1down(phi, lv_cimag(ph), vlmax);
+        inc = lv_cmake(
+            lv_creal(*phase_inc) * lv_creal(inc) - lv_cimag(*phase_inc) * lv_cimag(inc),
+            lv_creal(*phase_inc) * lv_cimag(inc) + lv_cimag(*phase_inc) * lv_creal(inc));
+    }
+    vfloat32m2_t incr = __riscv_vfmv_v_f_f32m2(lv_creal(inc), vlmax);
+    vfloat32m2_t inci = __riscv_vfmv_v_f_f32m2(lv_cimag(inc), vlmax);
+
+    size_t vl = 0;
+    if (num_points > 0)
+        while (1) {
+            size_t n = num_points < ROTATOR_RELOAD ? num_points : ROTATOR_RELOAD;
+            num_points -= n;
+
+            for (; n > 0; n -= vl, inVector += vl, outVector += vl) {
+                // vl<vlmax can only happen on the last iteration of the loops
+                vl = __riscv_vsetvl_e32m2(n < vlmax ? n : vlmax);
+
+                vuint64m4_t va = __riscv_vle64_v_u64m4((const uint64_t*)inVector, vl);
+                vfloat32m2_t var = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 0, vl));
+                vfloat32m2_t vai = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 32, vl));
+
+                vfloat32m2_t vr =
+                    __riscv_vfnmsac(__riscv_vfmul(var, phr, vl), vai, phi, vl);
+                vfloat32m2_t vi =
+                    __riscv_vfmacc(__riscv_vfmul(var, phi, vl), vai, phr, vl);
+
+                vuint32m2_t vru = __riscv_vreinterpret_u32m2(vr);
+                vuint32m2_t viu = __riscv_vreinterpret_u32m2(vi);
+                vuint64m4_t res =
+                    __riscv_vwmaccu(__riscv_vwaddu_vv(vru, viu, vl), 0xFFFFFFFF, viu, vl);
+                __riscv_vse64((uint64_t*)outVector, res, vl);
+
+                vfloat32m2_t tmp = phr;
+                phr = __riscv_vfnmsac(__riscv_vfmul(tmp, incr, vl), phi, inci, vl);
+                phi = __riscv_vfmacc(__riscv_vfmul(tmp, inci, vl), phi, incr, vl);
+            }
+
+            if (num_points <= 0)
+                break;
+
+            // normalize
+            vfloat32m2_t scale =
+                __riscv_vfmacc(__riscv_vfmul(phr, phr, vl), phi, phi, vl);
+            scale = __riscv_vfsqrt(scale, vl);
+            phr = __riscv_vfdiv(phr, scale, vl);
+            phi = __riscv_vfdiv(phi, scale, vl);
+        }
+
+    lv_32fc_t ph = lv_cmake(__riscv_vfmv_f(phr), __riscv_vfmv_f(phi));
+    for (size_t i = 0; i < vlmax - vl; ++i)
+        ph /= *phase_inc; // we're going backwards
+    *phase = ph * 1.0f / hypotf(lv_creal(ph), lv_cimag(ph));
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_32fc_s32fc_x2_rotator2_32fc_rvvseg(lv_32fc_t* outVector,
+                                                           const lv_32fc_t* inVector,
+                                                           const lv_32fc_t* phase_inc,
+                                                           lv_32fc_t* phase,
+                                                           unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m2();
+    vlmax = vlmax < ROTATOR_RELOAD ? vlmax : ROTATOR_RELOAD;
+
+    lv_32fc_t inc = 1.0f;
+    vfloat32m2_t phr = __riscv_vfmv_v_f_f32m2(0, vlmax), phi = phr;
+    for (size_t i = 0; i < vlmax; ++i) {
+        lv_32fc_t ph =
+            lv_cmake(lv_creal(*phase) * lv_creal(inc) - lv_cimag(*phase) * lv_cimag(inc),
+                     lv_creal(*phase) * lv_cimag(inc) + lv_cimag(*phase) * lv_creal(inc));
+        phr = __riscv_vfslide1down(phr, lv_creal(ph), vlmax);
+        phi = __riscv_vfslide1down(phi, lv_cimag(ph), vlmax);
+        inc = lv_cmake(
+            lv_creal(*phase_inc) * lv_creal(inc) - lv_cimag(*phase_inc) * lv_cimag(inc),
+            lv_creal(*phase_inc) * lv_cimag(inc) + lv_cimag(*phase_inc) * lv_creal(inc));
+    }
+    vfloat32m2_t incr = __riscv_vfmv_v_f_f32m2(lv_creal(inc), vlmax);
+    vfloat32m2_t inci = __riscv_vfmv_v_f_f32m2(lv_cimag(inc), vlmax);
+
+    size_t vl = 0;
+    if (num_points > 0)
+        while (1) {
+            size_t n = num_points < ROTATOR_RELOAD ? num_points : ROTATOR_RELOAD;
+            num_points -= n;
+
+            for (; n > 0; n -= vl, inVector += vl, outVector += vl) {
+                // vl<vlmax can only happen on the last iteration of the loops
+                vl = __riscv_vsetvl_e32m2(n < vlmax ? n : vlmax);
+
+                vfloat32m2x2_t va =
+                    __riscv_vlseg2e32_v_f32m2x2((const float*)inVector, vl);
+                vfloat32m2_t var = __riscv_vget_f32m2(va, 0);
+                vfloat32m2_t vai = __riscv_vget_f32m2(va, 1);
+
+                vfloat32m2_t vr =
+                    __riscv_vfnmsac(__riscv_vfmul(var, phr, vl), vai, phi, vl);
+                vfloat32m2_t vi =
+                    __riscv_vfmacc(__riscv_vfmul(var, phi, vl), vai, phr, vl);
+
+                vuint32m2_t vru = __riscv_vreinterpret_u32m2(vr);
+                vuint32m2_t viu = __riscv_vreinterpret_u32m2(vi);
+                vuint64m4_t res =
+                    __riscv_vwmaccu(__riscv_vwaddu_vv(vru, viu, vl), 0xFFFFFFFF, viu, vl);
+                __riscv_vse64((uint64_t*)outVector, res, vl);
+
+                vfloat32m2_t tmp = phr;
+                phr = __riscv_vfnmsac(__riscv_vfmul(tmp, incr, vl), phi, inci, vl);
+                phi = __riscv_vfmacc(__riscv_vfmul(tmp, inci, vl), phi, incr, vl);
+            }
+
+            if (num_points <= 0)
+                break;
+
+            // normalize
+            vfloat32m2_t scale =
+                __riscv_vfmacc(__riscv_vfmul(phr, phr, vl), phi, phi, vl);
+            scale = __riscv_vfsqrt(scale, vl);
+            phr = __riscv_vfdiv(phr, scale, vl);
+            phi = __riscv_vfdiv(phi, scale, vl);
+        }
+
+    lv_32fc_t ph = lv_cmake(__riscv_vfmv_f(phr), __riscv_vfmv_f(phi));
+    for (size_t i = 0; i < vlmax - vl; ++i)
+        ph /= *phase_inc; // we're going backwards
+    *phase = ph * 1.0f / hypotf(lv_creal(ph), lv_cimag(ph));
+}
+#endif /*LV_HAVE_RVVSEG*/
+
 #endif /* INCLUDED_volk_32fc_s32fc_rotator2_32fc_a_H */

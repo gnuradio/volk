@@ -275,5 +275,20 @@ static inline void volk_16i_convert_8i_neon(int8_t* outputVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_16i_convert_8i_rvv(int8_t* outputVector,
+                                           const int16_t* inputVector,
+                                           unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e16m8(n);
+        vint16m8_t v = __riscv_vle16_v_i16m8(inputVector, vl);
+        __riscv_vse8(outputVector, __riscv_vnsra(v, 8, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_16i_convert_8i_a_H */

@@ -42,7 +42,7 @@
  *
  *   volk_32f_index_min_32u(out, in, N);
  *
- *   printf("minimum is %1.2f at index %u\n", in[*out], *out);
+ *   ("minimum is %1.2f at index %u\n", in[*out], *out);
  *
  *   volk_free(in);
  *   volk_free(out);
@@ -507,5 +507,33 @@ volk_32f_index_min_32u_u_sse(uint32_t* target, const float* source, uint32_t num
 }
 
 #endif /*LV_HAVE_SSE*/
+
+#ifdef LV_HAVE_RVV
+#include <float.h>
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_index_min_32u_rvv(uint32_t* target, const float* src0, uint32_t num_points)
+{
+    vfloat32m4_t vmin = __riscv_vfmv_v_f_f32m4(FLT_MAX, __riscv_vsetvlmax_e32m4());
+    vuint32m4_t vmini = __riscv_vmv_v_x_u32m4(0, __riscv_vsetvlmax_e32m4());
+    vuint32m4_t vidx = __riscv_vid_v_u32m4(__riscv_vsetvlmax_e32m4());
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, src0 += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m4_t v = __riscv_vle32_v_f32m4(src0, vl);
+        vbool8_t m = __riscv_vmflt(v, vmin, vl);
+        vmin = __riscv_vfmin_tu(vmin, vmin, v, vl);
+        vmini = __riscv_vmerge_tu(vmini, vmini, vidx, m, vl);
+        vidx = __riscv_vadd(vidx, vl, __riscv_vsetvlmax_e32m4());
+    }
+    size_t vl = __riscv_vsetvlmax_e32m4();
+    float min = __riscv_vfmv_f(__riscv_vfredmin(RISCV_SHRINK4(vfmin, f, 32, vmin),
+                                                __riscv_vfmv_v_f_f32m1(FLT_MAX, 1),
+                                                __riscv_vsetvlmax_e32m1()));
+    vbool8_t m = __riscv_vmfeq(vmin, min, vl);
+    *target = __riscv_vmv_x(__riscv_vslidedown(vmini, __riscv_vfirst(m, vl), vl));
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /*INCLUDED_volk_32f_index_min_32u_u_H*/
