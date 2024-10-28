@@ -169,14 +169,19 @@ ${kern.pname} ${kern.name}_a = &__${kern.name}_a;
 ${kern.pname} ${kern.name}_u = &__${kern.name}_u;
 ${kern.pname} ${kern.name}   = &__${kern.name};
 
-void ${kern.name}_manual(${kern.arglist_full}, const char* impl_name)
+${kern.pname} ${kern.name}_get_impl(const char* impl_name)
 {
     const int index = volk_get_index(
         get_machine()->${kern.name}_impl_names,
         get_machine()->${kern.name}_n_impls,
         impl_name
     );
-    get_machine()->${kern.name}_impls[index](
+    return get_machine()->${kern.name}_impls[index];
+}
+
+void ${kern.name}_manual(${kern.arglist_full}, const char* impl_name)
+{
+    ${kern.name}_get_impl(impl_name)(
         ${kern.arglist_names}
     );
 }
