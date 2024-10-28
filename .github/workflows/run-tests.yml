@@ -18,49 +18,51 @@ jobs:
       fail-fast: false
       matrix:
         compiler:
-          - { name: g++-7, cc: gcc-7, cxx: g++-7, distro: ubuntu-20.04 }
-          - { name: g++-8, cc: gcc-8, cxx: g++-8, distro: ubuntu-20.04 }
-          - { name: g++-9, cc: gcc-9, cxx: g++-9, distro: ubuntu-latest }
-          - { name: g++-10, cc: gcc-10, cxx: g++-10, distro: ubuntu-latest }
-          - { name: clang-7, cc: clang-7, cxx: clang++-7, distro: ubuntu-20.04 }
-          - { name: clang-8, cc: clang-8, cxx: clang++-8, distro: ubuntu-20.04 }
-          - { name: clang-9, cc: clang-9, cxx: clang++-9, distro: ubuntu-20.04 }
+          - { name: g++-9, cc: gcc-9, cxx: g++-9, distro: ubuntu-20.04 }
+          - { name: g++-10, cc: gcc-10, cxx: g++-10, distro: ubuntu-20.04 }
+          - { name: g++-11, cc: gcc-11, cxx: g++-11, distro: ubuntu-22.04 }
+          - { name: g++-12, cc: gcc-12, cxx: g++-12, distro: ubuntu-22.04 }
+          - { name: g++-13, cc: gcc-13, cxx: g++-13, distro: ubuntu-24.04 }
+          - { name: g++-14, cc: gcc-14, cxx: g++-14, distro: ubuntu-24.04 }
           - { name: clang-10, cc: clang-10, cxx: clang++-10, distro: ubuntu-20.04 }
           - { name: clang-11, cc: clang-11, cxx: clang++-11, distro: ubuntu-20.04 }
-          - { name: clang-12, cc: clang-12, cxx: clang++-12, distro: ubuntu-latest }
-          - { name: clang-13, cc: clang-13, cxx: clang++-13, distro: ubuntu-latest }
-          - { name: clang-14, cc: clang-14, cxx: clang++-14, distro: ubuntu-latest }
-          # - { name: clang-15, cc: clang-15, cxx: clang++-15, distro: ubuntu-latest }
+          - { name: clang-12, cc: clang-12, cxx: clang++-12, distro: ubuntu-22.04 }
+          - { name: clang-13, cc: clang-13, cxx: clang++-13, distro: ubuntu-22.04 }
+          - { name: clang-14, cc: clang-14, cxx: clang++-14, distro: ubuntu-22.04 }
+          - { name: clang-15, cc: clang-15, cxx: clang++-15, distro: ubuntu-22.04 }
+          - { name: clang-16, cc: clang-16, cxx: clang++-16, distro: ubuntu-24.04 }
+          - { name: clang-17, cc: clang-17, cxx: clang++-17, distro: ubuntu-24.04 }
+          - { name: clang-18, cc: clang-18, cxx: clang++-18, distro: ubuntu-24.04 }
 
     runs-on: ${{ matrix.compiler.distro }}
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
-    - name: Install dependencies
-      run: sudo apt install python3-mako liborc-dev ${{ matrix.compiler.name }}
-    - name: Configure
-      env:
-        CC: ${{ matrix.compiler.cc }}
-        CXX: ${{ matrix.compiler.cxx }}
-      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
-    - name: Build
-      run: |
-        echo "Build with $(nproc) thread(s)"
-        cmake --build build -j$(nproc)
-    - name: Print info
-      run: |
-        ./build/cpu_features/list_cpu_features
-        ./build/apps/volk-config-info --alignment
-        ./build/apps/volk-config-info --avail-machines
-        ./build/apps/volk-config-info --all-machines
-        ./build/apps/volk-config-info --malloc
-        ./build/apps/volk-config-info --cc
-    - name: Test
-      run: |
-        cd build
-        ctest -V
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: Install dependencies
+        run: sudo apt install python3-mako liborc-dev libgtest-dev libfmt-dev ${{ matrix.compiler.name }}
+      - name: Configure
+        env:
+          CC: ${{ matrix.compiler.cc }}
+          CXX: ${{ matrix.compiler.cxx }}
+        run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
+      - name: Build
+        run: |
+          echo "Build with $(nproc) thread(s)"
+          cmake --build build -j$(nproc)
+      - name: Print info
+        run: |
+          ./build/cpu_features/list_cpu_features
+          ./build/apps/volk-config-info --alignment
+          ./build/apps/volk-config-info --avail-machines
+          ./build/apps/volk-config-info --all-machines
+          ./build/apps/volk-config-info --malloc
+          ./build/apps/volk-config-info --cc
+      - name: Test
+        run: |
+          cd build
+          ctest -V
 
   build-ubuntu-arm:
     # The host should always be linux
@@ -73,9 +75,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - arch: aarch64
-            distro: ubuntu20.04
-            compiler: { name: g++-8, cc: gcc-8, cxx: g++-8 }
           - arch: aarch64
             distro: ubuntu20.04
             compiler: { name: g++-9, cc: gcc-9, cxx: g++-9 }
@@ -94,6 +93,9 @@ jobs:
           - arch: aarch64
             distro: ubuntu22.04
             compiler: { name: clang-14, cc: clang-14, cxx: clang++-14 }
+          - arch: aarch64
+            distro: ubuntu22.04
+            compiler: { name: clang-15, cc: clang-15, cxx: clang++-15 }
           - arch: armv7
             distro: ubuntu22.04
             compiler: { name: g++, cc: gcc, cxx: g++ }
@@ -112,8 +114,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
-      - uses: uraimo/run-on-arch-action@v2.5.0
+          submodules: "recursive"
+      - uses: uraimo/run-on-arch-action@v2.7.2
         name: Build in non-x86 container
         id: build
         with:
@@ -139,7 +141,7 @@ jobs:
             case "${{ matrix.distro }}" in
               ubuntu*|jessie|stretch|buster)
                 apt-get update -q -y
-                apt-get install -q -y git cmake python3-mako liborc-dev ${{ matrix.compiler.name }}
+                apt-get install -q -y git cmake python3-mako liborc-dev libgtest-dev libfmt-dev ${{ matrix.compiler.name }}
                 ;;
               fedora*)
                 dnf -y update
@@ -169,44 +171,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
-    - name: dependencies
-      run: sudo apt install python3-mako liborc-dev
-    - name: configure
-      run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True -DBUILD_EXECUTABLE=ON ..
-    - name: build
-      run: cmake --build build -j$(nproc)
-    - name: Print info
-      run: |
-        ./build/cpu_features/list_cpu_features
-        ./build/apps/volk-config-info --alignment
-        ./build/apps/volk-config-info --avail-machines
-        ./build/apps/volk-config-info --all-machines
-        ./build/apps/volk-config-info --malloc
-        ./build/apps/volk-config-info --cc
-    - name: test
-      run: cd build && ctest -V
-
-
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: dependencies
+        run: sudo apt install python3-mako liborc-dev libgtest-dev libfmt-dev
+      - name: configure
+        run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True -DBUILD_EXECUTABLE=ON ..
+      - name: build
+        run: cmake --build build -j$(nproc)
+      - name: Print info
+        run: |
+          ./build/cpu_features/list_cpu_features
+          ./build/apps/volk-config-info --alignment
+          ./build/apps/volk-config-info --avail-machines
+          ./build/apps/volk-config-info --all-machines
+          ./build/apps/volk-config-info --malloc
+          ./build/apps/volk-config-info --cc
+      - name: test
+        run: cd build && ctest -V
 
   build-windows:
-
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
-    - name: dependencies
-      run: pip install mako
-    - name: configure
-      run: mkdir build && cd build && cmake ..
-    - name: build
-      run: cmake --build build --config Release --target INSTALL -j2
-    - name: test
-      run: cd build && ctest -V -C Release
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: dependencies
+        run: pip install mako
+      - name: configure
+        run: mkdir build && cd build && cmake ..
+      - name: build
+        run: cmake --build build --config Release --target INSTALL -j4
+      - name: test
+        run: cd build && ctest -V -C Release
 
   # build-windows-msys2:
   #   name: Build on windows-latest using MinGW and MSYS2
@@ -226,7 +225,7 @@ jobs:
   #           python-six
   #           mingw-w64-x86_64-gcc
   #           mingw-w64-x86_64-cmake
-  #     - uses: actions/checkout@v2
+  #     - uses: actions/checkout@v4
   #     - name: Checkout submodules
   #       run: git submodule update --init --recursive
   #     - name: Configure
@@ -242,32 +241,29 @@ jobs:
   #         ctest -V
 
   build-macos:
-
     strategy:
       matrix:
-        os: [macos-latest, flyci-macos-large-latest-m2]
+        os: [macos-13, macos-latest]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
-    - name: dependencies
-      run: pip3 install --break-system-packages mako && brew install orc
-    - name: configure
-      run: mkdir build && cd build && cmake -DBUILD_EXECUTABLE=ON ..
-    - name: build
-      run: cmake --build build --config Debug -j3
-    - name: Print info
-      run: |
-        ./build/cpu_features/list_cpu_features
-        # ./build/apps/volk-config-info --alignment
-        # ./build/apps/volk-config-info --avail-machines
-        # ./build/apps/volk-config-info --all-machines
-        # ./build/apps/volk-config-info --malloc
-        # ./build/apps/volk-config-info --cc
-    - name: test
-      run: cd build && ctest -V
-
-
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: dependencies
+        run: pip3 install --break-system-packages mako && brew install orc
+      - name: configure
+        run: mkdir build && cd build && cmake -DBUILD_EXECUTABLE=ON ..
+      - name: build
+        run: cmake --build build --config Debug -j4
+      - name: Print info
+        run: |
+          ./build/cpu_features/list_cpu_features
+          # ./build/apps/volk-config-info --alignment
+          # ./build/apps/volk-config-info --avail-machines
+          # ./build/apps/volk-config-info --all-machines
+          # ./build/apps/volk-config-info --malloc
+          # ./build/apps/volk-config-info --cc
+      - name: test
+        run: cd build && ctest -V
