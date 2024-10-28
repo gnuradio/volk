@@ -15,9 +15,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: "recursive"
     - name: Install packages
       run: |
-        git submodule update --init --recursive
         sudo apt-get update -q -y
         sudo apt-get install -y python3-mako cmake qemu-user-static g++-14-riscv64-linux-gnu clang-18
         mkdir build
