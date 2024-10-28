@@ -97,8 +97,9 @@ volk_32f_invsqrt_32f_a_avx(float* cVector, const float* aVector, unsigned int nu
     }
 
     number = eighthPoints * 8;
-    for (; number < num_points; number++)
+    for (; number < num_points; number++) {
         *cPtr++ = Q_rsqrt(*aPtr++);
+    }
 }
 #endif /* LV_HAVE_AVX */
 
@@ -156,8 +157,9 @@ volk_32f_invsqrt_32f_neon(float* cVector, const float* aVector, unsigned int num
         cPtr += 4;
     }
 
-    for (number = quarter_points * 4; number < num_points; number++)
+    for (number = quarter_points * 4; number < num_points; number++) {
         *cPtr++ = Q_rsqrt(*aPtr++);
+    }
 }
 #endif /* LV_HAVE_NEON */
 
@@ -198,8 +200,9 @@ volk_32f_invsqrt_32f_u_avx(float* cVector, const float* aVector, unsigned int nu
     }
 
     number = eighthPoints * 8;
-    for (; number < num_points; number++)
+    for (; number < num_points; number++) {
         *cPtr++ = Q_rsqrt(*aPtr++);
+    }
 }
 #endif /* LV_HAVE_AVX */
 

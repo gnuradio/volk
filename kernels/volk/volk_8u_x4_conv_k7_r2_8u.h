@@ -63,11 +63,14 @@ static inline void renormalize(unsigned char* X)
     int i;
 
     unsigned char min = X[0];
-    for (i = 0; i < NUMSTATES; i++)
-        if (min > X[i])
+    for (i = 0; i < NUMSTATES; i++) {
+        if (min > X[i]) {
             min = X[i];
-    for (i = 0; i < NUMSTATES; i++)
+        }
+    }
+    for (i = 0; i < NUMSTATES; i++) {
         X[i] -= min;
+    }
 }
 
 
@@ -91,8 +94,9 @@ static inline void BFLY(int i,
     int PRECISIONSHIFT = 2;
 
     metricsum = 1;
-    for (j = 0; j < RATE; j++)
+    for (j = 0; j < RATE; j++) {
         metricsum += (Branchtab[i + j * NUMSTATES / 2] ^ syms[s * RATE + j]);
+    }
     metric = (metricsum >> METRICSHIFT) >> PRECISIONSHIFT;
 
     unsigned char max = ((RATE * ((256 - 1) >> METRICSHIFT)) >> PRECISIONSHIFT);
