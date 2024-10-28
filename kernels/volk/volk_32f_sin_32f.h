@@ -127,8 +127,9 @@ static inline void volk_32f_sin_32f_a_avx512f(float* sinVector,
                 cp1),
             s);
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++) {
             s = _mm512_mul_ps(s, _mm512_sub_ps(ffours, s));
+        }
         s = _mm512_div_ps(s, ftwos);
 
         sine = _mm512_sqrt_ps(_mm512_mul_ps(_mm512_sub_ps(ftwos, s), s));
@@ -520,8 +521,9 @@ static inline void volk_32f_sin_32f_u_avx512f(float* sinVector,
                 cp1),
             s);
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++) {
             s = _mm512_mul_ps(s, _mm512_sub_ps(ffours, s));
+        }
         s = _mm512_div_ps(s, ftwos);
 
         sine = _mm512_sqrt_ps(_mm512_mul_ps(_mm512_sub_ps(ftwos, s), s));

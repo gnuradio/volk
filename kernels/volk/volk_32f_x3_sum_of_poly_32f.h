@@ -341,8 +341,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_generic(float* target,
             result[k] += center_point_array[2] * thrd + center_point_array[3] * frth;
         }
     }
-    for (k = 0; k < 8; k += 2)
+    for (k = 0; k < 8; k += 2) {
         result[k] = result[k] + result[k + 1];
+    }
 
     *target = result[0] + result[2] + result[4] + result[6];
 

@@ -853,8 +853,9 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_rvv(lv_32fc_t* outVector,
         }
 
     lv_32fc_t ph = lv_cmake(__riscv_vfmv_f(phr), __riscv_vfmv_f(phi));
-    for (size_t i = 0; i < vlmax - vl; ++i)
+    for (size_t i = 0; i < vlmax - vl; ++i) {
         ph /= *phase_inc; // we're going backwards
+    }
     *phase = ph * 1.0f / hypotf(lv_creal(ph), lv_cimag(ph));
 }
 #endif /*LV_HAVE_RVV*/
@@ -929,8 +930,9 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_rvvseg(lv_32fc_t* outVector,
         }
 
     lv_32fc_t ph = lv_cmake(__riscv_vfmv_f(phr), __riscv_vfmv_f(phi));
-    for (size_t i = 0; i < vlmax - vl; ++i)
+    for (size_t i = 0; i < vlmax - vl; ++i) {
         ph /= *phase_inc; // we're going backwards
+    }
     *phase = ph * 1.0f / hypotf(lv_creal(ph), lv_cimag(ph));
 }
 #endif /*LV_HAVE_RVVSEG*/

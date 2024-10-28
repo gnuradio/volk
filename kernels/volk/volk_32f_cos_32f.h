@@ -127,8 +127,9 @@ static inline void volk_32f_cos_32f_a_avx512f(float* cosVector,
                 cp1),
             s);
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++) {
             s = _mm512_mul_ps(s, _mm512_sub_ps(ffours, s));
+        }
         s = _mm512_div_ps(s, ftwos);
 
         sine = _mm512_sqrt_ps(_mm512_mul_ps(_mm512_sub_ps(ftwos, s), s));
@@ -224,8 +225,9 @@ volk_32f_cos_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int n
                 cp1),
             s);
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++) {
             s = _mm256_mul_ps(s, _mm256_sub_ps(ffours, s));
+        }
         s = _mm256_div_ps(s, ftwos);
 
         sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
@@ -335,8 +337,9 @@ volk_32f_cos_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_p
                 cp1),
             s);
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++) {
             s = _mm256_mul_ps(s, _mm256_sub_ps(ffours, s));
+        }
         s = _mm256_div_ps(s, ftwos);
 
         sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
@@ -442,8 +445,9 @@ volk_32f_cos_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num
                 cp1),
             s);
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++) {
             s = _mm_mul_ps(s, _mm_sub_ps(ffours, s));
+        }
         s = _mm_div_ps(s, ftwos);
 
         sine = _mm_sqrt_ps(_mm_mul_ps(_mm_sub_ps(ftwos, s), s));
@@ -546,8 +550,9 @@ static inline void volk_32f_cos_32f_u_avx512f(float* cosVector,
                 cp1),
             s);
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++) {
             s = _mm512_mul_ps(s, _mm512_sub_ps(ffours, s));
+        }
         s = _mm512_div_ps(s, ftwos);
 
         sine = _mm512_sqrt_ps(_mm512_mul_ps(_mm512_sub_ps(ftwos, s), s));
@@ -644,8 +649,9 @@ volk_32f_cos_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int n
                 cp1),
             s);
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++) {
             s = _mm256_mul_ps(s, _mm256_sub_ps(ffours, s));
+        }
         s = _mm256_div_ps(s, ftwos);
 
         sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));
@@ -755,8 +761,9 @@ volk_32f_cos_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_p
                 cp1),
             s);
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++) {
             s = _mm256_mul_ps(s, _mm256_sub_ps(ffours, s));
+        }
         s = _mm256_div_ps(s, ftwos);
 
         sine = _mm256_sqrt_ps(_mm256_mul_ps(_mm256_sub_ps(ftwos, s), s));

@@ -95,8 +95,9 @@ volk_32f_log2_32f_generic(float* bVector, const float* aVector, unsigned int num
     const float* aPtr = aVector;
     unsigned int number = 0;
 
-    for (number = 0; number < num_points; number++)
+    for (number = 0; number < num_points; number++) {
         *bPtr++ = log2f_non_ieee(*aPtr++);
+    }
 }
 #endif /* LV_HAVE_GENERIC */
 
