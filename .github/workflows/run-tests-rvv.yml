@@ -29,27 +29,27 @@ jobs:
         CXX=riscv64-linux-gnu-g++-14 CC=riscv64-linux-gnu-gcc-14 VLEN=128 \
         cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake ..
         make -j$(nproc)
-        ARGS=-j$(nproc) make test
+        ARGS=-V make test
     - name: Test gcc-14 VLEN=256
       run: |
         cd build; rm -rf *
         CXX=riscv64-linux-gnu-g++-14 CC=riscv64-linux-gnu-gcc-14 VLEN=256 \
         cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake .. -DCMAKE_BUILD_TYPE=Release
         make -j$(nproc)
-        ARGS=-j$(nproc) make test
+        ARGS=-V make test
     - name: Test clang-18 VLEN=512
       run: |
         cd build; rm -rf *
         CXX=clang++-18 CC=clang-18 CFLAGS=--target=riscv64-linux-gnu VLEN=512 \
         cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake ..
         make -j$(nproc)
-        ARGS=-j$(nproc) make test
+        ARGS=-V make test
     - name: Test clang-18 VLEN=1024
       run: |
         cd build; rm -rf *
         CXX=clang++-18 CC=clang-18 CFLAGS=--target=riscv64-linux-gnu VLEN=1024 \
         cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake .. -DCMAKE_BUILD_TYPE=Release
         make -j$(nproc)
-        ARGS=-j$(nproc) make test
+        ARGS=-V make test
 
 
