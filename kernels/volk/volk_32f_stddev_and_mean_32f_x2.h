@@ -569,4 +569,75 @@ static inline void volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_stddev_and_mean_32f_x2_rvv(float* stddev,
+                                                       float* mean,
+                                                       const float* inputBuffer,
+                                                       unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m4();
+    if (num_points < vlmax) {
+        volk_32f_stddev_and_mean_32f_x2_generic(stddev, mean, inputBuffer, num_points);
+        return;
+    }
+
+    vfloat32m4_t vsum = __riscv_vle32_v_f32m4(inputBuffer, vlmax);
+    inputBuffer += vlmax;
+    vfloat32m4_t vsumsq = __riscv_vfmv_v_f_f32m4(0, vlmax);
+    size_t partLen = num_points / vlmax;
+
+    for (size_t i = 1; i < partLen; ++i, inputBuffer += vlmax) {
+        vfloat32m4_t v = __riscv_vle32_v_f32m4(inputBuffer, vlmax);
+        vsum = __riscv_vfadd(vsum, v, vlmax);
+        vfloat32m4_t vaux = __riscv_vfmsub(v, i + 1.0f, vsum, vlmax);
+        vaux = __riscv_vfmul(vaux, vaux, vlmax);
+        vaux = __riscv_vfmul(vaux, 1.0f / (i * (i + 1.0f)), vlmax);
+        vsumsq = __riscv_vfadd(vsumsq, vaux, vlmax);
+    }
+
+    size_t vl = __riscv_vsetvlmax_e32m2();
+    vfloat32m2_t vsum2 =
+        __riscv_vfadd(__riscv_vget_f32m2(vsum, 0), __riscv_vget_f32m2(vsum, 1), vl);
+    vfloat32m2_t vfix2 =
+        __riscv_vfsub(__riscv_vget_f32m2(vsum, 0), __riscv_vget_f32m2(vsum, 1), vl);
+    vfix2 = __riscv_vfmul(vfix2, vfix2, vl);
+    vfloat32m2_t vsumsq2 =
+        __riscv_vfadd(__riscv_vget_f32m2(vsumsq, 0), __riscv_vget_f32m2(vsumsq, 1), vl);
+    vsumsq2 = __riscv_vfmacc(vsumsq2, 0.5f / (num_points / vlmax), vfix2, vl);
+
+    vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t vsum1 =
+        __riscv_vfadd(__riscv_vget_f32m1(vsum2, 0), __riscv_vget_f32m1(vsum2, 1), vl);
+    vfloat32m1_t vfix1 =
+        __riscv_vfsub(__riscv_vget_f32m1(vsum2, 0), __riscv_vget_f32m1(vsum2, 1), vl);
+    vfix1 = __riscv_vfmul(vfix1, vfix1, vl);
+    vfloat32m1_t vsumsq1 =
+        __riscv_vfadd(__riscv_vget_f32m1(vsumsq2, 0), __riscv_vget_f32m1(vsumsq2, 1), vl);
+    vsumsq1 = __riscv_vfmacc(vsumsq1, 0.5f / (num_points / vlmax * 2), vfix1, vl);
+
+    for (size_t n = num_points / vlmax * 4, vl = vlmax >> 2; vl >>= 1; n *= 2) {
+        vfloat32m1_t vsumdown = __riscv_vslidedown(vsum1, vl, vl);
+        vfix1 = __riscv_vfsub(vsum1, vsumdown, vl);
+        vfix1 = __riscv_vfmul(vfix1, vfix1, vl);
+        vsum1 = __riscv_vfadd(vsum1, vsumdown, vl);
+        vsumsq1 = __riscv_vfadd(vsumsq1, __riscv_vslidedown(vsumsq1, vl, vl), vl);
+        vsumsq1 = __riscv_vfmacc(vsumsq1, 0.5f / n, vfix1, vl);
+    }
+
+    float sum = __riscv_vfmv_f(vsum1);
+    float sumsq = __riscv_vfmv_f(vsumsq1);
+
+    for (size_t i = partLen * vlmax; i < num_points; ++i) {
+        float in = *inputBuffer++;
+        sum += in;
+        sumsq = update_square_sum_1_val(sumsq, sum, i, in);
+    }
+
+    *stddev = sqrtf(sumsq / num_points);
+    *mean = sum / num_points;
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_stddev_and_mean_32f_x2_a_H */

@@ -416,4 +416,23 @@ static inline void volk_32fc_convert_16ic_u_sse2(lv_16sc_t* outputVector,
     }
 }
 #endif /* LV_HAVE_SSE2 */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32fc_convert_16ic_rvv(lv_16sc_t* outputVector,
+                                              const lv_32fc_t* inputVector,
+                                              unsigned int num_points)
+{
+    int16_t* out = (int16_t*)outputVector;
+    float* in = (float*)inputVector;
+    size_t n = num_points * 2;
+    for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(in, vl);
+        __riscv_vse16(out, __riscv_vfncvt_x(v, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32fc_convert_16ic_u_H */

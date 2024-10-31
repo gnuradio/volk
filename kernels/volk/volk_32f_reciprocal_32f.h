@@ -198,4 +198,19 @@ volk_32f_reciprocal_32f_u_avx512(float* out, const float* in, unsigned int num_p
 }
 #endif /* LV_HAVE_AVX512F */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_reciprocal_32f_rvv(float* out, const float* in, unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(in, vl);
+        __riscv_vse32(out, __riscv_vfrdiv(v, 1.0f, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_reciprocal_32f_u_H */

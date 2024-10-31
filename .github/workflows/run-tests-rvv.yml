@@ -1,0 +1,55 @@
+#
+# Copyright 2020 - 2022 Free Software Foundation, Inc.
+#
+# This file is part of VOLK
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+
+name: Run VOLK tests on different RVV configurations
+
+on: [push, pull_request]
+
+jobs:
+  Tests:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: "recursive"
+    - name: Install packages
+      run: |
+        sudo apt-get update -q -y
+        sudo apt-get install -y python3-mako cmake qemu-user-static g++-14-riscv64-linux-gnu clang-18
+        mkdir build
+        cd build
+    - name: Test gcc-14 VLEN=128
+      run: |
+        cd build; rm -rf *
+        CXX=riscv64-linux-gnu-g++-14 CC=riscv64-linux-gnu-gcc-14 VLEN=128 \
+        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake ..
+        make -j$(nproc)
+        ARGS=-V make test
+    - name: Test gcc-14 VLEN=256
+      run: |
+        cd build; rm -rf *
+        CXX=riscv64-linux-gnu-g++-14 CC=riscv64-linux-gnu-gcc-14 VLEN=256 \
+        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+        ARGS=-V make test
+    - name: Test clang-18 VLEN=512
+      run: |
+        cd build; rm -rf *
+        CXX=clang++-18 CC=clang-18 CFLAGS=--target=riscv64-linux-gnu VLEN=512 \
+        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake ..
+        make -j$(nproc)
+        ARGS=-V make test
+    - name: Test clang-18 VLEN=1024
+      run: |
+        cd build; rm -rf *
+        CXX=clang++-18 CC=clang-18 CFLAGS=--target=riscv64-linux-gnu VLEN=1024 \
+        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+        ARGS=-V make test
+
+

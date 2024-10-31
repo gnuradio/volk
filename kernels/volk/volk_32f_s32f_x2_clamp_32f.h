@@ -187,4 +187,25 @@ static inline void volk_32f_s32f_x2_clamp_32f_u_sse4_1(float* out,
 }
 #endif /* LV_HAVE_SSE4_1 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_s32f_x2_clamp_32f_rvv(float* out,
+                                                  const float* in,
+                                                  const float min,
+                                                  const float max,
+                                                  unsigned int num_points)
+{
+    vfloat32m8_t vmin = __riscv_vfmv_v_f_f32m8(min, __riscv_vsetvlmax_e32m8());
+    vfloat32m8_t vmax = __riscv_vfmv_v_f_f32m8(max, __riscv_vsetvlmax_e32m8());
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(in, vl);
+        v = __riscv_vfmin(__riscv_vfmax(v, vmin, vl), vmax, vl);
+        __riscv_vse32(out, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32fc_s32f_x2_clamp_32f_u_H */

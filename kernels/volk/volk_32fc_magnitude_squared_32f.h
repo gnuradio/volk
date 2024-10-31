@@ -350,5 +350,42 @@ static inline void volk_32fc_magnitude_squared_32f_neon(float* magnitudeVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32fc_magnitude_squared_32f_rvv(float* magnitudeVector,
+                                                       const lv_32fc_t* complexVector,
+                                                       unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, complexVector += vl, magnitudeVector += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vuint64m8_t vc = __riscv_vle64_v_u64m8((const uint64_t*)complexVector, vl);
+        vfloat32m4_t vr = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vc, 0, vl));
+        vfloat32m4_t vi = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vc, 32, vl));
+        vfloat32m4_t v = __riscv_vfmacc(__riscv_vfmul(vi, vi, vl), vr, vr, vl);
+        __riscv_vse32(magnitudeVector, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_32fc_magnitude_squared_32f_rvvseg(float* magnitudeVector,
+                                                          const lv_32fc_t* complexVector,
+                                                          unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, complexVector += vl, magnitudeVector += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m4x2_t vc = __riscv_vlseg2e32_v_f32m4x2((const float*)complexVector, vl);
+        vfloat32m4_t vr = __riscv_vget_f32m4(vc, 0);
+        vfloat32m4_t vi = __riscv_vget_f32m4(vc, 1);
+        vfloat32m4_t v = __riscv_vfmacc(__riscv_vfmul(vi, vi, vl), vr, vr, vl);
+        __riscv_vse32(magnitudeVector, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVVSEG*/
 
 #endif /* INCLUDED_volk_32fc_magnitude_32f_a_H */

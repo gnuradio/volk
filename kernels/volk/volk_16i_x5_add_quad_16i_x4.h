@@ -10,6 +10,10 @@
 /*!
  * \page volk_16i_x5_add_quad_16i_x4
  *
+ * \b Deprecation
+ *
+ * This kernel is deprecated.
+ *
  * \b Overview
  *
  * <FIXME>

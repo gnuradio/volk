@@ -678,5 +678,20 @@ static inline void volk_32f_x2_dot_prod_16i_u_avx512f(int16_t* result,
 
 #endif /*LV_HAVE_AVX512F*/
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+#include "volk_32f_x2_dot_prod_32f.h"
+
+static inline void volk_32f_x2_dot_prod_16i_rvv(int16_t* result,
+                                                const float* input,
+                                                const float* taps,
+                                                unsigned int num_points)
+{
+    float fresult = 0;
+    volk_32f_x2_dot_prod_32f_rvv(&fresult, input, taps, num_points);
+    *result = (int16_t)rintf(fresult);
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /*INCLUDED_volk_32f_x2_dot_prod_16i_H*/

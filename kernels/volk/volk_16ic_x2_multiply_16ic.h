@@ -462,4 +462,52 @@ static inline void volk_16ic_x2_multiply_16ic_neon(lv_16sc_t* out,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_16ic_x2_multiply_16ic_rvv(lv_16sc_t* result,
+                                                  const lv_16sc_t* in_a,
+                                                  const lv_16sc_t* in_b,
+                                                  unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in_a += vl, in_b += vl, result += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vint32m8_t va = __riscv_vle32_v_i32m8((const int32_t*)in_a, vl);
+        vint32m8_t vb = __riscv_vle32_v_i32m8((const int32_t*)in_b, vl);
+        vint16m4_t var = __riscv_vnsra(va, 0, vl), vai = __riscv_vnsra(va, 16, vl);
+        vint16m4_t vbr = __riscv_vnsra(vb, 0, vl), vbi = __riscv_vnsra(vb, 16, vl);
+        vint16m4_t vr = __riscv_vnmsac(__riscv_vmul(var, vbr, vl), vai, vbi, vl);
+        vint16m4_t vi = __riscv_vmacc(__riscv_vmul(var, vbi, vl), vai, vbr, vl);
+        vuint16m4_t vru = __riscv_vreinterpret_u16m4(vr);
+        vuint16m4_t viu = __riscv_vreinterpret_u16m4(vi);
+        vuint32m8_t v = __riscv_vwmaccu(__riscv_vwaddu_vv(vru, viu, vl), 0xFFFF, viu, vl);
+        __riscv_vse32((uint32_t*)result, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_16ic_x2_multiply_16ic_rvvseg(lv_16sc_t* result,
+                                                     const lv_16sc_t* in_a,
+                                                     const lv_16sc_t* in_b,
+                                                     unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in_a += vl, in_b += vl, result += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vint16m4x2_t va = __riscv_vlseg2e16_v_i16m4x2((const int16_t*)in_a, vl);
+        vint16m4x2_t vb = __riscv_vlseg2e16_v_i16m4x2((const int16_t*)in_b, vl);
+        vint16m4_t var = __riscv_vget_i16m4(va, 0), vai = __riscv_vget_i16m4(va, 1);
+        vint16m4_t vbr = __riscv_vget_i16m4(vb, 0), vbi = __riscv_vget_i16m4(vb, 1);
+        vint16m4_t vr = __riscv_vnmsac(__riscv_vmul(var, vbr, vl), vai, vbi, vl);
+        vint16m4_t vi = __riscv_vmacc(__riscv_vmul(var, vbi, vl), vai, vbr, vl);
+        __riscv_vsseg2e16_v_i16m4x2(
+            (int16_t*)result, __riscv_vcreate_v_i16m4x2(vr, vi), vl);
+    }
+}
+#endif /*LV_HAVE_RVVSEG*/
+
 #endif /*INCLUDED_volk_16ic_x2_multiply_16ic_H*/

@@ -276,4 +276,33 @@ static inline void volk_32fc_accumulator_s32fc_neon(lv_32fc_t* result,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32fc_accumulator_s32fc_rvv(lv_32fc_t* result,
+                                                   const lv_32fc_t* inputBuffer,
+                                                   unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m8();
+    vfloat32m8_t vsum = __riscv_vfmv_v_f_f32m8(0, vlmax);
+    const float* in = (const float*)inputBuffer;
+    size_t n = num_points * 2;
+    for (size_t vl; n > 0; n -= vl, in += vl) {
+        vl = __riscv_vsetvl_e32m8(n < vlmax ? n : vlmax); /* force exact vl */
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(in, vl);
+        vsum = __riscv_vfadd_tu(vsum, vsum, v, vl);
+    }
+    vuint64m8_t vsumu = __riscv_vreinterpret_u64m8(__riscv_vreinterpret_u32m8(vsum));
+    vfloat32m4_t vsum1 = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vsumu, 0, vlmax));
+    vfloat32m4_t vsum2 = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vsumu, 32, vlmax));
+    vlmax = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t vr = RISCV_SHRINK4(vfadd, f, 32, vsum1);
+    vfloat32m1_t vi = RISCV_SHRINK4(vfadd, f, 32, vsum2);
+    vfloat32m1_t z = __riscv_vfmv_s_f_f32m1(0, vlmax);
+    *result = lv_cmake(__riscv_vfmv_f(__riscv_vfredusum(vr, z, vlmax)),
+                       __riscv_vfmv_f(__riscv_vfredusum(vi, z, vlmax)));
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32fc_accumulator_s32fc_a_H */

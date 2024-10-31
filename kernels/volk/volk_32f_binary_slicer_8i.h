@@ -500,5 +500,22 @@ static inline void volk_32f_binary_slicer_8i_neon(int8_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_binary_slicer_8i_rvv(int8_t* cVector,
+                                                 const float* aVector,
+                                                 unsigned int num_points)
+{
+    size_t n = num_points;
+    vint8m2_t v0 = __riscv_vmv_v_x_i8m2(1, __riscv_vsetvlmax_e8m2());
+    for (size_t vl; n > 0; n -= vl, aVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(aVector, vl);
+        vint8m2_t vn = __riscv_vmerge(v0, 0, __riscv_vmflt(v, 0, vl), vl);
+        __riscv_vse8(cVector, vn, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32f_binary_slicer_8i_H */

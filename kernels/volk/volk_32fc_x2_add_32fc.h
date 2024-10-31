@@ -273,5 +273,25 @@ static inline void volk_32fc_x2_add_32fc_u_neon(lv_32fc_t* cVector,
 
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32fc_x2_add_32fc_rvv(lv_32fc_t* cVector,
+                                             const lv_32fc_t* aVector,
+                                             const lv_32fc_t* bVector,
+                                             unsigned int num_points)
+{
+    const float* ina = (const float*)aVector;
+    const float* inb = (const float*)bVector;
+    float* out = (float*)cVector;
+    size_t n = num_points * 2;
+    for (size_t vl; n > 0; n -= vl, ina += vl, inb += vl, out += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t va = __riscv_vle32_v_f32m8(ina, vl);
+        vfloat32m8_t vb = __riscv_vle32_v_f32m8(inb, vl);
+        __riscv_vse32(out, __riscv_vfadd(va, vb, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32fc_x2_add_32fc_a_H */

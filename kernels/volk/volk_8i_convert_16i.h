@@ -266,5 +266,20 @@ static inline void volk_8i_convert_16i_u_orc(int16_t* outputVector,
 }
 #endif /* LV_HAVE_ORC */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_8i_convert_16i_rvv(int16_t* outputVector,
+                                           const int8_t* inputVector,
+                                           unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e8m4(n);
+        vint16m8_t v = __riscv_vsext_vf2(__riscv_vle8_v_i8m4(inputVector, vl), vl);
+        __riscv_vse16(outputVector, __riscv_vsll(v, 8, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_VOLK_8s_CONVERT_16s_ALIGNED8_H */

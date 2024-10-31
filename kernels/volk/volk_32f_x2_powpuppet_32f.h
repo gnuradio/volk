@@ -111,4 +111,16 @@ static inline void volk_32f_x2_powpuppet_32f_u_avx2(float* cVector,
 }
 #endif /* LV_HAVE_AVX2 for unaligned */
 
+#ifdef LV_HAVE_RVV
+static inline void volk_32f_x2_powpuppet_32f_rvv(float* cVector,
+                                                 const float* bVector,
+                                                 const float* aVector,
+                                                 unsigned int num_points)
+{
+    float* aVectorPos = make_positive(aVector, num_points);
+    volk_32f_x2_pow_32f_rvv(cVector, bVector, aVectorPos, num_points);
+    volk_free(aVectorPos);
+}
+#endif /* LV_HAVE_RVV */
+
 #endif /* INCLUDED_volk_32f_x2_powpuppet_32f_H */

@@ -97,8 +97,9 @@ volk_32f_invsqrt_32f_a_avx(float* cVector, const float* aVector, unsigned int nu
     }
 
     number = eighthPoints * 8;
-    for (; number < num_points; number++)
+    for (; number < num_points; number++) {
         *cPtr++ = Q_rsqrt(*aPtr++);
+    }
 }
 #endif /* LV_HAVE_AVX */
 
@@ -156,8 +157,9 @@ volk_32f_invsqrt_32f_neon(float* cVector, const float* aVector, unsigned int num
         cPtr += 4;
     }
 
-    for (number = quarter_points * 4; number < num_points; number++)
+    for (number = quarter_points * 4; number < num_points; number++) {
         *cPtr++ = Q_rsqrt(*aPtr++);
+    }
 }
 #endif /* LV_HAVE_NEON */
 
@@ -198,9 +200,25 @@ volk_32f_invsqrt_32f_u_avx(float* cVector, const float* aVector, unsigned int nu
     }
 
     number = eighthPoints * 8;
-    for (; number < num_points; number++)
+    for (; number < num_points; number++) {
         *cPtr++ = Q_rsqrt(*aPtr++);
+    }
 }
 #endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_invsqrt_32f_rvv(float* cVector, const float* aVector, unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(aVector, vl);
+        __riscv_vse32(cVector, __riscv_vfrsqrt7(v, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32f_invsqrt_32f_a_H */

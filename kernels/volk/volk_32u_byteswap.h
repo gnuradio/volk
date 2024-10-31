@@ -343,5 +343,53 @@ static inline void volk_32u_byteswap_a_sse2(uint32_t* intsToSwap, unsigned int n
 }
 #endif /* LV_HAVE_SSE2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32u_byteswap_rvv(uint32_t* intsToSwap, unsigned int num_points)
+{
+    size_t n = num_points;
+    size_t vlmax = __riscv_vsetvlmax_e8m1();
+    if (vlmax <= 256) {
+        vuint8m1_t vidx = __riscv_vreinterpret_u8m1(
+            __riscv_vsub(__riscv_vreinterpret_u32m1(__riscv_vid_v_u8m1(vlmax)),
+                         0x3020100 - 0x10203,
+                         vlmax / 4));
+        for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
+            vl = __riscv_vsetvl_e32m8(n);
+            vuint8m8_t v =
+                __riscv_vreinterpret_u8m8(__riscv_vle32_v_u32m8(intsToSwap, vl));
+            v = RISCV_PERM8(__riscv_vrgather, v, vidx);
+            __riscv_vse32(intsToSwap, __riscv_vreinterpret_u32m8(v), vl);
+        }
+    } else {
+        vuint16m2_t vidx = __riscv_vreinterpret_u16m2(
+            __riscv_vsub(__riscv_vreinterpret_u64m2(__riscv_vid_v_u16m2(vlmax)),
+                         0x3000200010000 - 0x100020003,
+                         vlmax / 4));
+        for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
+            vl = __riscv_vsetvl_e32m8(n);
+            vuint8m8_t v =
+                __riscv_vreinterpret_u8m8(__riscv_vle32_v_u32m8(intsToSwap, vl));
+            v = RISCV_PERM8(__riscv_vrgatherei16, v, vidx);
+            __riscv_vse32(intsToSwap, __riscv_vreinterpret_u32m8(v), vl);
+        }
+    }
+}
+#endif /* LV_HAVE_RVV */
+
+#ifdef LV_HAVE_RVA23
+#include <riscv_vector.h>
+
+static inline void volk_32u_byteswap_rva23(uint32_t* intsToSwap, unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vuint32m8_t v = __riscv_vle32_v_u32m8(intsToSwap, vl);
+        __riscv_vse32(intsToSwap, __riscv_vrev8(v, vl), vl);
+    }
+}
+#endif /* LV_HAVE_RVA23 */
 
 #endif /* INCLUDED_volk_32u_byteswap_a_H */

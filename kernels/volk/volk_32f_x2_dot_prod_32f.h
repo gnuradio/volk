@@ -949,4 +949,28 @@ extern void volk_32f_x2_dot_prod_32f_a_neonasm_opts(float* cVector,
                                                     unsigned int num_points);
 #endif /* LV_HAVE_NEONV7 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32f_x2_dot_prod_32f_rvv(float* result,
+                                                const float* input,
+                                                const float* taps,
+                                                unsigned int num_points)
+{
+    vfloat32m8_t vsum = __riscv_vfmv_v_f_f32m8(0, __riscv_vsetvlmax_e32m8());
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v0 = __riscv_vle32_v_f32m8(input, vl);
+        vfloat32m8_t v1 = __riscv_vle32_v_f32m8(taps, vl);
+        vsum = __riscv_vfmacc_tu(vsum, v0, v1, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t v = RISCV_SHRINK8(vfadd, f, 32, vsum);
+    v = __riscv_vfredusum(v, __riscv_vfmv_s_f_f32m1(0, vl), vl);
+    *result = __riscv_vfmv_f(v);
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /*INCLUDED_volk_32f_x2_dot_prod_32f_a_H*/

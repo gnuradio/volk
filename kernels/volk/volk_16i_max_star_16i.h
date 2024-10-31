@@ -10,6 +10,10 @@
 /*!
  * \page volk_16i_max_star_16i
  *
+ * \b Deprecation
+ *
+ * This kernel is deprecated.
+ *
  * \b Overview
  *
  * <FIXME>

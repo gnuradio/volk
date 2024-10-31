@@ -313,5 +313,21 @@ static inline void volk_32i_s32f_convert_32f_a_sse2(float* outputVector,
 }
 #endif /* LV_HAVE_SSE2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32i_s32f_convert_32f_rvv(float* outputVector,
+                                                 const int32_t* inputVector,
+                                                 const float scalar,
+                                                 unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vfcvt_f(__riscv_vle32_v_i32m8(inputVector, vl), vl);
+        __riscv_vse32(outputVector, __riscv_vfmul(v, 1.0f / scalar, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32i_s32f_convert_32f_a_H */

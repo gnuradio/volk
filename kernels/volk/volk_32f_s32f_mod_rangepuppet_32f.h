@@ -86,4 +86,14 @@ static inline void volk_32f_s32f_mod_rangepuppet_32f_a_avx(float* output,
         output, input, bound - 3.131f, bound, num_points);
 }
 #endif
+#ifdef LV_HAVE_RVV
+static inline void volk_32f_s32f_mod_rangepuppet_32f_rvv(float* output,
+                                                         const float* input,
+                                                         float bound,
+                                                         unsigned int num_points)
+{
+    volk_32f_s32f_s32f_mod_range_32f_rvv(
+        output, input, bound - 3.131f, bound, num_points);
+}
+#endif
 #endif

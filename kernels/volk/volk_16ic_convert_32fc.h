@@ -315,4 +315,23 @@ static inline void volk_16ic_convert_32fc_u_avx(lv_32fc_t* outputVector,
 }
 
 #endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_16ic_convert_32fc_rvv(lv_32fc_t* outputVector,
+                                              const lv_16sc_t* inputVector,
+                                              unsigned int num_points)
+{
+    const int16_t* in = (const int16_t*)inputVector;
+    float* out = (float*)outputVector;
+    size_t n = num_points * 2;
+    for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vint16m4_t v = __riscv_vle16_v_i16m4(in, vl);
+        __riscv_vse32(out, __riscv_vfwcvt_f(v, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32fc_convert_16ic_u_H */

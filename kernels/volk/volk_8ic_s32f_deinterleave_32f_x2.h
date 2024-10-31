@@ -441,4 +441,28 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_u_avx2(float* iBuffer,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_8ic_s32f_deinterleave_32f_x2_rvv(float* iBuffer,
+                                                         float* qBuffer,
+                                                         const lv_8sc_t* complexVector,
+                                                         const float scalar,
+                                                         unsigned int num_points)
+{
+    const uint16_t* in = (const uint16_t*)complexVector;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in += vl, iBuffer += vl, qBuffer += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vuint16m4_t vc = __riscv_vle16_v_u16m4(in, vl);
+        vint8m2_t vr = __riscv_vreinterpret_i8m2(__riscv_vnsrl(vc, 0, vl));
+        vint8m2_t vi = __riscv_vreinterpret_i8m2(__riscv_vnsrl(vc, 8, vl));
+        vfloat32m8_t vrf = __riscv_vfwcvt_f(__riscv_vsext_vf2(vr, vl), vl);
+        vfloat32m8_t vif = __riscv_vfwcvt_f(__riscv_vsext_vf2(vi, vl), vl);
+        __riscv_vse32(iBuffer, __riscv_vfmul(vrf, 1.0f / scalar, vl), vl);
+        __riscv_vse32(qBuffer, __riscv_vfmul(vif, 1.0f / scalar, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_8ic_s32f_deinterleave_32f_x2_u_H */

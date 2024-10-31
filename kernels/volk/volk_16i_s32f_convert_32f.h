@@ -483,4 +483,21 @@ static inline void volk_16i_s32f_convert_32f_a_sse(float* outputVector,
 }
 #endif /* LV_HAVE_SSE */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_16i_s32f_convert_32f_rvv(float* outputVector,
+                                                 const int16_t* inputVector,
+                                                 const float scalar,
+                                                 unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vfloat32m8_t v = __riscv_vfwcvt_f(__riscv_vle16_v_i16m4(inputVector, vl), vl);
+        __riscv_vse32(outputVector, __riscv_vfmul(v, 1.0f / scalar, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_16i_s32f_convert_32f_a_H */

@@ -336,5 +336,22 @@ static inline void volk_32i_x2_or_32i_u_avx2(int32_t* cVector,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32i_x2_or_32i_rvv(int32_t* cVector,
+                                          const int32_t* aVector,
+                                          const int32_t* bVector,
+                                          unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vint32m8_t va = __riscv_vle32_v_i32m8(aVector, vl);
+        vint32m8_t vb = __riscv_vle32_v_i32m8(bVector, vl);
+        __riscv_vse32(cVector, __riscv_vor(va, vb, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32i_x2_or_32i_u_H */

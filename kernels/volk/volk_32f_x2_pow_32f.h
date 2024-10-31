@@ -976,4 +976,127 @@ static inline void volk_32f_x2_pow_32f_u_avx2(float* cVector,
 
 #endif /* LV_HAVE_AVX2 for unaligned */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_x2_pow_32f_rvv(float* cVector,
+                                           const float* bVector,
+                                           const float* aVector,
+                                           unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m1();
+
+#if POW_POLY_DEGREE == 6
+    const vfloat32m1_t cl5 = __riscv_vfmv_v_f_f32m1(3.1157899f, vlmax);
+    const vfloat32m1_t cl4 = __riscv_vfmv_v_f_f32m1(-3.3241990f, vlmax);
+    const vfloat32m1_t cl3 = __riscv_vfmv_v_f_f32m1(2.5988452f, vlmax);
+    const vfloat32m1_t cl2 = __riscv_vfmv_v_f_f32m1(-1.2315303f, vlmax);
+    const vfloat32m1_t cl1 = __riscv_vfmv_v_f_f32m1(3.1821337e-1f, vlmax);
+    const vfloat32m1_t cl0 = __riscv_vfmv_v_f_f32m1(-3.4436006e-2f, vlmax);
+#elif POW_POLY_DEGREE == 5
+    const vfloat32m1_t cl4 = __riscv_vfmv_v_f_f32m1(2.8882704548164776201f, vlmax);
+    const vfloat32m1_t cl3 = __riscv_vfmv_v_f_f32m1(-2.52074962577807006663f, vlmax);
+    const vfloat32m1_t cl2 = __riscv_vfmv_v_f_f32m1(1.48116647521213171641f, vlmax);
+    const vfloat32m1_t cl1 = __riscv_vfmv_v_f_f32m1(-0.465725644288844778798f, vlmax);
+    const vfloat32m1_t cl0 = __riscv_vfmv_v_f_f32m1(0.0596515482674574969533f, vlmax);
+#elif POW_POLY_DEGREE == 4
+    const vfloat32m1_t cl3 = __riscv_vfmv_v_f_f32m1(2.61761038894603480148f, vlmax);
+    const vfloat32m1_t cl2 = __riscv_vfmv_v_f_f32m1(-1.75647175389045657003f, vlmax);
+    const vfloat32m1_t cl1 = __riscv_vfmv_v_f_f32m1(0.688243882994381274313f, vlmax);
+    const vfloat32m1_t cl0 = __riscv_vfmv_v_f_f32m1(-0.107254423828329604454f, vlmax);
+#elif POW_POLY_DEGREE == 3
+    const vfloat32m1_t cl2 = __riscv_vfmv_v_f_f32m1(2.28330284476918490682f, vlmax);
+    const vfloat32m1_t cl1 = __riscv_vfmv_v_f_f32m1(-1.04913055217340124191f, vlmax);
+    const vfloat32m1_t cl0 = __riscv_vfmv_v_f_f32m1(0.204446009836232697516f, vlmax);
+#else
+#error
+#endif
+
+    const vfloat32m1_t exp_hi = __riscv_vfmv_v_f_f32m1(88.376259f, vlmax);
+    const vfloat32m1_t exp_lo = __riscv_vfmv_v_f_f32m1(-88.376259f, vlmax);
+    const vfloat32m1_t log2EF = __riscv_vfmv_v_f_f32m1(1.442695f, vlmax);
+    const vfloat32m1_t exp_C1 = __riscv_vfmv_v_f_f32m1(-0.6933594f, vlmax);
+    const vfloat32m1_t exp_C2 = __riscv_vfmv_v_f_f32m1(0.000212194f, vlmax);
+    const vfloat32m1_t cf1 = __riscv_vfmv_v_f_f32m1(1.0f, vlmax);
+    const vfloat32m1_t cf1o2 = __riscv_vfmv_v_f_f32m1(0.5f, vlmax);
+    const vfloat32m1_t ln2 = __riscv_vfmv_v_f_f32m1(0.6931471805f, vlmax);
+
+    const vfloat32m1_t ce0 = __riscv_vfmv_v_f_f32m1(1.9875691500e-4, vlmax);
+    const vfloat32m1_t ce1 = __riscv_vfmv_v_f_f32m1(1.3981999507e-3, vlmax);
+    const vfloat32m1_t ce2 = __riscv_vfmv_v_f_f32m1(8.3334519073e-3, vlmax);
+    const vfloat32m1_t ce3 = __riscv_vfmv_v_f_f32m1(4.1665795894e-2, vlmax);
+    const vfloat32m1_t ce4 = __riscv_vfmv_v_f_f32m1(1.6666665459e-1, vlmax);
+    const vfloat32m1_t ce5 = __riscv_vfmv_v_f_f32m1(5.0000001201e-1, vlmax);
+
+    const vint32m1_t m1 = __riscv_vreinterpret_i32m1(cf1);
+    const vint32m1_t m2 = __riscv_vmv_v_x_i32m1(0x7FFFFF, vlmax);
+    const vint32m1_t c127 = __riscv_vmv_v_x_i32m1(127, vlmax);
+
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m1(n);
+        vfloat32m1_t va = __riscv_vle32_v_f32m1(aVector, vl);
+        vfloat32m1_t log;
+
+        { /* log(a) */
+            vfloat32m1_t a = __riscv_vfabs(va, vl);
+            vfloat32m1_t exp = __riscv_vfcvt_f(
+                __riscv_vsub(
+                    __riscv_vsra(__riscv_vreinterpret_i32m1(a), 23, vl), c127, vl),
+                vl);
+            vfloat32m1_t frac = __riscv_vreinterpret_f32m1(__riscv_vor(
+                __riscv_vand(__riscv_vreinterpret_i32m1(va), m2, vl), m1, vl));
+
+            vfloat32m1_t mant = cl0;
+            mant = __riscv_vfmadd(mant, frac, cl1, vl);
+            mant = __riscv_vfmadd(mant, frac, cl2, vl);
+#if POW_POLY_DEGREE >= 4
+            mant = __riscv_vfmadd(mant, frac, cl3, vl);
+#if POW_POLY_DEGREE >= 5
+            mant = __riscv_vfmadd(mant, frac, cl4, vl);
+#if POW_POLY_DEGREE >= 6
+            mant = __riscv_vfmadd(mant, frac, cl5, vl);
+#endif
+#endif
+#endif
+            log = __riscv_vfmacc(exp, mant, __riscv_vfsub(frac, cf1, vl), vl);
+            log = __riscv_vfmul(log, ln2, vl);
+        }
+
+        vfloat32m1_t vb = __riscv_vle32_v_f32m1(bVector, vl);
+        vb = __riscv_vfmul(vb, log, vl); /* b*log(a) */
+        vfloat32m1_t exp;
+
+        { /* exp(b*log(a)) */
+            vb = __riscv_vfmin(vb, exp_hi, vl);
+            vb = __riscv_vfmax(vb, exp_lo, vl);
+            vfloat32m1_t fx = __riscv_vfmadd(vb, log2EF, cf1o2, vl);
+
+            vfloat32m1_t rtz = __riscv_vfcvt_f(__riscv_vfcvt_rtz_x(fx, vl), vl);
+            fx = __riscv_vfsub_mu(__riscv_vmfgt(rtz, fx, vl), rtz, rtz, cf1, vl);
+            vb = __riscv_vfmacc(vb, exp_C1, fx, vl);
+            vb = __riscv_vfmacc(vb, exp_C2, fx, vl);
+            vfloat32m1_t vv = __riscv_vfmul(vb, vb, vl);
+
+            vfloat32m1_t y = ce0;
+            y = __riscv_vfmadd(y, vb, ce1, vl);
+            y = __riscv_vfmadd(y, vb, ce2, vl);
+            y = __riscv_vfmadd(y, vb, ce3, vl);
+            y = __riscv_vfmadd(y, vb, ce4, vl);
+            y = __riscv_vfmadd(y, vb, ce5, vl);
+            y = __riscv_vfmadd(y, vv, vb, vl);
+            y = __riscv_vfadd(y, cf1, vl);
+
+            vfloat32m1_t pow2n = __riscv_vreinterpret_f32m1(__riscv_vsll(
+                __riscv_vadd(__riscv_vfcvt_rtz_x(fx, vl), c127, vl), 23, vl));
+
+            exp = __riscv_vfmul(y, pow2n, vl);
+        }
+
+        __riscv_vse32(cVector, exp, vl);
+    }
+}
+
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_x2_log2_32f_u_H */

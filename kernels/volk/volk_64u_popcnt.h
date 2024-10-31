@@ -116,5 +116,22 @@ static inline void volk_64u_popcnt_neon(uint64_t* ret, const uint64_t value)
 }
 #endif /*LV_HAVE_NEON*/
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_64u_popcnt_rvv(uint64_t* ret, const uint64_t value)
+{
+    *ret = __riscv_vcpop(__riscv_vreinterpret_b2(__riscv_vmv_s_x_u64m1(value, 1)), 64);
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVA22V
+#include <riscv_bitmanip.h>
+
+static inline void volk_64u_popcnt_rva22(uint64_t* ret, const uint64_t value)
+{
+    *ret = __riscv_cpop_64(value);
+}
+#endif /*LV_HAVE_RVA22V*/
 
 #endif /*INCLUDED_volk_64u_popcnt_a_H*/

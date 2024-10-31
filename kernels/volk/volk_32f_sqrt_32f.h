@@ -205,4 +205,20 @@ volk_32f_sqrt_32f_u_avx(float* cVector, const float* aVector, unsigned int num_p
 }
 
 #endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_sqrt_32f_rvv(float* cVector, const float* aVector, unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(aVector, vl);
+        __riscv_vse32(cVector, __riscv_vfsqrt(v, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /* INCLUDED_volk_32f_sqrt_32f_u_H */

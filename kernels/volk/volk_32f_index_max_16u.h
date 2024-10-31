@@ -359,4 +359,32 @@ volk_32f_index_max_16u_u_avx(uint16_t* target, const float* src0, uint32_t num_p
 
 #endif /*LV_HAVE_AVX*/
 
+#ifdef LV_HAVE_RVV
+#include <float.h>
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_index_max_16u_rvv(uint16_t* target, const float* src0, uint32_t num_points)
+{
+    vfloat32m8_t vmax = __riscv_vfmv_v_f_f32m8(-FLT_MAX, __riscv_vsetvlmax_e32m8());
+    vuint16m4_t vmaxi = __riscv_vmv_v_x_u16m4(0, __riscv_vsetvlmax_e16m4());
+    vuint16m4_t vidx = __riscv_vid_v_u16m4(__riscv_vsetvlmax_e16m4());
+    size_t n = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+    for (size_t vl; n > 0; n -= vl, src0 += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(src0, vl);
+        vbool4_t m = __riscv_vmfgt(v, vmax, vl);
+        vmax = __riscv_vfmax_tu(vmax, vmax, v, vl);
+        vmaxi = __riscv_vmerge_tu(vmaxi, vmaxi, vidx, m, vl);
+        vidx = __riscv_vadd(vidx, vl, __riscv_vsetvlmax_e16m4());
+    }
+    size_t vl = __riscv_vsetvlmax_e32m8();
+    float max = __riscv_vfmv_f(__riscv_vfredmax(RISCV_SHRINK8(vfmax, f, 32, vmax),
+                                                __riscv_vfmv_v_f_f32m1(-FLT_MAX, 1),
+                                                __riscv_vsetvlmax_e32m1()));
+    vbool4_t m = __riscv_vmfeq(vmax, max, vl);
+    *target = __riscv_vmv_x(__riscv_vslidedown(vmaxi, __riscv_vfirst(m, vl), vl));
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /*INCLUDED_volk_32f_index_max_16u_u_H*/

@@ -92,4 +92,26 @@ static inline void volk_64u_byteswappuppet_64u_a_avx2(uint64_t* output,
 }
 #endif
 
+#ifdef LV_HAVE_RVV
+static inline void volk_64u_byteswappuppet_64u_rvv(uint64_t* output,
+                                                   uint64_t* intsToSwap,
+                                                   unsigned int num_points)
+{
+
+    volk_64u_byteswap_rvv((uint64_t*)intsToSwap, num_points);
+    memcpy((void*)output, (void*)intsToSwap, num_points * sizeof(uint64_t));
+}
+#endif
+
+#ifdef LV_HAVE_RVA23
+static inline void volk_64u_byteswappuppet_64u_rva23(uint64_t* output,
+                                                     uint64_t* intsToSwap,
+                                                     unsigned int num_points)
+{
+
+    volk_64u_byteswap_rva23((uint64_t*)intsToSwap, num_points);
+    memcpy((void*)output, (void*)intsToSwap, num_points * sizeof(uint64_t));
+}
+#endif
+
 #endif

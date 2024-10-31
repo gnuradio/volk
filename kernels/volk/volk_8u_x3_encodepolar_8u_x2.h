@@ -169,4 +169,33 @@ volk_8u_x3_encodepolar_8u_x2_a_avx2(unsigned char* frame,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_RVV
+static inline void volk_8u_x3_encodepolar_8u_x2_rvv(unsigned char* frame,
+                                                    unsigned char* temp,
+                                                    const unsigned char* frozen_bit_mask,
+                                                    const unsigned char* frozen_bits,
+                                                    const unsigned char* info_bits,
+                                                    unsigned int frame_size)
+{
+    interleave_frozen_and_info_bits(
+        temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+    volk_8u_x2_encodeframepolar_8u_rvv(frame, temp, frame_size);
+}
+#endif /* LV_HAVE_RVV */
+
+#ifdef LV_HAVE_RVVSEG
+static inline void
+volk_8u_x3_encodepolar_8u_x2_rvvseg(unsigned char* frame,
+                                    unsigned char* temp,
+                                    const unsigned char* frozen_bit_mask,
+                                    const unsigned char* frozen_bits,
+                                    const unsigned char* info_bits,
+                                    unsigned int frame_size)
+{
+    interleave_frozen_and_info_bits(
+        temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
+    volk_8u_x2_encodeframepolar_8u_rvvseg(frame, temp, frame_size);
+}
+#endif /* LV_HAVE_RVVSEG */
+
 #endif /* VOLK_KERNELS_VOLK_VOLK_8U_X3_ENCODEPOLAR_8U_X2_A_H_ */

@@ -102,4 +102,15 @@ static inline void volk_32f_s32f_convertpuppet_8u_a_sse(uint8_t* output,
     volk_32f_s32f_x2_convert_8u_a_sse(output, input, scale, 128.0, num_points);
 }
 #endif
+
+#ifdef LV_HAVE_RVV
+static inline void volk_32f_s32f_convertpuppet_8u_rvv(uint8_t* output,
+                                                      const float* input,
+                                                      float scale,
+                                                      unsigned int num_points)
+{
+    volk_32f_s32f_x2_convert_8u_rvv(output, input, scale, 128.0, num_points);
+}
+#endif
+
 #endif
