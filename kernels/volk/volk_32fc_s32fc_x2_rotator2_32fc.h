@@ -906,12 +906,8 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_rvvseg(lv_32fc_t* outVector,
                     __riscv_vfnmsac(__riscv_vfmul(var, phr, vl), vai, phi, vl);
                 vfloat32m2_t vi =
                     __riscv_vfmacc(__riscv_vfmul(var, phi, vl), vai, phr, vl);
-
-                vuint32m2_t vru = __riscv_vreinterpret_u32m2(vr);
-                vuint32m2_t viu = __riscv_vreinterpret_u32m2(vi);
-                vuint64m4_t res =
-                    __riscv_vwmaccu(__riscv_vwaddu_vv(vru, viu, vl), 0xFFFFFFFF, viu, vl);
-                __riscv_vse64((uint64_t*)outVector, res, vl);
+                vfloat32m2x2_t vc = __riscv_vcreate_v_f32m2x2(vr, vi);
+                __riscv_vsseg2e32_v_f32m2x2((float*)outVector, vc, vl);
 
                 vfloat32m2_t tmp = phr;
                 phr = __riscv_vfnmsac(__riscv_vfmul(tmp, incr, vl), phi, inci, vl);
