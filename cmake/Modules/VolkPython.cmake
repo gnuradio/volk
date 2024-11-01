@@ -140,7 +140,7 @@ file(TO_CMAKE_PATH ${VOLK_PYTHON_DIR} VOLK_PYTHON_DIR)
 # Usage: VOLK_UNIQUE_TARGET(<description> <dependencies list>)
 ########################################################################
 function(VOLK_UNIQUE_TARGET desc)
-    file(RELATIVE_PATH reldir ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+    file(RELATIVE_PATH reldir ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     execute_process(
         COMMAND ${PYTHON_EXECUTABLE} -c "import re, hashlib
 unique = hashlib.sha256(b'${reldir}${ARGN}').hexdigest()[:5]
