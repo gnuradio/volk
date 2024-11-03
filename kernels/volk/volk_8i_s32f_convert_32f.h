@@ -350,5 +350,22 @@ static inline void volk_8i_s32f_convert_32f_u_orc(float* outputVector,
 }
 #endif /* LV_HAVE_ORC */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_8i_s32f_convert_32f_rvv(float* outputVector,
+                                                const int8_t* inputVector,
+                                                const float scalar,
+                                                unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e8m2(n);
+        vint16m4_t v = __riscv_vsext_vf2(__riscv_vle8_v_i8m2(inputVector, vl), vl);
+        __riscv_vse32(
+            outputVector, __riscv_vfmul(__riscv_vfwcvt_f(v, vl), 1.0f / scalar, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_VOLK_8s_CONVERT_32f_ALIGNED8_H */

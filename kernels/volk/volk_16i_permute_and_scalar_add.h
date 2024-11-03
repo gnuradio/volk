@@ -10,6 +10,10 @@
 /*!
  * \page volk_16i_permute_and_scalar_add
  *
+ * \b Deprecation
+ *
+ * This kernel is deprecated.
+ *
  * \b Overview
  *
  * <FIXME>

@@ -612,5 +612,24 @@ static inline void volk_32f_s32f_x2_convert_8u_a_sse(uint8_t* outputVector,
 
 #endif /* LV_HAVE_SSE */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_s32f_x2_convert_8u_rvv(uint8_t* outputVector,
+                                                   const float* inputVector,
+                                                   const float scale,
+                                                   const float bias,
+                                                   unsigned int num_points)
+{
+    vfloat32m8_t vb = __riscv_vfmv_v_f_f32m8(bias, __riscv_vsetvlmax_e32m8());
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(inputVector, vl);
+        vuint16m4_t vi = __riscv_vfncvt_xu(__riscv_vfmadd_vf_f32m8(v, scale, vb, vl), vl);
+        __riscv_vse8(outputVector, __riscv_vnclipu(vi, 0, 0, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32f_s32f_x2_convert_8u_a_H */

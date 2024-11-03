@@ -315,5 +315,20 @@ static inline void volk_64f_convert_32f_a_sse2(float* outputVector,
 }
 #endif /* LV_HAVE_SSE2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_64f_convert_32f_rvv(float* outputVector,
+                                            const double* inputVector,
+                                            unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e64m8(n);
+        vfloat64m8_t v = __riscv_vle64_v_f64m8(inputVector, vl);
+        __riscv_vse32(outputVector, __riscv_vfncvt_f(v, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_64f_convert_32f_a_H */

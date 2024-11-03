@@ -421,5 +421,72 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_a_sse3(lv_32fc_t* result
 
 #endif /*LV_HAVE_SSE3*/
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32fc_x2_conjugate_dot_prod_32fc_rvv(lv_32fc_t* result,
+                                                            const lv_32fc_t* input,
+                                                            const lv_32fc_t* taps,
+                                                            unsigned int num_points)
+{
+    vfloat32m2_t vsumr = __riscv_vfmv_v_f_f32m2(0, __riscv_vsetvlmax_e32m2());
+    vfloat32m2_t vsumi = vsumr;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
+        vl = __riscv_vsetvl_e32m2(n);
+        vuint64m4_t va = __riscv_vle64_v_u64m4((const uint64_t*)input, vl);
+        vuint64m4_t vb = __riscv_vle64_v_u64m4((const uint64_t*)taps, vl);
+        vfloat32m2_t var = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 0, vl));
+        vfloat32m2_t vbr = __riscv_vreinterpret_f32m2(__riscv_vnsrl(vb, 0, vl));
+        vfloat32m2_t vai = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 32, vl));
+        vfloat32m2_t vbi = __riscv_vreinterpret_f32m2(__riscv_vnsrl(vb, 32, vl));
+        vbi = __riscv_vfneg(vbi, vl);
+        vfloat32m2_t vr = __riscv_vfnmsac(__riscv_vfmul(var, vbr, vl), vai, vbi, vl);
+        vfloat32m2_t vi = __riscv_vfmacc(__riscv_vfmul(var, vbi, vl), vai, vbr, vl);
+        vsumr = __riscv_vfadd_tu(vsumr, vsumr, vr, vl);
+        vsumi = __riscv_vfadd_tu(vsumi, vsumi, vi, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t vr = RISCV_SHRINK2(vfadd, f, 32, vsumr);
+    vfloat32m1_t vi = RISCV_SHRINK2(vfadd, f, 32, vsumi);
+    vfloat32m1_t z = __riscv_vfmv_s_f_f32m1(0, vl);
+    *result = lv_cmake(__riscv_vfmv_f(__riscv_vfredusum(vr, z, vl)),
+                       __riscv_vfmv_f(__riscv_vfredusum(vi, z, vl)));
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32fc_x2_conjugate_dot_prod_32fc_rvvseg(lv_32fc_t* result,
+                                                               const lv_32fc_t* input,
+                                                               const lv_32fc_t* taps,
+                                                               unsigned int num_points)
+{
+    vfloat32m2_t vsumr = __riscv_vfmv_v_f_f32m2(0, __riscv_vsetvlmax_e32m2());
+    vfloat32m2_t vsumi = vsumr;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
+        vl = __riscv_vsetvl_e32m2(n);
+        vfloat32m2x2_t va = __riscv_vlseg2e32_v_f32m2x2((const float*)input, vl);
+        vfloat32m2x2_t vb = __riscv_vlseg2e32_v_f32m2x2((const float*)taps, vl);
+        vfloat32m2_t var = __riscv_vget_f32m2(va, 0), vai = __riscv_vget_f32m2(va, 1);
+        vfloat32m2_t vbr = __riscv_vget_f32m2(vb, 0), vbi = __riscv_vget_f32m2(vb, 1);
+        vbi = __riscv_vfneg(vbi, vl);
+        vfloat32m2_t vr = __riscv_vfnmsac(__riscv_vfmul(var, vbr, vl), vai, vbi, vl);
+        vfloat32m2_t vi = __riscv_vfmacc(__riscv_vfmul(var, vbi, vl), vai, vbr, vl);
+        vsumr = __riscv_vfadd_tu(vsumr, vsumr, vr, vl);
+        vsumi = __riscv_vfadd_tu(vsumi, vsumi, vi, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t vr = RISCV_SHRINK2(vfadd, f, 32, vsumr);
+    vfloat32m1_t vi = RISCV_SHRINK2(vfadd, f, 32, vsumi);
+    vfloat32m1_t z = __riscv_vfmv_s_f_f32m1(0, vl);
+    *result = lv_cmake(__riscv_vfmv_f(__riscv_vfredusum(vr, z, vl)),
+                       __riscv_vfmv_f(__riscv_vfredusum(vi, z, vl)));
+}
+#endif /*LV_HAVE_RVVSEG*/
 
 #endif /*INCLUDED_volk_32fc_x2_conjugate_dot_prod_32fc_a_H*/

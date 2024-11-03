@@ -255,4 +255,43 @@ static inline void volk_32f_x2_interleave_32fc_u_avx(lv_32fc_t* complexVector,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_x2_interleave_32fc_rvv(lv_32fc_t* complexVector,
+                                                   const float* iBuffer,
+                                                   const float* qBuffer,
+                                                   unsigned int num_points)
+{
+    uint64_t* out = (uint64_t*)complexVector;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, out += vl, iBuffer += vl, qBuffer += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vuint32m4_t vr = __riscv_vle32_v_u32m4((const uint32_t*)iBuffer, vl);
+        vuint32m4_t vi = __riscv_vle32_v_u32m4((const uint32_t*)qBuffer, vl);
+        vuint64m8_t vc =
+            __riscv_vwmaccu(__riscv_vwaddu_vv(vr, vi, vl), 0xFFFFFFFF, vi, vl);
+        __riscv_vse64(out, vc, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_32f_x2_interleave_32fc_rvvseg(lv_32fc_t* complexVector,
+                                                      const float* iBuffer,
+                                                      const float* qBuffer,
+                                                      unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, complexVector += vl, iBuffer += vl, qBuffer += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m4_t vr = __riscv_vle32_v_f32m4(iBuffer, vl);
+        vfloat32m4_t vi = __riscv_vle32_v_f32m4(qBuffer, vl);
+        __riscv_vsseg2e32((float*)complexVector, __riscv_vcreate_v_f32m4x2(vr, vi), vl);
+    }
+}
+#endif /*LV_HAVE_RVVSEG*/
+
 #endif /* INCLUDED_volk_32f_x2_interleave_32fc_u_H */

@@ -224,5 +224,24 @@ static inline void volk_32fc_32f_multiply_32fc_u_orc(lv_32fc_t* cVector,
 
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32fc_32f_multiply_32fc_rvv(lv_32fc_t* cVector,
+                                                   const lv_32fc_t* aVector,
+                                                   const float* bVector,
+                                                   unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, cVector += vl, aVector += vl, bVector += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m8_t vc = __riscv_vle32_v_f32m8((const float*)aVector, vl * 2);
+        vuint32m4_t v = __riscv_vle32_v_u32m4((const uint32_t*)bVector, vl);
+        vfloat32m8_t vf = __riscv_vreinterpret_f32m8(__riscv_vreinterpret_u32m8(
+            __riscv_vwmaccu(__riscv_vwaddu_vv(v, v, vl), 0xFFFFFFFF, v, vl)));
+        __riscv_vse32((float*)cVector, __riscv_vfmul(vc, vf, vl * 2), vl * 2);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32fc_32f_multiply_32fc_a_H */

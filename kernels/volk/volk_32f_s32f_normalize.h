@@ -203,5 +203,19 @@ static inline void volk_32f_s32f_normalize_u_avx(float* vecBuffer,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32f_s32f_normalize_rvv(float* vecBuffer, const float scalar, unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, vecBuffer += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(vecBuffer, vl);
+        __riscv_vse32(vecBuffer, __riscv_vfmul(v, 1.0f / scalar, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32f_s32f_normalize_u_H */

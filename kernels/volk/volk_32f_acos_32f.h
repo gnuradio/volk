@@ -102,13 +102,15 @@ static inline void volk_32f_acos_32f_a_avx2_fma(float* bVector,
         x = _mm256_add_ps(
             z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
-        for (i = 0; i < 2; i++)
+        for (i = 0; i < 2; i++) {
             x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_fmadd_ps(x, x, fones)));
+        }
         x = _mm256_div_ps(fones, x);
         y = fzeroes;
-        for (j = ACOS_TERMS - 1; j >= 0; j--)
+        for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm256_fmadd_ps(
                 y, _mm256_mul_ps(x, x), _mm256_set1_ps(pow(-1, j) / (2 * j + 1)));
+        }
 
         y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
         condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
@@ -171,14 +173,16 @@ volk_32f_acos_32f_a_avx(float* bVector, const float* aVector, unsigned int num_p
         x = _mm256_add_ps(
             z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
-        for (i = 0; i < 2; i++)
+        for (i = 0; i < 2; i++) {
             x = _mm256_add_ps(x,
                               _mm256_sqrt_ps(_mm256_add_ps(fones, _mm256_mul_ps(x, x))));
+        }
         x = _mm256_div_ps(fones, x);
         y = fzeroes;
-        for (j = ACOS_TERMS - 1; j >= 0; j--)
+        for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)),
                               _mm256_set1_ps(pow(-1, j) / (2 * j + 1)));
+        }
 
         y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
         condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
@@ -240,13 +244,15 @@ volk_32f_acos_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
         condition = _mm_cmplt_ps(z, fones);
         x = _mm_add_ps(z, _mm_and_ps(_mm_sub_ps(_mm_div_ps(fones, z), z), condition));
 
-        for (i = 0; i < 2; i++)
+        for (i = 0; i < 2; i++) {
             x = _mm_add_ps(x, _mm_sqrt_ps(_mm_add_ps(fones, _mm_mul_ps(x, x))));
+        }
         x = _mm_div_ps(fones, x);
         y = fzeroes;
-        for (j = ACOS_TERMS - 1; j >= 0; j--)
+        for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm_add_ps(_mm_mul_ps(y, _mm_mul_ps(x, x)),
                            _mm_set1_ps(pow(-1, j) / (2 * j + 1)));
+        }
 
         y = _mm_mul_ps(y, _mm_mul_ps(x, ffours));
         condition = _mm_cmpgt_ps(z, fones);
@@ -315,13 +321,15 @@ static inline void volk_32f_acos_32f_u_avx2_fma(float* bVector,
         x = _mm256_add_ps(
             z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
-        for (i = 0; i < 2; i++)
+        for (i = 0; i < 2; i++) {
             x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_fmadd_ps(x, x, fones)));
+        }
         x = _mm256_div_ps(fones, x);
         y = fzeroes;
-        for (j = ACOS_TERMS - 1; j >= 0; j--)
+        for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm256_fmadd_ps(
                 y, _mm256_mul_ps(x, x), _mm256_set1_ps(pow(-1, j) / (2 * j + 1)));
+        }
 
         y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
         condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
@@ -384,14 +392,16 @@ volk_32f_acos_32f_u_avx(float* bVector, const float* aVector, unsigned int num_p
         x = _mm256_add_ps(
             z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
 
-        for (i = 0; i < 2; i++)
+        for (i = 0; i < 2; i++) {
             x = _mm256_add_ps(x,
                               _mm256_sqrt_ps(_mm256_add_ps(fones, _mm256_mul_ps(x, x))));
+        }
         x = _mm256_div_ps(fones, x);
         y = fzeroes;
-        for (j = ACOS_TERMS - 1; j >= 0; j--)
+        for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)),
                               _mm256_set1_ps(pow(-1, j) / (2 * j + 1)));
+        }
 
         y = _mm256_mul_ps(y, _mm256_mul_ps(x, ffours));
         condition = _mm256_cmp_ps(z, fones, _CMP_GT_OS);
@@ -453,14 +463,16 @@ volk_32f_acos_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
         condition = _mm_cmplt_ps(z, fones);
         x = _mm_add_ps(z, _mm_and_ps(_mm_sub_ps(_mm_div_ps(fones, z), z), condition));
 
-        for (i = 0; i < 2; i++)
+        for (i = 0; i < 2; i++) {
             x = _mm_add_ps(x, _mm_sqrt_ps(_mm_add_ps(fones, _mm_mul_ps(x, x))));
+        }
         x = _mm_div_ps(fones, x);
         y = fzeroes;
 
-        for (j = ACOS_TERMS - 1; j >= 0; j--)
+        for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm_add_ps(_mm_mul_ps(y, _mm_mul_ps(x, x)),
                            _mm_set1_ps(pow(-1, j) / (2 * j + 1)));
+        }
 
         y = _mm_mul_ps(y, _mm_mul_ps(x, ffours));
         condition = _mm_cmpgt_ps(z, fones);
@@ -500,5 +512,73 @@ volk_32f_acos_32f_generic(float* bVector, const float* aVector, unsigned int num
     }
 }
 #endif /* LV_HAVE_GENERIC */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void
+volk_32f_acos_32f_rvv(float* bVector, const float* aVector, unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m2();
+
+    const vfloat32m2_t cpi = __riscv_vfmv_v_f_f32m2(3.1415927f, vlmax);
+    const vfloat32m2_t cpio2 = __riscv_vfmv_v_f_f32m2(1.5707964f, vlmax);
+    const vfloat32m2_t cf1 = __riscv_vfmv_v_f_f32m2(1.0f, vlmax);
+    const vfloat32m2_t cf2 = __riscv_vfmv_v_f_f32m2(2.0f, vlmax);
+    const vfloat32m2_t cf4 = __riscv_vfmv_v_f_f32m2(4.0f, vlmax);
+
+#if ACOS_TERMS == 2
+    const vfloat32m2_t cfm1o3 = __riscv_vfmv_v_f_f32m2(-1 / 3.0f, vlmax);
+#elif ACOS_TERMS == 3
+    const vfloat32m2_t cf1o5 = __riscv_vfmv_v_f_f32m2(1 / 5.0f, vlmax);
+#elif ACOS_TERMS == 4
+    const vfloat32m2_t cfm1o7 = __riscv_vfmv_v_f_f32m2(-1 / 7.0f, vlmax);
+#endif
+
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl) {
+        vl = __riscv_vsetvl_e32m2(n);
+        vfloat32m2_t v = __riscv_vle32_v_f32m2(aVector, vl);
+        vfloat32m2_t a =
+            __riscv_vfdiv(__riscv_vfsqrt(__riscv_vfmsac(cf1, v, v, vl), vl), v, vl);
+        vfloat32m2_t z = __riscv_vfabs(a, vl);
+        vfloat32m2_t x = __riscv_vfdiv_mu(__riscv_vmflt(z, cf1, vl), z, cf1, z, vl);
+        x = __riscv_vfadd(x, __riscv_vfsqrt(__riscv_vfmadd(x, x, cf1, vl), vl), vl);
+        x = __riscv_vfadd(x, __riscv_vfsqrt(__riscv_vfmadd(x, x, cf1, vl), vl), vl);
+        x = __riscv_vfdiv(cf1, x, vl);
+        vfloat32m2_t xx = __riscv_vfmul(x, x, vl);
+
+#if ACOS_TERMS < 1
+        vfloat32m2_t y = __riscv_vfmv_v_f_f32m2(0, vl);
+#elif ACOS_TERMS == 1
+        y = __riscv_vfmadd(y, xx, cf1, vl);
+#elif ACOS_TERMS == 2
+        vfloat32m2_t y = cfm1o3;
+        y = __riscv_vfmadd(y, xx, cf1, vl);
+#elif ACOS_TERMS == 3
+        vfloat32m2_t y = cf1o5;
+        y = __riscv_vfmadd(y, xx, cfm1o3, vl);
+        y = __riscv_vfmadd(y, xx, cf1, vl);
+#elif ACOS_TERMS == 4
+        vfloat32m2_t y = cfm1o7;
+        y = __riscv_vfmadd(y, xx, cf1o5, vl);
+        y = __riscv_vfmadd(y, xx, cfm1o3, vl);
+        y = __riscv_vfmadd(y, xx, cf1, vl);
+#else
+#error "ACOS_TERMS > 4 not supported by volk_32f_acos_32f_rvv"
+#endif
+        y = __riscv_vfmul(y, __riscv_vfmul(x, cf4, vl), vl);
+        y = __riscv_vfadd_mu(
+            __riscv_vmfgt(z, cf1, vl), y, y, __riscv_vfnmsub(y, cf2, cpio2, vl), vl);
+
+        vfloat32m2_t acosine;
+        acosine = __riscv_vfneg_mu(RISCV_VMFLTZ(32m2, a, vl), y, y, vl);
+        acosine = __riscv_vfadd_mu(RISCV_VMFLTZ(32m2, v, vl), acosine, acosine, cpi, vl);
+
+        __riscv_vse32(bVector, acosine, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32f_acos_32f_u_H */
