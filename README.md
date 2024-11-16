@@ -74,12 +74,13 @@ To build for these boards you need specify the correct cmake toolchain file for 
 
 _Note: There is no need for adding extra options to the compiler for 64 bit._
 
+* Raspberry Pi 5 `arm_cortex_a76_hardfp_native.cmake`
 * Raspberry Pi 4 `arm_cortex_a72_hardfp_native.cmake`
 * Raspberry Pi 3 `arm_cortex_a53_hardfp_native.cmake`
 
 ```bash
 $ mkdir build && cd build
-$ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm_cortex_a72_hardfp_native.cmake ..
+$ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm_cortex_a76_hardfp_native.cmake ..
 # make -j4 might be faster
 $ make
 $ make test
