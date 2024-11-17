@@ -18,7 +18,7 @@
 #define NOMINMAX
 #endif
 
-// http://social.msdn.microsoft.com/Forums/en/vcgeneral/thread/430449b3-f6dd-4e18-84de-eebd26a8d668
+// https://learn.microsoft.com/en-us/archive/msdn-technet-forums/430449b3-f6dd-4e18-84de-eebd26a8d668
 #include < time.h >
 #include <windows.h> //I've omitted this line.
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)

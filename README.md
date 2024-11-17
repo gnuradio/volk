@@ -7,7 +7,7 @@
 
 # Welcome to VOLK!
 
-VOLK is a sub-project of GNU Radio. Please see http://libvolk.org for bug
+VOLK is a sub-project of GNU Radio. Please see https://www.libvolk.org/ for bug
 tracking, documentation, source code, and contact information about VOLK.
 See https://www.gnuradio.org/ for information about GNU Radio.
 
@@ -20,7 +20,7 @@ https://www.gnuradio.org/git/volk.git/.
 
 ## How to use VOLK:
 
-For detailed instructions see http://libvolk.org/doxygen/using_volk.html
+For detailed instructions see https://www.libvolk.org/doxygen/using_volk.html
 
 See these steps for a quick build guide.
 
