@@ -174,7 +174,7 @@ static inline __m256 _mm256_polar_sign_mask(__m128i fbits)
         _mm256_insertf128_ps(sign_mask_dummy, _mm_castsi128_ps(sign_bits0), 0x0);
     return _mm256_insertf128_ps(sign_mask, _mm_castsi128_ps(sign_bits1), 0x1);
     //  // This is the desired function call. Though it seems to be missing in GCC.
-    //  // Compare: https://software.intel.com/sites/landingpage/IntrinsicsGuide/#
+    //  // Compare: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html
     //  return _mm256_set_m128(_mm_castsi128_ps(sign_bits1),
     //  _mm_castsi128_ps(sign_bits0));
 }

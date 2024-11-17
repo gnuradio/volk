@@ -213,7 +213,7 @@ static inline void volk_32fc_x2_divide_32fc_u_avx(lv_32fc_t* cVector,
             sq, sq); // obtain the actual squared magnitude, although out of order
         mag_sq = _mm256_permute_ps(mag_sq_un, 0xd8); // I order them
         // best guide I found on using these functions:
-        // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#expand=2738,2059,2738,2738,3875,3874,3875,2738,3870
+        // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=2738,2059,2738,2738,3875,3874,3875,2738,3870
         div = _mm256_div_ps(mul_conj, mag_sq);
 
         _mm256_storeu_ps((float*)c, div); // Store the results back into the C container
@@ -313,7 +313,7 @@ static inline void volk_32fc_x2_divide_32fc_a_avx(lv_32fc_t* cVector,
 {
     /*
      * Guide to AVX intrisics:
-     * https://software.intel.com/sites/landingpage/IntrinsicsGuide/#
+     * https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html
      *
      * we'll do the "classical"
      *  a      a b*
