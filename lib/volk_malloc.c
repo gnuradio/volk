@@ -19,7 +19,7 @@
  *
  * MSVC is broken
  * see:
- * https://docs.microsoft.com/en-us/cpp/overview/visual-cpp-language-conformance?view=vs-2019
+ * https://learn.microsoft.com/en-us/cpp/overview/visual-cpp-language-conformance?view=msvc-170
  * This section:
  * C11 The Universal CRT implemented the parts of the
  * C11 Standard Library that are required by C++17,

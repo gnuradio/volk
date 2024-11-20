@@ -298,7 +298,7 @@ endif()
 ########################################################################
 # Install our Cmake modules into $prefix/lib/cmake/volk
 # See "Package Configuration Files" on page:
-#    http://www.cmake.org/Wiki/CMake/Tutorials/Packaging
+# https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/Packaging
 ########################################################################
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake.in

@@ -17,7 +17,7 @@
 
 static inline unsigned int log2_of_power_of_2(unsigned int val)
 {
-    // algorithm from: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
+    // algorithm from: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
     static const unsigned int b[] = {
         0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000
     };

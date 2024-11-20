@@ -19,7 +19,7 @@
 static inline unsigned int next_lower_power_of_two(const unsigned int val)
 {
     // algorithm found and adopted from:
-    // http://acius2.blogspot.de/2007/11/calculating-next-power-of-2.html
+    // https://acius2.blogspot.com/2007/11/calculating-next-power-of-2.html
     unsigned int res = val;
     res = (res >> 1) | res;
     res = (res >> 2) | res;
