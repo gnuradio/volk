@@ -299,7 +299,11 @@ volk_32f_index_max_32u_neon(uint32_t* target, const float* src0, uint32_t num_po
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
                 max = maxValuesBuffer[number];
+#ifdef _MSC_VER
+            } else if (maxValues.n128_f32[number] == max) {
+#else
             } else if (maxValues[number] == max) {
+#endif
                 if (index > maxIndexesBuffer[number])
                     index = maxIndexesBuffer[number];
             }
