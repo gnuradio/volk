@@ -58,7 +58,6 @@
 #define INCLUDED_volk_32fc_index_max_32u_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <volk/volk_common.h>
 #include <volk/volk_complex.h>
 
@@ -327,7 +326,6 @@ volk_32fc_index_max_32u_generic(uint32_t* target, lv_32fc_t* src0, uint32_t num_
 #define INCLUDED_volk_32fc_index_max_32u_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <volk/volk_common.h>
 #include <volk/volk_complex.h>
 
