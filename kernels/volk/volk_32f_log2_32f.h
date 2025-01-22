@@ -18,7 +18,7 @@
  * +-Inf outputs are mapped to +-127.0f and +-NaN input values are not supported.
  *
  * This kernel was adapted from Jose Fonseca's Fast SSE2 log implementation
- * http://jrfonseca.blogspot.in/2008/09/fast-sse2-pow-tables-or-polynomials.htm
+ * https://jrfonseca.blogspot.com/2008/09/fast-sse2-pow-tables-or-polynomials.html
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the

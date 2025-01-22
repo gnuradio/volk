@@ -28,7 +28,7 @@ __VOLK_DECL_BEGIN
  * see: https://linux.die.net/man/3/aligned_alloc
  * For MSVC, we fall back to `_aligned_malloc`.
  * see:
- * https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-malloc?view=vs-2019
+ * https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-malloc?view=msvc-170
  *
  * Because of the ways in which volk_malloc may allocate memory, it is
  * important to always free volk_malloc pointers using volk_free.
@@ -51,7 +51,7 @@ VOLK_API void* volk_malloc(size_t size, size_t alignment);
  * see: https://en.cppreference.com/w/c/memory/free
  * In case `_aligned_malloc` was used, we call `_aligned_free`.
  * see:
- * https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-free?view=vs-2019
+ * https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/aligned-free?view=msvc-170
  *
  * \param aptr The aligned pointer allocated by volk_malloc.
  */
