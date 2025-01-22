@@ -19,20 +19,34 @@ jobs:
       matrix:
         compiler:
           - { name: g++-9, cc: gcc-9, cxx: g++-9, distro: ubuntu-20.04 }
+          - { name: g++-9, cc: gcc-9, cxx: g++-9, distro: ubuntu-22.04-arm }
           - { name: g++-10, cc: gcc-10, cxx: g++-10, distro: ubuntu-20.04 }
+          - { name: g++-10, cc: gcc-10, cxx: g++-10, distro: ubuntu-22.04-arm }
           - { name: g++-11, cc: gcc-11, cxx: g++-11, distro: ubuntu-22.04 }
+          - { name: g++-11, cc: gcc-11, cxx: g++-11, distro: ubuntu-22.04-arm }
           - { name: g++-12, cc: gcc-12, cxx: g++-12, distro: ubuntu-22.04 }
+          - { name: g++-12, cc: gcc-12, cxx: g++-12, distro: ubuntu-22.04-arm }
           - { name: g++-13, cc: gcc-13, cxx: g++-13, distro: ubuntu-24.04 }
+          - { name: g++-13, cc: gcc-13, cxx: g++-13, distro: ubuntu-24.04-arm }
           - { name: g++-14, cc: gcc-14, cxx: g++-14, distro: ubuntu-24.04 }
+          - { name: g++-14, cc: gcc-14, cxx: g++-14, distro: ubuntu-24.04-arm }
           - { name: clang-10, cc: clang-10, cxx: clang++-10, distro: ubuntu-20.04 }
           - { name: clang-11, cc: clang-11, cxx: clang++-11, distro: ubuntu-20.04 }
+          - { name: clang-11, cc: clang-11, cxx: clang++-11, distro: ubuntu-22.04-arm }
           - { name: clang-12, cc: clang-12, cxx: clang++-12, distro: ubuntu-22.04 }
+          - { name: clang-12, cc: clang-12, cxx: clang++-12, distro: ubuntu-22.04-arm }
           - { name: clang-13, cc: clang-13, cxx: clang++-13, distro: ubuntu-22.04 }
+          - { name: clang-13, cc: clang-13, cxx: clang++-13, distro: ubuntu-22.04-arm }
           - { name: clang-14, cc: clang-14, cxx: clang++-14, distro: ubuntu-22.04 }
+          - { name: clang-14, cc: clang-14, cxx: clang++-14, distro: ubuntu-22.04-arm }
           - { name: clang-15, cc: clang-15, cxx: clang++-15, distro: ubuntu-22.04 }
+          - { name: clang-15, cc: clang-15, cxx: clang++-15, distro: ubuntu-22.04-arm }
           - { name: clang-16, cc: clang-16, cxx: clang++-16, distro: ubuntu-24.04 }
+          - { name: clang-16, cc: clang-16, cxx: clang++-16, distro: ubuntu-24.04-arm }
           - { name: clang-17, cc: clang-17, cxx: clang++-17, distro: ubuntu-24.04 }
+          - { name: clang-17, cc: clang-17, cxx: clang++-17, distro: ubuntu-24.04-arm }
           - { name: clang-18, cc: clang-18, cxx: clang++-18, distro: ubuntu-24.04 }
+          - { name: clang-18, cc: clang-18, cxx: clang++-18, distro: ubuntu-24.04-arm }
 
     runs-on: ${{ matrix.compiler.distro }}
 
@@ -67,7 +81,7 @@ jobs:
   build-ubuntu-arm:
     # The host should always be linux
     # see: https://github.com/uraimo/run-on-arch-action
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Build on ${{ matrix.distro }} ${{ matrix.arch }} ${{ matrix.compiler.name }}
 
     # Run steps on a matrix of compilers and possibly archs.
@@ -77,25 +91,7 @@ jobs:
         include:
           - arch: aarch64
             distro: ubuntu20.04
-            compiler: { name: g++-9, cc: gcc-9, cxx: g++-9 }
-          - arch: aarch64
-            distro: ubuntu20.04
-            compiler: { name: g++-10, cc: gcc-10, cxx: g++-10 }
-          - arch: aarch64
-            distro: ubuntu22.04
-            compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
-          - arch: aarch64
-            distro: ubuntu20.04
             compiler: { name: clang-9, cc: clang-9, cxx: clang++-9 }
-          - arch: aarch64
-            distro: ubuntu20.04
-            compiler: { name: clang-10, cc: clang-10, cxx: clang++-10 }
-          - arch: aarch64
-            distro: ubuntu22.04
-            compiler: { name: clang-14, cc: clang-14, cxx: clang++-14 }
-          - arch: aarch64
-            distro: ubuntu22.04
-            compiler: { name: clang-15, cc: clang-15, cxx: clang++-15 }
           - arch: armv7
             distro: ubuntu22.04
             compiler: { name: g++, cc: gcc, cxx: g++ }
@@ -106,7 +102,6 @@ jobs:
           - arch: s390x
             distro: ubuntu22.04
             compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
-          # It would be really nice to test on Risc-V but that'll take time.
           - arch: riscv64
             distro: ubuntu22.04
             compiler: { name: g++-12, cc: gcc-12, cxx: g++-12 }
@@ -166,9 +161,8 @@ jobs:
             ctest -V
 
   build-ubuntu-static:
-    name: Build static on ubuntu-latest
-
-    runs-on: ubuntu-latest
+    name: Build static on ubuntu-22.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
