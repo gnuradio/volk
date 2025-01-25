@@ -17,7 +17,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_index_min_32u(uint32_t* target, lv_32fc_t* source, uint32_t
+ * void volk_32fc_index_min_32u(uint32_t* target, const lv_32fc_t* source, uint32_t
  * num_points) \endcode
  *
  * \b Inputs
