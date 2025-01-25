@@ -23,7 +23,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_index_max_16u(uint16_t* target, lv_32fc_t* src0, uint32_t
+ * void volk_32fc_index_max_16u(uint16_t* target, const lv_32fc_t* src0, uint32_t
  * num_points) \endcode
  *
  * \b Inputs
@@ -74,7 +74,7 @@
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_max_16u_a_avx2_variant_0(uint16_t* target,
-                                                            lv_32fc_t* src0,
+                                                            const lv_32fc_t* src0,
                                                             uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
@@ -134,7 +134,7 @@ static inline void volk_32fc_index_max_16u_a_avx2_variant_0(uint16_t* target,
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_max_16u_a_avx2_variant_1(uint16_t* target,
-                                                            lv_32fc_t* src0,
+                                                            const lv_32fc_t* src0,
                                                             uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
@@ -194,7 +194,7 @@ static inline void volk_32fc_index_max_16u_a_avx2_variant_1(uint16_t* target,
 #include <xmmintrin.h>
 
 static inline void
-volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
+volk_32fc_index_max_16u_a_sse3(uint16_t* target, const lv_32fc_t* src0, uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
     const uint32_t num_bytes = num_points * 8;
@@ -309,7 +309,7 @@ volk_32fc_index_max_16u_a_sse3(uint16_t* target, lv_32fc_t* src0, uint32_t num_p
 
 #ifdef LV_HAVE_GENERIC
 static inline void
-volk_32fc_index_max_16u_generic(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
+volk_32fc_index_max_16u_generic(uint16_t* target, const lv_32fc_t* src0, uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
 
@@ -351,7 +351,7 @@ volk_32fc_index_max_16u_generic(uint16_t* target, lv_32fc_t* src0, uint32_t num_
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_max_16u_u_avx2_variant_0(uint16_t* target,
-                                                            lv_32fc_t* src0,
+                                                            const lv_32fc_t* src0,
                                                             uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
@@ -411,7 +411,7 @@ static inline void volk_32fc_index_max_16u_u_avx2_variant_0(uint16_t* target,
 #include <volk/volk_avx2_intrinsics.h>
 
 static inline void volk_32fc_index_max_16u_u_avx2_variant_1(uint16_t* target,
-                                                            lv_32fc_t* src0,
+                                                            const lv_32fc_t* src0,
                                                             uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
@@ -471,7 +471,7 @@ static inline void volk_32fc_index_max_16u_u_avx2_variant_1(uint16_t* target,
 #include <riscv_vector.h>
 
 static inline void
-volk_32fc_index_max_16u_rvv(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
+volk_32fc_index_max_16u_rvv(uint16_t* target, const lv_32fc_t* src0, uint32_t num_points)
 {
     vfloat32m4_t vmax = __riscv_vfmv_v_f_f32m4(0, __riscv_vsetvlmax_e32m4());
     vuint16m2_t vmaxi = __riscv_vmv_v_x_u16m2(0, __riscv_vsetvlmax_e16m2());
@@ -502,7 +502,7 @@ volk_32fc_index_max_16u_rvv(uint16_t* target, lv_32fc_t* src0, uint32_t num_poin
 #include <riscv_vector.h>
 
 static inline void
-volk_32fc_index_max_16u_rvvseg(uint16_t* target, lv_32fc_t* src0, uint32_t num_points)
+volk_32fc_index_max_16u_rvvseg(uint16_t* target, const lv_32fc_t* src0, uint32_t num_points)
 {
     vfloat32m4_t vmax = __riscv_vfmv_v_f_f32m4(0, __riscv_vsetvlmax_e32m4());
     vuint16m2_t vmaxi = __riscv_vmv_v_x_u16m2(0, __riscv_vsetvlmax_e16m2());
