@@ -17,8 +17,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_x2_s32f_square_dist_scalar_mult_32f(float* target, const lv_32fc_t* src0,
- * const lv_32fc_t* points, float scalar, unsigned int num_points) \endcode
+ * void volk_32fc_x2_s32f_square_dist_scalar_mult_32f(float* target, const lv_32fc_t*
+ * src0, const lv_32fc_t* points, float scalar, unsigned int num_points) \endcode
  *
  * \b Inputs
  * \li src0: The complex input. Only the first point is used.
