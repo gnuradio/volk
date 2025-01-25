@@ -181,8 +181,9 @@ static inline void volk_32fc_index_max_32u_a_avx2_variant_1(uint32_t* target,
 #include <pmmintrin.h>
 #include <xmmintrin.h>
 
-static inline void
-volk_32fc_index_max_32u_a_sse3(uint32_t* target, const lv_32fc_t* src0, uint32_t num_points)
+static inline void volk_32fc_index_max_32u_a_sse3(uint32_t* target,
+                                                  const lv_32fc_t* src0,
+                                                  uint32_t num_points)
 {
     const uint32_t num_bytes = num_points * 8;
 
@@ -295,8 +296,9 @@ volk_32fc_index_max_32u_a_sse3(uint32_t* target, const lv_32fc_t* src0, uint32_t
 #endif /*LV_HAVE_SSE3*/
 
 #ifdef LV_HAVE_GENERIC
-static inline void
-volk_32fc_index_max_32u_generic(uint32_t* target, const lv_32fc_t* src0, uint32_t num_points)
+static inline void volk_32fc_index_max_32u_generic(uint32_t* target,
+                                                   const lv_32fc_t* src0,
+                                                   uint32_t num_points)
 {
     const uint32_t num_bytes = num_points * 8;
 
@@ -542,8 +544,9 @@ volk_32fc_index_max_32u_rvv(uint32_t* target, const lv_32fc_t* src0, uint32_t nu
 #include <float.h>
 #include <riscv_vector.h>
 
-static inline void
-volk_32fc_index_max_32u_rvvseg(uint32_t* target, const lv_32fc_t* src0, uint32_t num_points)
+static inline void volk_32fc_index_max_32u_rvvseg(uint32_t* target,
+                                                  const lv_32fc_t* src0,
+                                                  uint32_t num_points)
 {
     vfloat32m4_t vmax = __riscv_vfmv_v_f_f32m4(0, __riscv_vsetvlmax_e32m4());
     vuint32m4_t vmaxi = __riscv_vmv_v_x_u32m4(0, __riscv_vsetvlmax_e32m4());
