@@ -58,7 +58,7 @@ int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
 
     // If we've defined the kernel name as an environment variable, always return
     // the 'overridden' kernel. Used for manually overring config kernels at runtime.
-    char *override_env = getenv(kern_name);
+    char* override_env = getenv(kern_name);
     if (override_env) {
         return volk_get_index(impl_names, n_impls, override_env);
     }
