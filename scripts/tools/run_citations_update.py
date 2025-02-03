@@ -34,6 +34,7 @@ def parse_contributors(contributors):
 
 name_aliases = {
     'alesha72003': "Alexey Slokva",
+    'Camel Coder': 'Olaf Bernstein',
     'dernasherbrezon': "Andrey Rodionov",
     'Doug': "Douglas Geiger",
     'Doug Geiger': "Douglas Geiger",
@@ -50,6 +51,7 @@ name_aliases = {
     'namccart': "Nicholas McCarthy",
     'hcab14': "Christoph Mayer",
     'cmayer': "Christoph Mayer",
+    'Rick Farina (Zero_Chaos)': 'Rick Farina',
     'root': "Philip Balister",
     'jsallay': "John Sallay"}
 
