@@ -17,8 +17,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_x2_s32f_square_dist_scalar_mult_32f(float* target, lv_32fc_t* src0,
- * lv_32fc_t* points, float scalar, unsigned int num_points) \endcode
+ * void volk_32fc_x2_s32f_square_dist_scalar_mult_32f(float* target, const lv_32fc_t*
+ * src0, const lv_32fc_t* points, float scalar, unsigned int num_points) \endcode
  *
  * \b Inputs
  * \li src0: The complex input. Only the first point is used.
@@ -94,8 +94,8 @@ static inline void calculate_scaled_distances(float* target,
 
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target,
-                                                     lv_32fc_t* src0,
-                                                     lv_32fc_t* points,
+                                                     const lv_32fc_t* src0,
+                                                     const lv_32fc_t* points,
                                                      float scalar,
                                                      unsigned int num_points)
 {
@@ -178,8 +178,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target,
 
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(float* target,
-                                                    lv_32fc_t* src0,
-                                                    lv_32fc_t* points,
+                                                    const lv_32fc_t* src0,
+                                                    const lv_32fc_t* points,
                                                     float scalar,
                                                     unsigned int num_points)
 {
@@ -219,8 +219,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(float* target,
 
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target,
-                                                     lv_32fc_t* src0,
-                                                     lv_32fc_t* points,
+                                                     const lv_32fc_t* src0,
+                                                     const lv_32fc_t* points,
                                                      float scalar,
                                                      unsigned int num_points)
 {
@@ -278,8 +278,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target,
 #include <xmmintrin.h>
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse(float* target,
-                                                    lv_32fc_t* src0,
-                                                    lv_32fc_t* points,
+                                                    const lv_32fc_t* src0,
+                                                    const lv_32fc_t* points,
                                                     float scalar,
                                                     unsigned int num_points)
 {
@@ -303,8 +303,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse(float* target,
 #ifdef LV_HAVE_GENERIC
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target,
-                                                      lv_32fc_t* src0,
-                                                      lv_32fc_t* points,
+                                                      const lv_32fc_t* src0,
+                                                      const lv_32fc_t* points,
                                                       float scalar,
                                                       unsigned int num_points)
 {
@@ -329,8 +329,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target,
 
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target,
-                                                     lv_32fc_t* src0,
-                                                     lv_32fc_t* points,
+                                                     const lv_32fc_t* src0,
+                                                     const lv_32fc_t* points,
                                                      float scalar,
                                                      unsigned int num_points)
 {
@@ -413,8 +413,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target,
 
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx(float* target,
-                                                    lv_32fc_t* src0,
-                                                    lv_32fc_t* points,
+                                                    const lv_32fc_t* src0,
+                                                    const lv_32fc_t* points,
                                                     float scalar,
                                                     unsigned int num_points)
 {
@@ -454,8 +454,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx(float* target,
 
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse3(float* target,
-                                                     lv_32fc_t* src0,
-                                                     lv_32fc_t* points,
+                                                     const lv_32fc_t* src0,
+                                                     const lv_32fc_t* points,
                                                      float scalar,
                                                      unsigned int num_points)
 {
@@ -513,8 +513,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse3(float* target,
 #include <xmmintrin.h>
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse(float* target,
-                                                    lv_32fc_t* src0,
-                                                    lv_32fc_t* points,
+                                                    const lv_32fc_t* src0,
+                                                    const lv_32fc_t* points,
                                                     float scalar,
                                                     unsigned int num_points)
 {
@@ -540,8 +540,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse(float* target,
 
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_rvv(float* target,
-                                                  lv_32fc_t* src0,
-                                                  lv_32fc_t* points,
+                                                  const lv_32fc_t* src0,
+                                                  const lv_32fc_t* points,
                                                   float scalar,
                                                   unsigned int num_points)
 {
@@ -569,8 +569,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_rvv(float* target,
 
 static inline void
 volk_32fc_x2_s32f_square_dist_scalar_mult_32f_rvvseg(float* target,
-                                                     lv_32fc_t* src0,
-                                                     lv_32fc_t* points,
+                                                     const lv_32fc_t* src0,
+                                                     const lv_32fc_t* points,
                                                      float scalar,
                                                      unsigned int num_points)
 {
