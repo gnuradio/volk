@@ -236,7 +236,7 @@ static inline void volk_32fc_convert_16ic_neonv8(lv_16sc_t* outputVector,
     const float32x4_t max_val = vmovq_n_f32(max_val_f);
     float32x4_t ret1, ret2, a, b;
 
-    int32x4_t toint_a = { 0, 0, 0, 0 }, toint_b = { 0, 0, 0, 0 };
+    int32x4_t toint_a = { 0 }, toint_b = { 0 };
     int16x4_t intInputVal1, intInputVal2;
     int16x8_t res;
 
