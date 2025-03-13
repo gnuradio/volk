@@ -237,19 +237,23 @@ check_c_source_compiles(
 
 if(neon_compile_result)
     set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}/include)
+    if(MSVC)
+        if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM")
+            overrule_arch(neonv8 "Compiler doesn't support neonv8")
+        endif()
+    else(MSVC)
+        check_c_source_compiles(
+            "#include <volk/volk_common.h>\n int main(){__VOLK_ASM(\"sub v1.4s,v1.4s,v1.4s\");}"
+            have_neonv8_result)
+        if(NOT have_neonv8_result)
+            overrule_arch(neonv8 "Compiler doesn't support neonv8")
+        endif()
+    endif(MSVC)
     check_c_source_compiles(
         "#include <volk/volk_common.h>\n int main(){__VOLK_ASM(\"vrev32.8 q0, q0\");}"
         have_neonv7_result)
-    check_c_source_compiles(
-        "#include <volk/volk_common.h>\n int main(){__VOLK_ASM(\"sub v1.4s,v1.4s,v1.4s\");}"
-        have_neonv8_result)
-
     if(NOT have_neonv7_result)
         overrule_arch(neonv7 "Compiler doesn't support neonv7")
-    endif()
-
-    if(NOT have_neonv8_result)
-        overrule_arch(neonv8 "Compiler doesn't support neonv8")
     endif()
 else(neon_compile_result)
     overrule_arch(neon "Compiler doesn't support NEON")

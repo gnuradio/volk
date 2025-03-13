@@ -262,7 +262,9 @@ volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_
     const uint32_t* in_ptr = in;
     uint32_t* out_ptr = out;
 
-    const uint8x16_t idx = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
+    uint8x16_t idx;
+    const uint8_t idx_data[] = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
+    idx = vld1q_u8(idx_data);
 
     const unsigned int quarterPoints = num_points / 4;
     unsigned int number = 0;
@@ -290,8 +292,15 @@ volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-
-#if defined(__aarch64__)
+#ifdef _MSC_VER
+#define DO_RBIT                                                                 \
+    *out_ptr = _byteswap_ulong(*in_ptr);                                        \
+    *out_ptr = ((*out_ptr & 0x55555555) << 1) | ((*out_ptr & 0xAAAAAAAA) >> 1); \
+    *out_ptr = ((*out_ptr & 0x33333333) << 2) | ((*out_ptr & 0xCCCCCCCC) >> 2); \
+    *out_ptr = ((*out_ptr & 0x0F0F0F0F) << 4) | ((*out_ptr & 0xF0F0F0F0) >> 4); \
+    in_ptr++;                                                                   \
+    out_ptr++;
+#elif defined(__aarch64__)
 #define DO_RBIT                             \
     __VOLK_ASM("rbit %w[result], %w[value]" \
                : [result] "=r"(*out_ptr)    \

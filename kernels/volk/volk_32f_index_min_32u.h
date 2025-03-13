@@ -284,7 +284,11 @@ volk_32f_index_min_32u_neon(uint32_t* target, const float* source, uint32_t num_
         if (minValuesBuffer[number] < min) {
             index = minIndexesBuffer[number];
             min = minValuesBuffer[number];
+#ifdef _MSC_VER
+        } else if (minValues.n128_f32[number] == min) {
+#else
         } else if (minValues[number] == min) {
+#endif
             if (index > minIndexesBuffer[number])
                 index = minIndexesBuffer[number];
         }
