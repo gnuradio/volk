@@ -180,12 +180,6 @@ if(NOT MAKO_FOUND)
     message(FATAL_ERROR "Mako templates required to build VOLK")
 endif()
 
-# Check if we have std::filesystem
-find_package(
-    FILESYSTEM
-    COMPONENTS Final Experimental
-    REQUIRED)
-
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
