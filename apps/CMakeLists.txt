@@ -21,6 +21,7 @@ add_executable(
     volk_profile
     ${CMAKE_CURRENT_SOURCE_DIR}/volk_profile.cc ${PROJECT_SOURCE_DIR}/lib/qa_utils.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc)
+target_compile_features(volk_profile PUBLIC cxx_std_17)
 
 if(MSVC)
     target_include_directories(
@@ -57,6 +58,7 @@ install(
 # MAKE volk-config-info
 add_executable(volk-config-info volk-config-info.cc
                                 ${CMAKE_CURRENT_SOURCE_DIR}/volk_option_helpers.cc)
+target_compile_features(volk-config-info PUBLIC cxx_std_17)
 
 if(ENABLE_STATIC_LIBS)
     target_link_libraries(volk-config-info volk_static)
