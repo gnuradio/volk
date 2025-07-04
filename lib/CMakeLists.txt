@@ -564,6 +564,7 @@ if(VOLK_CPU_FEATURES)
         PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>
     )
 endif()
+target_compile_features(volk_obj PUBLIC c_std_17)
 
 #Configure object target properties
 if(NOT MSVC)

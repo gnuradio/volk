@@ -11,7 +11,7 @@
 # Project setup
 ########################################################################
 # We use `IS_64BIT now: https://cmake.org/cmake/help/latest/command/cmake_host_system_information.html
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_BUILD_TYPE
     ${CMAKE_BUILD_TYPE}
@@ -20,9 +20,6 @@ project(volk)
 
 enable_language(CXX)
 enable_language(C)
-
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
 
 enable_testing()
 
@@ -35,12 +32,22 @@ include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-fcx-limited-range HAVE_CX_LIMITED_RANGE)
 if(HAVE_CX_LIMITED_RANGE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcx-limited-range")
+    check_cxx_compiler_flag(-Wno-unused-command-line-argument
+                            HAVE_WNO_UNUSED_CMD_LINE_ARG)
+    if(HAVE_WNO_UNUSED_CMD_LINE_ARG)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-command-line-argument")
+    endif(HAVE_WNO_UNUSED_CMD_LINE_ARG)
 endif(HAVE_CX_LIMITED_RANGE)
 
 include(CheckCCompilerFlag)
 check_c_compiler_flag(-fcx-limited-range HAVE_C_LIMITED_RANGE)
 if(HAVE_C_LIMITED_RANGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcx-limited-range")
+    check_cxx_compiler_flag(-Wno-unused-command-line-argument
+                            HAVE_WNO_UNUSED_CMD_LINE_ARG)
+    if(HAVE_WNO_UNUSED_CMD_LINE_ARG)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-command-line-argument")
+    endif(HAVE_WNO_UNUSED_CMD_LINE_ARG)
 endif(HAVE_C_LIMITED_RANGE)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
