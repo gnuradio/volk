@@ -37,12 +37,6 @@ target_include_directories(
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_definitions(-DHAS_STD_FILESYSTEM=1)
-if(${find_experimental})
-    add_definitions(-DHAS_STD_FILESYSTEM_EXPERIMENTAL=1)
-endif()
-target_link_libraries(volk_profile PRIVATE std::filesystem)
-
 if(ENABLE_STATIC_LIBS)
     target_link_libraries(volk_profile PRIVATE volk_static)
     set_target_properties(volk_profile PROPERTIES LINK_FLAGS "-static")
