@@ -69,7 +69,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 endif()
 
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules
-)#location for custom "Modules"
+) #location for custom "Modules"
 
 include(VolkBuildTypes)
 #select the release build type by default to get optimization flags
@@ -114,7 +114,7 @@ set(CROSSCOMPILE_MULTILIB
 
 if(MSVC)
     add_definitions(-D_USE_MATH_DEFINES
-    )#enables math constants on all supported versions of MSVC
+    ) #enables math constants on all supported versions of MSVC
     add_compile_options(/W1) #reduce warnings
     add_compile_options(/wo4309)
     add_compile_options(/wd4752)
@@ -155,11 +155,20 @@ if(VOLK_CPU_FEATURES)
         set(CMAKE_POSITION_INDEPENDENT_CODE
             ON
             CACHE BOOL "Build cpu_features with Position Independent Code (PIC)." FORCE)
+        include(CheckCCompilerFlag)
+        set(CMAKE_C_FLAGS_SAVED "${CMAKE_C_FLAGS}")
+        check_c_compiler_flag(-Wno-unused-function HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
+        if(HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
+        endif(HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
+
+        set(BUILD_SHARED_LIBS OFF)
         set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
         set(BUILD_SHARED_LIBS OFF)
         set(ENABLE_INSTALL OFF)
         add_subdirectory(cpu_features)
         set(BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS_SAVED}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_SAVED}")
     endif()
 else()
     message(STATUS "Building Volk without cpu_features")
