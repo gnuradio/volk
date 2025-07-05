@@ -93,11 +93,8 @@ execute_process(
     OUTPUT_VARIABLE arch_flag_lines
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-try_compile(
-    HAVE_RVV_INTRINSICS
-    ${CMAKE_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}/cmake/Checks/check-rvv-intrinsics.c
-)
+try_compile(HAVE_RVV_INTRINSICS ${CMAKE_BINARY_DIR}
+            ${CMAKE_SOURCE_DIR}/cmake/Checks/check-rvv-intrinsics.c)
 if(HAVE_RVV_INTRINSICS)
     message(STATUS "Checking RVV intrinsics - found")
 else()
@@ -570,6 +567,18 @@ target_compile_features(volk_obj PUBLIC c_std_17)
 if(NOT MSVC)
     set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
 endif()
+
+# Disable complex math NaN/INFO range checking for performance
+include(CheckCCompilerFlag)
+check_c_compiler_flag(-fcx-limited-range HAVE_C_LIMITED_RANGE)
+if(HAVE_C_LIMITED_RANGE)
+    set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fcx-limited-range")
+    check_c_compiler_flag(-Wno-unused-command-line-argument HAVE_WNO_UNUSED_CMD_LINE_ARG)
+    if(HAVE_WNO_UNUSED_CMD_LINE_ARG)
+        set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS
+                                                  "-Wno-unused-command-line-argument")
+    endif(HAVE_WNO_UNUSED_CMD_LINE_ARG)
+endif(HAVE_C_LIMITED_RANGE)
 
 #Add dynamic library
 #
