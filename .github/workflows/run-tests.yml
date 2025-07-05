@@ -51,7 +51,7 @@ jobs:
         env:
           CC: ${{ matrix.compiler.cc }}
           CXX: ${{ matrix.compiler.cxx }}
-        run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
+        run: mkdir build && cd build && cmake -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
       - name: Build
         run: |
           echo "Build with $(nproc) thread(s)"
@@ -135,7 +135,7 @@ jobs:
           run: |
             cd /volk
             cd build
-            cmake -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ${{ matrix.cmakeargs }} ..
+            cmake -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ${{ matrix.cmakeargs }} ..
             echo "Build with $(nproc) thread(s)"
             make -j$(nproc)
             if [ -f ./cpu_features/list_cpu_features ]; then
@@ -159,7 +159,7 @@ jobs:
       - name: dependencies
         run: sudo apt install python3-mako liborc-dev libgtest-dev libfmt-dev
       - name: configure
-        run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True -DBUILD_EXECUTABLE=ON ..
+        run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
       - name: build
         run: cmake --build build -j$(nproc)
       - name: Print info
@@ -236,7 +236,7 @@ jobs:
       - name: dependencies
         run: pip3 install --break-system-packages mako && brew install orc
       - name: configure
-        run: mkdir build && cd build && cmake -DBUILD_EXECUTABLE=ON ..
+        run: mkdir build && cd build && cmake -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
       - name: build
         run: cmake --build build --config Debug -j4
       - name: Print info
