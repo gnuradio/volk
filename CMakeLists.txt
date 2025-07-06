@@ -138,7 +138,7 @@ if(VOLK_CPU_FEATURES)
         set(CMAKE_C_FLAGS_SAVED "${CMAKE_C_FLAGS}")
         check_c_compiler_flag(-Wno-unused-function HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
         if(HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function -Wno-unused-variable")
         endif(HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
 
         set(BUILD_SHARED_LIBS OFF)
