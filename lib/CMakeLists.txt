@@ -228,18 +228,17 @@ endif(NOT CPU_IS_x86)
 
 include(CheckCSourceCompiles)
 
-check_c_source_compiles(
-    "#include <arm_neon.h>\nint main(){ uint8_t *dest; uint8x8_t res; vst1_u8(dest, res); }"
-    neon_compile_result)
+set(CMAKE_C_FLAGS_SAVED "${CMAKE_C_FLAGS}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-uninitialized")
+check_c_source_compiles("#include <arm_neon.h>
+int main(){ uint8_t *dest; uint8x8_t res; vst1_u8(dest, res); }" neon_compile_result)
 
 if(neon_compile_result)
     set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}/include)
-    check_c_source_compiles(
-        "#include <volk/volk_common.h>\n int main(){__VOLK_ASM(\"vrev32.8 q0, q0\");}"
-        have_neonv7_result)
-    check_c_source_compiles(
-        "#include <volk/volk_common.h>\n int main(){__VOLK_ASM(\"sub v1.4s,v1.4s,v1.4s\");}"
-        have_neonv8_result)
+    check_c_source_compiles("#include <volk/volk_common.h>
+        int main(){__VOLK_ASM(\"vrev32.8 q0, q0\");}" have_neonv7_result)
+    check_c_source_compiles("#include <volk/volk_common.h>
+        int main(){__VOLK_ASM(\"sub v1.4s,v1.4s,v1.4s\");}" have_neonv8_result)
 
     if(NOT have_neonv7_result)
         overrule_arch(neonv7 "Compiler doesn't support neonv7")
@@ -253,7 +252,7 @@ else(neon_compile_result)
     overrule_arch(neonv7 "Compiler doesn't support NEON")
     overrule_arch(neonv8 "Compiler doesn't support NEON")
 endif(neon_compile_result)
-
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_SAVED}")
 ########################################################################
 # implement overruling in the ORC case,
 # since ORC always passes flag detection
