@@ -41,7 +41,6 @@
 #define INCLUDED_volk_16u_byteswap_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
 
 #ifdef LV_HAVE_GENERIC
 
@@ -63,8 +62,6 @@ static inline void volk_16u_byteswap_generic(uint16_t* intsToSwap,
 #include <immintrin.h>
 static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int num_points)
 {
-    unsigned int number;
-
     const unsigned int nPerSet = 16;
     const uint64_t nSets = num_points / nPerSet;
 
@@ -76,7 +73,7 @@ static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int n
 
     const __m256i myShuffle = _mm256_loadu_si256((__m256i*)&shuffleVector[0]);
 
-    for (number = 0; number < nSets; number++) {
+    for (unsigned int number = 0; number < nSets; number++) {
         // Load the 32t values, increment inputPtr later since we're doing it in-place.
         const __m256i input = _mm256_load_si256((__m256i*)inputPtr);
         const __m256i output = _mm256_shuffle_epi8(input, myShuffle);
@@ -87,7 +84,7 @@ static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int n
     }
 
     // Byteswap any remaining points:
-    for (number = nPerSet * nSets; number < num_points; number++) {
+    for (unsigned int number = nPerSet * nSets; number < num_points; number++) {
         uint16_t outputVal = *inputPtr;
         outputVal = (((outputVal >> 8) & 0xff) | ((outputVal << 8) & 0xff00));
         *inputPtr = outputVal;
@@ -101,8 +98,6 @@ static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int n
 #include <immintrin.h>
 static inline void volk_16u_byteswap_u_avx2(uint16_t* intsToSwap, unsigned int num_points)
 {
-    unsigned int number;
-
     const unsigned int nPerSet = 16;
     const uint64_t nSets = num_points / nPerSet;
 
@@ -114,7 +109,7 @@ static inline void volk_16u_byteswap_u_avx2(uint16_t* intsToSwap, unsigned int n
 
     const __m256i myShuffle = _mm256_loadu_si256((__m256i*)&shuffleVector[0]);
 
-    for (number = 0; number < nSets; number++) {
+    for (unsigned int number = 0; number < nSets; number++) {
         // Load the 32t values, increment inputPtr later since we're doing it in-place.
         const __m256i input = _mm256_loadu_si256((__m256i*)inputPtr);
         const __m256i output = _mm256_shuffle_epi8(input, myShuffle);
@@ -125,7 +120,7 @@ static inline void volk_16u_byteswap_u_avx2(uint16_t* intsToSwap, unsigned int n
     }
 
     // Byteswap any remaining points:
-    for (number = nPerSet * nSets; number < num_points; number++) {
+    for (unsigned int number = nPerSet * nSets; number < num_points; number++) {
         uint16_t outputVal = *inputPtr;
         outputVal = (((outputVal >> 8) & 0xff) | ((outputVal << 8) & 0xff00));
         *inputPtr = outputVal;
@@ -140,12 +135,11 @@ static inline void volk_16u_byteswap_u_avx2(uint16_t* intsToSwap, unsigned int n
 
 static inline void volk_16u_byteswap_u_sse2(uint16_t* intsToSwap, unsigned int num_points)
 {
-    unsigned int number = 0;
     uint16_t* inputPtr = intsToSwap;
     __m128i input, left, right, output;
 
     const unsigned int eighthPoints = num_points / 8;
-    for (; number < eighthPoints; number++) {
+    for (unsigned int number = 0; number < eighthPoints; number++) {
         // Load the 16t values, increment inputPtr later since we're doing it in-place.
         input = _mm_loadu_si128((__m128i*)inputPtr);
         // Do the two shifts
@@ -159,8 +153,7 @@ static inline void volk_16u_byteswap_u_sse2(uint16_t* intsToSwap, unsigned int n
     }
 
     // Byteswap any remaining points:
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
         uint16_t outputVal = *inputPtr;
         outputVal = (((outputVal >> 8) & 0xff) | ((outputVal << 8) & 0xff00));
         *inputPtr = outputVal;
@@ -175,7 +168,6 @@ static inline void volk_16u_byteswap_u_sse2(uint16_t* intsToSwap, unsigned int n
 #define INCLUDED_volk_16u_byteswap_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
@@ -209,12 +201,12 @@ static inline void volk_16u_byteswap_a_sse2(uint16_t* intsToSwap, unsigned int n
 
 static inline void volk_16u_byteswap_neon(uint16_t* intsToSwap, unsigned int num_points)
 {
-    unsigned int number;
     unsigned int eighth_points = num_points / 8;
-    uint16x8_t input, output;
+    uint16x8_t input;
+    uint16x8_t output = { 0, 0, 0, 0, 0, 0, 0, 0 };
     uint16_t* inputPtr = intsToSwap;
 
-    for (number = 0; number < eighth_points; number++) {
+    for (unsigned int number = 0; number < eighth_points; number++) {
         input = vld1q_u16(inputPtr);
         output = vsriq_n_u16(output, input, 8);
         output = vsliq_n_u16(output, input, 8);
@@ -233,7 +225,6 @@ static inline void volk_16u_byteswap_neon_table(uint16_t* intsToSwap,
                                                 unsigned int num_points)
 {
     uint16_t* inputPtr = intsToSwap;
-    unsigned int number = 0;
     unsigned int n16points = num_points / 16;
 
     uint8x8x4_t input_table;
@@ -253,7 +244,7 @@ static inline void volk_16u_byteswap_neon_table(uint16_t* intsToSwap,
     int_lookup45 = vcreate_u8(1521377802851189772);
     int_lookup67 = vcreate_u8(1666058148527343118);
 
-    for (number = 0; number < n16points; ++number) {
+    for (unsigned int number = 0; number < n16points; ++number) {
         input_table = vld4_u8((uint8_t*)inputPtr);
         swapped_int01 = vtbl4_u8(input_table, int_lookup01);
         swapped_int23 = vtbl4_u8(input_table, int_lookup23);
