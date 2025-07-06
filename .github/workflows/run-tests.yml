@@ -58,7 +58,9 @@ jobs:
           cmake --build build -j$(nproc)
       - name: Print info
         run: |
-          ./build/cpu_features/list_cpu_features
+          if [ -f ./build/cpu_features/list_cpu_features ]; then
+            ./build/cpu_features/list_cpu_features
+          fi
           ./build/apps/volk-config-info --alignment
           ./build/apps/volk-config-info --avail-machines
           ./build/apps/volk-config-info --all-machines
