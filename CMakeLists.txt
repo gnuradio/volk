@@ -11,7 +11,7 @@
 # Project setup
 ########################################################################
 # We use `IS_64BIT now: https://cmake.org/cmake/help/latest/command/cmake_host_system_information.html
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_BUILD_TYPE
     ${CMAKE_BUILD_TYPE}
@@ -21,9 +21,6 @@ project(volk)
 enable_language(CXX)
 enable_language(C)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
-
 enable_testing()
 
 ########################################################################
@@ -31,17 +28,6 @@ enable_testing()
 ########################################################################
 
 # Disable complex math NaN/INFO range checking for performance
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-fcx-limited-range HAVE_CX_LIMITED_RANGE)
-if(HAVE_CX_LIMITED_RANGE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcx-limited-range")
-endif(HAVE_CX_LIMITED_RANGE)
-
-include(CheckCCompilerFlag)
-check_c_compiler_flag(-fcx-limited-range HAVE_C_LIMITED_RANGE)
-if(HAVE_C_LIMITED_RANGE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcx-limited-range")
-endif(HAVE_C_LIMITED_RANGE)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
@@ -148,11 +134,21 @@ if(VOLK_CPU_FEATURES)
         set(CMAKE_POSITION_INDEPENDENT_CODE
             ON
             CACHE BOOL "Build cpu_features with Position Independent Code (PIC)." FORCE)
+        include(CheckCCompilerFlag)
+        set(CMAKE_C_FLAGS_SAVED "${CMAKE_C_FLAGS}")
+        check_c_compiler_flag(-Wno-unused-function HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
+        if(HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
+            set(CMAKE_C_FLAGS
+                "${CMAKE_C_FLAGS} -Wno-unused-function -Wno-unused-variable")
+        endif(HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
+
+        set(BUILD_SHARED_LIBS OFF)
         set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
         set(BUILD_SHARED_LIBS OFF)
         set(ENABLE_INSTALL OFF)
         add_subdirectory(cpu_features)
         set(BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS_SAVED}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_SAVED}")
     endif()
 else()
     message(STATUS "Building Volk without cpu_features")
@@ -172,12 +168,6 @@ endif()
 if(NOT MAKO_FOUND)
     message(FATAL_ERROR "Mako templates required to build VOLK")
 endif()
-
-# Check if we have std::filesystem
-find_package(
-    FILESYSTEM
-    COMPONENTS Final Experimental
-    REQUIRED)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

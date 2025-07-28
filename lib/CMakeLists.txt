@@ -93,11 +93,8 @@ execute_process(
     OUTPUT_VARIABLE arch_flag_lines
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-try_compile(
-    HAVE_RVV_INTRINSICS
-    ${CMAKE_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}/cmake/Checks/check-rvv-intrinsics.c
-)
+try_compile(HAVE_RVV_INTRINSICS ${CMAKE_BINARY_DIR}
+            ${CMAKE_SOURCE_DIR}/cmake/Checks/check-rvv-intrinsics.c)
 if(HAVE_RVV_INTRINSICS)
     message(STATUS "Checking RVV intrinsics - found")
 else()
@@ -231,18 +228,17 @@ endif(NOT CPU_IS_x86)
 
 include(CheckCSourceCompiles)
 
-check_c_source_compiles(
-    "#include <arm_neon.h>\nint main(){ uint8_t *dest; uint8x8_t res; vst1_u8(dest, res); }"
-    neon_compile_result)
+set(CMAKE_C_FLAGS_SAVED "${CMAKE_C_FLAGS}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-uninitialized")
+check_c_source_compiles("#include <arm_neon.h>
+int main(){ uint8_t *dest; uint8x8_t res; vst1_u8(dest, res); }" neon_compile_result)
 
 if(neon_compile_result)
     set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}/include)
-    check_c_source_compiles(
-        "#include <volk/volk_common.h>\n int main(){__VOLK_ASM(\"vrev32.8 q0, q0\");}"
-        have_neonv7_result)
-    check_c_source_compiles(
-        "#include <volk/volk_common.h>\n int main(){__VOLK_ASM(\"sub v1.4s,v1.4s,v1.4s\");}"
-        have_neonv8_result)
+    check_c_source_compiles("#include <volk/volk_common.h>
+        int main(){__VOLK_ASM(\"vrev32.8 q0, q0\");}" have_neonv7_result)
+    check_c_source_compiles("#include <volk/volk_common.h>
+        int main(){__VOLK_ASM(\"sub v1.4s,v1.4s,v1.4s\");}" have_neonv8_result)
 
     if(NOT have_neonv7_result)
         overrule_arch(neonv7 "Compiler doesn't support neonv7")
@@ -256,7 +252,7 @@ else(neon_compile_result)
     overrule_arch(neonv7 "Compiler doesn't support NEON")
     overrule_arch(neonv8 "Compiler doesn't support NEON")
 endif(neon_compile_result)
-
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_SAVED}")
 ########################################################################
 # implement overruling in the ORC case,
 # since ORC always passes flag detection
@@ -564,11 +560,24 @@ if(VOLK_CPU_FEATURES)
         PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>
     )
 endif()
+target_compile_features(volk_obj PUBLIC c_std_17)
 
 #Configure object target properties
 if(NOT MSVC)
     set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
 endif()
+
+# Disable complex math NaN/INFO range checking for performance
+include(CheckCCompilerFlag)
+check_c_compiler_flag(-fcx-limited-range HAVE_C_LIMITED_RANGE)
+if(HAVE_C_LIMITED_RANGE)
+    set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fcx-limited-range")
+    check_c_compiler_flag(-Wno-unused-command-line-argument HAVE_WNO_UNUSED_CMD_LINE_ARG)
+    if(HAVE_WNO_UNUSED_CMD_LINE_ARG)
+        set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS
+                                                  "-Wno-unused-command-line-argument")
+    endif(HAVE_WNO_UNUSED_CMD_LINE_ARG)
+endif(HAVE_C_LIMITED_RANGE)
 
 #Add dynamic library
 #
