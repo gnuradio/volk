@@ -1,0 +1,69 @@
+#!/bin/env python3
+# Copyright 2022, 2025 Marcus Müller
+# SPDX-License-Identifier: GPL-3.0
+# Takes in a list of volk profiles, ignores empty and identical lines, prints a table of differences.
+# Hacky as hell
+
+from sys import argv
+
+
+def keepline(line: str) -> bool:
+    if not line:
+        return False
+    line = line.strip()
+    if line.startswith("#"):
+        return False
+    return True
+
+
+def kernel(line: str) -> str:
+    return line.split(" ")[0]
+
+
+def impls(line: str) -> tuple[str, str]:
+    return tuple(line.strip().split(" ")[1:])
+
+
+machines = [
+    {kernel(line): impls(line) for line in open(f_name) if keepline(line)}
+    for f_name in argv[1:]
+]
+kernels = [set(d.keys()) for d in machines]
+common_kernels = [
+    kernel for kernel in kernels[0] if all((kernel in ks for ks in kernels[1:]))
+]
+
+differing_kernels = dict()
+for kernel in common_kernels:
+    first_impl = machines[0][kernel]
+    if all(machine[kernel] == first_impl for machine in machines[1:]):
+        continue
+    differing_kernels[kernel] = {
+        argv[idx + 1]: machine[kernel] for idx, machine in enumerate(machines)
+    }
+
+max_kernel_len = max(len(kernel) for kernel in common_kernels)
+max_impl_len = max(
+    max(max(len(alignment) for alignment in impl) for impl in kernel.values())
+    for kernel in differing_kernels.values()
+)
+
+print(
+    f"|{'Kernel':<{max_kernel_len}}|"
+    + "|".join(
+        f"{fname + ' a':<{max_impl_len}}|{fname + ' u':<{max_impl_len}}"
+        for fname in argv[1:]
+    )
+    + "|"
+)
+for kernel, impls in differing_kernels.items():
+    print(
+        f"|{kernel:<{max_kernel_len}}|"
+        + "|".join(
+            "|".join(
+                f"{impl:<{max_impl_len}}" for impl in differing_kernels[kernel][fname]
+            )
+            for fname in argv[1:]
+        )
+        + "|"
+    )
