@@ -26,6 +26,8 @@ jobs:
           - { name: g++-13, cc: gcc-13, cxx: g++-13, distro: ubuntu-24.04-arm }
           - { name: g++-14, cc: gcc-14, cxx: g++-14, distro: ubuntu-24.04 }
           - { name: g++-14, cc: gcc-14, cxx: g++-14, distro: ubuntu-24.04-arm }
+          - { name: g++-15, cc: gcc-15, cxx: g++-15, distro: ubuntu-24.04 }
+          - { name: g++-15, cc: gcc-15, cxx: g++-15, distro: ubuntu-24.04-arm }
           - { name: clang-14, cc: clang-14, cxx: clang++-14, distro: ubuntu-22.04 }
           # - { name: clang-14, cc: clang-14, cxx: clang++-14, distro: ubuntu-22.04-arm } # possibly broken runner: https://github.com/actions/runner-images/issues/8659
           - { name: clang-15, cc: clang-15, cxx: clang++-15, distro: ubuntu-22.04 }
