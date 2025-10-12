@@ -563,9 +563,7 @@ endif()
 target_compile_features(volk_obj PUBLIC c_std_17)
 
 #Configure object target properties
-if(NOT MSVC)
-    set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
-endif()
+set_target_properties(volk_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Disable complex math NaN/INFO range checking for performance
 include(CheckCCompilerFlag)

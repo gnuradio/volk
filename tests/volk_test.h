@@ -70,9 +70,83 @@ template <class T>
         auto actual_real = ::testing::internal::FloatingPoint(actual[index].real());
         auto actual_imag = ::testing::internal::FloatingPoint(actual[index].imag());
         if (not expected_real.AlmostEquals(actual_real) or
-            not expected_imag.AlmostEquals(actual_imag))
+            not expected_imag.AlmostEquals(actual_imag)) {
+            if (errorsFound == 0) {
+                result << "Differences found:";
+            }
+            if (errorsFound < 3) {
+                result << separator << expected[index] << " != " << actual[index] << " @ "
+                       << index;
+                separator = ",\n";
+            }
+            errorsFound++;
+        }
+    }
+    if (errorsFound > 0) {
+        result << separator << errorsFound << " differences in total";
+        return result;
+    }
+    return ::testing::AssertionSuccess();
+}
 
-        {
+template <class T>
+::testing::AssertionResult AreComplexFloatingPointArraysEqualWithAbsoluteError(
+    const T& expected, const T& actual, const float absolute_error = 1.0e-7)
+{
+    ::testing::AssertionResult result = ::testing::AssertionFailure();
+    if (expected.size() != actual.size()) {
+        return result << "expected result size=" << expected.size()
+                      << " differs from actual size=" << actual.size();
+    }
+    const unsigned long length = expected.size();
+
+    int errorsFound = 0;
+    const char* separator = " ";
+    for (unsigned long index = 0; index < length; index++) {
+        auto expected_real = ::testing::internal::FloatingPoint(expected[index].real());
+        auto expected_imag = ::testing::internal::FloatingPoint(expected[index].imag());
+        auto actual_real = ::testing::internal::FloatingPoint(actual[index].real());
+        auto actual_imag = ::testing::internal::FloatingPoint(actual[index].imag());
+        if (expected_real.is_nan() or actual_real.is_nan() or expected_imag.is_nan() or
+            actual_imag.is_nan() or
+            std::abs(expected[index].real() - actual[index].real()) > absolute_error or
+            std::abs(expected[index].imag() - actual[index].imag()) > absolute_error) {
+            if (errorsFound == 0) {
+                result << "Differences found:";
+            }
+            if (errorsFound < 3) {
+                result << separator << expected[index] << " != " << actual[index] << " @ "
+                       << index;
+                separator = ",\n";
+            }
+            errorsFound++;
+        }
+    }
+    if (errorsFound > 0) {
+        result << separator << errorsFound << " differences in total";
+        return result;
+    }
+    return ::testing::AssertionSuccess();
+}
+
+template <class T>
+::testing::AssertionResult AreFloatingPointArraysEqualWithAbsoluteError(
+    const T& expected, const T& actual, const float absolute_error = 1.0e-7)
+{
+    ::testing::AssertionResult result = ::testing::AssertionFailure();
+    if (expected.size() != actual.size()) {
+        return result << "expected result size=" << expected.size()
+                      << " differs from actual size=" << actual.size();
+    }
+    const unsigned long length = expected.size();
+
+    int errorsFound = 0;
+    const char* separator = " ";
+    for (unsigned long index = 0; index < length; index++) {
+        auto expected_value = ::testing::internal::FloatingPoint(expected[index]);
+        auto actual_value = ::testing::internal::FloatingPoint(actual[index]);
+        if (expected_value.is_nan() or actual_value.is_nan() or
+            std::abs(expected[index] - actual[index]) > absolute_error) {
             if (errorsFound == 0) {
                 result << "Differences found:";
             }
