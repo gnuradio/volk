@@ -7,7 +7,7 @@
 
 # Welcome to VOLK!
 
-VOLK is a sub-project of GNU Radio. Please see http://libvolk.org for bug
+VOLK is a sub-project of GNU Radio. Please see https://www.libvolk.org/ for bug
 tracking, documentation, source code, and contact information about VOLK.
 See https://www.gnuradio.org/ for information about GNU Radio.
 
@@ -20,7 +20,7 @@ https://www.gnuradio.org/git/volk.git/.
 
 ## How to use VOLK:
 
-For detailed instructions see http://libvolk.org/doxygen/using_volk.html
+For detailed instructions see https://www.libvolk.org/doxygen/using_volk.html
 
 See these steps for a quick build guide.
 
@@ -48,8 +48,15 @@ $ volk_profile
 ```
 
 #### Missing submodule
-We use [cpu_features](https://github.com/google/cpu_features) as a git submodule to detect CPU features, e.g. AVX.
-There are two options to get the required code:
+We use [cpu_features](https://github.com/google/cpu_features) to detect CPU features, e.g. AVX.
+Some platforms require a very recent version that is not available through the appropriate package manager.
+In this case you must use `cpu_features` as a submodule.
+
+**NOTE**: Most package managers provide recent enough `cpu_features` versions by now.
+Please default to the provided `cpu_features` version first, and only use the submodule in cases where this fails.
+Please open an issue if this is the case.
+
+There are two options to get the required code in a submodule:
 ```bash
 git clone --recursive https://github.com/gnuradio/volk.git
 ```
@@ -67,12 +74,13 @@ To build for these boards you need specify the correct cmake toolchain file for 
 
 _Note: There is no need for adding extra options to the compiler for 64 bit._
 
+* Raspberry Pi 5 `arm_cortex_a76_hardfp_native.cmake`
 * Raspberry Pi 4 `arm_cortex_a72_hardfp_native.cmake`
 * Raspberry Pi 3 `arm_cortex_a53_hardfp_native.cmake`
 
 ```bash
 $ mkdir build && cd build
-$ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm_cortex_a72_hardfp_native.cmake ..
+$ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/arm_cortex_a76_hardfp_native.cmake ..
 # make -j4 might be faster
 $ make
 $ make test
@@ -108,6 +116,14 @@ The same goal applies to different OSes. Although this does only rarely happen, 
 We want to make sure VOLK works with C/C++ standard compliant compilers. Of course, as an open source project we focus on open source compilers, most notably GCC and Clang.
 We want to make sure VOLK compiles on a wide variety of compilers. Thus, we target AppleClang and MSVC as well. Mind that MSVC lacks `aligned_alloc` support for aligned arrays. We use MSVC specific instructions in this case which cannot be `free`'d with `free`.
 
+### Dependency version policy
+Finding the correct way to handle the minimum (and potentially maximum) supported dependency version is a difficult task.
+For VOLK, we want to ensure that all widely used, and openly maintained, distributions (Ubuntu, Debian, Fedora, etc.) are supported.
+The default version of dependencies in these distributions are considered to be the baseline, or oldest supported versions.
+While older dependencies might work, we do not want to maintain workarounds etc. for these dependencies.
+Also, we want to signal to contributors that they can rely on certain minimum versions for contributions.
+If you want to use VOLK on an obsolete distribution, we assume you know what you are doing and you can make the necessary changes to compile VOLK on such a platform, e.g., decrease the minimum version checks and fix corresponding errors.
+This approach aims to strike a balance between the desire to use VOLK on every possible platform and the desire to be able to use the latest features.
 
 ## License
 

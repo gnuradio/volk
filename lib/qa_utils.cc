@@ -21,7 +21,6 @@
 #include <cmath>    // for sqrt, fabs, abs
 #include <cstring>  // for memcpy, memset
 #include <ctime>    // for clock
-#include <fstream>  // for operator<<, basic...
 #include <iostream> // for cout, cerr
 #include <limits>   // for numeric_limits
 #include <map>      // for map, map<>::mappe...

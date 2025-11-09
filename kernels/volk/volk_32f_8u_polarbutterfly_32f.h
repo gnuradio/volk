@@ -383,4 +383,174 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs,
 
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_8u_polarbutterfly_32f_rvv(float* llrs,
+                                                      unsigned char* u,
+                                                      const int frame_exp,
+                                                      const int stage,
+                                                      const int u_num,
+                                                      const int row)
+{
+    const int frame_size = 0x01 << frame_exp;
+    if (row % 2) { // for odd rows just do the only necessary calculation and return.
+        const float* next_llrs = llrs + frame_size + row;
+        *(llrs + row) = llr_even(*(next_llrs - 1), *next_llrs, u[u_num - 1]);
+        return;
+    }
+
+    const int max_stage_depth = calculate_max_stage_depth_for_row(frame_exp, row);
+    if (max_stage_depth < 3) { // vectorized version needs larger vectors.
+        volk_32f_8u_polarbutterfly_32f_generic(llrs, u, frame_exp, stage, u_num, row);
+        return;
+    }
+
+    int loop_stage = max_stage_depth;
+    int stage_size = 0x01 << loop_stage;
+
+    float* src_llr_ptr;
+    float* dst_llr_ptr;
+
+    if (row) { // not necessary for ZERO row. == first bit to be decoded.
+        // first do bit combination for all stages
+        // effectively encode some decoded bits again.
+        unsigned char* u_target = u + frame_size;
+        unsigned char* u_temp = u + 2 * frame_size;
+        memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
+
+        volk_8u_x2_encodeframepolar_8u_rvv(u_target, u_temp, stage_size);
+
+        src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
+        dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
+
+        size_t n = stage_size;
+        for (size_t vl; n > 0;
+             n -= vl, u_target += vl, src_llr_ptr += vl * 2, dst_llr_ptr += vl) {
+            vl = __riscv_vsetvl_e32m1(n);
+            vint8mf4_t v = __riscv_vle8_v_i8mf4((int8_t*)u_target, vl);
+            vuint64m2_t llr = __riscv_vle64_v_u64m2((const uint64_t*)src_llr_ptr, vl);
+            vfloat32m1_t llr0 = __riscv_vreinterpret_f32m1(__riscv_vnsrl(llr, 0, vl));
+            vfloat32m1_t llr1 = __riscv_vreinterpret_f32m1(__riscv_vnsrl(llr, 32, vl));
+            llr0 = __riscv_vfneg_mu(__riscv_vmslt(v, 0, vl), llr0, llr0, vl);
+            llr0 = __riscv_vfadd(llr0, llr1, vl);
+            __riscv_vse32(dst_llr_ptr, llr0, vl);
+        }
+
+        --loop_stage;
+        stage_size >>= 1;
+    }
+
+    const int min_stage = stage > 2 ? stage : 2;
+
+    while (min_stage < loop_stage) {
+        dst_llr_ptr = llrs + loop_stage * frame_size + row;
+        src_llr_ptr = dst_llr_ptr + frame_size;
+
+        size_t n = stage_size;
+        for (size_t vl; n > 0; n -= vl, src_llr_ptr += vl * 2, dst_llr_ptr += vl) {
+            vl = __riscv_vsetvl_e32m1(n);
+            vuint64m2_t llr = __riscv_vle64_v_u64m2((const uint64_t*)src_llr_ptr, vl);
+            vfloat32m1_t llr0 = __riscv_vreinterpret_f32m1(__riscv_vnsrl(llr, 0, vl));
+            vfloat32m1_t llr1 = __riscv_vreinterpret_f32m1(__riscv_vnsrl(llr, 32, vl));
+            vfloat32m1_t v =
+                __riscv_vfmin(__riscv_vfabs(llr0, vl), __riscv_vfabs(llr1, vl), vl);
+            v = __riscv_vfsgnjx(__riscv_vfsgnj(v, llr0, vl), llr1, vl);
+            __riscv_vse32(dst_llr_ptr, v, vl);
+        }
+
+        --loop_stage;
+        stage_size >>= 1;
+    }
+
+    // for stages < 3 vectors are too small!.
+    llr_odd_stages(llrs, stage, loop_stage + 1, frame_size, row);
+}
+#endif /* LV_HAVE_RVV */
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_32f_8u_polarbutterfly_32f_rvvseg(float* llrs,
+                                                         unsigned char* u,
+                                                         const int frame_exp,
+                                                         const int stage,
+                                                         const int u_num,
+                                                         const int row)
+{
+    const int frame_size = 0x01 << frame_exp;
+    if (row % 2) { // for odd rows just do the only necessary calculation and return.
+        const float* next_llrs = llrs + frame_size + row;
+        *(llrs + row) = llr_even(*(next_llrs - 1), *next_llrs, u[u_num - 1]);
+        return;
+    }
+
+    const int max_stage_depth = calculate_max_stage_depth_for_row(frame_exp, row);
+    if (max_stage_depth < 3) { // vectorized version needs larger vectors.
+        volk_32f_8u_polarbutterfly_32f_generic(llrs, u, frame_exp, stage, u_num, row);
+        return;
+    }
+
+    int loop_stage = max_stage_depth;
+    int stage_size = 0x01 << loop_stage;
+
+    float* src_llr_ptr;
+    float* dst_llr_ptr;
+
+    if (row) { // not necessary for ZERO row. == first bit to be decoded.
+        // first do bit combination for all stages
+        // effectively encode some decoded bits again.
+        unsigned char* u_target = u + frame_size;
+        unsigned char* u_temp = u + 2 * frame_size;
+        memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
+
+        volk_8u_x2_encodeframepolar_8u_rvv(u_target, u_temp, stage_size);
+
+        src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
+        dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
+
+        size_t n = stage_size;
+        for (size_t vl; n > 0;
+             n -= vl, u_target += vl, src_llr_ptr += vl * 2, dst_llr_ptr += vl) {
+            vl = __riscv_vsetvl_e32m1(n);
+            vint8mf4_t v = __riscv_vle8_v_i8mf4((int8_t*)u_target, vl);
+            vfloat32m1x2_t llr = __riscv_vlseg2e32_v_f32m1x2(src_llr_ptr, vl);
+            vfloat32m1_t llr0 = __riscv_vget_f32m1(llr, 0);
+            vfloat32m1_t llr1 = __riscv_vget_f32m1(llr, 1);
+            llr0 = __riscv_vfneg_mu(__riscv_vmslt(v, 0, vl), llr0, llr0, vl);
+            llr0 = __riscv_vfadd(llr0, llr1, vl);
+            __riscv_vse32(dst_llr_ptr, llr0, vl);
+        }
+
+        --loop_stage;
+        stage_size >>= 1;
+    }
+
+    const int min_stage = stage > 2 ? stage : 2;
+
+    while (min_stage < loop_stage) {
+        dst_llr_ptr = llrs + loop_stage * frame_size + row;
+        src_llr_ptr = dst_llr_ptr + frame_size;
+
+        size_t n = stage_size;
+        for (size_t vl; n > 0; n -= vl, src_llr_ptr += vl * 2, dst_llr_ptr += vl) {
+            vl = __riscv_vsetvl_e32m1(n);
+            vfloat32m1x2_t llr = __riscv_vlseg2e32_v_f32m1x2(src_llr_ptr, vl);
+            vfloat32m1_t llr0 = __riscv_vget_f32m1(llr, 0);
+            vfloat32m1_t llr1 = __riscv_vget_f32m1(llr, 1);
+            vfloat32m1_t v =
+                __riscv_vfmin(__riscv_vfabs(llr0, vl), __riscv_vfabs(llr1, vl), vl);
+            v = __riscv_vfsgnjx(__riscv_vfsgnj(v, llr0, vl), llr1, vl);
+            __riscv_vse32(dst_llr_ptr, v, vl);
+        }
+
+        --loop_stage;
+        stage_size >>= 1;
+    }
+
+    // for stages < 3 vectors are too small!.
+    llr_odd_stages(llrs, stage, loop_stage + 1, frame_size, row);
+}
+#endif /* LV_HAVE_RVVSEG */
+
 #endif /* VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_ */

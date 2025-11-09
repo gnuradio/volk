@@ -10,6 +10,10 @@
 /*!
  * \page volk_16i_x4_quad_max_star_16i
  *
+ * \b Deprecation
+ *
+ * This kernel is deprecated.
+ *
  * \b Overview
  *
  * <FIXME>
@@ -43,7 +47,6 @@
 #define INCLUDED_volk_16i_x4_quad_max_star_16i_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
 
 #ifdef LV_HAVE_SSE2
 

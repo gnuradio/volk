@@ -7,19 +7,15 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-#if HAS_STD_FILESYSTEM_EXPERIMENTAL
-#include <experimental/filesystem>
-#else
-#include <filesystem>
-#endif
 #include <stddef.h>          // for size_t
 #include <sys/stat.h>        // for stat
 #include <volk/volk_prefs.h> // for volk_get_config_path
-#include <fstream>           // IWYU pragma: keep
-#include <iostream>          // for operator<<, basic_ostream
-#include <map>               // for map, map<>::iterator
-#include <utility>           // for pair
-#include <vector>            // for vector, vector<>::const_...
+#include <filesystem>
+#include <fstream>  // IWYU pragma: keep
+#include <iostream> // for operator<<, basic_ostream
+#include <map>      // for map, map<>::iterator
+#include <utility>  // for pair
+#include <vector>   // for vector, vector<>::const_...
 
 #include "kernel_tests.h"        // for init_test_list
 #include "qa_utils.h"            // for volk_test_results_t, vol...
@@ -27,11 +23,7 @@
 #include "volk_option_helpers.h" // for option_list, option_t
 #include "volk_profile.h"
 
-#if HAS_STD_FILESYSTEM_EXPERIMENTAL
-namespace fs = std::experimental::filesystem;
-#else
 namespace fs = std::filesystem;
-#endif
 
 volk_test_params_t test_params(1e-6f, 327.f, 131071, 1987, false, "");
 

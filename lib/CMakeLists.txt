@@ -93,19 +93,32 @@ execute_process(
     OUTPUT_VARIABLE arch_flag_lines
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+try_compile(HAVE_RVV_INTRINSICS ${CMAKE_BINARY_DIR}
+            ${CMAKE_SOURCE_DIR}/cmake/Checks/check-rvv-intrinsics.c)
+if(HAVE_RVV_INTRINSICS)
+    message(STATUS "Checking RVV intrinsics - found")
+else()
+    message(STATUS "Checking RVV intrinsics - not found")
+endif()
+
 macro(check_arch arch_name)
     set(flags ${ARGN})
     set(have_${arch_name} TRUE)
+
+    string(SUBSTRING "${arch_name}" 0 2 arch_prefix)
     foreach(flag ${flags})
         if(MSVC AND (${flag} STREQUAL "/arch:SSE2" OR ${flag} STREQUAL "/arch:SSE"))
             # SSE/SSE2 is supported in MSVC since VS 2005 but flag not available when compiling 64-bit so do not check
+        elseif("${arch_prefix}" STREQUAL "rv" AND NOT HAVE_RVV_INTRINSICS)
+            message(STATUS "Skipping ${arch_name} due to missing RVV intrinsics support")
+            set(have_${arch_name} FALSE)
         else()
             include(CheckCXXCompilerFlag)
             set(have_flag have${flag})
             #make the have_flag have nice alphanum chars (just for looks/not necessary)
             execute_process(
                 COMMAND ${PYTHON_EXECUTABLE} -c
-                        "import re; print(re.sub('\\W', '_', '${have_flag}'))"
+                        "import re; print(re.sub(r'\\W', '_', '${have_flag}'))"
                 OUTPUT_VARIABLE have_flag
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
             if(VOLK_FLAG_CHECK_FLAGS)
@@ -215,18 +228,17 @@ endif(NOT CPU_IS_x86)
 
 include(CheckCSourceCompiles)
 
-check_c_source_compiles(
-    "#include <arm_neon.h>\nint main(){ uint8_t *dest; uint8x8_t res; vst1_u8(dest, res); }"
-    neon_compile_result)
+set(CMAKE_C_FLAGS_SAVED "${CMAKE_C_FLAGS}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-uninitialized")
+check_c_source_compiles("#include <arm_neon.h>
+int main(){ uint8_t *dest; uint8x8_t res; vst1_u8(dest, res); }" neon_compile_result)
 
 if(neon_compile_result)
     set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}/include)
-    check_c_source_compiles(
-        "#include <volk/volk_common.h>\n int main(){__VOLK_ASM(\"vrev32.8 q0, q0\");}"
-        have_neonv7_result)
-    check_c_source_compiles(
-        "#include <volk/volk_common.h>\n int main(){__VOLK_ASM(\"sub v1.4s,v1.4s,v1.4s\");}"
-        have_neonv8_result)
+    check_c_source_compiles("#include <volk/volk_common.h>
+        int main(){__VOLK_ASM(\"vrev32.8 q0, q0\");}" have_neonv7_result)
+    check_c_source_compiles("#include <volk/volk_common.h>
+        int main(){__VOLK_ASM(\"sub v1.4s,v1.4s,v1.4s\");}" have_neonv8_result)
 
     if(NOT have_neonv7_result)
         overrule_arch(neonv7 "Compiler doesn't support neonv7")
@@ -240,7 +252,7 @@ else(neon_compile_result)
     overrule_arch(neonv7 "Compiler doesn't support NEON")
     overrule_arch(neonv8 "Compiler doesn't support NEON")
 endif(neon_compile_result)
-
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_SAVED}")
 ########################################################################
 # implement overruling in the ORC case,
 # since ORC always passes flag detection
@@ -255,17 +267,16 @@ endif()
 ########################################################################
 if(NOT CROSSCOMPILE_MULTILIB AND CPU_IS_x86)
     include(CheckTypeSize)
-    check_type_size("void*[8]" SIZEOF_CPU BUILTIN_TYPES_ONLY)
-    if(${SIZEOF_CPU} EQUAL 64)
+    cmake_host_system_information(RESULT ASSUME_64BIT_HOST QUERY IS_64BIT)
+    if(ASSUME_64BIT_HOST)
         overrule_arch(32 "CPU width is 64 bits")
-    endif()
-    if(${SIZEOF_CPU} EQUAL 32)
+    else()
         overrule_arch(64 "CPU width is 32 bits")
     endif()
 
     #MSVC 64 bit does not have MMX, overrule it
     if(MSVC)
-        if(${SIZEOF_CPU} EQUAL 64)
+        if(ASSUME_64BIT_HOST)
             overrule_arch(mmx "No MMX for Win64")
         endif()
         force_arch(sse "Built-in for MSVC > 2013")
@@ -549,11 +560,22 @@ if(VOLK_CPU_FEATURES)
         PRIVATE $<TARGET_PROPERTY:CpuFeatures::cpu_features,INTERFACE_INCLUDE_DIRECTORIES>
     )
 endif()
+target_compile_features(volk_obj PUBLIC c_std_17)
 
 #Configure object target properties
-if(NOT MSVC)
-    set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fPIC")
-endif()
+set_target_properties(volk_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+# Disable complex math NaN/INFO range checking for performance
+include(CheckCCompilerFlag)
+check_c_compiler_flag(-fcx-limited-range HAVE_C_LIMITED_RANGE)
+if(HAVE_C_LIMITED_RANGE)
+    set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fcx-limited-range")
+    check_c_compiler_flag(-Wno-unused-command-line-argument HAVE_WNO_UNUSED_CMD_LINE_ARG)
+    if(HAVE_WNO_UNUSED_CMD_LINE_ARG)
+        set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS
+                                                  "-Wno-unused-command-line-argument")
+    endif(HAVE_WNO_UNUSED_CMD_LINE_ARG)
+endif(HAVE_C_LIMITED_RANGE)
 
 #Add dynamic library
 #

@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2014 - 2021 Free Software Foundation, Inc.
- * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2023, 2024 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -180,6 +180,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32f_64f_add_64f, test_params))
     QA(VOLK_INIT_TEST(volk_32f_s32f_normalize, test_params))
     QA(VOLK_INIT_TEST(volk_32f_s32f_power_32f, test_params))
+    QA(VOLK_INIT_TEST(volk_32f_reciprocal_32f, test_params.make_tol(6.15e-5)))
     QA(VOLK_INIT_TEST(volk_32f_sqrt_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_s32f_stddev_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_stddev_and_mean_32f_x2, test_params.make_absolute(1e-5)))

@@ -5,16 +5,16 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 #
-image: Visual Studio 2019
+image: Visual Studio 2022
 cache:
   - packages -> appveyor.yml
 environment:
   environment:
   matrix:
-    - job_name: VS 16 2019 / python 3.8
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      CMAKE_GENERATOR: Visual Studio 16 2019
-      PYTHON: "C:\\Python38-x64"
+    - job_name: VS 17 2022 / python 3.12
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+      CMAKE_GENERATOR: Visual Studio 17 2022
+      PYTHON: "C:\Python312-x64"
 
 install:
     # Prepend the selected Python to the PATH of this build
@@ -27,18 +27,16 @@ install:
     - pip install mako
 before_build:
     - git submodule update --init --recursive
-    - cmake -G "%CMAKE_GENERATOR%" -A x64 \
-        -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=ON \
-        .
+    - cmake -G "%CMAKE_GENERATOR%" -A x64 -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=ON .
 build_script:
     - cmake --build . --config Release --target INSTALL
 test_script:
     - ctest -V --output-on-failure -C Release
 after_test:
-    - cd "c:\Program Files"
-    - 7z a "c:\libvolk-x64-%VC_VERSION%.zip" volk
+    - cd "C:\Program Files"
+    - 7z a "C:\libvolk-x64-%VC_VERSION%.zip" volk
     - mkdir dlls
     - cd dlls
-    - 7z a "c:\libvolk-x64-deps-%VC_VERSION%.zip" *
-    - appveyor PushArtifact c:\libvolk-x64-%VC_VERSION%.zip
-    - appveyor PushArtifact c:\libvolk-x64-deps-%VC_VERSION%.zip
+    - 7z a "C:\libvolk-x64-deps-%VC_VERSION%.zip" *
+    - appveyor PushArtifact C:\libvolk-x64-%VC_VERSION%.zip
+    - appveyor PushArtifact C:\libvolk-x64-deps-%VC_VERSION%.zip

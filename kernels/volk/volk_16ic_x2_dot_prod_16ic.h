@@ -690,4 +690,68 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_optvma(lv_16sc_t* out,
 
 #endif /* LV_HAVE_NEON */
 
+
+#ifdef LV_HAVE_RVV
+#include "volk_32fc_x2_dot_prod_32fc.h"
+
+static inline void volk_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result,
+                                                  const lv_16sc_t* in_a,
+                                                  const lv_16sc_t* in_b,
+                                                  unsigned int num_points)
+{
+    vint16m4_t vsumr = __riscv_vmv_v_x_i16m4(0, __riscv_vsetvlmax_e16m4());
+    vint16m4_t vsumi = vsumr;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in_a += vl, in_b += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vint32m8_t va = __riscv_vle32_v_i32m8((const int32_t*)in_a, vl);
+        vint32m8_t vb = __riscv_vle32_v_i32m8((const int32_t*)in_b, vl);
+        vint16m4_t var = __riscv_vnsra(va, 0, vl), vai = __riscv_vnsra(va, 16, vl);
+        vint16m4_t vbr = __riscv_vnsra(vb, 0, vl), vbi = __riscv_vnsra(vb, 16, vl);
+        vint16m4_t vr = __riscv_vnmsac(__riscv_vmul(var, vbr, vl), vai, vbi, vl);
+        vint16m4_t vi = __riscv_vmacc(__riscv_vmul(var, vbi, vl), vai, vbr, vl);
+        vsumr = __riscv_vadd_tu(vsumr, vsumr, vr, vl);
+        vsumi = __riscv_vadd_tu(vsumi, vsumi, vi, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e16m1();
+    vint16m1_t vr = RISCV_SHRINK4(vadd, i, 16, vsumr);
+    vint16m1_t vi = RISCV_SHRINK4(vadd, i, 16, vsumi);
+    vint16m1_t z = __riscv_vmv_s_x_i16m1(0, vl);
+    *result = lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
+                       __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include "volk_32fc_x2_dot_prod_32fc.h"
+
+
+static inline void volk_16ic_x2_dot_prod_16ic_rvvseg(lv_16sc_t* result,
+                                                     const lv_16sc_t* in_a,
+                                                     const lv_16sc_t* in_b,
+                                                     unsigned int num_points)
+{
+    vint16m4_t vsumr = __riscv_vmv_v_x_i16m4(0, __riscv_vsetvlmax_e16m4());
+    vint16m4_t vsumi = vsumr;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in_a += vl, in_b += vl) {
+        vl = __riscv_vsetvl_e16m4(n);
+        vint16m4x2_t va = __riscv_vlseg2e16_v_i16m4x2((const int16_t*)in_a, vl);
+        vint16m4x2_t vb = __riscv_vlseg2e16_v_i16m4x2((const int16_t*)in_b, vl);
+        vint16m4_t var = __riscv_vget_i16m4(va, 0), vai = __riscv_vget_i16m4(va, 1);
+        vint16m4_t vbr = __riscv_vget_i16m4(vb, 0), vbi = __riscv_vget_i16m4(vb, 1);
+        vint16m4_t vr = __riscv_vnmsac(__riscv_vmul(var, vbr, vl), vai, vbi, vl);
+        vint16m4_t vi = __riscv_vmacc(__riscv_vmul(var, vbi, vl), vai, vbr, vl);
+        vsumr = __riscv_vadd_tu(vsumr, vsumr, vr, vl);
+        vsumi = __riscv_vadd_tu(vsumi, vsumi, vi, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e16m1();
+    vint16m1_t vr = RISCV_SHRINK4(vadd, i, 16, vsumr);
+    vint16m1_t vi = RISCV_SHRINK4(vadd, i, 16, vsumi);
+    vint16m1_t z = __riscv_vmv_s_x_i16m1(0, vl);
+    *result = lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
+                       __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
+}
+#endif /*LV_HAVE_RVVSEG*/
+
 #endif /*INCLUDED_volk_16ic_x2_dot_prod_16ic_H*/

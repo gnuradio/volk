@@ -740,4 +740,113 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2(float* outputVector,
 }
 #endif /* LV_HAVE_AVX2 for unaligned */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32fc_s32f_atan2_32f_rvv(float* outputVector,
+                                                const lv_32fc_t* inputVector,
+                                                const float normalizeFactor,
+                                                unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m2();
+
+    const vfloat32m2_t norm = __riscv_vfmv_v_f_f32m2(1 / normalizeFactor, vlmax);
+    const vfloat32m2_t cpi = __riscv_vfmv_v_f_f32m2(3.1415927f, vlmax);
+    const vfloat32m2_t cpio2 = __riscv_vfmv_v_f_f32m2(1.5707964f, vlmax);
+    const vfloat32m2_t c1 = __riscv_vfmv_v_f_f32m2(+0x1.ffffeap-1f, vlmax);
+    const vfloat32m2_t c3 = __riscv_vfmv_v_f_f32m2(-0x1.55437p-2f, vlmax);
+    const vfloat32m2_t c5 = __riscv_vfmv_v_f_f32m2(+0x1.972be6p-3f, vlmax);
+    const vfloat32m2_t c7 = __riscv_vfmv_v_f_f32m2(-0x1.1436ap-3f, vlmax);
+    const vfloat32m2_t c9 = __riscv_vfmv_v_f_f32m2(+0x1.5785aap-4f, vlmax);
+    const vfloat32m2_t c11 = __riscv_vfmv_v_f_f32m2(-0x1.2f3004p-5f, vlmax);
+    const vfloat32m2_t c13 = __riscv_vfmv_v_f_f32m2(+0x1.01a37cp-7f, vlmax);
+
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e32m2(n);
+        vuint64m4_t v = __riscv_vle64_v_u64m4((const uint64_t*)inputVector, vl);
+        vfloat32m2_t vr = __riscv_vreinterpret_f32m2(__riscv_vnsrl(v, 0, vl));
+        vfloat32m2_t vi = __riscv_vreinterpret_f32m2(__riscv_vnsrl(v, 32, vl));
+        vbool16_t mswap = __riscv_vmfgt(__riscv_vfabs(vi, vl), __riscv_vfabs(vr, vl), vl);
+        vfloat32m2_t x = __riscv_vfdiv(
+            __riscv_vmerge(vi, vr, mswap, vl), __riscv_vmerge(vr, vi, mswap, vl), vl);
+        vbool16_t mnan = __riscv_vmsgtu(__riscv_vfclass(x, vl), 0xFF, vl);
+        x = __riscv_vreinterpret_f32m2(
+            __riscv_vmerge(__riscv_vreinterpret_u32m2(x), 0, mnan, vl));
+
+        vfloat32m2_t xx = __riscv_vfmul(x, x, vl);
+        vfloat32m2_t p = c13;
+        p = __riscv_vfmadd(p, xx, c11, vl);
+        p = __riscv_vfmadd(p, xx, c9, vl);
+        p = __riscv_vfmadd(p, xx, c7, vl);
+        p = __riscv_vfmadd(p, xx, c5, vl);
+        p = __riscv_vfmadd(p, xx, c3, vl);
+        p = __riscv_vfmadd(p, xx, c1, vl);
+        p = __riscv_vfmul(p, x, vl);
+
+        x = __riscv_vfsub(__riscv_vfsgnj(cpio2, x, vl), p, vl);
+        p = __riscv_vmerge(p, x, mswap, vl);
+        p = __riscv_vfadd_mu(
+            RISCV_VMFLTZ(32m2, vr, vl), p, p, __riscv_vfsgnjx(cpi, vi, vl), vl);
+
+        __riscv_vse32(outputVector, __riscv_vfmul(p, norm, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32fc_s32f_atan2_32f_rvvseg(float* outputVector,
+                                                   const lv_32fc_t* inputVector,
+                                                   const float normalizeFactor,
+                                                   unsigned int num_points)
+{
+    size_t vlmax = __riscv_vsetvlmax_e32m2();
+
+    const vfloat32m2_t norm = __riscv_vfmv_v_f_f32m2(1 / normalizeFactor, vlmax);
+    const vfloat32m2_t cpi = __riscv_vfmv_v_f_f32m2(3.1415927f, vlmax);
+    const vfloat32m2_t cpio2 = __riscv_vfmv_v_f_f32m2(1.5707964f, vlmax);
+    const vfloat32m2_t c1 = __riscv_vfmv_v_f_f32m2(+0x1.ffffeap-1f, vlmax);
+    const vfloat32m2_t c3 = __riscv_vfmv_v_f_f32m2(-0x1.55437p-2f, vlmax);
+    const vfloat32m2_t c5 = __riscv_vfmv_v_f_f32m2(+0x1.972be6p-3f, vlmax);
+    const vfloat32m2_t c7 = __riscv_vfmv_v_f_f32m2(-0x1.1436ap-3f, vlmax);
+    const vfloat32m2_t c9 = __riscv_vfmv_v_f_f32m2(+0x1.5785aap-4f, vlmax);
+    const vfloat32m2_t c11 = __riscv_vfmv_v_f_f32m2(-0x1.2f3004p-5f, vlmax);
+    const vfloat32m2_t c13 = __riscv_vfmv_v_f_f32m2(+0x1.01a37cp-7f, vlmax);
+
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
+        vl = __riscv_vsetvl_e32m2(n);
+        vfloat32m2x2_t v = __riscv_vlseg2e32_v_f32m2x2((const float*)inputVector, vl);
+        vfloat32m2_t vr = __riscv_vget_f32m2(v, 0), vi = __riscv_vget_f32m2(v, 1);
+        vbool16_t mswap = __riscv_vmfgt(__riscv_vfabs(vi, vl), __riscv_vfabs(vr, vl), vl);
+        vfloat32m2_t x = __riscv_vfdiv(
+            __riscv_vmerge(vi, vr, mswap, vl), __riscv_vmerge(vr, vi, mswap, vl), vl);
+        vbool16_t mnan = __riscv_vmsgtu(__riscv_vfclass(x, vl), 0xFF, vl);
+        x = __riscv_vreinterpret_f32m2(
+            __riscv_vmerge(__riscv_vreinterpret_u32m2(x), 0, mnan, vl));
+
+        vfloat32m2_t xx = __riscv_vfmul(x, x, vl);
+        vfloat32m2_t p = c13;
+        p = __riscv_vfmadd(p, xx, c11, vl);
+        p = __riscv_vfmadd(p, xx, c9, vl);
+        p = __riscv_vfmadd(p, xx, c7, vl);
+        p = __riscv_vfmadd(p, xx, c5, vl);
+        p = __riscv_vfmadd(p, xx, c3, vl);
+        p = __riscv_vfmadd(p, xx, c1, vl);
+        p = __riscv_vfmul(p, x, vl);
+
+        x = __riscv_vfsub(__riscv_vfsgnj(cpio2, x, vl), p, vl);
+        p = __riscv_vmerge(p, x, mswap, vl);
+        p = __riscv_vfadd_mu(
+            RISCV_VMFLTZ(32m2, vr, vl), p, p, __riscv_vfsgnjx(cpi, vi, vl), vl);
+
+        __riscv_vse32(outputVector, __riscv_vfmul(p, norm, vl), vl);
+    }
+}
+#endif /*LV_HAVE_RVVSEG*/
+
 #endif /* INCLUDED_volk_32fc_s32f_atan2_32f_u_H */

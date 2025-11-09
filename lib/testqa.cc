@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 
 /*
  * This function prints qa results as XML output similar to output
- * from Junit. For reference output see http://llg.cubic.org/docs/junit/
+ * from Junit. For reference output see https://llg.cubic.org/docs/junit/
  */
 void print_qa_xml(std::vector<volk_test_results_t> results, unsigned int nfails)
 {

@@ -24,6 +24,7 @@ function(VOLK_GEN_TEST executable_name)
                           "SOURCES;TARGET_DEPS;EXTRA_LIB_DIRS;ENVIRONS;ARGS" ${ARGN})
     add_executable(${executable_name} ${VOLK_TEST_SOURCES})
     target_link_libraries(${executable_name} ${VOLK_TEST_TARGET_DEPS})
+    target_compile_features(${executable_name} PUBLIC cxx_std_17)
 endfunction()
 
 ########################################################################
@@ -57,7 +58,7 @@ function(VOLK_ADD_TEST test_name executable_name)
     file(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR} srcdir)
     list(APPEND environs "srcdir=\"${srcdir}\"")
 
-    #http://www.cmake.org/pipermail/cmake/2009-May/029464.html
+    #https://cmake.org/pipermail/cmake/2009-May/029464.html
     #Replaced this add test + set environs code with the shell script generation.
     #Its nicer to be able to manually run the shell script to diagnose problems.
     if(UNIX)

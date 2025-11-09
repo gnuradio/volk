@@ -10,6 +10,10 @@
 /*!
  * \page volk_16i_branch_4_state_8
  *
+ * \b Deprecation
+ *
+ * This kernel is deprecated.
+ *
  * \b Overview
  *
  * <FIXME>

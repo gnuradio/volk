@@ -63,11 +63,14 @@ static inline void renormalize(unsigned char* X)
     int i;
 
     unsigned char min = X[0];
-    for (i = 0; i < NUMSTATES; i++)
-        if (min > X[i])
+    for (i = 0; i < NUMSTATES; i++) {
+        if (min > X[i]) {
             min = X[i];
-    for (i = 0; i < NUMSTATES; i++)
+        }
+    }
+    for (i = 0; i < NUMSTATES; i++) {
         X[i] -= min;
+    }
 }
 
 
@@ -91,8 +94,9 @@ static inline void BFLY(int i,
     int PRECISIONSHIFT = 2;
 
     metricsum = 1;
-    for (j = 0; j < RATE; j++)
+    for (j = 0; j < RATE; j++) {
         metricsum += (Branchtab[i + j * NUMSTATES / 2] ^ syms[s * RATE + j]);
+    }
     metric = (metricsum >> METRICSHIFT) >> PRECISIONSHIFT;
 
     unsigned char max = ((RATE * ((256 - 1) >> METRICSHIFT)) >> PRECISIONSHIFT);
@@ -464,5 +468,211 @@ static inline void volk_8u_x4_conv_k7_r2_8u_generic(unsigned char* Y,
 }
 
 #endif /* LV_HAVE_GENERIC */
+
+#if LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_8u_x4_conv_k7_r2_8u_rvv(unsigned char* Y,
+                                                unsigned char* X,
+                                                unsigned char* syms,
+                                                unsigned char* dec,
+                                                unsigned int framebits,
+                                                unsigned int excess,
+                                                unsigned char* Branchtab)
+{
+    size_t vl = 256 / 8;
+
+    size_t n = framebits + excess;
+
+    if (__riscv_vlenb() == 128 / 8) {
+        vuint8m2_t vX0 = __riscv_vle8_v_u8m2(X, vl),
+                   vX1 = __riscv_vle8_v_u8m2(X + vl, vl);
+        vuint8m2_t vY0 = __riscv_vle8_v_u8m2(Y, vl),
+                   vY1 = __riscv_vle8_v_u8m2(Y + vl, vl);
+        vuint8m2_t vB0 = __riscv_vle8_v_u8m2(Branchtab, vl);
+        vuint8m2_t vB1 = __riscv_vle8_v_u8m2(Branchtab + vl, vl);
+        vuint8m2_t v63 = __riscv_vmv_v_x_u8m2(63, vl);
+
+        for (size_t i = 0; i < n; ++i) {
+            // Butterfly
+            vuint8m2_t va0 = __riscv_vxor(vB0, syms[2 * i + 0], vl);
+            vuint8m2_t va1 = __riscv_vxor(vB1, syms[2 * i + 1], vl);
+            vuint8m2_t va = __riscv_vaaddu(va0, va1, 0, vl);
+            va = __riscv_vreinterpret_u8m2(
+                __riscv_vsrl(__riscv_vreinterpret_u16m2(va), 2, vl / 2));
+            va = __riscv_vand(va, v63, vl);
+            vuint8m2_t vb = __riscv_vssubu(v63, va, vl);
+            vuint8m2_t vX0a = __riscv_vsaddu(vX0, va, vl);
+            vuint8m2_t vX1b = __riscv_vsaddu(vX1, vb, vl);
+            vuint8m2_t vX0b = __riscv_vsaddu(vX0, vb, vl);
+            vuint8m2_t vX1a = __riscv_vsaddu(vX1, va, vl);
+            vY0 = __riscv_vminu(vX1b, vX0a, vl);
+            vY1 = __riscv_vminu(vX1a, vX0b, vl);
+
+            vuint16m4_t vX1ba =
+                __riscv_vwmaccu(__riscv_vwaddu_vv(vX1b, vX1a, vl), 0xFF, vX1a, vl);
+            vX1b = __riscv_vget_u8m2(__riscv_vreinterpret_u8m4(vX1ba), 0);
+            vX1a = __riscv_vget_u8m2(__riscv_vreinterpret_u8m4(vX1ba), 1);
+
+            vuint16m4_t vm =
+                __riscv_vwmaccu(__riscv_vwaddu_vv(vY0, vY1, vl), 0xFF, vY1, vl);
+            vY0 = __riscv_vget_u8m2(__riscv_vreinterpret_u8m4(vm), 0);
+            vY1 = __riscv_vget_u8m2(__riscv_vreinterpret_u8m4(vm), 1);
+
+            __riscv_vsm(&dec[8 * i + 0], __riscv_vmseq(vY0, vX1b, vl), vl);
+            __riscv_vsm(&dec[8 * i + 4], __riscv_vmseq(vY1, vX1a, vl), vl);
+
+            // Renormalize
+            vuint8m2_t vmin = __riscv_vminu(vY0, vY1, vl);
+            vmin = __riscv_vlmul_ext_u8m2(
+                __riscv_vredminu(vmin, __riscv_vlmul_trunc_u8m1(vmin), vl));
+            vmin = __riscv_vrgather(vmin, 0, vl);
+            vY0 = __riscv_vsub(vY0, vmin, vl);
+            vY1 = __riscv_vsub(vY1, vmin, vl);
+
+            vuint8m2_t tmp; // Swap pointers to old and new metrics
+            tmp = vX0;
+            vX0 = vY0;
+            vY0 = tmp;
+            tmp = vX1;
+            vX1 = vY1;
+            vY1 = tmp;
+        }
+        if (n & 1) {
+            __riscv_vse8(X, vY0, vl);
+            __riscv_vse8(X + vl, vY1, vl);
+            __riscv_vse8(Y, vX0, vl);
+            __riscv_vse8(Y + vl, vX1, vl);
+        } else {
+            __riscv_vse8(X, vX0, vl);
+            __riscv_vse8(X + vl, vX1, vl);
+            __riscv_vse8(Y, vY0, vl);
+            __riscv_vse8(Y + vl, vY1, vl);
+        }
+    } else if (__riscv_vlenb() == 256 / 8) {
+        vuint8m1_t vX0 = __riscv_vle8_v_u8m1(X, vl),
+                   vX1 = __riscv_vle8_v_u8m1(X + vl, vl);
+        vuint8m1_t vY0 = __riscv_vle8_v_u8m1(Y, vl),
+                   vY1 = __riscv_vle8_v_u8m1(Y + vl, vl);
+        vuint8m1_t vB0 = __riscv_vle8_v_u8m1(Branchtab, vl);
+        vuint8m1_t vB1 = __riscv_vle8_v_u8m1(Branchtab + vl, vl);
+        vuint8m1_t v63 = __riscv_vmv_v_x_u8m1(63, vl);
+
+        for (size_t i = 0; i < n; ++i) {
+            // Butterfly
+            vuint8m1_t va0 = __riscv_vxor(vB0, syms[2 * i + 0], vl);
+            vuint8m1_t va1 = __riscv_vxor(vB1, syms[2 * i + 1], vl);
+            vuint8m1_t va = __riscv_vaaddu(va0, va1, 0, vl);
+            va = __riscv_vreinterpret_u8m1(
+                __riscv_vsrl(__riscv_vreinterpret_u16m1(va), 2, vl / 2));
+            va = __riscv_vand(va, v63, vl);
+            vuint8m1_t vb = __riscv_vssubu(v63, va, vl);
+            vuint8m1_t vX0a = __riscv_vsaddu(vX0, va, vl);
+            vuint8m1_t vX1b = __riscv_vsaddu(vX1, vb, vl);
+            vuint8m1_t vX0b = __riscv_vsaddu(vX0, vb, vl);
+            vuint8m1_t vX1a = __riscv_vsaddu(vX1, va, vl);
+            vY0 = __riscv_vminu(vX1b, vX0a, vl);
+            vY1 = __riscv_vminu(vX1a, vX0b, vl);
+
+            vuint16m2_t vX1ba =
+                __riscv_vwmaccu(__riscv_vwaddu_vv(vX1b, vX1a, vl), 0xFF, vX1a, vl);
+            vX1b = __riscv_vget_u8m1(__riscv_vreinterpret_u8m2(vX1ba), 0);
+            vX1a = __riscv_vget_u8m1(__riscv_vreinterpret_u8m2(vX1ba), 1);
+
+            vuint16m2_t vm =
+                __riscv_vwmaccu(__riscv_vwaddu_vv(vY0, vY1, vl), 0xFF, vY1, vl);
+            vY0 = __riscv_vget_u8m1(__riscv_vreinterpret_u8m2(vm), 0);
+            vY1 = __riscv_vget_u8m1(__riscv_vreinterpret_u8m2(vm), 1);
+
+            __riscv_vsm(&dec[8 * i + 0], __riscv_vmseq(vY0, vX1b, vl), vl);
+            __riscv_vsm(&dec[8 * i + 4], __riscv_vmseq(vY1, vX1a, vl), vl);
+
+            // Renormalize
+            vuint8m1_t vmin = __riscv_vminu(vY0, vY1, vl);
+            vmin = __riscv_vrgather(__riscv_vredminu(vmin, vmin, vl), 0, vl);
+            vY0 = __riscv_vsub(vY0, vmin, vl);
+            vY1 = __riscv_vsub(vY1, vmin, vl);
+
+            vuint8m1_t tmp; // Swap pointers to old and new metrics
+            tmp = vX0;
+            vX0 = vY0;
+            vY0 = tmp;
+            tmp = vX1;
+            vX1 = vY1;
+            vY1 = tmp;
+        }
+        if (n & 1) {
+            __riscv_vse8(X, vY0, vl);
+            __riscv_vse8(X + vl, vY1, vl);
+            __riscv_vse8(Y, vX0, vl);
+            __riscv_vse8(Y + vl, vX1, vl);
+        } else {
+            __riscv_vse8(X, vX0, vl);
+            __riscv_vse8(X + vl, vX1, vl);
+            __riscv_vse8(Y, vY0, vl);
+            __riscv_vse8(Y + vl, vY1, vl);
+        }
+    } else {
+        vuint8mf2_t vX0 = __riscv_vle8_v_u8mf2(X, vl),
+                    vX1 = __riscv_vle8_v_u8mf2(X + vl, vl);
+        vuint8mf2_t vY0 = __riscv_vle8_v_u8mf2(Y, vl),
+                    vY1 = __riscv_vle8_v_u8mf2(Y + vl, vl);
+        vuint8mf2_t vB0 = __riscv_vle8_v_u8mf2(Branchtab, vl);
+        vuint8mf2_t vB1 = __riscv_vle8_v_u8mf2(Branchtab + vl, vl);
+        vuint8mf2_t v63 = __riscv_vmv_v_x_u8mf2(63, vl);
+
+        for (size_t i = 0; i < n; ++i) {
+            // Butterfly
+            vuint8mf2_t va0 = __riscv_vxor(vB0, syms[2 * i + 0], vl);
+            vuint8mf2_t va1 = __riscv_vxor(vB1, syms[2 * i + 1], vl);
+            vuint8mf2_t va = __riscv_vaaddu(va0, va1, 0, vl);
+            va = __riscv_vreinterpret_u8mf2(
+                __riscv_vsrl(__riscv_vreinterpret_u16mf2(va), 2, vl / 2));
+            va = __riscv_vand(va, v63, vl);
+            vuint8mf2_t vb = __riscv_vssubu(v63, va, vl);
+            vuint8mf2_t vX0a = __riscv_vsaddu(vX0, va, vl);
+            vuint8mf2_t vX1b = __riscv_vsaddu(vX1, vb, vl);
+            vuint8mf2_t vX0b = __riscv_vsaddu(vX0, vb, vl);
+            vuint8mf2_t vX1a = __riscv_vsaddu(vX1, va, vl);
+            vY0 = __riscv_vminu(vX1b, vX0a, vl);
+            vY1 = __riscv_vminu(vX1a, vX0b, vl);
+
+            vuint8m1_t vX1ba = __riscv_vreinterpret_u8m1(
+                __riscv_vwmaccu(__riscv_vwaddu_vv(vX1b, vX1a, vl), 0xFF, vX1a, vl));
+            vuint8m1_t vY01 = __riscv_vreinterpret_u8m1(
+                __riscv_vwmaccu(__riscv_vwaddu_vv(vY0, vY1, vl), 0xFF, vY1, vl));
+
+            __riscv_vsm(&dec[8 * i + 0], __riscv_vmseq(vY01, vX1ba, vl * 2), vl * 2);
+
+            // Renormalize
+            vuint8m1_t vmin =
+                __riscv_vrgather(__riscv_vredminu(vY01, vY01, vl * 2), 0, vl * 2);
+            vY01 = __riscv_vsub(vY01, vmin, vl * 2);
+
+            vY0 = __riscv_vlmul_trunc_u8mf2(vY01);
+            vY1 = __riscv_vlmul_trunc_u8mf2(__riscv_vslidedown(vY01, vl, vl));
+
+            vuint8mf2_t tmp; // Swap pointers to old and new metrics
+            tmp = vX0;
+            vX0 = vY0;
+            vY0 = tmp;
+            tmp = vX1;
+            vX1 = vY1;
+            vY1 = tmp;
+        }
+        if (n & 1) {
+            __riscv_vse8(X, vY0, vl);
+            __riscv_vse8(X + vl, vY1, vl);
+            __riscv_vse8(Y, vX0, vl);
+            __riscv_vse8(Y + vl, vX1, vl);
+        } else {
+            __riscv_vse8(X, vX0, vl);
+            __riscv_vse8(X + vl, vX1, vl);
+            __riscv_vse8(Y, vY0, vl);
+            __riscv_vse8(Y + vl, vY1, vl);
+        }
+    }
+}
+#endif /*LV_HAVE_RVV*/
 
 #endif /*INCLUDED_volk_8u_x4_conv_k7_r2_8u_H*/

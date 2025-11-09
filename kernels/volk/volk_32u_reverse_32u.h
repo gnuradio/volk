@@ -30,7 +30,7 @@
 #ifndef INCLUDED_VOLK_32u_REVERSE_32u_U_H
 
 // Idea from "Bit Twiddling Hacks", which dedicates this method to public domain
-// http://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable
+// https://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable
 static const unsigned char BitReverseTable256[] = {
     0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0, 0x10, 0x90, 0x50, 0xD0, 0x30, 0xB0,
     0x70, 0xF0, 0x08, 0x88, 0x48, 0xC8, 0x28, 0xA8, 0x68, 0xE8, 0x18, 0x98, 0x58, 0xD8,
@@ -120,7 +120,7 @@ static inline void volk_32u_reverse_32u_byte_shuffle(uint32_t* out,
 #endif /* LV_HAVE_GENERIC */
 
 // Idea from "Bit Twiddling Hacks", which dedicates this method to public domain
-// http://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable
+// https://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable
 #ifdef LV_HAVE_GENERIC
 static inline void
 volk_32u_reverse_32u_lut(uint32_t* out, const uint32_t* in, unsigned int num_points)
@@ -140,7 +140,7 @@ volk_32u_reverse_32u_lut(uint32_t* out, const uint32_t* in, unsigned int num_poi
 #endif /* LV_HAVE_GENERIC */
 
 // Single-Byte code from "Bit Twiddling Hacks", which dedicates this method to public
-// domain http://graphics.stanford.edu/~seander/bithacks.html#ReverseByteWith64Bits
+// domain https://graphics.stanford.edu/~seander/bithacks.html#ReverseByteWith64Bits
 #ifdef LV_HAVE_GENERIC
 static inline void
 volk_32u_reverse_32u_2001magic(uint32_t* out, const uint32_t* in, unsigned int num_points)
@@ -336,5 +336,58 @@ volk_32u_reverse_32u_arm(uint32_t* out, const uint32_t* in, unsigned int num_poi
 #undef DO_RBIT
 #endif /* LV_HAVE_NEON */
 
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void
+volk_32u_reverse_32u_rvv(uint32_t* out, const uint32_t* in, unsigned int num_points)
+{
+    size_t n = num_points;
+
+    static const uint64_t tblLo[] = {
+        0xE060A020C0408000,
+        0xF070B030D0509010,
+    };
+    static const uint64_t tblHi[] = {
+        0x0E060A020C040800,
+        0x0F070B030D050901,
+    };
+    vuint8m1_t vtblLo = __riscv_vreinterpret_u8m1(__riscv_vle64_v_u64m1(tblLo, 2));
+    vuint8m1_t vtblHi = __riscv_vreinterpret_u8m1(__riscv_vle64_v_u64m1(tblHi, 2));
+
+    size_t vlmax = __riscv_vsetvlmax_e8m1();
+    vuint16m2_t vidx = __riscv_vreinterpret_u16m2(
+        __riscv_vsub(__riscv_vreinterpret_u64m2(__riscv_vid_v_u16m2(vlmax)),
+                     0x3000200010000 - 0x100020003,
+                     vlmax / 4));
+    for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vuint8m4_t v = __riscv_vreinterpret_u8m4(__riscv_vle32_v_u32m4(in, vl));
+        v = RISCV_PERM4(__riscv_vrgatherei16, v, vidx);
+        vuint8m4_t lo = __riscv_vand(v, 0xF, vl * 4);
+        lo = RISCV_LUT4(__riscv_vrgather, vtblLo, lo);
+        vuint8m4_t hi = __riscv_vsrl(v, 4, vl * 4);
+        hi = RISCV_LUT4(__riscv_vrgather, vtblHi, hi);
+        v = __riscv_vor(hi, lo, vl * 4);
+        __riscv_vse32(out, __riscv_vreinterpret_u32m4(v), vl);
+    }
+}
+#endif /* LV_HAVE_RVV */
+
+#ifdef LV_HAVE_RVA23
+#include <riscv_vector.h>
+
+static inline void
+volk_32u_reverse_32u_rva23(uint32_t* out, const uint32_t* in, unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vuint32m8_t v = __riscv_vle32_v_u32m8(in, vl);
+        __riscv_vse32(out, __riscv_vbrev(v, vl), vl);
+    }
+}
+#endif /* LV_HAVE_RVA23 */
 
 #endif /* INCLUDED_volk_32u_reverse_32u_u_H */

@@ -213,7 +213,7 @@ static inline void volk_32fc_x2_divide_32fc_u_avx(lv_32fc_t* cVector,
             sq, sq); // obtain the actual squared magnitude, although out of order
         mag_sq = _mm256_permute_ps(mag_sq_un, 0xd8); // I order them
         // best guide I found on using these functions:
-        // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#expand=2738,2059,2738,2738,3875,3874,3875,2738,3870
+        // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=2738,2059,2738,2738,3875,3874,3875,2738,3870
         div = _mm256_div_ps(mul_conj, mag_sq);
 
         _mm256_storeu_ps((float*)c, div); // Store the results back into the C container
@@ -313,7 +313,7 @@ static inline void volk_32fc_x2_divide_32fc_a_avx(lv_32fc_t* cVector,
 {
     /*
      * Guide to AVX intrisics:
-     * https://software.intel.com/sites/landingpage/IntrinsicsGuide/#
+     * https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html
      *
      * we'll do the "classical"
      *  a      a b*
@@ -414,5 +414,66 @@ static inline void volk_32fc_x2_divide_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+
+static inline void volk_32fc_x2_divide_32fc_rvv(lv_32fc_t* cVector,
+                                                const lv_32fc_t* aVector,
+                                                const lv_32fc_t* bVector,
+                                                unsigned int num_points)
+{
+    uint64_t* out = (uint64_t*)cVector;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, out += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vuint64m8_t va = __riscv_vle64_v_u64m8((const uint64_t*)aVector, vl);
+        vuint64m8_t vb = __riscv_vle64_v_u64m8((const uint64_t*)bVector, vl);
+        vfloat32m4_t var = __riscv_vreinterpret_f32m4(__riscv_vnsrl(va, 0, vl));
+        vfloat32m4_t vbr = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vb, 0, vl));
+        vfloat32m4_t vai = __riscv_vreinterpret_f32m4(__riscv_vnsrl(va, 32, vl));
+        vfloat32m4_t vbi = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vb, 32, vl));
+        vfloat32m4_t mul = __riscv_vfrdiv(
+            __riscv_vfmacc(__riscv_vfmul(vbi, vbi, vl), vbr, vbr, vl), 1.0f, vl);
+        vfloat32m4_t vr = __riscv_vfmul(
+            __riscv_vfmacc(__riscv_vfmul(var, vbr, vl), vai, vbi, vl), mul, vl);
+        vfloat32m4_t vi = __riscv_vfmul(
+            __riscv_vfnmsac(__riscv_vfmul(vai, vbr, vl), var, vbi, vl), mul, vl);
+        vuint32m4_t vru = __riscv_vreinterpret_u32m4(vr);
+        vuint32m4_t viu = __riscv_vreinterpret_u32m4(vi);
+        vuint64m8_t v =
+            __riscv_vwmaccu(__riscv_vwaddu_vv(vru, viu, vl), 0xFFFFFFFF, viu, vl);
+        __riscv_vse64(out, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_32fc_x2_divide_32fc_rvvseg(lv_32fc_t* cVector,
+                                                   const lv_32fc_t* aVector,
+                                                   const lv_32fc_t* bVector,
+                                                   unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m4x2_t va = __riscv_vlseg2e32_v_f32m4x2((const float*)aVector, vl);
+        vfloat32m4x2_t vb = __riscv_vlseg2e32_v_f32m4x2((const float*)bVector, vl);
+        vfloat32m4_t var = __riscv_vget_f32m4(va, 0), vai = __riscv_vget_f32m4(va, 1);
+        vfloat32m4_t vbr = __riscv_vget_f32m4(vb, 0), vbi = __riscv_vget_f32m4(vb, 1);
+        vfloat32m4_t mul = __riscv_vfrdiv(
+            __riscv_vfmacc(__riscv_vfmul(vbi, vbi, vl), vbr, vbr, vl), 1.0f, vl);
+        vfloat32m4_t vr = __riscv_vfmul(
+            __riscv_vfmacc(__riscv_vfmul(var, vbr, vl), vai, vbi, vl), mul, vl);
+        vfloat32m4_t vi = __riscv_vfmul(
+            __riscv_vfnmsac(__riscv_vfmul(vai, vbr, vl), var, vbi, vl), mul, vl);
+        __riscv_vsseg2e32_v_f32m4x2(
+            (float*)cVector, __riscv_vcreate_v_f32m4x2(vr, vi), vl);
+    }
+}
+
+#endif /*LV_HAVE_RVVSEG*/
 
 #endif /* INCLUDED_volk_32fc_x2_divide_32fc_a_H */

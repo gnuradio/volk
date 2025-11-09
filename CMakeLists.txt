@@ -89,8 +89,8 @@ math(EXPR VOLK_VERSION_DECIMAL "${VERSION_INFO_MAJOR_VERSION} * 10000
     + ${VERSION_INFO_MINOR_VERSION} * 100
     + ${VERSION_INFO_MAINT_VERSION}")
 
-configure_file(${CMAKE_SOURCE_DIR}/include/volk/volk_version.h.in
-               ${CMAKE_BINARY_DIR}/include/volk/volk_version.h @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_version.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_version.h @ONLY)
 
 ########################################################################
 # Environment setup
@@ -240,32 +240,32 @@ set(VOLK_LIBRARY_DIR ${CMAKE_INSTALL_LIBDIR})
 set(VOLK_INCLUDE_DIR include)
 
 install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/kernels/volk
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/kernels/volk
     DESTINATION include
     COMPONENT "volk_devel"
     FILES_MATCHING
     PATTERN "*.h")
 
 install(
-    FILES ${CMAKE_SOURCE_DIR}/include/volk/volk_prefs.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_alloc.hh
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_complex.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_common.h
-          ${CMAKE_SOURCE_DIR}/include/volk/saturation_arithmetic.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_avx2_fma_intrinsics.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_avx512_intrinsics.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_sse_intrinsics.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
-          ${CMAKE_BINARY_DIR}/include/volk/volk.h
-          ${CMAKE_BINARY_DIR}/include/volk/volk_cpu.h
-          ${CMAKE_BINARY_DIR}/include/volk/volk_config_fixed.h
-          ${CMAKE_BINARY_DIR}/include/volk/volk_typedefs.h
-          ${CMAKE_SOURCE_DIR}/include/volk/volk_malloc.h
-          ${CMAKE_BINARY_DIR}/include/volk/volk_version.h
-          ${CMAKE_SOURCE_DIR}/include/volk/constants.h
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_prefs.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_alloc.hh
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_complex.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_common.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/saturation_arithmetic.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_fma_intrinsics.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx512_intrinsics.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_sse_intrinsics.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
+          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk.h
+          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_cpu.h
+          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_config_fixed.h
+          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_typedefs.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_malloc.h
+          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_version.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/constants.h
     DESTINATION include/volk
     COMPONENT "volk_devel")
 
@@ -293,7 +293,7 @@ endif(APPLE)
 ########################################################################
 # Create uninstall target
 ########################################################################
-configure_file(${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in
                ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
 
 # Only add the target if there isn't one defined already
@@ -308,11 +308,11 @@ endif()
 #    http://www.cmake.org/Wiki/CMake/Tutorials/Packaging
 ########################################################################
 
-configure_file(${CMAKE_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake.in
-               ${CMAKE_BINARY_DIR}/cmake/Modules/VolkConfig.cmake @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake.in
+               ${CMAKE_CURRENT_BINARY_DIR}/cmake/Modules/VolkConfig.cmake @ONLY)
 
-configure_file(${CMAKE_SOURCE_DIR}/cmake/Modules/VolkConfigVersion.cmake.in
-               ${CMAKE_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/VolkConfigVersion.cmake.in
+               ${CMAKE_CURRENT_BINARY_DIR}/cmake/Modules/VolkConfigVersion.cmake @ONLY)
 
 ########################################################################
 # Install cmake search routine for external use
