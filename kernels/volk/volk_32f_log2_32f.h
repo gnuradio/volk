@@ -472,10 +472,10 @@ volk_32f_log2_32f_neon(float* bVector, const float* aVector, unsigned int num_po
     for (number = 0; number < quarterPoints; ++number) {
         // Check for NaN or negative/zero (invalid inputs for log2)
         float32x4_t aval_f = vld1q_f32(aPtr);
-        uint32x4_t invalid_mask = vcleq_f32(aval_f, vdupq_n_f32(0.0f));  // aVal <= 0
+        uint32x4_t invalid_mask = vcleq_f32(aval_f, vdupq_n_f32(0.0f)); // aVal <= 0
         // Check for NaN: NaN comparison with itself returns false
-        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aval_f, aval_f));  // NOT(aVal == aVal)
-        invalid_mask = vorrq_u32(invalid_mask, nan_mask);  // Combine masks
+        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aval_f, aval_f)); // NOT(aVal == aVal)
+        invalid_mask = vorrq_u32(invalid_mask, nan_mask);           // Combine masks
         float32x4_t nan_value = vdupq_n_f32(NAN);
 
         // load float in to an int register without conversion
@@ -846,8 +846,8 @@ volk_32f_log2_32f_rvv(float* bVector, const float* aVector, unsigned int num_poi
         vfloat32m2_t v = __riscv_vle32_v_f32m2(aVector, vl);
 
         // Check for invalid inputs (NaN, negative, or zero)
-        vbool16_t invalid_mask = __riscv_vmfle(v, zero, vl);  // v <= 0
-        vbool16_t nan_mask = __riscv_vmfne(v, v, vl);  // NaN check: v != v
+        vbool16_t invalid_mask = __riscv_vmfle(v, zero, vl); // v <= 0
+        vbool16_t nan_mask = __riscv_vmfne(v, v, vl);        // NaN check: v != v
         invalid_mask = __riscv_vmor(invalid_mask, nan_mask, vl);
 
         vfloat32m2_t a = __riscv_vfabs(v, vl);

@@ -768,12 +768,21 @@ static inline void volk_32fc_s32f_atan2_32f_rvv(float* outputVector,
         vuint64m4_t v = __riscv_vle64_v_u64m4((const uint64_t*)inputVector, vl);
         vfloat32m2_t vr = __riscv_vreinterpret_f32m2(__riscv_vnsrl(v, 0, vl));
         vfloat32m2_t vi = __riscv_vreinterpret_f32m2(__riscv_vnsrl(v, 32, vl));
+
+        // Detect NaN in original inputs before division
+        vbool16_t input_nan_mask =
+            __riscv_vmor(__riscv_vmfne(vr, vr, vl), __riscv_vmfne(vi, vi, vl), vl);
+
         vbool16_t mswap = __riscv_vmfgt(__riscv_vfabs(vi, vl), __riscv_vfabs(vr, vl), vl);
-        vfloat32m2_t x = __riscv_vfdiv(
-            __riscv_vmerge(vi, vr, mswap, vl), __riscv_vmerge(vr, vi, mswap, vl), vl);
-        vbool16_t mnan = __riscv_vmsgtu(__riscv_vfclass(x, vl), 0xFF, vl);
-        x = __riscv_vreinterpret_f32m2(
-            __riscv_vmerge(__riscv_vreinterpret_u32m2(x), 0, mnan, vl));
+        vfloat32m2_t numerator = __riscv_vmerge(vi, vr, mswap, vl);
+        vfloat32m2_t denominator = __riscv_vmerge(vr, vi, mswap, vl);
+        vfloat32m2_t x = __riscv_vfdiv(numerator, denominator, vl);
+
+        // Only handle NaN from division (0/0, inf/inf), not from NaN inputs
+        // Replace with numerator to preserve sign (e.g., atan2(-0, 0) = -0)
+        vbool16_t x_nan_mask = __riscv_vmfne(x, x, vl);
+        vbool16_t div_nan_mask = __riscv_vmandn(x_nan_mask, input_nan_mask, vl);
+        x = __riscv_vmerge(x, numerator, div_nan_mask, vl);
 
         vfloat32m2_t xx = __riscv_vfmul(x, x, vl);
         vfloat32m2_t p = c13;
@@ -822,12 +831,21 @@ static inline void volk_32fc_s32f_atan2_32f_rvvseg(float* outputVector,
         vl = __riscv_vsetvl_e32m2(n);
         vfloat32m2x2_t v = __riscv_vlseg2e32_v_f32m2x2((const float*)inputVector, vl);
         vfloat32m2_t vr = __riscv_vget_f32m2(v, 0), vi = __riscv_vget_f32m2(v, 1);
+
+        // Detect NaN in original inputs before division
+        vbool16_t input_nan_mask =
+            __riscv_vmor(__riscv_vmfne(vr, vr, vl), __riscv_vmfne(vi, vi, vl), vl);
+
         vbool16_t mswap = __riscv_vmfgt(__riscv_vfabs(vi, vl), __riscv_vfabs(vr, vl), vl);
-        vfloat32m2_t x = __riscv_vfdiv(
-            __riscv_vmerge(vi, vr, mswap, vl), __riscv_vmerge(vr, vi, mswap, vl), vl);
-        vbool16_t mnan = __riscv_vmsgtu(__riscv_vfclass(x, vl), 0xFF, vl);
-        x = __riscv_vreinterpret_f32m2(
-            __riscv_vmerge(__riscv_vreinterpret_u32m2(x), 0, mnan, vl));
+        vfloat32m2_t numerator = __riscv_vmerge(vi, vr, mswap, vl);
+        vfloat32m2_t denominator = __riscv_vmerge(vr, vi, mswap, vl);
+        vfloat32m2_t x = __riscv_vfdiv(numerator, denominator, vl);
+
+        // Only handle NaN from division (0/0, inf/inf), not from NaN inputs
+        // Replace with numerator to preserve sign (e.g., atan2(-0, 0) = -0)
+        vbool16_t x_nan_mask = __riscv_vmfne(x, x, vl);
+        vbool16_t div_nan_mask = __riscv_vmandn(x_nan_mask, input_nan_mask, vl);
+        x = __riscv_vmerge(x, numerator, div_nan_mask, vl);
 
         vfloat32m2_t xx = __riscv_vfmul(x, x, vl);
         vfloat32m2_t p = c13;
