@@ -10,7 +10,9 @@
 ########################################################################
 # Project setup
 ########################################################################
-cmake_minimum_required(VERSION 3.8)
+# We use `IS_64BIT now: https://cmake.org/cmake/help/latest/command/cmake_host_system_information.html
+cmake_minimum_required(VERSION 3.22)
+
 set(CMAKE_BUILD_TYPE
     ${CMAKE_BUILD_TYPE}
     CACHE STRING "Choose build type: None Debug Release RelWithDebInfo MinSizeRel")
@@ -19,9 +21,6 @@ project(volk)
 enable_language(CXX)
 enable_language(C)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
-
 enable_testing()
 
 ########################################################################
@@ -29,17 +28,6 @@ enable_testing()
 ########################################################################
 
 # Disable complex math NaN/INFO range checking for performance
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-fcx-limited-range HAVE_CX_LIMITED_RANGE)
-if(HAVE_CX_LIMITED_RANGE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcx-limited-range")
-endif(HAVE_CX_LIMITED_RANGE)
-
-include(CheckCCompilerFlag)
-check_c_compiler_flag(-fcx-limited-range HAVE_C_LIMITED_RANGE)
-if(HAVE_C_LIMITED_RANGE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcx-limited-range")
-endif(HAVE_C_LIMITED_RANGE)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
@@ -59,8 +47,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
         "${CMAKE_C_FLAGS} -Werror=incompatible-pointer-types -Werror=pointer-sign")
 endif()
 
-set(CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}) #allows this to be a sub-project
-set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}) #allows this to be a sub-project
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules
 )#location for custom "Modules"
 
@@ -81,8 +67,8 @@ message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 ########################################################################
 
 set(VERSION_INFO_MAJOR_VERSION 3)
-set(VERSION_INFO_MINOR_VERSION 1)
-set(VERSION_INFO_MAINT_VERSION 2)
+set(VERSION_INFO_MINOR_VERSION 2)
+set(VERSION_INFO_MAINT_VERSION 0)
 include(VolkVersion) #setup version info
 
 math(EXPR VOLK_VERSION_DECIMAL "${VERSION_INFO_MAJOR_VERSION} * 10000
@@ -148,11 +134,21 @@ if(VOLK_CPU_FEATURES)
         set(CMAKE_POSITION_INDEPENDENT_CODE
             ON
             CACHE BOOL "Build cpu_features with Position Independent Code (PIC)." FORCE)
+        include(CheckCCompilerFlag)
+        set(CMAKE_C_FLAGS_SAVED "${CMAKE_C_FLAGS}")
+        check_c_compiler_flag(-Wno-unused-function HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
+        if(HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
+            set(CMAKE_C_FLAGS
+                "${CMAKE_C_FLAGS} -Wno-unused-function -Wno-unused-variable")
+        endif(HAVE_WNO_UNUSED_FUNCTION_CMD_LINE_ARG)
+
+        set(BUILD_SHARED_LIBS OFF)
         set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
         set(BUILD_SHARED_LIBS OFF)
         set(ENABLE_INSTALL OFF)
         add_subdirectory(cpu_features)
         set(BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS_SAVED}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_SAVED}")
     endif()
 else()
     message(STATUS "Building Volk without cpu_features")
@@ -172,12 +168,6 @@ endif()
 if(NOT MAKO_FOUND)
     message(FATAL_ERROR "Mako templates required to build VOLK")
 endif()
-
-# Check if we have std::filesystem
-find_package(
-    FILESYSTEM
-    COMPONENTS Final Experimental
-    REQUIRED)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -218,12 +208,6 @@ include(GNUInstallDirs)
 ########################################################################
 # Setup the package config file
 ########################################################################
-#set variables found in the pc.in file
-set(prefix ${CMAKE_INSTALL_PREFIX})
-set(exec_prefix "\${prefix}")
-set(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
-set(includedir "\${prefix}/include")
-
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tmpl/volk.pc.in
                ${CMAKE_CURRENT_BINARY_DIR}/volk.pc @ONLY)
 
@@ -305,7 +289,7 @@ endif()
 ########################################################################
 # Install our Cmake modules into $prefix/lib/cmake/volk
 # See "Package Configuration Files" on page:
-#    http://www.cmake.org/Wiki/CMake/Tutorials/Packaging
+# https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/Packaging
 ########################################################################
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/VolkConfig.cmake.in
@@ -375,6 +359,11 @@ message(STATUS "  Modify using: -DENABLE_PROFILING=ON/OFF")
 # Setup the library
 ########################################################################
 add_subdirectory(lib)
+
+########################################################################
+# Add tests
+########################################################################
+add_subdirectory(tests)
 
 ########################################################################
 # And the utility apps
