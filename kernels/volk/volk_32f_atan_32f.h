@@ -359,28 +359,6 @@ volk_32f_atan_32f_u_sse4_1(float* out, const float* in, unsigned int num_points)
 }
 #endif /* LV_HAVE_SSE4_1 for unaligned */
 
-#ifdef LV_HAVE_GENERIC
-static inline void
-volk_32f_atan_32f_polynomial(float* out, const float* in, unsigned int num_points)
-{
-    unsigned int number = 0;
-    for (; number < num_points; number++) {
-        *out++ = volk_arctan(*in++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-#ifdef LV_HAVE_GENERIC
-static inline void
-volk_32f_atan_32f_generic(float* out, const float* in, unsigned int num_points)
-{
-    unsigned int number = 0;
-    for (; number < num_points; number++) {
-        *out++ = atanf(*in++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
