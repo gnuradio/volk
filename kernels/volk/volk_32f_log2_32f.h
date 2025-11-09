@@ -134,8 +134,10 @@ static inline void volk_32f_log2_32f_a_avx2_fma(float* bVector,
         aVal = _mm256_load_ps(aPtr);
 
         // Check for NaN or negative/zero (invalid inputs for log2)
-        __m256 invalid_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ);  // aVal <= 0
-        invalid_mask = _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q));  // Or NaN
+        __m256 invalid_mask =
+            _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ); // aVal <= 0
+        invalid_mask =
+            _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q)); // Or NaN
         __m256 nan_value = _mm256_set1_ps(NAN);
 
         bias = _mm256_set1_epi32(127);
@@ -231,8 +233,10 @@ volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_
         aVal = _mm256_load_ps(aPtr);
 
         // Check for NaN or negative/zero (invalid inputs for log2)
-        __m256 invalid_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ);  // aVal <= 0
-        invalid_mask = _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q));  // Or NaN
+        __m256 invalid_mask =
+            _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ); // aVal <= 0
+        invalid_mask =
+            _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q)); // Or NaN
         __m256 nan_value = _mm256_set1_ps(NAN);
 
         bias = _mm256_set1_epi32(127);
@@ -327,8 +331,8 @@ volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
         aVal = _mm_load_ps(aPtr);
 
         // Check for NaN or negative/zero (invalid inputs for log2)
-        __m128 invalid_mask = _mm_cmple_ps(aVal, _mm_setzero_ps());  // aVal <= 0
-        invalid_mask = _mm_or_ps(invalid_mask, _mm_cmpunord_ps(aVal, aVal));  // Or NaN
+        __m128 invalid_mask = _mm_cmple_ps(aVal, _mm_setzero_ps());          // aVal <= 0
+        invalid_mask = _mm_or_ps(invalid_mask, _mm_cmpunord_ps(aVal, aVal)); // Or NaN
         __m128 nan_value = _mm_set1_ps(NAN);
 
         bias = _mm_set1_epi32(127);
@@ -520,8 +524,8 @@ volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
         aVal = _mm_loadu_ps(aPtr);
 
         // Check for NaN or negative/zero (invalid inputs for log2)
-        __m128 invalid_mask = _mm_cmple_ps(aVal, _mm_setzero_ps());  // aVal <= 0
-        invalid_mask = _mm_or_ps(invalid_mask, _mm_cmpunord_ps(aVal, aVal));  // Or NaN
+        __m128 invalid_mask = _mm_cmple_ps(aVal, _mm_setzero_ps());          // aVal <= 0
+        invalid_mask = _mm_or_ps(invalid_mask, _mm_cmpunord_ps(aVal, aVal)); // Or NaN
         __m128 nan_value = _mm_set1_ps(NAN);
 
         bias = _mm_set1_epi32(127);
@@ -616,8 +620,10 @@ static inline void volk_32f_log2_32f_u_avx2_fma(float* bVector,
         aVal = _mm256_loadu_ps(aPtr);
 
         // Check for NaN or negative/zero (invalid inputs for log2)
-        __m256 invalid_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ);  // aVal <= 0
-        invalid_mask = _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q));  // Or NaN
+        __m256 invalid_mask =
+            _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ); // aVal <= 0
+        invalid_mask =
+            _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q)); // Or NaN
         __m256 nan_value = _mm256_set1_ps(NAN);
 
         bias = _mm256_set1_epi32(127);
@@ -713,8 +719,10 @@ volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_
         aVal = _mm256_loadu_ps(aPtr);
 
         // Check for NaN or negative/zero (invalid inputs for log2)
-        __m256 invalid_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ);  // aVal <= 0
-        invalid_mask = _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q));  // Or NaN
+        __m256 invalid_mask =
+            _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ); // aVal <= 0
+        invalid_mask =
+            _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q)); // Or NaN
         __m256 nan_value = _mm256_set1_ps(NAN);
 
         bias = _mm256_set1_epi32(127);

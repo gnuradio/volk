@@ -156,7 +156,8 @@ union bit256 {
 static inline float log2f_non_ieee(float f)
 {
     float const result = log2f(f);
-    // Return NaN for NaN inputs or negative values (preserves IEEE behavior for invalid inputs)
+    // Return NaN for NaN inputs or negative values (preserves IEEE behavior for invalid
+    // inputs)
     if (isnan(result))
         return result;
     // Map ±Inf to ±127.0f to match SIMD kernel behavior
