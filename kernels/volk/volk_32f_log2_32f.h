@@ -470,10 +470,21 @@ volk_32f_log2_32f_neon(float* bVector, const float* aVector, unsigned int num_po
     //   (-1)^sign * 2^exp * 1.significand, so the log2 is
     // log2(2^exp * sig) = exponent + log2(1 + significand/(1<<23)
     for (number = 0; number < quarterPoints; ++number) {
+        // Check for NaN or negative/zero (invalid inputs for log2)
+        float32x4_t aval_f = vld1q_f32(aPtr);
+        uint32x4_t invalid_mask = vcleq_f32(aval_f, vdupq_n_f32(0.0f));  // aVal <= 0
+        // Check for NaN: NaN comparison with itself returns false
+        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aval_f, aval_f));  // NOT(aVal == aVal)
+        invalid_mask = vorrq_u32(invalid_mask, nan_mask);  // Combine masks
+        float32x4_t nan_value = vdupq_n_f32(NAN);
+
         // load float in to an int register without conversion
         aval = vld1q_s32((int*)aPtr);
 
         VLOG2Q_NEON_F32(log2_approx, aval)
+
+        // Replace invalid results with NaN
+        log2_approx = vbslq_f32(invalid_mask, nan_value, log2_approx);
 
         vst1q_f32(bPtr, log2_approx);
 
@@ -826,10 +837,19 @@ volk_32f_log2_32f_rvv(float* bVector, const float* aVector, unsigned int num_poi
     const vint32m2_t m2 = __riscv_vmv_v_x_i32m2(0x7FFFFF, vlmax);
     const vint32m2_t c127 = __riscv_vmv_v_x_i32m2(127, vlmax);
 
+    const vfloat32m2_t zero = __riscv_vfmv_v_f_f32m2(0.0f, vlmax);
+    const vfloat32m2_t nan_val = __riscv_vfmv_v_f_f32m2(NAN, vlmax);
+
     size_t n = num_points;
     for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl) {
         vl = __riscv_vsetvl_e32m2(n);
         vfloat32m2_t v = __riscv_vle32_v_f32m2(aVector, vl);
+
+        // Check for invalid inputs (NaN, negative, or zero)
+        vbool16_t invalid_mask = __riscv_vmfle(v, zero, vl);  // v <= 0
+        vbool16_t nan_mask = __riscv_vmfne(v, v, vl);  // NaN check: v != v
+        invalid_mask = __riscv_vmor(invalid_mask, nan_mask, vl);
+
         vfloat32m2_t a = __riscv_vfabs(v, vl);
         vfloat32m2_t exp = __riscv_vfcvt_f(
             __riscv_vsub(__riscv_vsra(__riscv_vreinterpret_i32m2(a), 23, vl), c127, vl),
@@ -850,6 +870,9 @@ volk_32f_log2_32f_rvv(float* bVector, const float* aVector, unsigned int num_poi
 #endif
 #endif
         exp = __riscv_vfmacc(exp, mant, __riscv_vfsub(frac, cf1, vl), vl);
+
+        // Replace invalid results with NaN
+        exp = __riscv_vmerge(exp, nan_val, invalid_mask, vl);
 
         __riscv_vse32(bVector, exp, vl);
     }
