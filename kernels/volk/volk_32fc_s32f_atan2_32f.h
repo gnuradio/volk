@@ -781,8 +781,8 @@ static inline void volk_32fc_s32f_atan2_32f_rvv(float* outputVector,
         // Only handle NaN from division (0/0, inf/inf), not from NaN inputs
         // Replace with numerator to preserve sign (e.g., atan2(-0, 0) = -0)
         vbool16_t x_nan_mask = __riscv_vmfne(x, x, vl);
-        // div_nan_mask = x_nan_mask & ~input_nan_mask (AND-NOT operation)
-        vbool16_t div_nan_mask = __riscv_vmandnot(x_nan_mask, input_nan_mask, vl);
+        // div_nan_mask = x_nan_mask & ~input_nan_mask (vmandn computes vs2 & ~vs1)
+        vbool16_t div_nan_mask = __riscv_vmandn(x_nan_mask, input_nan_mask, vl);
         x = __riscv_vmerge(x, numerator, div_nan_mask, vl);
 
         vfloat32m2_t xx = __riscv_vfmul(x, x, vl);
@@ -845,8 +845,8 @@ static inline void volk_32fc_s32f_atan2_32f_rvvseg(float* outputVector,
         // Only handle NaN from division (0/0, inf/inf), not from NaN inputs
         // Replace with numerator to preserve sign (e.g., atan2(-0, 0) = -0)
         vbool16_t x_nan_mask = __riscv_vmfne(x, x, vl);
-        // div_nan_mask = x_nan_mask & ~input_nan_mask (AND-NOT operation)
-        vbool16_t div_nan_mask = __riscv_vmandnot(x_nan_mask, input_nan_mask, vl);
+        // div_nan_mask = x_nan_mask & ~input_nan_mask (vmandn computes vs2 & ~vs1)
+        vbool16_t div_nan_mask = __riscv_vmandn(x_nan_mask, input_nan_mask, vl);
         x = __riscv_vmerge(x, numerator, div_nan_mask, vl);
 
         vfloat32m2_t xx = __riscv_vfmul(x, x, vl);
