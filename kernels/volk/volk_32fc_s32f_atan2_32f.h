@@ -762,6 +762,11 @@ static inline void volk_32fc_s32f_atan2_32f_rvv(float* outputVector,
     const vfloat32m2_t c11 = __riscv_vfmv_v_f_f32m2(-0x1.2f3004p-5f, vlmax);
     const vfloat32m2_t c13 = __riscv_vfmv_v_f_f32m2(+0x1.01a37cp-7f, vlmax);
 
+    const vfloat32m2_t zero = __riscv_vfmv_v_f_f32m2(0.0f, vlmax);
+    const vfloat32m2_t inf = __riscv_vfmv_v_f_f32m2(__builtin_inff(), vlmax);
+    const vfloat32m2_t pi_4 = __riscv_vfmv_v_f_f32m2(0x1.921fb6p-1f, vlmax);      // π/4
+    const vfloat32m2_t three_pi_4 = __riscv_vfmv_v_f_f32m2(0x1.2d97c8p1f, vlmax); // 3π/4
+
     size_t n = num_points;
     for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
         vl = __riscv_vsetvl_e32m2(n);
@@ -773,7 +778,38 @@ static inline void volk_32fc_s32f_atan2_32f_rvv(float* outputVector,
         vbool16_t input_nan_mask =
             __riscv_vmor(__riscv_vmfne(vr, vr, vl), __riscv_vmfne(vi, vi, vl), vl);
 
-        vbool16_t mswap = __riscv_vmfgt(__riscv_vfabs(vi, vl), __riscv_vfabs(vr, vl), vl);
+        // Handle infinity cases per IEEE 754
+        vfloat32m2_t vr_abs = __riscv_vfabs(vr, vl);
+        vfloat32m2_t vi_abs = __riscv_vfabs(vi, vl);
+        vbool16_t vr_inf_mask = __riscv_vmfeq(vr_abs, inf, vl); // |vr| == inf
+        vbool16_t vi_inf_mask = __riscv_vmfeq(vi_abs, inf, vl); // |vi| == inf
+        vbool16_t vr_pos_mask = __riscv_vmfgt(vr, zero, vl);
+
+        // Build infinity result
+        vfloat32m2_t inf_result = zero;
+        // Both infinite: ±π/4 or ±3π/4
+        vbool16_t both_inf = __riscv_vmand(vi_inf_mask, vr_inf_mask, vl);
+        vfloat32m2_t both_inf_result = __riscv_vmerge(three_pi_4, pi_4, vr_pos_mask, vl);
+        both_inf_result = __riscv_vfsgnj(both_inf_result, vi, vl); // Copy sign from vi
+        inf_result = __riscv_vmerge(inf_result, both_inf_result, both_inf, vl);
+
+        // vi infinite, vr finite: ±π/2
+        vbool16_t vi_inf_only = __riscv_vmandn(vi_inf_mask, vr_inf_mask, vl);
+        vfloat32m2_t vi_inf_result = __riscv_vfsgnj(cpio2, vi, vl); // π/2 with sign of vi
+        inf_result = __riscv_vmerge(inf_result, vi_inf_result, vi_inf_only, vl);
+
+        // vr infinite, vi finite: 0 or ±π
+        vbool16_t vr_inf_only = __riscv_vmandn(vr_inf_mask, vi_inf_mask, vl);
+        vfloat32m2_t vr_inf_result =
+            __riscv_vmerge(__riscv_vfsgnj(cpi, vi, vl),  // π with sign of vi
+                           __riscv_vfsgnj(zero, vi, vl), // 0 with sign of vi
+                           vr_pos_mask,
+                           vl);
+        inf_result = __riscv_vmerge(inf_result, vr_inf_result, vr_inf_only, vl);
+
+        vbool16_t any_inf_mask = __riscv_vmor(vi_inf_mask, vr_inf_mask, vl);
+
+        vbool16_t mswap = __riscv_vmfgt(vi_abs, vr_abs, vl);
         vfloat32m2_t numerator = __riscv_vmerge(vi, vr, mswap, vl);
         vfloat32m2_t denominator = __riscv_vmerge(vr, vi, mswap, vl);
         vfloat32m2_t x = __riscv_vfdiv(numerator, denominator, vl);
@@ -799,6 +835,9 @@ static inline void volk_32fc_s32f_atan2_32f_rvv(float* outputVector,
         p = __riscv_vmerge(p, x, mswap, vl);
         p = __riscv_vfadd_mu(
             RISCV_VMFLTZ(32m2, vr, vl), p, p, __riscv_vfsgnjx(cpi, vi, vl), vl);
+
+        // Select infinity result or normal result
+        p = __riscv_vmerge(p, inf_result, any_inf_mask, vl);
 
         __riscv_vse32(outputVector, __riscv_vfmul(p, norm, vl), vl);
     }
@@ -827,6 +866,11 @@ static inline void volk_32fc_s32f_atan2_32f_rvvseg(float* outputVector,
     const vfloat32m2_t c11 = __riscv_vfmv_v_f_f32m2(-0x1.2f3004p-5f, vlmax);
     const vfloat32m2_t c13 = __riscv_vfmv_v_f_f32m2(+0x1.01a37cp-7f, vlmax);
 
+    const vfloat32m2_t zero = __riscv_vfmv_v_f_f32m2(0.0f, vlmax);
+    const vfloat32m2_t inf = __riscv_vfmv_v_f_f32m2(__builtin_inff(), vlmax);
+    const vfloat32m2_t pi_4 = __riscv_vfmv_v_f_f32m2(0x1.921fb6p-1f, vlmax);      // π/4
+    const vfloat32m2_t three_pi_4 = __riscv_vfmv_v_f_f32m2(0x1.2d97c8p1f, vlmax); // 3π/4
+
     size_t n = num_points;
     for (size_t vl; n > 0; n -= vl, inputVector += vl, outputVector += vl) {
         vl = __riscv_vsetvl_e32m2(n);
@@ -837,7 +881,38 @@ static inline void volk_32fc_s32f_atan2_32f_rvvseg(float* outputVector,
         vbool16_t input_nan_mask =
             __riscv_vmor(__riscv_vmfne(vr, vr, vl), __riscv_vmfne(vi, vi, vl), vl);
 
-        vbool16_t mswap = __riscv_vmfgt(__riscv_vfabs(vi, vl), __riscv_vfabs(vr, vl), vl);
+        // Handle infinity cases per IEEE 754
+        vfloat32m2_t vr_abs = __riscv_vfabs(vr, vl);
+        vfloat32m2_t vi_abs = __riscv_vfabs(vi, vl);
+        vbool16_t vr_inf_mask = __riscv_vmfeq(vr_abs, inf, vl); // |vr| == inf
+        vbool16_t vi_inf_mask = __riscv_vmfeq(vi_abs, inf, vl); // |vi| == inf
+        vbool16_t vr_pos_mask = __riscv_vmfgt(vr, zero, vl);
+
+        // Build infinity result
+        vfloat32m2_t inf_result = zero;
+        // Both infinite: ±π/4 or ±3π/4
+        vbool16_t both_inf = __riscv_vmand(vi_inf_mask, vr_inf_mask, vl);
+        vfloat32m2_t both_inf_result = __riscv_vmerge(three_pi_4, pi_4, vr_pos_mask, vl);
+        both_inf_result = __riscv_vfsgnj(both_inf_result, vi, vl); // Copy sign from vi
+        inf_result = __riscv_vmerge(inf_result, both_inf_result, both_inf, vl);
+
+        // vi infinite, vr finite: ±π/2
+        vbool16_t vi_inf_only = __riscv_vmandn(vi_inf_mask, vr_inf_mask, vl);
+        vfloat32m2_t vi_inf_result = __riscv_vfsgnj(cpio2, vi, vl); // π/2 with sign of vi
+        inf_result = __riscv_vmerge(inf_result, vi_inf_result, vi_inf_only, vl);
+
+        // vr infinite, vi finite: 0 or ±π
+        vbool16_t vr_inf_only = __riscv_vmandn(vr_inf_mask, vi_inf_mask, vl);
+        vfloat32m2_t vr_inf_result =
+            __riscv_vmerge(__riscv_vfsgnj(cpi, vi, vl),  // π with sign of vi
+                           __riscv_vfsgnj(zero, vi, vl), // 0 with sign of vi
+                           vr_pos_mask,
+                           vl);
+        inf_result = __riscv_vmerge(inf_result, vr_inf_result, vr_inf_only, vl);
+
+        vbool16_t any_inf_mask = __riscv_vmor(vi_inf_mask, vr_inf_mask, vl);
+
+        vbool16_t mswap = __riscv_vmfgt(vi_abs, vr_abs, vl);
         vfloat32m2_t numerator = __riscv_vmerge(vi, vr, mswap, vl);
         vfloat32m2_t denominator = __riscv_vmerge(vr, vi, mswap, vl);
         vfloat32m2_t x = __riscv_vfdiv(numerator, denominator, vl);
@@ -863,6 +938,9 @@ static inline void volk_32fc_s32f_atan2_32f_rvvseg(float* outputVector,
         p = __riscv_vmerge(p, x, mswap, vl);
         p = __riscv_vfadd_mu(
             RISCV_VMFLTZ(32m2, vr, vl), p, p, __riscv_vfsgnjx(cpi, vi, vl), vl);
+
+        // Select infinity result or normal result
+        p = __riscv_vmerge(p, inf_result, any_inf_mask, vl);
 
         __riscv_vse32(outputVector, __riscv_vfmul(p, norm, vl), vl);
     }
