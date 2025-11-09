@@ -540,8 +540,10 @@ volk_32f_acos_32f_rvv(float* bVector, const float* aVector, unsigned int num_poi
     for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl) {
         vl = __riscv_vsetvl_e32m2(n);
         vfloat32m2_t v = __riscv_vle32_v_f32m2(aVector, vl);
-        vfloat32m2_t a =
-            __riscv_vfdiv(__riscv_vfsqrt(__riscv_vfmsac(cf1, v, v, vl), vl), v, vl);
+        // Compute 1 - v^2 = (1+v)*(1-v) for better numerical stability
+        vfloat32m2_t one_minus_v_sq =
+            __riscv_vfmul(__riscv_vfadd(cf1, v, vl), __riscv_vfsub(cf1, v, vl), vl);
+        vfloat32m2_t a = __riscv_vfdiv(__riscv_vfsqrt(one_minus_v_sq, vl), v, vl);
         vfloat32m2_t z = __riscv_vfabs(a, vl);
         vfloat32m2_t x = __riscv_vfdiv_mu(__riscv_vmflt(z, cf1, vl), z, cf1, z, vl);
         x = __riscv_vfadd(x, __riscv_vfsqrt(__riscv_vfmadd(x, x, cf1, vl), vl), vl);
