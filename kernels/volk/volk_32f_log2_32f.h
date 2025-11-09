@@ -132,6 +132,12 @@ static inline void volk_32f_log2_32f_a_avx2_fma(float* bVector,
     for (; number < eighthPoints; number++) {
 
         aVal = _mm256_load_ps(aPtr);
+
+        // Check for NaN or negative/zero (invalid inputs for log2)
+        __m256 invalid_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ);  // aVal <= 0
+        invalid_mask = _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q));  // Or NaN
+        __m256 nan_value = _mm256_set1_ps(NAN);
+
         bias = _mm256_set1_epi32(127);
         leadingOne = _mm256_set1_ps(1.0f);
         exp = _mm256_sub_epi32(
@@ -177,6 +183,10 @@ static inline void volk_32f_log2_32f_a_avx2_fma(float* bVector,
 #endif
 
         bVal = _mm256_fmadd_ps(mantissa, _mm256_sub_ps(frac, leadingOne), bVal);
+
+        // Replace invalid results with NaN
+        bVal = _mm256_blendv_ps(bVal, nan_value, invalid_mask);
+
         _mm256_store_ps(bPtr, bVal);
 
         aPtr += 8;
@@ -219,6 +229,12 @@ volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_
     for (; number < eighthPoints; number++) {
 
         aVal = _mm256_load_ps(aPtr);
+
+        // Check for NaN or negative/zero (invalid inputs for log2)
+        __m256 invalid_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ);  // aVal <= 0
+        invalid_mask = _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q));  // Or NaN
+        __m256 nan_value = _mm256_set1_ps(NAN);
+
         bias = _mm256_set1_epi32(127);
         leadingOne = _mm256_set1_ps(1.0f);
         exp = _mm256_sub_epi32(
@@ -265,6 +281,10 @@ volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_
 
         bVal =
             _mm256_add_ps(_mm256_mul_ps(mantissa, _mm256_sub_ps(frac, leadingOne)), bVal);
+
+        // Replace invalid results with NaN
+        bVal = _mm256_blendv_ps(bVal, nan_value, invalid_mask);
+
         _mm256_store_ps(bPtr, bVal);
 
         aPtr += 8;
@@ -305,6 +325,12 @@ volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
     for (; number < quarterPoints; number++) {
 
         aVal = _mm_load_ps(aPtr);
+
+        // Check for NaN or negative/zero (invalid inputs for log2)
+        __m128 invalid_mask = _mm_cmple_ps(aVal, _mm_setzero_ps());  // aVal <= 0
+        invalid_mask = _mm_or_ps(invalid_mask, _mm_cmpunord_ps(aVal, aVal));  // Or NaN
+        __m128 nan_value = _mm_set1_ps(NAN);
+
         bias = _mm_set1_epi32(127);
         leadingOne = _mm_set1_ps(1.0f);
         exp = _mm_sub_epi32(
@@ -348,6 +374,10 @@ volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
 #endif
 
         bVal = _mm_add_ps(bVal, _mm_mul_ps(mantissa, _mm_sub_ps(frac, leadingOne)));
+
+        // Replace invalid results with NaN
+        bVal = _mm_blendv_ps(bVal, nan_value, invalid_mask);
+
         _mm_store_ps(bPtr, bVal);
 
         aPtr += 4;
@@ -488,6 +518,12 @@ volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
     for (; number < quarterPoints; number++) {
 
         aVal = _mm_loadu_ps(aPtr);
+
+        // Check for NaN or negative/zero (invalid inputs for log2)
+        __m128 invalid_mask = _mm_cmple_ps(aVal, _mm_setzero_ps());  // aVal <= 0
+        invalid_mask = _mm_or_ps(invalid_mask, _mm_cmpunord_ps(aVal, aVal));  // Or NaN
+        __m128 nan_value = _mm_set1_ps(NAN);
+
         bias = _mm_set1_epi32(127);
         leadingOne = _mm_set1_ps(1.0f);
         exp = _mm_sub_epi32(
@@ -531,6 +567,10 @@ volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
 #endif
 
         bVal = _mm_add_ps(bVal, _mm_mul_ps(mantissa, _mm_sub_ps(frac, leadingOne)));
+
+        // Replace invalid results with NaN
+        bVal = _mm_blendv_ps(bVal, nan_value, invalid_mask);
+
         _mm_storeu_ps(bPtr, bVal);
 
         aPtr += 4;
@@ -574,6 +614,12 @@ static inline void volk_32f_log2_32f_u_avx2_fma(float* bVector,
     for (; number < eighthPoints; number++) {
 
         aVal = _mm256_loadu_ps(aPtr);
+
+        // Check for NaN or negative/zero (invalid inputs for log2)
+        __m256 invalid_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ);  // aVal <= 0
+        invalid_mask = _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q));  // Or NaN
+        __m256 nan_value = _mm256_set1_ps(NAN);
+
         bias = _mm256_set1_epi32(127);
         leadingOne = _mm256_set1_ps(1.0f);
         exp = _mm256_sub_epi32(
@@ -619,6 +665,10 @@ static inline void volk_32f_log2_32f_u_avx2_fma(float* bVector,
 #endif
 
         bVal = _mm256_fmadd_ps(mantissa, _mm256_sub_ps(frac, leadingOne), bVal);
+
+        // Replace invalid results with NaN
+        bVal = _mm256_blendv_ps(bVal, nan_value, invalid_mask);
+
         _mm256_storeu_ps(bPtr, bVal);
 
         aPtr += 8;
@@ -661,6 +711,12 @@ volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_
     for (; number < eighthPoints; number++) {
 
         aVal = _mm256_loadu_ps(aPtr);
+
+        // Check for NaN or negative/zero (invalid inputs for log2)
+        __m256 invalid_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ);  // aVal <= 0
+        invalid_mask = _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q));  // Or NaN
+        __m256 nan_value = _mm256_set1_ps(NAN);
+
         bias = _mm256_set1_epi32(127);
         leadingOne = _mm256_set1_ps(1.0f);
         exp = _mm256_sub_epi32(
@@ -707,6 +763,10 @@ volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_
 
         bVal =
             _mm256_add_ps(_mm256_mul_ps(mantissa, _mm256_sub_ps(frac, leadingOne)), bVal);
+
+        // Replace invalid results with NaN
+        bVal = _mm256_blendv_ps(bVal, nan_value, invalid_mask);
+
         _mm256_storeu_ps(bPtr, bVal);
 
         aPtr += 8;
