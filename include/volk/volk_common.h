@@ -203,6 +203,16 @@ static inline float volk_arctan(const float x)
      */
     const float pi_2 = 0x1.921fb6p0f;
 
+    // Propagate NaN
+    if (isnan(x)) {
+        return x;
+    }
+
+    // arctan(±∞) = ±π/2
+    if (isinf(x)) {
+        return copysignf(pi_2, x);
+    }
+
     if (fabs(x) < 1.f) {
         return volk_arctan_poly(x);
     } else {
@@ -226,11 +236,39 @@ static inline float volk_atan2(const float y, const float x)
     const float pi = 0x1.921fb6p1f;
     const float pi_2 = 0x1.921fb6p0f;
 
+    // Propagate NaN from inputs
+    if (isnan(x) || isnan(y)) {
+        return x + y;
+    }
+
+    // Handle infinity cases per IEEE 754
+    if (isinf(y)) {
+        if (isinf(x)) {
+            // Both infinite: atan2(±∞, ±∞) = ±π/4 or ±3π/4
+            const float angle = (x > 0.f) ? (pi_2 / 2.f) : (3.f * pi_2 / 2.f);
+            return copysignf(angle, y);
+        } else {
+            // y infinite, x finite: atan2(±∞, x) = ±π/2
+            return copysignf(pi_2, y);
+        }
+    }
+    if (isinf(x)) {
+        // x infinite, y finite: atan2(y, +∞) = ±0, atan2(y, -∞) = ±π
+        return (x > 0.f) ? copysignf(0.f, y) : copysignf(pi, y);
+    }
+
     if (fabs(x) == 0.f) {
         return (fabs(y) == 0.f) ? copysignf(0.f, y) : copysignf(pi_2, y);
     }
     const int swap = fabs(x) < fabs(y);
-    const float input = swap ? (x / y) : (y / x);
+    const float numerator = swap ? x : y;
+    const float denominator = swap ? y : x;
+    float input = numerator / denominator;
+
+    if (isnan(input)) {
+        input = numerator;
+    }
+
     float result = volk_arctan_poly(input);
     result = swap ? (input >= 0.f ? pi_2 : -pi_2) - result : result;
     if (x < 0.f) {

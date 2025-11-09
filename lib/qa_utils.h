@@ -62,6 +62,8 @@ private:
     bool _benchmark_mode;
     bool _absolute_mode;
     std::string _kernel_regex;
+    std::vector<float> _float_edge_cases;
+    std::vector<lv_32fc_t> _complex_edge_cases;
 
 public:
     // ctor
@@ -85,6 +87,14 @@ public:
     void set_iter(unsigned int iter) { _iter = iter; };
     void set_benchmark(bool benchmark) { _benchmark_mode = benchmark; };
     void set_regex(std::string regex) { _kernel_regex = regex; };
+    void add_float_edge_cases(const std::vector<float>& edge_cases)
+    {
+        _float_edge_cases = edge_cases;
+    };
+    void add_complex_edge_cases(const std::vector<lv_32fc_t>& edge_cases)
+    {
+        _complex_edge_cases = edge_cases;
+    };
     // getters
     float tol() { return _tol; };
     lv_32fc_t scalar() { return _scalar; };
@@ -93,6 +103,11 @@ public:
     bool benchmark_mode() { return _benchmark_mode; };
     bool absolute_mode() { return _absolute_mode; };
     std::string kernel_regex() { return _kernel_regex; };
+    const std::vector<float>& float_edge_cases() const { return _float_edge_cases; };
+    const std::vector<lv_32fc_t>& complex_edge_cases() const
+    {
+        return _complex_edge_cases;
+    };
     volk_test_params_t make_absolute(float tol)
     {
         volk_test_params_t t(*this);
@@ -154,6 +169,13 @@ volk_type_t volk_type_from_string(std::string);
 float uniform(void);
 void random_floats(float* buf, unsigned n);
 
+void load_random_data(
+    void* data,
+    volk_type_t type,
+    unsigned int n,
+    const std::vector<float>& float_edge_cases = std::vector<float>(),
+    const std::vector<lv_32fc_t>& complex_edge_cases = std::vector<lv_32fc_t>());
+
 bool run_volk_tests(volk_func_desc_t,
                     void (*)(),
                     std::string,
@@ -161,17 +183,20 @@ bool run_volk_tests(volk_func_desc_t,
                     std::vector<volk_test_results_t>* results = NULL,
                     std::string puppet_master_name = "NULL");
 
-bool run_volk_tests(volk_func_desc_t,
-                    void (*)(),
-                    std::string,
-                    float,
-                    lv_32fc_t,
-                    unsigned int,
-                    unsigned int,
-                    std::vector<volk_test_results_t>* results = NULL,
-                    std::string puppet_master_name = "NULL",
-                    bool absolute_mode = false,
-                    bool benchmark_mode = false);
+bool run_volk_tests(
+    volk_func_desc_t,
+    void (*)(),
+    std::string,
+    float,
+    lv_32fc_t,
+    unsigned int,
+    unsigned int,
+    std::vector<volk_test_results_t>* results = NULL,
+    std::string puppet_master_name = "NULL",
+    bool absolute_mode = false,
+    bool benchmark_mode = false,
+    const std::vector<float>& float_edge_cases = std::vector<float>(),
+    const std::vector<lv_32fc_t>& complex_edge_cases = std::vector<lv_32fc_t>());
 
 #define VOLK_PROFILE(func, test_params, results) \
     run_volk_tests(func##_get_func_desc(),       \

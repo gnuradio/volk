@@ -99,6 +99,8 @@ volk_32f_atan_32f_a_avx512dq(float* out, const float* in, unsigned int num_point
             _mm512_cmp_ps_mask(_mm512_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m512 x_star = _mm512_div_ps(_mm512_mask_blend_ps(swap_mask, x, one),
                                       _mm512_mask_blend_ps(swap_mask, one, x));
+        __mmask16 nan_mask = _mm512_cmp_ps_mask(x_star, x_star, _CMP_UNORD_Q);
+        x_star = _mm512_mask_blend_ps(nan_mask, x_star, x);
         __m512 result = _mm512_arctan_poly_avx512(x_star);
         __m512 term = _mm512_and_ps(x_star, sign_mask);
         term = _mm512_or_ps(pi_over_2, term);
@@ -240,6 +242,8 @@ volk_32f_atan_32f_u_avx512dq(float* out, const float* in, unsigned int num_point
             _mm512_cmp_ps_mask(_mm512_and_ps(x, abs_mask), one, _CMP_GT_OS);
         __m512 x_star = _mm512_div_ps(_mm512_mask_blend_ps(swap_mask, x, one),
                                       _mm512_mask_blend_ps(swap_mask, one, x));
+        __mmask16 nan_mask = _mm512_cmp_ps_mask(x_star, x_star, _CMP_UNORD_Q);
+        x_star = _mm512_mask_blend_ps(nan_mask, x_star, x);
         __m512 result = _mm512_arctan_poly_avx512(x_star);
         __m512 term = _mm512_and_ps(x_star, sign_mask);
         term = _mm512_or_ps(pi_over_2, term);
