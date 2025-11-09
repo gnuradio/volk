@@ -239,7 +239,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2_fma(float* outputVector,
 
         // Handle infinity cases per IEEE 754
         const __m256 zero = _mm256_setzero_ps();
-        const __m256 inf = _mm256_set1_ps(__builtin_inff());
+        const __m256 inf = _mm256_set1_ps(HUGE_VALF);
         const __m256 pi_4 = _mm256_set1_ps(0x1.921fb6p-1f);      // π/4
         const __m256 three_pi_4 = _mm256_set1_ps(0x1.2d97c8p1f); // 3π/4
 
@@ -346,7 +346,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2(float* outputVector,
 
         // Handle infinity cases per IEEE 754
         const __m256 zero = _mm256_setzero_ps();
-        const __m256 inf = _mm256_set1_ps(__builtin_inff());
+        const __m256 inf = _mm256_set1_ps(HUGE_VALF);
         const __m256 pi_4 = _mm256_set1_ps(0x1.921fb6p-1f);      // π/4
         const __m256 three_pi_4 = _mm256_set1_ps(0x1.2d97c8p1f); // 3π/4
 
@@ -561,7 +561,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2_fma(float* outputVector,
 
         // Handle infinity cases per IEEE 754
         const __m256 zero = _mm256_setzero_ps();
-        const __m256 inf = _mm256_set1_ps(__builtin_inff());
+        const __m256 inf = _mm256_set1_ps(HUGE_VALF);
         const __m256 pi_4 = _mm256_set1_ps(0x1.921fb6p-1f);      // π/4
         const __m256 three_pi_4 = _mm256_set1_ps(0x1.2d97c8p1f); // 3π/4
 
@@ -668,7 +668,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2(float* outputVector,
 
         // Handle infinity cases per IEEE 754
         const __m256 zero = _mm256_setzero_ps();
-        const __m256 inf = _mm256_set1_ps(__builtin_inff());
+        const __m256 inf = _mm256_set1_ps(HUGE_VALF);
         const __m256 pi_4 = _mm256_set1_ps(0x1.921fb6p-1f);      // π/4
         const __m256 three_pi_4 = _mm256_set1_ps(0x1.2d97c8p1f); // 3π/4
 
@@ -763,7 +763,7 @@ static inline void volk_32fc_s32f_atan2_32f_rvv(float* outputVector,
     const vfloat32m2_t c13 = __riscv_vfmv_v_f_f32m2(+0x1.01a37cp-7f, vlmax);
 
     const vfloat32m2_t zero = __riscv_vfmv_v_f_f32m2(0.0f, vlmax);
-    const vfloat32m2_t inf = __riscv_vfmv_v_f_f32m2(__builtin_inff(), vlmax);
+    const vfloat32m2_t inf = __riscv_vfmv_v_f_f32m2(HUGE_VALF, vlmax);
     const vfloat32m2_t pi_4 = __riscv_vfmv_v_f_f32m2(0x1.921fb6p-1f, vlmax);      // π/4
     const vfloat32m2_t three_pi_4 = __riscv_vfmv_v_f_f32m2(0x1.2d97c8p1f, vlmax); // 3π/4
 
@@ -867,7 +867,7 @@ static inline void volk_32fc_s32f_atan2_32f_rvvseg(float* outputVector,
     const vfloat32m2_t c13 = __riscv_vfmv_v_f_f32m2(+0x1.01a37cp-7f, vlmax);
 
     const vfloat32m2_t zero = __riscv_vfmv_v_f_f32m2(0.0f, vlmax);
-    const vfloat32m2_t inf = __riscv_vfmv_v_f_f32m2(__builtin_inff(), vlmax);
+    const vfloat32m2_t inf = __riscv_vfmv_v_f_f32m2(HUGE_VALF, vlmax);
     const vfloat32m2_t pi_4 = __riscv_vfmv_v_f_f32m2(0x1.921fb6p-1f, vlmax);      // π/4
     const vfloat32m2_t three_pi_4 = __riscv_vfmv_v_f_f32m2(0x1.2d97c8p1f, vlmax); // 3π/4
 
