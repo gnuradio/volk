@@ -903,8 +903,10 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
-    std::cout << "Best aligned arch:  " << "\t\t" << best_arch_a << std::endl;
-    std::cout << "Best unaligned arch:" << "\t\t" << best_arch_u << std::endl;
+    std::cout << std::left << std::setw(24) << "Best aligned arch:" << best_arch_a
+              << std::endl;
+    std::cout << std::left << std::setw(24) << "Best unaligned arch:" << best_arch_u
+              << std::endl;
 
     if (puppet_master_name == "NULL") {
         results->back().config_name = name;
