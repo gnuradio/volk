@@ -1,6 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2011 - 2020, 2022 Free Software Foundation, Inc.
+ * Copyright 2025 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -563,6 +564,7 @@ bool run_volk_tests(volk_func_desc_t desc,
     results->back().name = name;
     results->back().vlen = vlen;
     results->back().iter = iter;
+    std::cout << std::endl; // Blank line for separation
     std::cout << "RUN_VOLK_TESTS: " << name << "(" << vlen << "," << iter << ")"
               << std::endl;
 
@@ -732,18 +734,6 @@ bool run_volk_tests(volk_func_desc_t desc,
         std::chrono::duration<double> elapsed_seconds = end - start;
         double arch_time = 1000.0 * elapsed_seconds.count();
 
-        // Calculate tabs needed for alignment (assuming 8-char tab width)
-        // Align to column 24 (enough for most arch names)
-        int name_len = arch_list[i].length();
-        int num_tabs = (24 - name_len + 7) / 8; // Round up
-        if (num_tabs < 1)
-            num_tabs = 1; // At least one tab
-
-        std::cout << arch_list[i];
-        for (int t = 0; t < num_tabs; t++)
-            std::cout << "\t";
-        std::cout << std::right << std::setw(10) << std::fixed << std::setprecision(4)
-                  << arch_time << " ms" << std::endl;
         volk_test_time_t result;
         result.name = arch_list[i];
         result.time = arch_time;
@@ -903,10 +893,30 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
+    for (size_t i = 0; i < arch_list.size(); i++) {
+        int name_len = arch_list[i].length();
+        int num_tabs = (24 - name_len + 7) / 8;
+        if (num_tabs < 1)
+            num_tabs = 1;
+
+        std::cout << arch_list[i];
+        for (int t = 0; t < num_tabs; t++)
+            std::cout << "\t";
+        std::cout << std::right << std::setw(10) << std::fixed << std::setprecision(4)
+                  << profile_times[i] << " ms";
+
+        if (arch_list[i] == best_arch_a || arch_list[i] == best_arch_u) {
+            std::cout << " *";
+        }
+        std::cout << std::endl;
+    }
+
     std::cout << std::left << std::setw(24) << "Best aligned arch:" << best_arch_a
               << std::endl;
     std::cout << std::left << std::setw(24) << "Best unaligned arch:" << best_arch_u
               << std::endl;
+
+    std::cout << std::string(60, '-') << std::endl;
 
     if (puppet_master_name == "NULL") {
         results->back().config_name = name;
