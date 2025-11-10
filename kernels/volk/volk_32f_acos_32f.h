@@ -65,6 +65,77 @@
 #ifndef INCLUDED_volk_32f_acos_32f_a_H
 #define INCLUDED_volk_32f_acos_32f_a_H
 
+#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#include <immintrin.h>
+
+static inline void
+volk_32f_acos_32f_a_avx512(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    unsigned int sixteenthPoints = num_points / 16;
+    int i, j;
+
+    __m512 aVal, d, pi, pio2, x, y, z, arccosine;
+    __m512 fzeroes, fones, ftwos, ffours;
+    __mmask16 condition;
+
+    pi = _mm512_set1_ps(3.14159265358979323846);
+    pio2 = _mm512_set1_ps(3.14159265358979323846 / 2);
+    fzeroes = _mm512_setzero_ps();
+    fones = _mm512_set1_ps(1.0);
+    ftwos = _mm512_set1_ps(2.0);
+    ffours = _mm512_set1_ps(4.0);
+
+    for (; number < sixteenthPoints; number++) {
+        aVal = _mm512_load_ps(aPtr);
+        d = aVal;
+        aVal = _mm512_mul_ps(_mm512_sqrt_ps(_mm512_mul_ps(_mm512_add_ps(fones, aVal),
+                                                          _mm512_sub_ps(fones, aVal))),
+                             _mm512_rcp14_ps(aVal));
+        z = aVal;
+        condition = _mm512_cmp_ps_mask(z, fzeroes, _CMP_LT_OS);
+        z = _mm512_mask_sub_ps(z, condition, z, _mm512_mul_ps(z, ftwos));
+        condition = _mm512_cmp_ps_mask(z, fones, _CMP_LT_OS);
+        x = _mm512_mask_add_ps(z, condition, z, _mm512_sub_ps(_mm512_rcp14_ps(z), z));
+
+        for (i = 0; i < 2; i++) {
+            x = _mm512_add_ps(x, _mm512_sqrt_ps(_mm512_fmadd_ps(x, x, fones)));
+        }
+        x = _mm512_rcp14_ps(x);
+        y = fzeroes;
+        for (j = ACOS_TERMS - 1; j >= 0; j--) {
+            y = _mm512_fmadd_ps(
+                y, _mm512_mul_ps(x, x), _mm512_set1_ps(pow(-1, j) / (2 * j + 1)));
+        }
+
+        y = _mm512_mul_ps(y, _mm512_mul_ps(x, ffours));
+        condition = _mm512_cmp_ps_mask(z, fones, _CMP_GT_OS);
+
+        y = _mm512_mask_add_ps(y, condition, y, _mm512_fnmadd_ps(y, ftwos, pio2));
+        arccosine = y;
+        condition = _mm512_cmp_ps_mask(aVal, fzeroes, _CMP_LT_OS);
+        arccosine = _mm512_mask_sub_ps(
+            arccosine, condition, arccosine, _mm512_mul_ps(arccosine, ftwos));
+        condition = _mm512_cmp_ps_mask(d, fzeroes, _CMP_LT_OS);
+        arccosine = _mm512_mask_add_ps(arccosine, condition, arccosine, pi);
+
+        _mm512_store_ps(bPtr, arccosine);
+        aPtr += 16;
+        bPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        *bPtr++ = acos(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for aligned */
+
+
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
 
@@ -99,13 +170,13 @@ static inline void volk_32f_acos_32f_a_avx2_fma(float* bVector,
         condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
         z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
         condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
-        x = _mm256_add_ps(
-            z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+        x = _mm256_add_ps(z,
+                          _mm256_and_ps(_mm256_sub_ps(_mm256_rcp_ps(z), z), condition));
 
         for (i = 0; i < 2; i++) {
             x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_fmadd_ps(x, x, fones)));
         }
-        x = _mm256_div_ps(fones, x);
+        x = _mm256_rcp_ps(x);
         y = fzeroes;
         for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm256_fmadd_ps(
@@ -170,14 +241,14 @@ volk_32f_acos_32f_a_avx(float* bVector, const float* aVector, unsigned int num_p
         condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
         z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
         condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
-        x = _mm256_add_ps(
-            z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+        x = _mm256_add_ps(z,
+                          _mm256_and_ps(_mm256_sub_ps(_mm256_rcp_ps(z), z), condition));
 
         for (i = 0; i < 2; i++) {
             x = _mm256_add_ps(x,
                               _mm256_sqrt_ps(_mm256_add_ps(fones, _mm256_mul_ps(x, x))));
         }
-        x = _mm256_div_ps(fones, x);
+        x = _mm256_rcp_ps(x);
         y = fzeroes;
         for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)),
@@ -242,12 +313,12 @@ volk_32f_acos_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
         condition = _mm_cmplt_ps(z, fzeroes);
         z = _mm_sub_ps(z, _mm_and_ps(_mm_mul_ps(z, ftwos), condition));
         condition = _mm_cmplt_ps(z, fones);
-        x = _mm_add_ps(z, _mm_and_ps(_mm_sub_ps(_mm_div_ps(fones, z), z), condition));
+        x = _mm_add_ps(z, _mm_and_ps(_mm_sub_ps(_mm_rcp_ps(z), z), condition));
 
         for (i = 0; i < 2; i++) {
             x = _mm_add_ps(x, _mm_sqrt_ps(_mm_add_ps(fones, _mm_mul_ps(x, x))));
         }
-        x = _mm_div_ps(fones, x);
+        x = _mm_rcp_ps(x);
         y = fzeroes;
         for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm_add_ps(_mm_mul_ps(y, _mm_mul_ps(x, x)),
@@ -284,6 +355,77 @@ volk_32f_acos_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
 #ifndef INCLUDED_volk_32f_acos_32f_u_H
 #define INCLUDED_volk_32f_acos_32f_u_H
 
+#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#include <immintrin.h>
+
+static inline void
+volk_32f_acos_32f_u_avx512(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    unsigned int sixteenthPoints = num_points / 16;
+    int i, j;
+
+    __m512 aVal, d, pi, pio2, x, y, z, arccosine;
+    __m512 fzeroes, fones, ftwos, ffours;
+    __mmask16 condition;
+
+    pi = _mm512_set1_ps(3.14159265358979323846);
+    pio2 = _mm512_set1_ps(3.14159265358979323846 / 2);
+    fzeroes = _mm512_setzero_ps();
+    fones = _mm512_set1_ps(1.0);
+    ftwos = _mm512_set1_ps(2.0);
+    ffours = _mm512_set1_ps(4.0);
+
+    for (; number < sixteenthPoints; number++) {
+        aVal = _mm512_loadu_ps(aPtr);
+        d = aVal;
+        aVal = _mm512_mul_ps(_mm512_sqrt_ps(_mm512_mul_ps(_mm512_add_ps(fones, aVal),
+                                                          _mm512_sub_ps(fones, aVal))),
+                             _mm512_rcp14_ps(aVal));
+        z = aVal;
+        condition = _mm512_cmp_ps_mask(z, fzeroes, _CMP_LT_OS);
+        z = _mm512_mask_sub_ps(z, condition, z, _mm512_mul_ps(z, ftwos));
+        condition = _mm512_cmp_ps_mask(z, fones, _CMP_LT_OS);
+        x = _mm512_mask_add_ps(z, condition, z, _mm512_sub_ps(_mm512_rcp14_ps(z), z));
+
+        for (i = 0; i < 2; i++) {
+            x = _mm512_add_ps(x, _mm512_sqrt_ps(_mm512_fmadd_ps(x, x, fones)));
+        }
+        x = _mm512_rcp14_ps(x);
+        y = fzeroes;
+        for (j = ACOS_TERMS - 1; j >= 0; j--) {
+            y = _mm512_fmadd_ps(
+                y, _mm512_mul_ps(x, x), _mm512_set1_ps(pow(-1, j) / (2 * j + 1)));
+        }
+
+        y = _mm512_mul_ps(y, _mm512_mul_ps(x, ffours));
+        condition = _mm512_cmp_ps_mask(z, fones, _CMP_GT_OS);
+
+        y = _mm512_mask_add_ps(y, condition, y, _mm512_fnmadd_ps(y, ftwos, pio2));
+        arccosine = y;
+        condition = _mm512_cmp_ps_mask(aVal, fzeroes, _CMP_LT_OS);
+        arccosine = _mm512_mask_sub_ps(
+            arccosine, condition, arccosine, _mm512_mul_ps(arccosine, ftwos));
+        condition = _mm512_cmp_ps_mask(d, fzeroes, _CMP_LT_OS);
+        arccosine = _mm512_mask_add_ps(arccosine, condition, arccosine, pi);
+
+        _mm512_storeu_ps(bPtr, arccosine);
+        aPtr += 16;
+        bPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        *bPtr++ = acos(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for unaligned */
+
+
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
 
@@ -318,13 +460,13 @@ static inline void volk_32f_acos_32f_u_avx2_fma(float* bVector,
         condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
         z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
         condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
-        x = _mm256_add_ps(
-            z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+        x = _mm256_add_ps(z,
+                          _mm256_and_ps(_mm256_sub_ps(_mm256_rcp_ps(z), z), condition));
 
         for (i = 0; i < 2; i++) {
             x = _mm256_add_ps(x, _mm256_sqrt_ps(_mm256_fmadd_ps(x, x, fones)));
         }
-        x = _mm256_div_ps(fones, x);
+        x = _mm256_rcp_ps(x);
         y = fzeroes;
         for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm256_fmadd_ps(
@@ -389,14 +531,14 @@ volk_32f_acos_32f_u_avx(float* bVector, const float* aVector, unsigned int num_p
         condition = _mm256_cmp_ps(z, fzeroes, _CMP_LT_OS);
         z = _mm256_sub_ps(z, _mm256_and_ps(_mm256_mul_ps(z, ftwos), condition));
         condition = _mm256_cmp_ps(z, fones, _CMP_LT_OS);
-        x = _mm256_add_ps(
-            z, _mm256_and_ps(_mm256_sub_ps(_mm256_div_ps(fones, z), z), condition));
+        x = _mm256_add_ps(z,
+                          _mm256_and_ps(_mm256_sub_ps(_mm256_rcp_ps(z), z), condition));
 
         for (i = 0; i < 2; i++) {
             x = _mm256_add_ps(x,
                               _mm256_sqrt_ps(_mm256_add_ps(fones, _mm256_mul_ps(x, x))));
         }
-        x = _mm256_div_ps(fones, x);
+        x = _mm256_rcp_ps(x);
         y = fzeroes;
         for (j = ACOS_TERMS - 1; j >= 0; j--) {
             y = _mm256_add_ps(_mm256_mul_ps(y, _mm256_mul_ps(x, x)),
@@ -461,12 +603,12 @@ volk_32f_acos_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
         condition = _mm_cmplt_ps(z, fzeroes);
         z = _mm_sub_ps(z, _mm_and_ps(_mm_mul_ps(z, ftwos), condition));
         condition = _mm_cmplt_ps(z, fones);
-        x = _mm_add_ps(z, _mm_and_ps(_mm_sub_ps(_mm_div_ps(fones, z), z), condition));
+        x = _mm_add_ps(z, _mm_and_ps(_mm_sub_ps(_mm_rcp_ps(z), z), condition));
 
         for (i = 0; i < 2; i++) {
             x = _mm_add_ps(x, _mm_sqrt_ps(_mm_add_ps(fones, _mm_mul_ps(x, x))));
         }
-        x = _mm_div_ps(fones, x);
+        x = _mm_rcp_ps(x);
         y = fzeroes;
 
         for (j = ACOS_TERMS - 1; j >= 0; j--) {
