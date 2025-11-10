@@ -21,6 +21,7 @@
 #include <cmath>    // for sqrt, fabs, abs
 #include <cstring>  // for memcpy, memset
 #include <ctime>    // for clock
+#include <iomanip>  // for setw, left
 #include <iostream> // for cout, cerr
 #include <limits>   // for numeric_limits
 #include <map>      // for map, map<>::mappe...
@@ -730,7 +731,16 @@ bool run_volk_tests(volk_func_desc_t desc,
         end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
         double arch_time = 1000.0 * elapsed_seconds.count();
-        std::cout << arch_list[i] << " completed in " << arch_time << " ms" << std::endl;
+
+        // Calculate tabs needed for alignment (assuming 8-char tab width)
+        // Align to column 24 (enough for most arch names)
+        int name_len = arch_list[i].length();
+        int num_tabs = (24 - name_len + 7) / 8; // Round up
+        if (num_tabs < 1) num_tabs = 1; // At least one tab
+
+        std::cout << arch_list[i];
+        for (int t = 0; t < num_tabs; t++) std::cout << "\t";
+        std::cout << std::fixed << std::setprecision(4) << arch_time << " ms" << std::endl;
         volk_test_time_t result;
         result.name = arch_list[i];
         result.time = arch_time;
