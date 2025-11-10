@@ -736,11 +736,14 @@ bool run_volk_tests(volk_func_desc_t desc,
         // Align to column 24 (enough for most arch names)
         int name_len = arch_list[i].length();
         int num_tabs = (24 - name_len + 7) / 8; // Round up
-        if (num_tabs < 1) num_tabs = 1; // At least one tab
+        if (num_tabs < 1)
+            num_tabs = 1; // At least one tab
 
         std::cout << arch_list[i];
-        for (int t = 0; t < num_tabs; t++) std::cout << "\t";
-        std::cout << std::fixed << std::setprecision(4) << arch_time << " ms" << std::endl;
+        for (int t = 0; t < num_tabs; t++)
+            std::cout << "\t";
+        std::cout << std::right << std::setw(10) << std::fixed << std::setprecision(4)
+                  << arch_time << " ms" << std::endl;
         volk_test_time_t result;
         result.name = arch_list[i];
         result.time = arch_time;
@@ -900,8 +903,8 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
-    std::cout << "Best aligned arch: " << best_arch_a << std::endl;
-    std::cout << "Best unaligned arch: " << best_arch_u << std::endl;
+    std::cout << "Best aligned arch:  " << "\t\t" << best_arch_a << std::endl;
+    std::cout << "Best unaligned arch:" << "\t\t" << best_arch_u << std::endl;
 
     if (puppet_master_name == "NULL") {
         results->back().config_name = name;
