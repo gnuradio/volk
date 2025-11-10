@@ -702,9 +702,8 @@ static inline void volk_32f_log2_32f_a_avx2_fma(float* bVector,
 #define POLY5_AVX512(x, c0, c1, c2, c3, c4, c5) \
     _mm512_fmadd_ps(POLY4_AVX512(x, c1, c2, c3, c4, c5), x, _mm512_set1_ps(c0))
 
-static inline void volk_32f_log2_32f_u_avx512(float* bVector,
-                                              const float* aVector,
-                                              unsigned int num_points)
+static inline void
+volk_32f_log2_32f_u_avx512(float* bVector, const float* aVector, unsigned int num_points)
 {
     float* bPtr = bVector;
     const float* aPtr = aVector;
@@ -720,7 +719,8 @@ static inline void volk_32f_log2_32f_u_avx512(float* bVector,
         aVal = _mm512_loadu_ps(aPtr);
 
         // Check for NaN or negative/zero (invalid inputs for log2)
-        __mmask16 invalid_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LE_OQ);
+        __mmask16 invalid_mask =
+            _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LE_OQ);
         __mmask16 nan_mask = _mm512_cmp_ps_mask(aVal, aVal, _CMP_UNORD_Q);
         invalid_mask = _kor_mask16(invalid_mask, nan_mask);
         __m512 nan_value = _mm512_set1_ps(NAN);
@@ -735,10 +735,9 @@ static inline void volk_32f_log2_32f_u_avx512(float* bVector,
         bVal = _mm512_cvtepi32_ps(exp);
 
         // Now to extract mantissa
-        frac = _mm512_castsi512_ps(
-            _mm512_or_si512(_mm512_castps_si512(leadingOne),
-                            _mm512_and_si512(_mm512_castps_si512(aVal),
-                                             _mm512_set1_epi32(0x7fffff))));
+        frac = _mm512_castsi512_ps(_mm512_or_si512(
+            _mm512_castps_si512(leadingOne),
+            _mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffff))));
 
 #if LOG_POLY_DEGREE == 6
         mantissa = POLY5_AVX512(frac,
@@ -802,9 +801,8 @@ static inline void volk_32f_log2_32f_u_avx512(float* bVector,
 #define POLY5_AVX512(x, c0, c1, c2, c3, c4, c5) \
     _mm512_fmadd_ps(POLY4_AVX512(x, c1, c2, c3, c4, c5), x, _mm512_set1_ps(c0))
 
-static inline void volk_32f_log2_32f_a_avx512(float* bVector,
-                                              const float* aVector,
-                                              unsigned int num_points)
+static inline void
+volk_32f_log2_32f_a_avx512(float* bVector, const float* aVector, unsigned int num_points)
 {
     float* bPtr = bVector;
     const float* aPtr = aVector;
@@ -820,7 +818,8 @@ static inline void volk_32f_log2_32f_a_avx512(float* bVector,
         aVal = _mm512_load_ps(aPtr);
 
         // Check for NaN or negative/zero (invalid inputs for log2)
-        __mmask16 invalid_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LE_OQ);
+        __mmask16 invalid_mask =
+            _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LE_OQ);
         __mmask16 nan_mask = _mm512_cmp_ps_mask(aVal, aVal, _CMP_UNORD_Q);
         invalid_mask = _kor_mask16(invalid_mask, nan_mask);
         __m512 nan_value = _mm512_set1_ps(NAN);
@@ -835,10 +834,9 @@ static inline void volk_32f_log2_32f_a_avx512(float* bVector,
         bVal = _mm512_cvtepi32_ps(exp);
 
         // Now to extract mantissa
-        frac = _mm512_castsi512_ps(
-            _mm512_or_si512(_mm512_castps_si512(leadingOne),
-                            _mm512_and_si512(_mm512_castps_si512(aVal),
-                                             _mm512_set1_epi32(0x7fffff))));
+        frac = _mm512_castsi512_ps(_mm512_or_si512(
+            _mm512_castps_si512(leadingOne),
+            _mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffff))));
 
 #if LOG_POLY_DEGREE == 6
         mantissa = POLY5_AVX512(frac,
@@ -886,6 +884,209 @@ static inline void volk_32f_log2_32f_a_avx512(float* bVector,
 }
 
 #endif /* LV_HAVE_AVX512F for aligned */
+
+#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#include <immintrin.h>
+
+#define POLY0_AVX512DQ(x, c0) _mm512_set1_ps(c0)
+#define POLY1_AVX512DQ(x, c0, c1) \
+    _mm512_fmadd_ps(POLY0_AVX512DQ(x, c1), x, _mm512_set1_ps(c0))
+#define POLY2_AVX512DQ(x, c0, c1, c2) \
+    _mm512_fmadd_ps(POLY1_AVX512DQ(x, c1, c2), x, _mm512_set1_ps(c0))
+#define POLY3_AVX512DQ(x, c0, c1, c2, c3) \
+    _mm512_fmadd_ps(POLY2_AVX512DQ(x, c1, c2, c3), x, _mm512_set1_ps(c0))
+#define POLY4_AVX512DQ(x, c0, c1, c2, c3, c4) \
+    _mm512_fmadd_ps(POLY3_AVX512DQ(x, c1, c2, c3, c4), x, _mm512_set1_ps(c0))
+#define POLY5_AVX512DQ(x, c0, c1, c2, c3, c4, c5) \
+    _mm512_fmadd_ps(POLY4_AVX512DQ(x, c1, c2, c3, c4, c5), x, _mm512_set1_ps(c0))
+
+static inline void volk_32f_log2_32f_u_avx512dq(float* bVector,
+                                                const float* aVector,
+                                                unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    __m512 aVal, bVal, mantissa, frac, leadingOne;
+    __m512i bias, exp;
+
+    for (; number < sixteenthPoints; number++) {
+
+        aVal = _mm512_loadu_ps(aPtr);
+
+        // Use fpclass for cleaner special value detection
+        // 0x81 = NaN (0x01) | NegInf (0x80)
+        // 0x18 = PosInf (0x10) | NegInf (0x08)
+        // 0x06 = +Zero (0x04) | -Zero (0x02)
+        __mmask16 nan_mask = _mm512_fpclass_ps_mask(aVal, 0x01);
+        __mmask16 zero_mask = _mm512_fpclass_ps_mask(aVal, 0x06);
+        __mmask16 neg_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OQ);
+        __mmask16 invalid_mask = _kor_mask16(_kor_mask16(nan_mask, zero_mask), neg_mask);
+        __m512 nan_value = _mm512_set1_ps(NAN);
+
+        bias = _mm512_set1_epi32(127);
+        leadingOne = _mm512_set1_ps(1.0f);
+        exp = _mm512_sub_epi32(
+            _mm512_srli_epi32(_mm512_and_si512(_mm512_castps_si512(aVal),
+                                               _mm512_set1_epi32(0x7f800000)),
+                              23),
+            bias);
+        bVal = _mm512_cvtepi32_ps(exp);
+
+        // Now to extract mantissa
+        frac = _mm512_castsi512_ps(_mm512_or_si512(
+            _mm512_castps_si512(leadingOne),
+            _mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffff))));
+
+#if LOG_POLY_DEGREE == 6
+        mantissa = POLY5_AVX512DQ(frac,
+                                  3.1157899f,
+                                  -3.3241990f,
+                                  2.5988452f,
+                                  -1.2315303f,
+                                  3.1821337e-1f,
+                                  -3.4436006e-2f);
+#elif LOG_POLY_DEGREE == 5
+        mantissa = POLY4_AVX512DQ(frac,
+                                  2.8882704548164776201f,
+                                  -2.52074962577807006663f,
+                                  1.48116647521213171641f,
+                                  -0.465725644288844778798f,
+                                  0.0596515482674574969533f);
+#elif LOG_POLY_DEGREE == 4
+        mantissa = POLY3_AVX512DQ(frac,
+                                  2.61761038894603480148f,
+                                  -1.75647175389045657003f,
+                                  0.688243882994381274313f,
+                                  -0.107254423828329604454f);
+#elif LOG_POLY_DEGREE == 3
+        mantissa = POLY2_AVX512DQ(frac,
+                                  2.28330284476918490682f,
+                                  -1.04913055217340124191f,
+                                  0.204446009836232697516f);
+#else
+#error
+#endif
+
+        bVal = _mm512_fmadd_ps(mantissa, _mm512_sub_ps(frac, leadingOne), bVal);
+
+        // Replace invalid results with NaN
+        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, nan_value);
+
+        _mm512_storeu_ps(bPtr, bVal);
+
+        aPtr += 16;
+        bPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    volk_32f_log2_32f_generic(bPtr, aPtr, num_points - number);
+}
+
+#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for unaligned */
+
+#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#include <immintrin.h>
+
+#define POLY0_AVX512DQ_A(x, c0) _mm512_set1_ps(c0)
+#define POLY1_AVX512DQ_A(x, c0, c1) \
+    _mm512_fmadd_ps(POLY0_AVX512DQ_A(x, c1), x, _mm512_set1_ps(c0))
+#define POLY2_AVX512DQ_A(x, c0, c1, c2) \
+    _mm512_fmadd_ps(POLY1_AVX512DQ_A(x, c1, c2), x, _mm512_set1_ps(c0))
+#define POLY3_AVX512DQ_A(x, c0, c1, c2, c3) \
+    _mm512_fmadd_ps(POLY2_AVX512DQ_A(x, c1, c2, c3), x, _mm512_set1_ps(c0))
+#define POLY4_AVX512DQ_A(x, c0, c1, c2, c3, c4) \
+    _mm512_fmadd_ps(POLY3_AVX512DQ_A(x, c1, c2, c3, c4), x, _mm512_set1_ps(c0))
+#define POLY5_AVX512DQ_A(x, c0, c1, c2, c3, c4, c5) \
+    _mm512_fmadd_ps(POLY4_AVX512DQ_A(x, c1, c2, c3, c4, c5), x, _mm512_set1_ps(c0))
+
+static inline void volk_32f_log2_32f_a_avx512dq(float* bVector,
+                                                const float* aVector,
+                                                unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    __m512 aVal, bVal, mantissa, frac, leadingOne;
+    __m512i bias, exp;
+
+    for (; number < sixteenthPoints; number++) {
+
+        aVal = _mm512_load_ps(aPtr);
+
+        // Use fpclass for cleaner special value detection
+        __mmask16 nan_mask = _mm512_fpclass_ps_mask(aVal, 0x01);
+        __mmask16 zero_mask = _mm512_fpclass_ps_mask(aVal, 0x06);
+        __mmask16 neg_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OQ);
+        __mmask16 invalid_mask = _kor_mask16(_kor_mask16(nan_mask, zero_mask), neg_mask);
+        __m512 nan_value = _mm512_set1_ps(NAN);
+
+        bias = _mm512_set1_epi32(127);
+        leadingOne = _mm512_set1_ps(1.0f);
+        exp = _mm512_sub_epi32(
+            _mm512_srli_epi32(_mm512_and_si512(_mm512_castps_si512(aVal),
+                                               _mm512_set1_epi32(0x7f800000)),
+                              23),
+            bias);
+        bVal = _mm512_cvtepi32_ps(exp);
+
+        // Now to extract mantissa
+        frac = _mm512_castsi512_ps(_mm512_or_si512(
+            _mm512_castps_si512(leadingOne),
+            _mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffff))));
+
+#if LOG_POLY_DEGREE == 6
+        mantissa = POLY5_AVX512DQ_A(frac,
+                                    3.1157899f,
+                                    -3.3241990f,
+                                    2.5988452f,
+                                    -1.2315303f,
+                                    3.1821337e-1f,
+                                    -3.4436006e-2f);
+#elif LOG_POLY_DEGREE == 5
+        mantissa = POLY4_AVX512DQ_A(frac,
+                                    2.8882704548164776201f,
+                                    -2.52074962577807006663f,
+                                    1.48116647521213171641f,
+                                    -0.465725644288844778798f,
+                                    0.0596515482674574969533f);
+#elif LOG_POLY_DEGREE == 4
+        mantissa = POLY3_AVX512DQ_A(frac,
+                                    2.61761038894603480148f,
+                                    -1.75647175389045657003f,
+                                    0.688243882994381274313f,
+                                    -0.107254423828329604454f);
+#elif LOG_POLY_DEGREE == 3
+        mantissa = POLY2_AVX512DQ_A(frac,
+                                    2.28330284476918490682f,
+                                    -1.04913055217340124191f,
+                                    0.204446009836232697516f);
+#else
+#error
+#endif
+
+        bVal = _mm512_fmadd_ps(mantissa, _mm512_sub_ps(frac, leadingOne), bVal);
+
+        // Replace invalid results with NaN
+        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, nan_value);
+
+        _mm512_store_ps(bPtr, bVal);
+
+        aPtr += 16;
+        bPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    volk_32f_log2_32f_generic(bPtr, aPtr, num_points - number);
+}
+
+#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for aligned */
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>

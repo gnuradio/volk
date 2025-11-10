@@ -65,7 +65,7 @@
 #ifndef INCLUDED_volk_32f_acos_32f_a_H
 #define INCLUDED_volk_32f_acos_32f_a_H
 
-#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 
 static inline void
@@ -133,7 +133,7 @@ volk_32f_acos_32f_a_avx512(float* bVector, const float* aVector, unsigned int nu
     }
 }
 
-#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for aligned */
+#endif /* LV_HAVE_AVX512F for aligned */
 
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
@@ -355,7 +355,7 @@ volk_32f_acos_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
 #ifndef INCLUDED_volk_32f_acos_32f_u_H
 #define INCLUDED_volk_32f_acos_32f_u_H
 
-#if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
+#ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 
 static inline void
@@ -423,7 +423,7 @@ volk_32f_acos_32f_u_avx512(float* bVector, const float* aVector, unsigned int nu
     }
 }
 
-#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for unaligned */
+#endif /* LV_HAVE_AVX512F for unaligned */
 
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
