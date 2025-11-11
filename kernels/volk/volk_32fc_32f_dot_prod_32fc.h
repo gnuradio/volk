@@ -77,6 +77,76 @@ static inline void volk_32fc_32f_dot_prod_32fc_generic(lv_32fc_t* result,
 
 #endif /*LV_HAVE_GENERIC*/
 
+#ifdef LV_HAVE_AVX512F
+
+#include <immintrin.h>
+
+static inline void volk_32fc_32f_dot_prod_32fc_a_avx512f(lv_32fc_t* result,
+                                                         const lv_32fc_t* input,
+                                                         const float* taps,
+                                                         unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
+    const float* aPtr = (float*)input;
+    const float* bPtr = taps;
+
+    __m512 a0Val, a1Val;
+    __m512 b0Val, b1Val;
+    __m512 xVal;
+
+    __m512 dotProdVal0 = _mm512_setzero_ps();
+    __m512 dotProdVal1 = _mm512_setzero_ps();
+
+    // Create index patterns for duplication: 0,0,1,1,2,2,3,3,...,15,15
+    const __m512i idx = _mm512_setr_epi32(0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7);
+    const __m512i idx2 =
+        _mm512_setr_epi32(8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15);
+
+    for (; number < sixteenthPoints; number++) {
+        // Load 16 complex numbers (32 floats)
+        a0Val = _mm512_load_ps(aPtr);      // 8 complex (I0,Q0,I1,Q1,...)
+        a1Val = _mm512_load_ps(aPtr + 16); // 8 complex (I8,Q8,I9,Q9,...)
+
+        // Load 16 real taps
+        xVal = _mm512_load_ps(bPtr); // t0|t1|t2|...|t15
+
+        // Duplicate each tap value to match complex format using permutexvar
+        b0Val = _mm512_permutexvar_ps(idx, xVal);
+        b1Val = _mm512_permutexvar_ps(idx2, xVal);
+
+        dotProdVal0 = _mm512_fmadd_ps(a0Val, b0Val, dotProdVal0);
+        dotProdVal1 = _mm512_fmadd_ps(a1Val, b1Val, dotProdVal1);
+
+        aPtr += 32;
+        bPtr += 16;
+    }
+
+    dotProdVal0 = _mm512_add_ps(dotProdVal0, dotProdVal1);
+
+    __VOLK_ATTR_ALIGNED(64) float dotProductVector[16];
+    _mm512_store_ps(dotProductVector, dotProdVal0);
+
+    for (unsigned int i = 0; i < 16; i += 2) {
+        returnValue += lv_cmake(dotProductVector[i], dotProductVector[i + 1]);
+    }
+
+    // Process remaining elements using generic function
+    number = sixteenthPoints * 16;
+    if (number < num_points) {
+        lv_32fc_t tailResult;
+        volk_32fc_32f_dot_prod_32fc_generic(
+            &tailResult, input + number, taps + number, num_points - number);
+        returnValue += tailResult;
+    }
+
+    *result = returnValue;
+}
+
+#endif /*LV_HAVE_AVX512F*/
+
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 
 #include <immintrin.h>
@@ -325,6 +395,76 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_sse(lv_32fc_t* result,
 }
 
 #endif /*LV_HAVE_SSE*/
+
+#ifdef LV_HAVE_AVX512F
+
+#include <immintrin.h>
+
+static inline void volk_32fc_32f_dot_prod_32fc_u_avx512f(lv_32fc_t* result,
+                                                         const lv_32fc_t* input,
+                                                         const float* taps,
+                                                         unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
+    const float* aPtr = (float*)input;
+    const float* bPtr = taps;
+
+    __m512 a0Val, a1Val;
+    __m512 b0Val, b1Val;
+    __m512 xVal;
+
+    __m512 dotProdVal0 = _mm512_setzero_ps();
+    __m512 dotProdVal1 = _mm512_setzero_ps();
+
+    // Create index patterns for duplication: 0,0,1,1,2,2,3,3,...,15,15
+    const __m512i idx = _mm512_setr_epi32(0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7);
+    const __m512i idx2 =
+        _mm512_setr_epi32(8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15);
+
+    for (; number < sixteenthPoints; number++) {
+        // Load 16 complex numbers (32 floats) - unaligned
+        a0Val = _mm512_loadu_ps(aPtr);      // 8 complex (I0,Q0,I1,Q1,...)
+        a1Val = _mm512_loadu_ps(aPtr + 16); // 8 complex (I8,Q8,I9,Q9,...)
+
+        // Load 16 real taps - unaligned
+        xVal = _mm512_loadu_ps(bPtr); // t0|t1|t2|...|t15
+
+        // Duplicate each tap value to match complex format using permutexvar
+        b0Val = _mm512_permutexvar_ps(idx, xVal);
+        b1Val = _mm512_permutexvar_ps(idx2, xVal);
+
+        dotProdVal0 = _mm512_fmadd_ps(a0Val, b0Val, dotProdVal0);
+        dotProdVal1 = _mm512_fmadd_ps(a1Val, b1Val, dotProdVal1);
+
+        aPtr += 32;
+        bPtr += 16;
+    }
+
+    dotProdVal0 = _mm512_add_ps(dotProdVal0, dotProdVal1);
+
+    __VOLK_ATTR_ALIGNED(64) float dotProductVector[16];
+    _mm512_store_ps(dotProductVector, dotProdVal0);
+
+    for (unsigned int i = 0; i < 16; i += 2) {
+        returnValue += lv_cmake(dotProductVector[i], dotProductVector[i + 1]);
+    }
+
+    // Process remaining elements using generic function
+    number = sixteenthPoints * 16;
+    if (number < num_points) {
+        lv_32fc_t tailResult;
+        volk_32fc_32f_dot_prod_32fc_generic(
+            &tailResult, input + number, taps + number, num_points - number);
+        returnValue += tailResult;
+    }
+
+    *result = returnValue;
+}
+
+#endif /*LV_HAVE_AVX512F*/
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 

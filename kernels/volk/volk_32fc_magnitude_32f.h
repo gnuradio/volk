@@ -62,6 +62,76 @@
 #include <math.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_32fc_magnitude_32f_generic(float* magnitudeVector,
+                                                   const lv_32fc_t* complexVector,
+                                                   unsigned int num_points)
+{
+    const float* complexVectorPtr = (float*)complexVector;
+    float* magnitudeVectorPtr = magnitudeVector;
+    unsigned int number = 0;
+    for (number = 0; number < num_points; number++) {
+        const float real = *complexVectorPtr++;
+        const float imag = *complexVectorPtr++;
+        *magnitudeVectorPtr++ = sqrtf((real * real) + (imag * imag));
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32fc_magnitude_32f_u_avx512f(float* magnitudeVector,
+                                                     const lv_32fc_t* complexVector,
+                                                     unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    const float* complexVectorPtr = (float*)complexVector;
+    float* magnitudeVectorPtr = magnitudeVector;
+
+    __m512 cplxValue;
+    __m512 iValues, qValues;
+    __m512 result;
+
+    for (; number < eighthPoints; number++) {
+        // Load 8 complex numbers (16 floats): I0,Q0,I1,Q1,...,I7,Q7
+        cplxValue = _mm512_loadu_ps(complexVectorPtr);
+
+        // Separate I and Q values using permute
+        // Extract I values (even indices: 0,2,4,6,8,10,12,14)
+        iValues = _mm512_permutexvar_ps(
+            _mm512_setr_epi32(0, 2, 4, 6, 8, 10, 12, 14, 0, 0, 0, 0, 0, 0, 0, 0),
+            cplxValue);
+        // Extract Q values (odd indices: 1,3,5,7,9,11,13,15)
+        qValues = _mm512_permutexvar_ps(
+            _mm512_setr_epi32(1, 3, 5, 7, 9, 11, 13, 15, 0, 0, 0, 0, 0, 0, 0, 0),
+            cplxValue);
+
+        // Square and add: I^2 + Q^2
+        result = _mm512_fmadd_ps(iValues, iValues, _mm512_mul_ps(qValues, qValues));
+
+        // Square root
+        result = _mm512_sqrt_ps(result);
+
+        // Store only first 8 results
+        _mm256_storeu_ps(magnitudeVectorPtr, _mm512_castps512_ps256(result));
+
+        complexVectorPtr += 16;
+        magnitudeVectorPtr += 8;
+    }
+
+    // Handle remaining points using generic
+    number = eighthPoints * 8;
+    if (number < num_points) {
+        volk_32fc_magnitude_32f_generic(
+            magnitudeVectorPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
+    }
+}
+#endif /* LV_HAVE_AVX512F */
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
@@ -172,25 +242,6 @@ static inline void volk_32fc_magnitude_32f_u_sse(float* magnitudeVector,
 }
 #endif /* LV_HAVE_SSE */
 
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_magnitude_32f_generic(float* magnitudeVector,
-                                                   const lv_32fc_t* complexVector,
-                                                   unsigned int num_points)
-{
-    const float* complexVectorPtr = (float*)complexVector;
-    float* magnitudeVectorPtr = magnitudeVector;
-    unsigned int number = 0;
-    for (number = 0; number < num_points; number++) {
-        const float real = *complexVectorPtr++;
-        const float imag = *complexVectorPtr++;
-        *magnitudeVectorPtr++ = sqrtf((real * real) + (imag * imag));
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
 #endif /* INCLUDED_volk_32fc_magnitude_32f_u_H */
 #ifndef INCLUDED_volk_32fc_magnitude_32f_a_H
 #define INCLUDED_volk_32fc_magnitude_32f_a_H
@@ -198,6 +249,57 @@ static inline void volk_32fc_magnitude_32f_generic(float* magnitudeVector,
 #include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32fc_magnitude_32f_a_avx512f(float* magnitudeVector,
+                                                     const lv_32fc_t* complexVector,
+                                                     unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    const float* complexVectorPtr = (float*)complexVector;
+    float* magnitudeVectorPtr = magnitudeVector;
+
+    __m512 cplxValue;
+    __m512 iValues, qValues;
+    __m512 result;
+
+    for (; number < eighthPoints; number++) {
+        // Load 8 complex numbers (16 floats): I0,Q0,I1,Q1,...,I7,Q7
+        cplxValue = _mm512_load_ps(complexVectorPtr);
+
+        // Separate I and Q values using permute
+        iValues = _mm512_permutexvar_ps(
+            _mm512_setr_epi32(0, 2, 4, 6, 8, 10, 12, 14, 0, 0, 0, 0, 0, 0, 0, 0),
+            cplxValue);
+        qValues = _mm512_permutexvar_ps(
+            _mm512_setr_epi32(1, 3, 5, 7, 9, 11, 13, 15, 0, 0, 0, 0, 0, 0, 0, 0),
+            cplxValue);
+
+        // Square and add: I^2 + Q^2
+        result = _mm512_fmadd_ps(iValues, iValues, _mm512_mul_ps(qValues, qValues));
+
+        // Square root
+        result = _mm512_sqrt_ps(result);
+
+        // Store only first 8 results
+        _mm256_store_ps(magnitudeVectorPtr, _mm512_castps512_ps256(result));
+
+        complexVectorPtr += 16;
+        magnitudeVectorPtr += 8;
+    }
+
+    // Handle remaining points using generic
+    number = eighthPoints * 8;
+    if (number < num_points) {
+        volk_32fc_magnitude_32f_generic(
+            magnitudeVectorPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
+    }
+}
+#endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
