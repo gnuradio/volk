@@ -1,6 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2016 Free Software Foundation, Inc.
+ * Copyright 2025 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -231,6 +232,111 @@ static inline void volk_32fc_x2_divide_32fc_u_avx(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_AVX */
 
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
+#include <volk/volk_complex.h>
+
+static inline void volk_32fc_x2_divide_32fc_u_avx2_fma(lv_32fc_t* cVector,
+                                                       const lv_32fc_t* numeratorVector,
+                                                       const lv_32fc_t* denumeratorVector,
+                                                       unsigned int num_points)
+{
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = numeratorVector;
+    const lv_32fc_t* b = denumeratorVector;
+
+    const unsigned int eighthPoints = num_points / 8;
+
+    __m256 num01, num23, denum01, denum23, complex_result, result0, result1;
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        num01 = _mm256_loadu_ps((float*)a);
+        denum01 = _mm256_loadu_ps((float*)b);
+        num01 = _mm256_complexconjugatemul_ps(num01, denum01);
+        a += 4;
+        b += 4;
+
+        num23 = _mm256_loadu_ps((float*)a);
+        denum23 = _mm256_loadu_ps((float*)b);
+        num23 = _mm256_complexconjugatemul_ps(num23, denum23);
+        a += 4;
+        b += 4;
+
+        complex_result = _mm256_hadd_ps(_mm256_mul_ps(denum01, denum01),
+                                        _mm256_mul_ps(denum23, denum23));
+
+        denum01 = _mm256_shuffle_ps(complex_result, complex_result, 0x50);
+        denum23 = _mm256_shuffle_ps(complex_result, complex_result, 0xfa);
+
+        result0 = _mm256_div_ps(num01, denum01);
+        result1 = _mm256_div_ps(num23, denum23);
+
+        _mm256_storeu_ps((float*)c, result0);
+        c += 4;
+        _mm256_storeu_ps((float*)c, result1);
+        c += 4;
+    }
+
+    volk_32fc_x2_divide_32fc_generic(c, a, b, num_points - eighthPoints * 8);
+}
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+#include <volk/volk_complex.h>
+
+static inline void volk_32fc_x2_divide_32fc_u_avx512(lv_32fc_t* cVector,
+                                                     const lv_32fc_t* numeratorVector,
+                                                     const lv_32fc_t* denumeratorVector,
+                                                     unsigned int num_points)
+{
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = numeratorVector;
+    const lv_32fc_t* b = denumeratorVector;
+
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    __m512 num01, num23, denum01, denum23;
+    __m512 mag_sq01_shuf, mag_sq23_shuf, mag_sq01, mag_sq23;
+    __m512 result0, result1;
+
+    for (unsigned int number = 0; number < sixteenthPoints; number++) {
+        num01 = _mm512_loadu_ps((float*)a);
+        denum01 = _mm512_loadu_ps((float*)b);
+        num01 = _mm512_complexconjugatemul_ps(num01, denum01);
+        a += 8;
+        b += 8;
+
+        num23 = _mm512_loadu_ps((float*)a);
+        denum23 = _mm512_loadu_ps((float*)b);
+        num23 = _mm512_complexconjugatemul_ps(num23, denum23);
+        a += 8;
+        b += 8;
+
+        // Compute magnitude squared for both sets
+        mag_sq01_shuf = _mm512_shuffle_ps(denum01, denum01, 0xb1);
+        mag_sq01 = _mm512_add_ps(_mm512_mul_ps(denum01, denum01),
+                                 _mm512_mul_ps(mag_sq01_shuf, mag_sq01_shuf));
+
+        mag_sq23_shuf = _mm512_shuffle_ps(denum23, denum23, 0xb1);
+        mag_sq23 = _mm512_add_ps(_mm512_mul_ps(denum23, denum23),
+                                 _mm512_mul_ps(mag_sq23_shuf, mag_sq23_shuf));
+
+        result0 = _mm512_div_ps(num01, mag_sq01);
+        result1 = _mm512_div_ps(num23, mag_sq23);
+
+        _mm512_storeu_ps((float*)c, result0);
+        c += 8;
+        _mm512_storeu_ps((float*)c, result1);
+        c += 8;
+    }
+
+    volk_32fc_x2_divide_32fc_generic(c, a, b, num_points - sixteenthPoints * 16);
+}
+#endif /* LV_HAVE_AVX512F */
+
 
 #endif /* INCLUDED_volk_32fc_x2_divide_32fc_u_H */
 
@@ -362,6 +468,111 @@ static inline void volk_32fc_x2_divide_32fc_a_avx(lv_32fc_t* cVector,
     volk_32fc_x2_divide_32fc_generic(c, a, b, num_points - eigthPoints * 8);
 }
 #endif /* LV_HAVE_AVX */
+
+#if LV_HAVE_AVX2 && LV_HAVE_FMA
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
+#include <volk/volk_complex.h>
+
+static inline void volk_32fc_x2_divide_32fc_a_avx2_fma(lv_32fc_t* cVector,
+                                                       const lv_32fc_t* numeratorVector,
+                                                       const lv_32fc_t* denumeratorVector,
+                                                       unsigned int num_points)
+{
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = numeratorVector;
+    const lv_32fc_t* b = denumeratorVector;
+
+    const unsigned int eighthPoints = num_points / 8;
+
+    __m256 num01, num23, denum01, denum23, complex_result, result0, result1;
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        num01 = _mm256_load_ps((float*)a);
+        denum01 = _mm256_load_ps((float*)b);
+        num01 = _mm256_complexconjugatemul_ps(num01, denum01);
+        a += 4;
+        b += 4;
+
+        num23 = _mm256_load_ps((float*)a);
+        denum23 = _mm256_load_ps((float*)b);
+        num23 = _mm256_complexconjugatemul_ps(num23, denum23);
+        a += 4;
+        b += 4;
+
+        complex_result = _mm256_hadd_ps(_mm256_mul_ps(denum01, denum01),
+                                        _mm256_mul_ps(denum23, denum23));
+
+        denum01 = _mm256_shuffle_ps(complex_result, complex_result, 0x50);
+        denum23 = _mm256_shuffle_ps(complex_result, complex_result, 0xfa);
+
+        result0 = _mm256_div_ps(num01, denum01);
+        result1 = _mm256_div_ps(num23, denum23);
+
+        _mm256_store_ps((float*)c, result0);
+        c += 4;
+        _mm256_store_ps((float*)c, result1);
+        c += 4;
+    }
+
+    volk_32fc_x2_divide_32fc_generic(c, a, b, num_points - eighthPoints * 8);
+}
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+#include <volk/volk_complex.h>
+
+static inline void volk_32fc_x2_divide_32fc_a_avx512(lv_32fc_t* cVector,
+                                                     const lv_32fc_t* numeratorVector,
+                                                     const lv_32fc_t* denumeratorVector,
+                                                     unsigned int num_points)
+{
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = numeratorVector;
+    const lv_32fc_t* b = denumeratorVector;
+
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    __m512 num01, num23, denum01, denum23;
+    __m512 mag_sq01_shuf, mag_sq23_shuf, mag_sq01, mag_sq23;
+    __m512 result0, result1;
+
+    for (unsigned int number = 0; number < sixteenthPoints; number++) {
+        num01 = _mm512_load_ps((float*)a);
+        denum01 = _mm512_load_ps((float*)b);
+        num01 = _mm512_complexconjugatemul_ps(num01, denum01);
+        a += 8;
+        b += 8;
+
+        num23 = _mm512_load_ps((float*)a);
+        denum23 = _mm512_load_ps((float*)b);
+        num23 = _mm512_complexconjugatemul_ps(num23, denum23);
+        a += 8;
+        b += 8;
+
+        // Compute magnitude squared for both sets
+        mag_sq01_shuf = _mm512_shuffle_ps(denum01, denum01, 0xb1);
+        mag_sq01 = _mm512_add_ps(_mm512_mul_ps(denum01, denum01),
+                                 _mm512_mul_ps(mag_sq01_shuf, mag_sq01_shuf));
+
+        mag_sq23_shuf = _mm512_shuffle_ps(denum23, denum23, 0xb1);
+        mag_sq23 = _mm512_add_ps(_mm512_mul_ps(denum23, denum23),
+                                 _mm512_mul_ps(mag_sq23_shuf, mag_sq23_shuf));
+
+        result0 = _mm512_div_ps(num01, mag_sq01);
+        result1 = _mm512_div_ps(num23, mag_sq23);
+
+        _mm512_store_ps((float*)c, result0);
+        c += 8;
+        _mm512_store_ps((float*)c, result1);
+        c += 8;
+    }
+
+    volk_32fc_x2_divide_32fc_generic(c, a, b, num_points - sixteenthPoints * 16);
+}
+#endif /* LV_HAVE_AVX512F */
 
 
 #ifdef LV_HAVE_NEON

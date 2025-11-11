@@ -68,4 +68,35 @@ static inline __m512 _mm512_arctan_poly_avx512(const __m512 x)
     return arctan;
 }
 
+static inline __m512 _mm512_complexconjugatemul_ps(const __m512 x, const __m512 y)
+{
+    // Compute (a+bi) * conj(c+di) = (a+bi) * (c-di) = (ac+bd) + i(bc-ad)
+    const __m512 nswap = _mm512_permute_ps(x, 0xb1); // Swap real/imag: bi, ar, ...
+    const __m512 dreal = _mm512_moveldup_ps(y);      // cr, cr, dr, dr, ...
+    const __m512 dimag = _mm512_movehdup_ps(y);      // ci, ci, di, di, ...
+
+    // Use integer xor for conjugation (AVX512F compatible)
+    const __m512i conjugator_i = _mm512_setr_epi32(0,
+                                                   0x80000000,
+                                                   0,
+                                                   0x80000000,
+                                                   0,
+                                                   0x80000000,
+                                                   0,
+                                                   0x80000000,
+                                                   0,
+                                                   0x80000000,
+                                                   0,
+                                                   0x80000000,
+                                                   0,
+                                                   0x80000000,
+                                                   0,
+                                                   0x80000000);
+    const __m512 dimagconj = _mm512_castsi512_ps(_mm512_xor_epi32(
+        _mm512_castps_si512(dimag), conjugator_i)); // ci, -ci, di, -di, ...
+
+    // Use FMA: x*dreal + nswap*dimagconj
+    return _mm512_fmadd_ps(nswap, dimagconj, _mm512_mul_ps(x, dreal));
+}
+
 #endif /* INCLUDE_VOLK_VOLK_AVX512_INTRINSICS_H_ */
