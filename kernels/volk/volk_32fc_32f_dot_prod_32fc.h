@@ -133,14 +133,11 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_avx512f(lv_32fc_t* result,
         returnValue += lv_cmake(dotProductVector[i], dotProductVector[i + 1]);
     }
 
-    // Process remaining elements using generic function
     number = sixteenthPoints * 16;
-    if (number < num_points) {
-        lv_32fc_t tailResult;
-        volk_32fc_32f_dot_prod_32fc_generic(
-            &tailResult, input + number, taps + number, num_points - number);
-        returnValue += tailResult;
-    }
+    lv_32fc_t returnTail = lv_cmake(0.0f, 0.0f);
+    volk_32fc_32f_dot_prod_32fc_generic(
+        &returnTail, input + number, bPtr, num_points - number);
+    returnValue += returnTail;
 
     *result = returnValue;
 }
@@ -217,11 +214,10 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_avx2_fma(lv_32fc_t* result,
     returnValue += lv_cmake(dotProductVector[6], dotProductVector[7]);
 
     number = sixteenthPoints * 16;
-    for (; number < num_points; number++) {
-        returnValue += lv_cmake(aPtr[0] * bPtr[0], aPtr[1] * bPtr[0]);
-        aPtr += 2;
-        bPtr += 1;
-    }
+    lv_32fc_t returnTail = lv_cmake(0.0f, 0.0f);
+    volk_32fc_32f_dot_prod_32fc_generic(
+        &returnTail, input + number, bPtr, num_points - number);
+    returnValue += returnTail;
 
     *result = returnValue;
 }
@@ -452,14 +448,11 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_avx512f(lv_32fc_t* result,
         returnValue += lv_cmake(dotProductVector[i], dotProductVector[i + 1]);
     }
 
-    // Process remaining elements using generic function
     number = sixteenthPoints * 16;
-    if (number < num_points) {
-        lv_32fc_t tailResult;
-        volk_32fc_32f_dot_prod_32fc_generic(
-            &tailResult, input + number, taps + number, num_points - number);
-        returnValue += tailResult;
-    }
+    lv_32fc_t returnTail = lv_cmake(0.0f, 0.0f);
+    volk_32fc_32f_dot_prod_32fc_generic(
+        &returnTail, input + number, bPtr, num_points - number);
+    returnValue += returnTail;
 
     *result = returnValue;
 }

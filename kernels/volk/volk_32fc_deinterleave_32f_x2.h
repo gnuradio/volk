@@ -123,14 +123,9 @@ static inline void volk_32fc_deinterleave_32f_x2_a_avx512f(float* iBuffer,
         qBufferPtr += 8;
     }
 
-    // Handle remaining points using generic
     number = eighthPoints * 8;
-    if (number < num_points) {
-        volk_32fc_deinterleave_32f_x2_generic(iBufferPtr,
-                                              qBufferPtr,
-                                              (const lv_32fc_t*)complexVectorPtr,
-                                              num_points - number);
-    }
+    volk_32fc_deinterleave_32f_x2_generic(
+        iBufferPtr, qBufferPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
 }
 #endif /* LV_HAVE_AVX512F */
 
@@ -304,14 +299,9 @@ static inline void volk_32fc_deinterleave_32f_x2_u_avx512f(float* iBuffer,
         qBufferPtr += 8;
     }
 
-    // Handle remaining points using generic
     number = eighthPoints * 8;
-    if (number < num_points) {
-        volk_32fc_deinterleave_32f_x2_generic(iBufferPtr,
-                                              qBufferPtr,
-                                              (const lv_32fc_t*)complexVectorPtr,
-                                              num_points - number);
-    }
+    volk_32fc_deinterleave_32f_x2_generic(
+        iBufferPtr, qBufferPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
 }
 #endif /* LV_HAVE_AVX512F */
 

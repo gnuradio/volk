@@ -123,12 +123,9 @@ static inline void volk_32fc_magnitude_32f_u_avx512f(float* magnitudeVector,
         magnitudeVectorPtr += 8;
     }
 
-    // Handle remaining points using generic
     number = eighthPoints * 8;
-    if (number < num_points) {
-        volk_32fc_magnitude_32f_generic(
-            magnitudeVectorPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
-    }
+    volk_32fc_magnitude_32f_generic(
+        magnitudeVectorPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
 }
 #endif /* LV_HAVE_AVX512F */
 
@@ -292,12 +289,9 @@ static inline void volk_32fc_magnitude_32f_a_avx512f(float* magnitudeVector,
         magnitudeVectorPtr += 8;
     }
 
-    // Handle remaining points using generic
     number = eighthPoints * 8;
-    if (number < num_points) {
-        volk_32fc_magnitude_32f_generic(
-            magnitudeVectorPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
-    }
+    volk_32fc_magnitude_32f_generic(
+        magnitudeVectorPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
 }
 #endif /* LV_HAVE_AVX512F */
 
