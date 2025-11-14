@@ -12,10 +12,9 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <volk/volk_common.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__VOLK_DECL_BEGIN
 
 int volk_get_index(const char* impl_names[], // list of implementations by name
                    const size_t n_impls,     // number of implementations available
@@ -30,7 +29,6 @@ int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
                     const bool align          // if false, filter aligned implementations
 );
 
-#ifdef __cplusplus
-}
-#endif
+__VOLK_DECL_END
+
 #endif /*INCLUDED_VOLK_RANK_ARCHS_H*/
