@@ -92,6 +92,55 @@ static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32fc_convert_16ic_a_avx512(lv_16sc_t* outputVector,
+                                                    const lv_32fc_t* inputVector,
+                                                    unsigned int num_points)
+{
+    const unsigned int avx512_iters = num_points / 8;
+
+    float* inputVectorPtr = (float*)inputVector;
+    int16_t* outputVectorPtr = (int16_t*)outputVector;
+    float aux;
+
+    const float min_val = (float)SHRT_MIN;
+    const float max_val = (float)SHRT_MAX;
+
+    __m512 inputVal1;
+    __m256i intInputVal;
+    __m512 ret1;
+    const __m512 vmin_val = _mm512_set1_ps(min_val);
+    const __m512 vmax_val = _mm512_set1_ps(max_val);
+    unsigned int i;
+
+    for (i = 0; i < avx512_iters; i++) {
+        inputVal1 = _mm512_load_ps((float*)inputVectorPtr);
+        inputVectorPtr += 16;
+        __VOLK_PREFETCH(inputVectorPtr + 16);
+
+        // Clip
+        ret1 = _mm512_max_ps(_mm512_min_ps(inputVal1, vmax_val), vmin_val);
+
+        // Convert float to int32, then pack to int16 with saturation
+        intInputVal = _mm512_cvtsepi32_epi16(_mm512_cvtps_epi32(ret1));
+
+        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal);
+        outputVectorPtr += 16;
+    }
+
+    for (i = avx512_iters * 16; i < num_points * 2; i++) {
+        aux = *inputVectorPtr++;
+        if (aux > max_val)
+            aux = max_val;
+        else if (aux < min_val)
+            aux = min_val;
+        *outputVectorPtr++ = (int16_t)rintf(aux);
+    }
+}
+#endif /* LV_HAVE_AVX512F */
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
@@ -361,6 +410,55 @@ static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector,
     }
 }
 #endif /* LV_HAVE_AVX2 */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32fc_convert_16ic_u_avx512(lv_16sc_t* outputVector,
+                                                    const lv_32fc_t* inputVector,
+                                                    unsigned int num_points)
+{
+    const unsigned int avx512_iters = num_points / 8;
+
+    float* inputVectorPtr = (float*)inputVector;
+    int16_t* outputVectorPtr = (int16_t*)outputVector;
+    float aux;
+
+    const float min_val = (float)SHRT_MIN;
+    const float max_val = (float)SHRT_MAX;
+
+    __m512 inputVal1;
+    __m256i intInputVal;
+    __m512 ret1;
+    const __m512 vmin_val = _mm512_set1_ps(min_val);
+    const __m512 vmax_val = _mm512_set1_ps(max_val);
+    unsigned int i;
+
+    for (i = 0; i < avx512_iters; i++) {
+        inputVal1 = _mm512_loadu_ps((float*)inputVectorPtr);
+        inputVectorPtr += 16;
+        __VOLK_PREFETCH(inputVectorPtr + 16);
+
+        // Clip
+        ret1 = _mm512_max_ps(_mm512_min_ps(inputVal1, vmax_val), vmin_val);
+
+        // Convert float to int32, then pack to int16 with saturation
+        intInputVal = _mm512_cvtsepi32_epi16(_mm512_cvtps_epi32(ret1));
+
+        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal);
+        outputVectorPtr += 16;
+    }
+
+    for (i = avx512_iters * 16; i < num_points * 2; i++) {
+        aux = *inputVectorPtr++;
+        if (aux > max_val)
+            aux = max_val;
+        else if (aux < min_val)
+            aux = min_val;
+        *outputVectorPtr++ = (int16_t)rintf(aux);
+    }
+}
+#endif /* LV_HAVE_AVX512F */
 
 
 #ifdef LV_HAVE_SSE2

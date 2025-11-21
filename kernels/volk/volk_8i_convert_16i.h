@@ -75,6 +75,38 @@ static inline void volk_8i_convert_16i_u_avx2(int16_t* outputVector,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_AVX512BW
+#include <immintrin.h>
+
+static inline void volk_8i_convert_16i_u_avx512bw(int16_t* outputVector,
+                                                   const int8_t* inputVector,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int thirtysecondPoints = num_points / 32;
+
+    const __m256i* inputVectorPtr = (const __m256i*)inputVector;
+    __m512i* outputVectorPtr = (__m512i*)outputVector;
+    __m256i inputVal;
+    __m512i ret;
+
+    for (; number < thirtysecondPoints; number++) {
+        inputVal = _mm256_loadu_si256(inputVectorPtr);
+        ret = _mm512_cvtepi8_epi16(inputVal);
+        ret = _mm512_slli_epi16(ret, 8); // Multiply by 256
+        _mm512_storeu_si512(outputVectorPtr, ret);
+
+        outputVectorPtr++;
+        inputVectorPtr++;
+    }
+
+    number = thirtysecondPoints * 32;
+    for (; number < num_points; number++) {
+        outputVector[number] = (int16_t)(inputVector[number]) * 256;
+    }
+}
+#endif /* LV_HAVE_AVX512BW */
+
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
@@ -174,6 +206,38 @@ static inline void volk_8i_convert_16i_a_avx2(int16_t* outputVector,
     }
 }
 #endif /* LV_HAVE_AVX2 */
+
+#ifdef LV_HAVE_AVX512BW
+#include <immintrin.h>
+
+static inline void volk_8i_convert_16i_a_avx512bw(int16_t* outputVector,
+                                                   const int8_t* inputVector,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int thirtysecondPoints = num_points / 32;
+
+    const __m256i* inputVectorPtr = (const __m256i*)inputVector;
+    __m512i* outputVectorPtr = (__m512i*)outputVector;
+    __m256i inputVal;
+    __m512i ret;
+
+    for (; number < thirtysecondPoints; number++) {
+        inputVal = _mm256_load_si256(inputVectorPtr);
+        ret = _mm512_cvtepi8_epi16(inputVal);
+        ret = _mm512_slli_epi16(ret, 8); // Multiply by 256
+        _mm512_store_si512(outputVectorPtr, ret);
+
+        outputVectorPtr++;
+        inputVectorPtr++;
+    }
+
+    number = thirtysecondPoints * 32;
+    for (; number < num_points; number++) {
+        outputVector[number] = (int16_t)(inputVector[number]) * 256;
+    }
+}
+#endif /* LV_HAVE_AVX512BW */
 
 
 #ifdef LV_HAVE_SSE4_1

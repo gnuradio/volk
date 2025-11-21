@@ -54,7 +54,7 @@ static inline void volk_16ic_convert_32fc_a_avx2(lv_32fc_t* outputVector,
                                                  const lv_16sc_t* inputVector,
                                                  unsigned int num_points)
 {
-    const unsigned int avx_iters = num_points / 8;
+    const unsigned int avx_iters = num_points / 4;
     unsigned int number = 0;
     const int16_t* complexVectorPtr = (int16_t*)inputVector;
     float* outputVectorPtr = (float*)outputVector;
@@ -109,7 +109,7 @@ static inline void volk_16ic_convert_32fc_a_avx512(lv_32fc_t* outputVector,
         outputVectorPtr += 16;
     }
 
-    number = avx512_iters * 8;
+    number = avx512_iters * 16;
     for (; number < num_points * 2; number++) {
         *outputVectorPtr++ = (float)*complexVectorPtr++;
     }
@@ -253,7 +253,7 @@ static inline void volk_16ic_convert_32fc_u_avx2(lv_32fc_t* outputVector,
                                                  const lv_16sc_t* inputVector,
                                                  unsigned int num_points)
 {
-    const unsigned int avx_iters = num_points / 8;
+    const unsigned int avx_iters = num_points / 4;
     unsigned int number = 0;
     const int16_t* complexVectorPtr = (int16_t*)inputVector;
     float* outputVectorPtr = (float*)outputVector;
@@ -308,7 +308,7 @@ static inline void volk_16ic_convert_32fc_u_avx512(lv_32fc_t* outputVector,
         outputVectorPtr += 16;
     }
 
-    number = avx512_iters * 8;
+    number = avx512_iters * 16;
     for (; number < num_points * 2; number++) {
         *outputVectorPtr++ = (float)*complexVectorPtr++;
     }

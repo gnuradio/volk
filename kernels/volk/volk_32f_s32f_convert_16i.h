@@ -119,6 +119,59 @@ static inline void volk_32f_s32f_convert_16i_u_avx2(int16_t* outputVector,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_s32f_convert_16i_u_avx512(int16_t* outputVector,
+                                                       const float* inputVector,
+                                                       const float scalar,
+                                                       unsigned int num_points)
+{
+    unsigned int number = 0;
+
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    const float* inputVectorPtr = (const float*)inputVector;
+    int16_t* outputVectorPtr = outputVector;
+
+    float min_val = SHRT_MIN;
+    float max_val = SHRT_MAX;
+    float r;
+
+    __m512 vScalar = _mm512_set1_ps(scalar);
+    __m512 inputVal;
+    __m256i intInputVal;
+    __m512 ret;
+    __m512 vmin_val = _mm512_set1_ps(min_val);
+    __m512 vmax_val = _mm512_set1_ps(max_val);
+
+    for (; number < sixteenthPoints; number++) {
+        inputVal = _mm512_loadu_ps(inputVectorPtr);
+        inputVectorPtr += 16;
+
+        // Scale and clip
+        ret = _mm512_max_ps(_mm512_min_ps(_mm512_mul_ps(inputVal, vScalar), vmax_val),
+                            vmin_val);
+
+        // Convert float to int32, then pack to int16 with saturation
+        intInputVal = _mm512_cvtsepi32_epi16(_mm512_cvtps_epi32(ret));
+
+        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal);
+        outputVectorPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        r = inputVector[number] * scalar;
+        if (r > max_val)
+            r = max_val;
+        else if (r < min_val)
+            r = min_val;
+        outputVector[number] = (int16_t)rintf(r);
+    }
+}
+#endif /* LV_HAVE_AVX512F */
+
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -383,6 +436,59 @@ static inline void volk_32f_s32f_convert_16i_a_avx2(int16_t* outputVector,
     }
 }
 #endif /* LV_HAVE_AVX2 */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_s32f_convert_16i_a_avx512(int16_t* outputVector,
+                                                       const float* inputVector,
+                                                       const float scalar,
+                                                       unsigned int num_points)
+{
+    unsigned int number = 0;
+
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    const float* inputVectorPtr = (const float*)inputVector;
+    int16_t* outputVectorPtr = outputVector;
+
+    float min_val = SHRT_MIN;
+    float max_val = SHRT_MAX;
+    float r;
+
+    __m512 vScalar = _mm512_set1_ps(scalar);
+    __m512 inputVal;
+    __m256i intInputVal;
+    __m512 ret;
+    __m512 vmin_val = _mm512_set1_ps(min_val);
+    __m512 vmax_val = _mm512_set1_ps(max_val);
+
+    for (; number < sixteenthPoints; number++) {
+        inputVal = _mm512_load_ps(inputVectorPtr);
+        inputVectorPtr += 16;
+
+        // Scale and clip
+        ret = _mm512_max_ps(_mm512_min_ps(_mm512_mul_ps(inputVal, vScalar), vmax_val),
+                            vmin_val);
+
+        // Convert float to int32, then pack to int16 with saturation
+        intInputVal = _mm512_cvtsepi32_epi16(_mm512_cvtps_epi32(ret));
+
+        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal);
+        outputVectorPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        r = inputVector[number] * scalar;
+        if (r > max_val)
+            r = max_val;
+        else if (r < min_val)
+            r = min_val;
+        outputVector[number] = (int16_t)rintf(r);
+    }
+}
+#endif /* LV_HAVE_AVX512F */
 
 
 #ifdef LV_HAVE_AVX

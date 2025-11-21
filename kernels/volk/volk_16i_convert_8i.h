@@ -85,6 +85,50 @@ static inline void volk_16i_convert_8i_u_avx2(int8_t* outputVector,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_AVX512BW
+#include <immintrin.h>
+
+static inline void volk_16i_convert_8i_u_avx512bw(int8_t* outputVector,
+                                                   const int16_t* inputVector,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixtyfourthPoints = num_points / 64;
+
+    int8_t* outputVectorPtr = outputVector;
+    int16_t* inputPtr = (int16_t*)inputVector;
+    __m512i inputVal1;
+    __m512i inputVal2;
+    __m512i shifted1, shifted2;
+    __m256i ret1, ret2;
+
+    for (; number < sixtyfourthPoints; number++) {
+
+        // Load 64 int16 values
+        inputVal1 = _mm512_loadu_si512((__m512i*)inputPtr);
+        inputPtr += 32;
+        inputVal2 = _mm512_loadu_si512((__m512i*)inputPtr);
+        inputPtr += 32;
+
+        shifted1 = _mm512_srai_epi16(inputVal1, 8);
+        shifted2 = _mm512_srai_epi16(inputVal2, 8);
+
+        ret1 = _mm512_cvtsepi16_epi8(shifted1);
+        ret2 = _mm512_cvtsepi16_epi8(shifted2);
+
+        _mm256_storeu_si256((__m256i*)outputVectorPtr, ret1);
+        outputVectorPtr += 32;
+        _mm256_storeu_si256((__m256i*)outputVectorPtr, ret2);
+        outputVectorPtr += 32;
+    }
+
+    number = sixtyfourthPoints * 64;
+    for (; number < num_points; number++) {
+        outputVector[number] = (int8_t)(inputVector[number] >> 8);
+    }
+}
+#endif /* LV_HAVE_AVX512BW */
+
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
@@ -193,6 +237,50 @@ static inline void volk_16i_convert_8i_a_avx2(int8_t* outputVector,
     }
 }
 #endif /* LV_HAVE_AVX2 */
+
+#ifdef LV_HAVE_AVX512BW
+#include <immintrin.h>
+
+static inline void volk_16i_convert_8i_a_avx512bw(int8_t* outputVector,
+                                                   const int16_t* inputVector,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixtyfourthPoints = num_points / 64;
+
+    int8_t* outputVectorPtr = outputVector;
+    int16_t* inputPtr = (int16_t*)inputVector;
+    __m512i inputVal1;
+    __m512i inputVal2;
+    __m512i shifted1, shifted2;
+    __m256i ret1, ret2;
+
+    for (; number < sixtyfourthPoints; number++) {
+
+        // Load 64 int16 values
+        inputVal1 = _mm512_load_si512((__m512i*)inputPtr);
+        inputPtr += 32;
+        inputVal2 = _mm512_load_si512((__m512i*)inputPtr);
+        inputPtr += 32;
+
+        shifted1 = _mm512_srai_epi16(inputVal1, 8);
+        shifted2 = _mm512_srai_epi16(inputVal2, 8);
+
+        ret1 = _mm512_cvtsepi16_epi8(shifted1);
+        ret2 = _mm512_cvtsepi16_epi8(shifted2);
+
+        _mm256_store_si256((__m256i*)outputVectorPtr, ret1);
+        outputVectorPtr += 32;
+        _mm256_store_si256((__m256i*)outputVectorPtr, ret2);
+        outputVectorPtr += 32;
+    }
+
+    number = sixtyfourthPoints * 64;
+    for (; number < num_points; number++) {
+        outputVector[number] = (int8_t)(inputVector[number] >> 8);
+    }
+}
+#endif /* LV_HAVE_AVX512BW */
 
 
 #ifdef LV_HAVE_SSE2

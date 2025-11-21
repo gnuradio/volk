@@ -157,6 +157,65 @@ static inline void volk_32f_s32f_convert_8i_u_avx2(int8_t* outputVector,
 
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_s32f_convert_8i_u_avx512(int8_t* outputVector,
+                                                      const float* inputVector,
+                                                      const float scalar,
+                                                      unsigned int num_points)
+{
+    unsigned int number = 0;
+
+    const unsigned int thirtysecondPoints = num_points / 32;
+
+    const float* inputVectorPtr = (const float*)inputVector;
+    int8_t* outputVectorPtr = outputVector;
+
+    float min_val = INT8_MIN;
+    float max_val = INT8_MAX;
+    float r;
+
+    __m512 vScalar = _mm512_set1_ps(scalar);
+    __m512 inputVal1, inputVal2;
+    __m512i intInputVal1, intInputVal2;
+    __m512 vmin_val = _mm512_set1_ps(min_val);
+    __m512 vmax_val = _mm512_set1_ps(max_val);
+    __m128i packed_result;
+
+    for (; number < thirtysecondPoints; number++) {
+        inputVal1 = _mm512_loadu_ps(inputVectorPtr);
+        inputVectorPtr += 16;
+        inputVal2 = _mm512_loadu_ps(inputVectorPtr);
+        inputVectorPtr += 16;
+
+        inputVal1 = _mm512_max_ps(
+            _mm512_min_ps(_mm512_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
+        inputVal2 = _mm512_max_ps(
+            _mm512_min_ps(_mm512_mul_ps(inputVal2, vScalar), vmax_val), vmin_val);
+
+        intInputVal1 = _mm512_cvtps_epi32(inputVal1);
+        intInputVal2 = _mm512_cvtps_epi32(inputVal2);
+
+        // Pack int32 -> int16 -> int8
+        packed_result = _mm512_cvtsepi32_epi8(intInputVal1);
+        _mm_storeu_si128((__m128i*)outputVectorPtr, packed_result);
+        outputVectorPtr += 16;
+
+        packed_result = _mm512_cvtsepi32_epi8(intInputVal2);
+        _mm_storeu_si128((__m128i*)outputVectorPtr, packed_result);
+        outputVectorPtr += 16;
+    }
+
+    number = thirtysecondPoints * 32;
+    for (; number < num_points; number++) {
+        r = inputVector[number] * scalar;
+        volk_32f_s32f_convert_8i_single(&outputVector[number], r);
+    }
+}
+
+#endif /* LV_HAVE_AVX512F */
+
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
@@ -332,6 +391,65 @@ static inline void volk_32f_s32f_convert_8i_a_avx2(int8_t* outputVector,
 }
 
 #endif /* LV_HAVE_AVX2 */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_s32f_convert_8i_a_avx512(int8_t* outputVector,
+                                                      const float* inputVector,
+                                                      const float scalar,
+                                                      unsigned int num_points)
+{
+    unsigned int number = 0;
+
+    const unsigned int thirtysecondPoints = num_points / 32;
+
+    const float* inputVectorPtr = (const float*)inputVector;
+    int8_t* outputVectorPtr = outputVector;
+
+    float min_val = INT8_MIN;
+    float max_val = INT8_MAX;
+    float r;
+
+    __m512 vScalar = _mm512_set1_ps(scalar);
+    __m512 inputVal1, inputVal2;
+    __m512i intInputVal1, intInputVal2;
+    __m512 vmin_val = _mm512_set1_ps(min_val);
+    __m512 vmax_val = _mm512_set1_ps(max_val);
+    __m128i packed_result;
+
+    for (; number < thirtysecondPoints; number++) {
+        inputVal1 = _mm512_load_ps(inputVectorPtr);
+        inputVectorPtr += 16;
+        inputVal2 = _mm512_load_ps(inputVectorPtr);
+        inputVectorPtr += 16;
+
+        inputVal1 = _mm512_max_ps(
+            _mm512_min_ps(_mm512_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
+        inputVal2 = _mm512_max_ps(
+            _mm512_min_ps(_mm512_mul_ps(inputVal2, vScalar), vmax_val), vmin_val);
+
+        intInputVal1 = _mm512_cvtps_epi32(inputVal1);
+        intInputVal2 = _mm512_cvtps_epi32(inputVal2);
+
+        // Pack int32 -> int16 -> int8
+        packed_result = _mm512_cvtsepi32_epi8(intInputVal1);
+        _mm_store_si128((__m128i*)outputVectorPtr, packed_result);
+        outputVectorPtr += 16;
+
+        packed_result = _mm512_cvtsepi32_epi8(intInputVal2);
+        _mm_store_si128((__m128i*)outputVectorPtr, packed_result);
+        outputVectorPtr += 16;
+    }
+
+    number = thirtysecondPoints * 32;
+    for (; number < num_points; number++) {
+        r = inputVector[number] * scalar;
+        volk_32f_s32f_convert_8i_single(&outputVector[number], r);
+    }
+}
+
+#endif /* LV_HAVE_AVX512F */
 
 
 #ifdef LV_HAVE_SSE2

@@ -89,6 +89,44 @@ static inline void volk_8i_s32f_convert_32f_u_avx2(float* outputVector,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_8i_s32f_convert_32f_u_avx512(float* outputVector,
+                                                      const int8_t* inputVector,
+                                                      const float scalar,
+                                                      unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    float* outputVectorPtr = outputVector;
+    const float iScalar = 1.0 / scalar;
+    __m512 invScalar = _mm512_set1_ps(iScalar);
+    const int8_t* inputVectorPtr = inputVector;
+    __m512 ret;
+    __m128i inputVal128;
+    __m512i interimVal;
+
+    for (; number < sixteenthPoints; number++) {
+        inputVal128 = _mm_loadu_si128((__m128i*)inputVectorPtr);
+
+        interimVal = _mm512_cvtepi8_epi32(inputVal128);
+        ret = _mm512_cvtepi32_ps(interimVal);
+        ret = _mm512_mul_ps(ret, invScalar);
+        _mm512_storeu_ps(outputVectorPtr, ret);
+        outputVectorPtr += 16;
+
+        inputVectorPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        outputVector[number] = (float)(inputVector[number]) * iScalar;
+    }
+}
+#endif /* LV_HAVE_AVX512F */
+
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
@@ -220,6 +258,44 @@ static inline void volk_8i_s32f_convert_32f_a_avx2(float* outputVector,
     }
 }
 #endif /* LV_HAVE_AVX2 */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_8i_s32f_convert_32f_a_avx512(float* outputVector,
+                                                      const int8_t* inputVector,
+                                                      const float scalar,
+                                                      unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    float* outputVectorPtr = outputVector;
+    const float iScalar = 1.0 / scalar;
+    __m512 invScalar = _mm512_set1_ps(iScalar);
+    const int8_t* inputVectorPtr = inputVector;
+    __m512 ret;
+    __m128i inputVal128;
+    __m512i interimVal;
+
+    for (; number < sixteenthPoints; number++) {
+        inputVal128 = _mm_load_si128((__m128i*)inputVectorPtr);
+
+        interimVal = _mm512_cvtepi8_epi32(inputVal128);
+        ret = _mm512_cvtepi32_ps(interimVal);
+        ret = _mm512_mul_ps(ret, invScalar);
+        _mm512_store_ps(outputVectorPtr, ret);
+        outputVectorPtr += 16;
+
+        inputVectorPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        outputVector[number] = (float)(inputVector[number]) * iScalar;
+    }
+}
+#endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>

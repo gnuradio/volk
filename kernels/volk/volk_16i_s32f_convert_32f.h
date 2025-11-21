@@ -87,6 +87,47 @@ static inline void volk_16i_s32f_convert_32f_u_avx2(float* outputVector,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_16i_s32f_convert_32f_u_avx512(float* outputVector,
+                                                       const int16_t* inputVector,
+                                                       const float scalar,
+                                                       unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    float* outputVectorPtr = outputVector;
+    __m512 invScalar = _mm512_set1_ps(1.0 / scalar);
+    int16_t* inputPtr = (int16_t*)inputVector;
+    __m256i inputVal;
+    __m512i inputVal2;
+    __m512 ret;
+
+    for (; number < sixteenthPoints; number++) {
+
+        // Load 16 int16 values
+        inputVal = _mm256_loadu_si256((__m256i*)inputPtr);
+
+        // Convert int16 → int32 → float
+        inputVal2 = _mm512_cvtepi16_epi32(inputVal);
+        ret = _mm512_cvtepi32_ps(inputVal2);
+        ret = _mm512_mul_ps(ret, invScalar);
+
+        _mm512_storeu_ps(outputVectorPtr, ret);
+
+        outputVectorPtr += 16;
+        inputPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        outputVector[number] = ((float)(inputVector[number])) / scalar;
+    }
+}
+#endif /* LV_HAVE_AVX512F */
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -341,6 +382,47 @@ static inline void volk_16i_s32f_convert_32f_a_avx2(float* outputVector,
     }
 }
 #endif /* LV_HAVE_AVX2 */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_16i_s32f_convert_32f_a_avx512(float* outputVector,
+                                                       const int16_t* inputVector,
+                                                       const float scalar,
+                                                       unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    float* outputVectorPtr = outputVector;
+    __m512 invScalar = _mm512_set1_ps(1.0 / scalar);
+    int16_t* inputPtr = (int16_t*)inputVector;
+    __m256i inputVal;
+    __m512i inputVal2;
+    __m512 ret;
+
+    for (; number < sixteenthPoints; number++) {
+
+        // Load 16 int16 values
+        inputVal = _mm256_load_si256((__m256i*)inputPtr);
+
+        // Convert int16 → int32 → float
+        inputVal2 = _mm512_cvtepi16_epi32(inputVal);
+        ret = _mm512_cvtepi32_ps(inputVal2);
+        ret = _mm512_mul_ps(ret, invScalar);
+
+        _mm512_store_ps(outputVectorPtr, ret);
+
+        outputVectorPtr += 16;
+        inputPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        outputVector[number] = ((float)(inputVector[number])) / scalar;
+    }
+}
+#endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
