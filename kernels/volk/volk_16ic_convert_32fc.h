@@ -81,6 +81,42 @@ static inline void volk_16ic_convert_32fc_a_avx2(lv_32fc_t* outputVector,
 
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_16ic_convert_32fc_a_avx512(lv_32fc_t* outputVector,
+                                                    const lv_16sc_t* inputVector,
+                                                    unsigned int num_points)
+{
+    const unsigned int avx512_iters = num_points / 8;
+    unsigned int number = 0;
+    const int16_t* complexVectorPtr = (int16_t*)inputVector;
+    float* outputVectorPtr = (float*)outputVector;
+    __m512 outVal;
+    __m512i outValInt;
+    __m256i cplxValue;
+
+    for (number = 0; number < avx512_iters; number++) {
+        // Load 16 int16 values (8 complex = 16 floats)
+        cplxValue = _mm256_load_si256((__m256i*)complexVectorPtr);
+        complexVectorPtr += 16;
+
+        // Convert int16 → int32 → float
+        outValInt = _mm512_cvtepi16_epi32(cplxValue);
+        outVal = _mm512_cvtepi32_ps(outValInt);
+        _mm512_store_ps((float*)outputVectorPtr, outVal);
+
+        outputVectorPtr += 16;
+    }
+
+    number = avx512_iters * 8;
+    for (; number < num_points * 2; number++) {
+        *outputVectorPtr++ = (float)*complexVectorPtr++;
+    }
+}
+
+#endif /* LV_HAVE_AVX512F */
+
 #ifdef LV_HAVE_GENERIC
 
 static inline void volk_16ic_convert_32fc_generic(lv_32fc_t* outputVector,
@@ -243,6 +279,42 @@ static inline void volk_16ic_convert_32fc_u_avx2(lv_32fc_t* outputVector,
 }
 
 #endif /* LV_HAVE_AVX2 */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_16ic_convert_32fc_u_avx512(lv_32fc_t* outputVector,
+                                                    const lv_16sc_t* inputVector,
+                                                    unsigned int num_points)
+{
+    const unsigned int avx512_iters = num_points / 8;
+    unsigned int number = 0;
+    const int16_t* complexVectorPtr = (int16_t*)inputVector;
+    float* outputVectorPtr = (float*)outputVector;
+    __m512 outVal;
+    __m512i outValInt;
+    __m256i cplxValue;
+
+    for (number = 0; number < avx512_iters; number++) {
+        // Load 16 int16 values (8 complex = 16 floats) - unaligned
+        cplxValue = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+        complexVectorPtr += 16;
+
+        // Convert int16 → int32 → float
+        outValInt = _mm512_cvtepi16_epi32(cplxValue);
+        outVal = _mm512_cvtepi32_ps(outValInt);
+        _mm512_storeu_ps((float*)outputVectorPtr, outVal);
+
+        outputVectorPtr += 16;
+    }
+
+    number = avx512_iters * 8;
+    for (; number < num_points * 2; number++) {
+        *outputVectorPtr++ = (float)*complexVectorPtr++;
+    }
+}
+
+#endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
