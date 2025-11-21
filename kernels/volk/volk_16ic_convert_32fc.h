@@ -64,6 +64,7 @@ static inline void volk_16ic_convert_32fc_a_avx2(lv_32fc_t* outputVector,
 
     for (number = 0; number < avx_iters; number++) {
         cplxValue = _mm_load_si128((__m128i*)complexVectorPtr);
+        __VOLK_PREFETCH(complexVectorPtr + 16);
         complexVectorPtr += 8;
 
         outValInt = _mm256_cvtepi16_epi32(cplxValue);
@@ -99,6 +100,7 @@ static inline void volk_16ic_convert_32fc_a_avx512(lv_32fc_t* outputVector,
     for (number = 0; number < avx512_iters; number++) {
         // Load 16 int16 values (8 complex = 16 floats)
         cplxValue = _mm256_load_si256((__m256i*)complexVectorPtr);
+        __VOLK_PREFETCH(complexVectorPtr + 32);
         complexVectorPtr += 16;
 
         // Convert int16 → int32 → float
@@ -263,6 +265,7 @@ static inline void volk_16ic_convert_32fc_u_avx2(lv_32fc_t* outputVector,
 
     for (number = 0; number < avx_iters; number++) {
         cplxValue = _mm_loadu_si128((__m128i*)complexVectorPtr);
+        __VOLK_PREFETCH(complexVectorPtr + 16);
         complexVectorPtr += 8;
 
         outValInt = _mm256_cvtepi16_epi32(cplxValue);
@@ -298,6 +301,7 @@ static inline void volk_16ic_convert_32fc_u_avx512(lv_32fc_t* outputVector,
     for (number = 0; number < avx512_iters; number++) {
         // Load 16 int16 values (8 complex = 16 floats) - unaligned
         cplxValue = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+        __VOLK_PREFETCH(complexVectorPtr + 32);
         complexVectorPtr += 16;
 
         // Convert int16 → int32 → float
