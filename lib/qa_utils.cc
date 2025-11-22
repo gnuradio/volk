@@ -855,7 +855,9 @@ bool run_volk_tests(volk_func_desc_t desc,
     // Warmup may have modified data (e.g., in-place byteswap operations)
     // Clear output buffers
     for (size_t j = 0; j < outputsig.size(); j++) {
-        memset(test_data[0][j], 0, vlen * outputsig[j].size * (outputsig[j].is_complex ? 2 : 1));
+        memset(test_data[0][j],
+               0,
+               vlen * outputsig[j].size * (outputsig[j].is_complex ? 2 : 1));
     }
     // Reload input buffers from original data
     for (size_t j = 0; j < inputsig.size(); j++) {
