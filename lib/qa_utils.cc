@@ -851,6 +851,19 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
+    // Reload test_data[0] buffers after warmup
+    // Warmup may have modified data (e.g., in-place byteswap operations)
+    // Clear output buffers
+    for (size_t j = 0; j < outputsig.size(); j++) {
+        memset(test_data[0][j], 0, vlen * outputsig[j].size * (outputsig[j].is_complex ? 2 : 1));
+    }
+    // Reload input buffers from original data
+    for (size_t j = 0; j < inputsig.size(); j++) {
+        memcpy(test_data[0][outputsig.size() + j],
+               inbuffs[j],
+               vlen * inputsig[j].size * (inputsig[j].is_complex ? 2 : 1));
+    }
+
     for (size_t i = 0; i < arch_list.size(); i++) {
         start = std::chrono::system_clock::now();
 
