@@ -63,6 +63,82 @@
 #ifndef INCLUDED_volk_32f_cos_32f_a_H
 #define INCLUDED_volk_32f_cos_32f_a_H
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void
+volk_32f_cos_32f_generic(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+    unsigned int number = 0;
+
+    for (; number < num_points; number++) {
+        *bPtr++ = cosf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_GENERIC */
+
+#ifdef LV_HAVE_GENERIC
+
+/*
+ * For derivation see
+ * Shibata, Naoki, "Efficient evaluation methods of elementary functions
+ * suitable for SIMD computation," in Springer-Verlag 2010
+ */
+static inline void volk_32f_cos_32f_generic_fast(float* bVector,
+                                                 const float* aVector,
+                                                 unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    float m4pi = 1.273239544735162542821171882678754627704620361328125;
+    float pio4A = 0.7853981554508209228515625;
+    float pio4B = 0.794662735614792836713604629039764404296875e-8;
+    float pio4C = 0.306161699786838294306516483068750264552437361480769e-16;
+    int N = 3; // order of argument reduction
+
+    unsigned int number;
+    for (number = 0; number < num_points; number++) {
+        float s = fabs(*aPtr);
+        int q = (int)(s * m4pi);
+        int r = q + (q & 1);
+        s -= r * pio4A;
+        s -= r * pio4B;
+        s -= r * pio4C;
+
+        s = s * 0.125; // 2^-N (<--3)
+        s = s * s;
+        s = ((((s / 1814400. - 1.0 / 20160.0) * s + 1.0 / 360.0) * s - 1.0 / 12.0) * s +
+             1.0) *
+            s;
+
+        int i;
+        for (i = 0; i < N; ++i) {
+            s = (4.0 - s) * s;
+        }
+        s = s / 2.0;
+
+        float sine = sqrt((2.0 - s) * s);
+        float cosine = 1 - s;
+
+        if (((q + 1) & 2) != 0) {
+            s = cosine;
+            cosine = sine;
+            sine = s;
+        }
+        if (((q + 2) & 4) != 0) {
+            cosine = -cosine;
+        }
+        *bPtr = cosine;
+        bPtr++;
+        aPtr++;
+    }
+}
+
+#endif /* LV_HAVE_GENERIC */
+
 #ifdef LV_HAVE_AVX512F
 
 #include <immintrin.h>
@@ -888,84 +964,6 @@ volk_32f_cos_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num
 }
 
 #endif /* LV_HAVE_SSE4_1 for unaligned */
-
-
-#ifdef LV_HAVE_GENERIC
-
-/*
- * For derivation see
- * Shibata, Naoki, "Efficient evaluation methods of elementary functions
- * suitable for SIMD computation," in Springer-Verlag 2010
- */
-static inline void volk_32f_cos_32f_generic_fast(float* bVector,
-                                                 const float* aVector,
-                                                 unsigned int num_points)
-{
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
-
-    float m4pi = 1.273239544735162542821171882678754627704620361328125;
-    float pio4A = 0.7853981554508209228515625;
-    float pio4B = 0.794662735614792836713604629039764404296875e-8;
-    float pio4C = 0.306161699786838294306516483068750264552437361480769e-16;
-    int N = 3; // order of argument reduction
-
-    unsigned int number;
-    for (number = 0; number < num_points; number++) {
-        float s = fabs(*aPtr);
-        int q = (int)(s * m4pi);
-        int r = q + (q & 1);
-        s -= r * pio4A;
-        s -= r * pio4B;
-        s -= r * pio4C;
-
-        s = s * 0.125; // 2^-N (<--3)
-        s = s * s;
-        s = ((((s / 1814400. - 1.0 / 20160.0) * s + 1.0 / 360.0) * s - 1.0 / 12.0) * s +
-             1.0) *
-            s;
-
-        int i;
-        for (i = 0; i < N; ++i) {
-            s = (4.0 - s) * s;
-        }
-        s = s / 2.0;
-
-        float sine = sqrt((2.0 - s) * s);
-        float cosine = 1 - s;
-
-        if (((q + 1) & 2) != 0) {
-            s = cosine;
-            cosine = sine;
-            sine = s;
-        }
-        if (((q + 2) & 4) != 0) {
-            cosine = -cosine;
-        }
-        *bPtr = cosine;
-        bPtr++;
-        aPtr++;
-    }
-}
-
-#endif /* LV_HAVE_GENERIC */
-
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void
-volk_32f_cos_32f_generic(float* bVector, const float* aVector, unsigned int num_points)
-{
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
-    unsigned int number = 0;
-
-    for (; number < num_points; number++) {
-        *bPtr++ = cosf(*aPtr++);
-    }
-}
-
-#endif /* LV_HAVE_GENERIC */
 
 
 #ifdef LV_HAVE_NEON
