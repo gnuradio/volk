@@ -54,6 +54,94 @@
 #include <inttypes.h>
 #include <volk/volk_common.h>
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32fc_accumulator_s32fc_a_avx512f(lv_32fc_t* result,
+                                                         const lv_32fc_t* inputBuffer,
+                                                         unsigned int num_points)
+{
+    lv_32fc_t returnValue = lv_cmake(0.f, 0.f);
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    const lv_32fc_t* aPtr = inputBuffer;
+    __VOLK_ATTR_ALIGNED(64) float tempBuffer[16];
+
+    __m512 accumulator = _mm512_setzero_ps();
+    __m512 aVal = _mm512_setzero_ps();
+
+    for (; number < eighthPoints; number++) {
+        aVal = _mm512_load_ps((float*)aPtr);
+        accumulator = _mm512_add_ps(accumulator, aVal);
+        aPtr += 8;
+    }
+
+    _mm512_store_ps(tempBuffer, accumulator);
+
+    // Sum pairs as complex numbers
+    returnValue = lv_cmake(tempBuffer[0], tempBuffer[1]);
+    returnValue += lv_cmake(tempBuffer[2], tempBuffer[3]);
+    returnValue += lv_cmake(tempBuffer[4], tempBuffer[5]);
+    returnValue += lv_cmake(tempBuffer[6], tempBuffer[7]);
+    returnValue += lv_cmake(tempBuffer[8], tempBuffer[9]);
+    returnValue += lv_cmake(tempBuffer[10], tempBuffer[11]);
+    returnValue += lv_cmake(tempBuffer[12], tempBuffer[13]);
+    returnValue += lv_cmake(tempBuffer[14], tempBuffer[15]);
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        returnValue += (*aPtr++);
+    }
+    *result = returnValue;
+}
+#endif /* LV_HAVE_AVX512F */
+
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32fc_accumulator_s32fc_u_avx512f(lv_32fc_t* result,
+                                                         const lv_32fc_t* inputBuffer,
+                                                         unsigned int num_points)
+{
+    lv_32fc_t returnValue = lv_cmake(0.f, 0.f);
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    const lv_32fc_t* aPtr = inputBuffer;
+    __VOLK_ATTR_ALIGNED(64) float tempBuffer[16];
+
+    __m512 accumulator = _mm512_setzero_ps();
+    __m512 aVal = _mm512_setzero_ps();
+
+    for (; number < eighthPoints; number++) {
+        aVal = _mm512_loadu_ps((float*)aPtr);
+        accumulator = _mm512_add_ps(accumulator, aVal);
+        aPtr += 8;
+    }
+
+    _mm512_store_ps(tempBuffer, accumulator);
+
+    // Sum pairs as complex numbers
+    returnValue = lv_cmake(tempBuffer[0], tempBuffer[1]);
+    returnValue += lv_cmake(tempBuffer[2], tempBuffer[3]);
+    returnValue += lv_cmake(tempBuffer[4], tempBuffer[5]);
+    returnValue += lv_cmake(tempBuffer[6], tempBuffer[7]);
+    returnValue += lv_cmake(tempBuffer[8], tempBuffer[9]);
+    returnValue += lv_cmake(tempBuffer[10], tempBuffer[11]);
+    returnValue += lv_cmake(tempBuffer[12], tempBuffer[13]);
+    returnValue += lv_cmake(tempBuffer[14], tempBuffer[15]);
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        returnValue += (*aPtr++);
+    }
+    *result = returnValue;
+}
+#endif /* LV_HAVE_AVX512F */
+
+
 #ifdef LV_HAVE_GENERIC
 static inline void volk_32fc_accumulator_s32fc_generic(lv_32fc_t* result,
                                                        const lv_32fc_t* inputBuffer,
