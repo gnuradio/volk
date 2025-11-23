@@ -79,8 +79,8 @@ static inline void volk_8i_convert_16i_u_avx2(int16_t* outputVector,
 #include <immintrin.h>
 
 static inline void volk_8i_convert_16i_u_avx512bw(int16_t* outputVector,
-                                                   const int8_t* inputVector,
-                                                   unsigned int num_points)
+                                                  const int8_t* inputVector,
+                                                  unsigned int num_points)
 {
     unsigned int number = 0;
     const unsigned int thirtysecondPoints = num_points / 32;
@@ -211,8 +211,8 @@ static inline void volk_8i_convert_16i_a_avx2(int16_t* outputVector,
 #include <immintrin.h>
 
 static inline void volk_8i_convert_16i_a_avx512bw(int16_t* outputVector,
-                                                   const int8_t* inputVector,
-                                                   unsigned int num_points)
+                                                  const int8_t* inputVector,
+                                                  unsigned int num_points)
 {
     unsigned int number = 0;
     const unsigned int thirtysecondPoints = num_points / 32;

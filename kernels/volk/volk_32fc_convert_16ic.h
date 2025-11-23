@@ -96,8 +96,8 @@ static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector,
 #include <immintrin.h>
 
 static inline void volk_32fc_convert_16ic_a_avx512(lv_16sc_t* outputVector,
-                                                    const lv_32fc_t* inputVector,
-                                                    unsigned int num_points)
+                                                   const lv_32fc_t* inputVector,
+                                                   unsigned int num_points)
 {
     const unsigned int avx512_iters = num_points / 8;
 
@@ -415,8 +415,8 @@ static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector,
 #include <immintrin.h>
 
 static inline void volk_32fc_convert_16ic_u_avx512(lv_16sc_t* outputVector,
-                                                    const lv_32fc_t* inputVector,
-                                                    unsigned int num_points)
+                                                   const lv_32fc_t* inputVector,
+                                                   unsigned int num_points)
 {
     const unsigned int avx512_iters = num_points / 8;
 

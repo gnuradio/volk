@@ -89,8 +89,8 @@ static inline void volk_16i_convert_8i_u_avx2(int8_t* outputVector,
 #include <immintrin.h>
 
 static inline void volk_16i_convert_8i_u_avx512bw(int8_t* outputVector,
-                                                   const int16_t* inputVector,
-                                                   unsigned int num_points)
+                                                  const int16_t* inputVector,
+                                                  unsigned int num_points)
 {
     unsigned int number = 0;
     const unsigned int sixtyfourthPoints = num_points / 64;
@@ -242,8 +242,8 @@ static inline void volk_16i_convert_8i_a_avx2(int8_t* outputVector,
 #include <immintrin.h>
 
 static inline void volk_16i_convert_8i_a_avx512bw(int8_t* outputVector,
-                                                   const int16_t* inputVector,
-                                                   unsigned int num_points)
+                                                  const int16_t* inputVector,
+                                                  unsigned int num_points)
 {
     unsigned int number = 0;
     const unsigned int sixtyfourthPoints = num_points / 64;

@@ -123,9 +123,9 @@ static inline void volk_32f_s32f_convert_16i_u_avx2(int16_t* outputVector,
 #include <immintrin.h>
 
 static inline void volk_32f_s32f_convert_16i_u_avx512(int16_t* outputVector,
-                                                       const float* inputVector,
-                                                       const float scalar,
-                                                       unsigned int num_points)
+                                                      const float* inputVector,
+                                                      const float scalar,
+                                                      unsigned int num_points)
 {
     unsigned int number = 0;
 
@@ -441,9 +441,9 @@ static inline void volk_32f_s32f_convert_16i_a_avx2(int16_t* outputVector,
 #include <immintrin.h>
 
 static inline void volk_32f_s32f_convert_16i_a_avx512(int16_t* outputVector,
-                                                       const float* inputVector,
-                                                       const float scalar,
-                                                       unsigned int num_points)
+                                                      const float* inputVector,
+                                                      const float scalar,
+                                                      unsigned int num_points)
 {
     unsigned int number = 0;
 

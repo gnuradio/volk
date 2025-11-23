@@ -164,9 +164,9 @@ int main(int argc, char* argv[])
                 continue;
             double generic_time = generic_it->second.time;
 
-            // Use best aligned arch for speedup
+            // Use best aligned arch for speedup calculation
             auto best_it = r.results.find(r.best_arch_a);
-            if (best_it != r.results.end() && r.best_arch_a != "generic") {
+            if (best_it != r.results.end()) {
                 double speedup = generic_time / best_it->second.time;
                 sum_speedup += speedup;
                 if (speedup > max_speedup) {
