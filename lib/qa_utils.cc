@@ -30,6 +30,14 @@
 #include <sstream> // for ostringstream
 #include <vector>  // for vector, _Bit_refe...
 
+// Warmup time for CPU frequency scaling (ms)
+static double g_warmup_ms = 2000.0;
+static bool g_warmup_done = false;
+
+double volk_test_get_warmup_ms() { return g_warmup_ms; }
+void volk_test_set_warmup_ms(double ms) { g_warmup_ms = ms; }
+void volk_test_reset_warmup() { g_warmup_done = false; }
+
 template <typename T>
 void random_floats(void* buf, unsigned int n, std::default_random_engine& rnd_engine)
 {
@@ -670,9 +678,8 @@ bool run_volk_tests(volk_func_desc_t desc,
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::vector<double> profile_times;
 
-    // CPU frequency scaling warmup: Run generic for ≥500ms to boost CPU to full speed
-    // This eliminates ~50ms first-kernel penalty from turbo boost ramp-up time
-    const double warmup_target_ms = 500.0;
+    // Warmup to let CPU reach full turbo frequency (only for first kernel)
+    const double warmup_target_ms = g_warmup_done ? 0.0 : volk_test_get_warmup_ms();
     {
         // Run a quick test to estimate time per iteration
         start = std::chrono::system_clock::now();
@@ -849,21 +856,22 @@ bool run_volk_tests(volk_func_desc_t desc,
                 }
             }
         }
+        g_warmup_done = true;
     }
 
-    // Reload test_data[0] buffers after warmup
-    // Warmup may have modified data (e.g., in-place byteswap operations)
-    // Clear output buffers
-    for (size_t j = 0; j < outputsig.size(); j++) {
-        memset(test_data[0][j],
-               0,
-               vlen * outputsig[j].size * (outputsig[j].is_complex ? 2 : 1));
-    }
-    // Reload input buffers from original data
-    for (size_t j = 0; j < inputsig.size(); j++) {
-        memcpy(test_data[0][outputsig.size() + j],
-               inbuffs[j],
-               vlen * inputsig[j].size * (inputsig[j].is_complex ? 2 : 1));
+    // Reset all test buffers after warmup
+    for (size_t i = 0; i < arch_list.size(); i++) {
+        for (size_t j = 0; j < outputsig.size(); j++) {
+            memset(test_data[i][j],
+                   0,
+                   vlen * outputsig[j].size * (outputsig[j].is_complex ? 2 : 1));
+        }
+        // Reload input buffers from original data
+        for (size_t j = 0; j < inputsig.size(); j++) {
+            memcpy(test_data[i][outputsig.size() + j],
+                   inbuffs[j],
+                   vlen * inputsig[j].size * (inputsig[j].is_complex ? 2 : 1));
+        }
     }
 
     for (size_t i = 0; i < arch_list.size(); i++) {
@@ -1124,7 +1132,8 @@ bool run_volk_tests(volk_func_desc_t desc,
     // Build formatted output strings with proper alignment
     std::vector<std::string> output_lines;
     const int total_width = 60;
-    int ms_end_position = 0; // Track where " ms" ends for best arch alignment
+    int ms_end_position = 0;  // Track where " ms" ends (arch name alignment)
+    int mbs_end_position = 0; // Track where "MB/s)" ends (speedup alignment)
 
     for (size_t i = 0; i < arch_list.size(); i++) {
         // Calculate throughput in MB/s
@@ -1150,11 +1159,15 @@ bool run_volk_tests(volk_func_desc_t desc,
             line += " *";
         }
 
-        // Track where " ms" ends (position of 's' + 1)
+        // Track alignment positions
         if (i == 0) {
             size_t ms_pos = line.find(" ms");
             if (ms_pos != std::string::npos) {
                 ms_end_position = ms_pos + 3; // Position after " ms"
+            }
+            size_t mbs_pos = line.find("MB/s)");
+            if (mbs_pos != std::string::npos) {
+                mbs_end_position = mbs_pos + 5; // Position after "MB/s)"
             }
         }
 
@@ -1175,41 +1188,34 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
-    // Print best arch lines with names right-aligned to where " ms" ends
-    if (ms_end_position > 0) {
-        int name_width = ms_end_position - 20; // Width for the label
+    // Print best arch lines: arch name aligns to "ms", speedup ) aligns to MB/s )
+    auto print_best_line = [&](const char* label, const std::string& arch, double time) {
+        std::ostringstream speedup_str;
+        if (arch != "generic" && generic_time > 0) {
+            double speedup = generic_time / time;
+            speedup_str << "(" << std::fixed << std::setprecision(2) << speedup << "x)";
+        }
 
-        std::cout << std::left << std::setw(20) << "Best aligned arch:" << std::right
-                  << std::setw(name_width) << best_arch_a;
-        if (best_arch_a != "generic" && generic_time > 0) {
-            double speedup = generic_time / best_time_a;
-            std::cout << " (" << std::fixed << std::setprecision(2) << speedup << "x)";
-        }
-        std::cout << std::endl;
+        // Arch name right-aligned to ms_end_position
+        std::string line = label;
+        int arch_padding = ms_end_position - line.length() - arch.length();
+        if (arch_padding < 1)
+            arch_padding = 1;
+        line += std::string(arch_padding, ' ') + arch;
 
-        std::cout << std::left << std::setw(20) << "Best unaligned arch:" << std::right
-                  << std::setw(name_width) << best_arch_u;
-        if (best_arch_u != "generic" && generic_time > 0) {
-            double speedup = generic_time / best_time_u;
-            std::cout << " (" << std::fixed << std::setprecision(2) << speedup << "x)";
+        // Speedup right-aligned to mbs_end_position
+        if (speedup_str.str().length() > 0) {
+            int speedup_padding =
+                mbs_end_position - line.length() - speedup_str.str().length();
+            if (speedup_padding < 1)
+                speedup_padding = 1;
+            line += std::string(speedup_padding, ' ') + speedup_str.str();
         }
-        std::cout << std::endl;
-    } else {
-        // Fallback if ms_end_position wasn't found
-        std::cout << std::left << std::setw(24) << "Best aligned arch:" << best_arch_a;
-        if (best_arch_a != "generic" && generic_time > 0) {
-            double speedup = generic_time / best_time_a;
-            std::cout << " (" << std::fixed << std::setprecision(2) << speedup << "x)";
-        }
-        std::cout << std::endl;
+        std::cout << line << std::endl;
+    };
 
-        std::cout << std::left << std::setw(24) << "Best unaligned arch:" << best_arch_u;
-        if (best_arch_u != "generic" && generic_time > 0) {
-            double speedup = generic_time / best_time_u;
-            std::cout << " (" << std::fixed << std::setprecision(2) << speedup << "x)";
-        }
-        std::cout << std::endl;
-    }
+    print_best_line("Best aligned arch:", best_arch_a, best_time_a);
+    print_best_line("Best unaligned arch:", best_arch_u, best_time_u);
 
     std::cout << std::string(80, '-') << std::endl;
 
