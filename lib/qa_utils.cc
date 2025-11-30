@@ -1,6 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2011 - 2020, 2022 Free Software Foundation, Inc.
+ * Copyright 2025 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -21,11 +22,21 @@
 #include <cmath>    // for sqrt, fabs, abs
 #include <cstring>  // for memcpy, memset
 #include <ctime>    // for clock
+#include <iomanip>  // for setw, left
 #include <iostream> // for cout, cerr
 #include <limits>   // for numeric_limits
 #include <map>      // for map, map<>::mappe...
 #include <random>
-#include <vector> // for vector, _Bit_refe...
+#include <sstream> // for ostringstream
+#include <vector>  // for vector, _Bit_refe...
+
+// Warmup time for CPU frequency scaling (ms)
+static double g_warmup_ms = 2000.0;
+static bool g_warmup_done = false;
+
+double volk_test_get_warmup_ms() { return g_warmup_ms; }
+void volk_test_set_warmup_ms(double ms) { g_warmup_ms = ms; }
+void volk_test_reset_warmup() { g_warmup_done = false; }
 
 template <typename T>
 void random_floats(void* buf, unsigned int n, std::default_random_engine& rnd_engine)
@@ -562,6 +573,7 @@ bool run_volk_tests(volk_func_desc_t desc,
     results->back().name = name;
     results->back().vlen = vlen;
     results->back().iter = iter;
+    std::cout << std::endl; // Blank line for separation
     std::cout << "RUN_VOLK_TESTS: " << name << "(" << vlen << "," << iter << ")"
               << std::endl;
 
@@ -576,6 +588,26 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     // first let's get a list of available architectures for the test
     std::vector<std::string> arch_list = get_arch_list(desc);
+
+    // Reorder arch_list to put generic implementations first for consistent output
+    // Priority: "generic" first, then other generic_* variants, then everything else
+    std::vector<std::string> plain_generic;
+    std::vector<std::string> other_generic_impls;
+    std::vector<std::string> other_impls;
+    for (const auto& arch : arch_list) {
+        if (arch == "generic") {
+            plain_generic.push_back(arch);
+        } else if (arch.find("generic") == 0) { // starts with "generic"
+            other_generic_impls.push_back(arch);
+        } else {
+            other_impls.push_back(arch);
+        }
+    }
+    arch_list.clear();
+    arch_list.insert(arch_list.end(), plain_generic.begin(), plain_generic.end());
+    arch_list.insert(
+        arch_list.end(), other_generic_impls.begin(), other_generic_impls.end());
+    arch_list.insert(arch_list.end(), other_impls.begin(), other_impls.end());
 
     if ((!benchmark_mode) && (arch_list.size() < 2)) {
         std::cout << "no architectures to test" << std::endl;
@@ -645,6 +677,203 @@ bool run_volk_tests(volk_func_desc_t desc,
     vlen = vlen - vlen_twiddle;
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::vector<double> profile_times;
+
+    // Warmup to let CPU reach full turbo frequency (only for first kernel)
+    const double warmup_target_ms = g_warmup_done ? 0.0 : volk_test_get_warmup_ms();
+    {
+        // Run a quick test to estimate time per iteration
+        start = std::chrono::system_clock::now();
+        switch (both_sigs.size()) {
+        case 1:
+            if (inputsc.size() == 0) {
+                run_cast_test1(
+                    (volk_fn_1arg)(manual_func), test_data[0], vlen, iter, "generic");
+            } else if (inputsc.size() == 1 && inputsc[0].is_float) {
+                if (inputsc[0].is_complex) {
+                    run_cast_test1_s32fc((volk_fn_1arg_s32fc)(manual_func),
+                                         test_data[0],
+                                         scalar,
+                                         vlen,
+                                         iter,
+                                         "generic");
+                } else {
+                    run_cast_test1_s32f((volk_fn_1arg_s32f)(manual_func),
+                                        test_data[0],
+                                        scalar.real(),
+                                        vlen,
+                                        iter,
+                                        "generic");
+                }
+            }
+            break;
+        case 2:
+            if (inputsc.size() == 0) {
+                run_cast_test2(
+                    (volk_fn_2arg)(manual_func), test_data[0], vlen, iter, "generic");
+            } else if (inputsc.size() == 1 && inputsc[0].is_float) {
+                if (inputsc[0].is_complex) {
+                    run_cast_test2_s32fc((volk_fn_2arg_s32fc)(manual_func),
+                                         test_data[0],
+                                         scalar,
+                                         vlen,
+                                         iter,
+                                         "generic");
+                } else {
+                    run_cast_test2_s32f((volk_fn_2arg_s32f)(manual_func),
+                                        test_data[0],
+                                        scalar.real(),
+                                        vlen,
+                                        iter,
+                                        "generic");
+                }
+            }
+            break;
+        case 3:
+            if (inputsc.size() == 0) {
+                run_cast_test3(
+                    (volk_fn_3arg)(manual_func), test_data[0], vlen, iter, "generic");
+            } else if (inputsc.size() == 1 && inputsc[0].is_float) {
+                if (inputsc[0].is_complex) {
+                    run_cast_test3_s32fc((volk_fn_3arg_s32fc)(manual_func),
+                                         test_data[0],
+                                         scalar,
+                                         vlen,
+                                         iter,
+                                         "generic");
+                } else {
+                    run_cast_test3_s32f((volk_fn_3arg_s32f)(manual_func),
+                                        test_data[0],
+                                        scalar.real(),
+                                        vlen,
+                                        iter,
+                                        "generic");
+                }
+            }
+            break;
+        case 4:
+            run_cast_test4(
+                (volk_fn_4arg)(manual_func), test_data[0], vlen, iter, "generic");
+            break;
+        default:
+            break;
+        }
+        end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+        double test_time_ms = 1000.0 * elapsed.count();
+
+        // If we haven't reached 500ms yet, calculate how many more iterations we need
+        if (test_time_ms < warmup_target_ms) {
+            double remaining_ms = warmup_target_ms - test_time_ms;
+            unsigned int warmup_iterations =
+                (unsigned int)((remaining_ms / test_time_ms) * iter);
+            if (warmup_iterations > 0) {
+                // Run additional warmup iterations
+                switch (both_sigs.size()) {
+                case 1:
+                    if (inputsc.size() == 0) {
+                        run_cast_test1((volk_fn_1arg)(manual_func),
+                                       test_data[0],
+                                       vlen,
+                                       warmup_iterations,
+                                       "generic");
+                    } else if (inputsc.size() == 1 && inputsc[0].is_float) {
+                        if (inputsc[0].is_complex) {
+                            run_cast_test1_s32fc((volk_fn_1arg_s32fc)(manual_func),
+                                                 test_data[0],
+                                                 scalar,
+                                                 vlen,
+                                                 warmup_iterations,
+                                                 "generic");
+                        } else {
+                            run_cast_test1_s32f((volk_fn_1arg_s32f)(manual_func),
+                                                test_data[0],
+                                                scalar.real(),
+                                                vlen,
+                                                warmup_iterations,
+                                                "generic");
+                        }
+                    }
+                    break;
+                case 2:
+                    if (inputsc.size() == 0) {
+                        run_cast_test2((volk_fn_2arg)(manual_func),
+                                       test_data[0],
+                                       vlen,
+                                       warmup_iterations,
+                                       "generic");
+                    } else if (inputsc.size() == 1 && inputsc[0].is_float) {
+                        if (inputsc[0].is_complex) {
+                            run_cast_test2_s32fc((volk_fn_2arg_s32fc)(manual_func),
+                                                 test_data[0],
+                                                 scalar,
+                                                 vlen,
+                                                 warmup_iterations,
+                                                 "generic");
+                        } else {
+                            run_cast_test2_s32f((volk_fn_2arg_s32f)(manual_func),
+                                                test_data[0],
+                                                scalar.real(),
+                                                vlen,
+                                                warmup_iterations,
+                                                "generic");
+                        }
+                    }
+                    break;
+                case 3:
+                    if (inputsc.size() == 0) {
+                        run_cast_test3((volk_fn_3arg)(manual_func),
+                                       test_data[0],
+                                       vlen,
+                                       warmup_iterations,
+                                       "generic");
+                    } else if (inputsc.size() == 1 && inputsc[0].is_float) {
+                        if (inputsc[0].is_complex) {
+                            run_cast_test3_s32fc((volk_fn_3arg_s32fc)(manual_func),
+                                                 test_data[0],
+                                                 scalar,
+                                                 vlen,
+                                                 warmup_iterations,
+                                                 "generic");
+                        } else {
+                            run_cast_test3_s32f((volk_fn_3arg_s32f)(manual_func),
+                                                test_data[0],
+                                                scalar.real(),
+                                                vlen,
+                                                warmup_iterations,
+                                                "generic");
+                        }
+                    }
+                    break;
+                case 4:
+                    run_cast_test4((volk_fn_4arg)(manual_func),
+                                   test_data[0],
+                                   vlen,
+                                   warmup_iterations,
+                                   "generic");
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+        g_warmup_done = true;
+    }
+
+    // Reset all test buffers after warmup
+    for (size_t i = 0; i < arch_list.size(); i++) {
+        for (size_t j = 0; j < outputsig.size(); j++) {
+            memset(test_data[i][j],
+                   0,
+                   vlen * outputsig[j].size * (outputsig[j].is_complex ? 2 : 1));
+        }
+        // Reload input buffers from original data
+        for (size_t j = 0; j < inputsig.size(); j++) {
+            memcpy(test_data[i][outputsig.size() + j],
+                   inbuffs[j],
+                   vlen * inputsig[j].size * (inputsig[j].is_complex ? 2 : 1));
+        }
+    }
+
     for (size_t i = 0; i < arch_list.size(); i++) {
         start = std::chrono::system_clock::now();
 
@@ -730,7 +959,7 @@ bool run_volk_tests(volk_func_desc_t desc,
         end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
         double arch_time = 1000.0 * elapsed_seconds.count();
-        std::cout << arch_list[i] << " completed in " << arch_time << " ms" << std::endl;
+
         volk_test_time_t result;
         result.name = arch_list[i];
         result.time = arch_time;
@@ -890,8 +1119,105 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
-    std::cout << "Best aligned arch: " << best_arch_a << std::endl;
-    std::cout << "Best unaligned arch: " << best_arch_u << std::endl;
+    // Calculate total data transferred (bytes read + written) for throughput display
+    size_t bytes_per_call = 0;
+    for (size_t j = 0; j < outputsig.size(); j++) {
+        bytes_per_call += outputsig[j].size * (outputsig[j].is_complex ? 2 : 1) * vlen;
+    }
+    for (size_t j = 0; j < inputsig.size(); j++) {
+        bytes_per_call += inputsig[j].size * (inputsig[j].is_complex ? 2 : 1) * vlen;
+    }
+    double total_mb = (bytes_per_call * iter) / 1e6; // Total megabytes transferred
+
+    // Build formatted output strings with proper alignment
+    std::vector<std::string> output_lines;
+    const int total_width = 60;
+    int ms_end_position = 0;  // Track where " ms" ends (arch name alignment)
+    int mbs_end_position = 0; // Track where "MB/s)" ends (speedup alignment)
+
+    for (size_t i = 0; i < arch_list.size(); i++) {
+        // Calculate throughput in MB/s
+        double time_seconds = profile_times[i] / 1000.0;
+        double throughput_mbps = total_mb / time_seconds;
+
+        // Build the timing/throughput string
+        std::ostringstream timing_str;
+        timing_str << std::fixed << std::setprecision(4) << profile_times[i] << " ms"
+                   << " (" << std::setw(8) << std::setprecision(1) << throughput_mbps
+                   << " MB/s)";
+
+        // Calculate padding needed (without star)
+        int padding = total_width - arch_list[i].length() - timing_str.str().length();
+        if (padding < 1)
+            padding = 1;
+
+        // Build the full line with left-adjusted name and right-adjusted timing
+        std::string line = arch_list[i] + std::string(padding, ' ') + timing_str.str();
+
+        // Add star if this is a best arch (after padding calculation)
+        if (arch_list[i] == best_arch_a || arch_list[i] == best_arch_u) {
+            line += " *";
+        }
+
+        // Track alignment positions
+        if (i == 0) {
+            size_t ms_pos = line.find(" ms");
+            if (ms_pos != std::string::npos) {
+                ms_end_position = ms_pos + 3; // Position after " ms"
+            }
+            size_t mbs_pos = line.find("MB/s)");
+            if (mbs_pos != std::string::npos) {
+                mbs_end_position = mbs_pos + 5; // Position after "MB/s)"
+            }
+        }
+
+        output_lines.push_back(line);
+    }
+
+    // Print all lines
+    for (const auto& line : output_lines) {
+        std::cout << line << std::endl;
+    }
+
+    // Get generic timing for speedup calculation
+    double generic_time = 0.0;
+    for (size_t i = 0; i < arch_list.size(); i++) {
+        if (arch_list[i] == "generic") {
+            generic_time = profile_times[i];
+            break;
+        }
+    }
+
+    // Print best arch lines: arch name aligns to "ms", speedup ) aligns to MB/s )
+    auto print_best_line = [&](const char* label, const std::string& arch, double time) {
+        std::ostringstream speedup_str;
+        if (arch != "generic" && generic_time > 0) {
+            double speedup = generic_time / time;
+            speedup_str << "(" << std::fixed << std::setprecision(2) << speedup << "x)";
+        }
+
+        // Arch name right-aligned to ms_end_position
+        std::string line = label;
+        int arch_padding = ms_end_position - line.length() - arch.length();
+        if (arch_padding < 1)
+            arch_padding = 1;
+        line += std::string(arch_padding, ' ') + arch;
+
+        // Speedup right-aligned to mbs_end_position
+        if (speedup_str.str().length() > 0) {
+            int speedup_padding =
+                mbs_end_position - line.length() - speedup_str.str().length();
+            if (speedup_padding < 1)
+                speedup_padding = 1;
+            line += std::string(speedup_padding, ' ') + speedup_str.str();
+        }
+        std::cout << line << std::endl;
+    };
+
+    print_best_line("Best aligned arch:", best_arch_a, best_time_a);
+    print_best_line("Best unaligned arch:", best_arch_u, best_time_u);
+
+    std::cout << std::string(80, '-') << std::endl;
 
     if (puppet_master_name == "NULL") {
         results->back().config_name = name;
