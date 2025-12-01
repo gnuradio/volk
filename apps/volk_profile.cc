@@ -180,10 +180,11 @@ int main(int argc, char* argv[])
         if (kernel_count > 0) {
             std::cout << std::endl;
             std::cout << "Session summary (" << kernel_count << " kernels):" << std::endl;
-            std::cout << "  Average speedup: " << std::fixed << std::setprecision(2)
-                      << (sum_speedup / kernel_count) << "x" << std::endl;
-            std::cout << "  Max speedup: " << max_speedup << "x (" << max_speedup_kernel
-                      << ")" << std::endl;
+            std::cout << "  Average speedup vs generic: " << std::fixed
+                      << std::setprecision(2) << (sum_speedup / kernel_count) << "x"
+                      << std::endl;
+            std::cout << "  Max speedup vs generic: " << max_speedup << "x ("
+                      << max_speedup_kernel << ")" << std::endl;
         }
     }
 
