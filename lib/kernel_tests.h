@@ -11,9 +11,11 @@
 #include "qa_utils.h"
 
 #include <volk/volk.h>
+#include <cmath>
+#include <limits>
 #include <vector>
 
-// macros for initializing volk_test_case_t. Maccros are needed to generate
+// macros for initializing volk_test_case_t. Macros are needed to generate
 // function names of the pattern kernel_name_*
 
 // for puppets we need to get all the func_variants for the puppet and just
@@ -93,12 +95,49 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32f_sin_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_cos_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_tan_32f, test_params_inacc))
-    QA(VOLK_INIT_TEST(volk_32f_atan_32f, test_params))
+
+    volk_test_params_t test_params_atan(test_params);
+    test_params_atan.add_float_edge_cases({ std::nanf(""),
+                                            std::numeric_limits<float>::infinity(),
+                                            -std::numeric_limits<float>::infinity(),
+                                            0.0f,
+                                            -0.0f,
+                                            1e10f,
+                                            -1e10f,
+                                            1.0f,
+                                            -1.0f });
+    QA(VOLK_INIT_TEST(volk_32f_atan_32f, test_params_atan))
+
     QA(VOLK_INIT_TEST(volk_32f_asin_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_acos_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32fc_s32f_power_32fc, test_params_power))
     QA(VOLK_INIT_TEST(volk_32f_s32f_calc_spectral_noise_floor_32f, test_params_snf))
-    QA(VOLK_INIT_TEST(volk_32fc_s32f_atan2_32f, test_params))
+
+    volk_test_params_t test_params_atan2(test_params);
+    const float inf = std::numeric_limits<float>::infinity();
+    const float nan = std::nanf("");
+    test_params_atan2.add_complex_edge_cases(
+        { lv_cmake(0.0f, 0.0f),   // atan2(0, 0) = 0
+          lv_cmake(0.0f, -0.0f),  // atan2(-0, 0) = -0 (preserve sign)
+          lv_cmake(0.0f, 1.0f),   // atan2(1, 0) = π/2
+          lv_cmake(0.0f, -1.0f),  // atan2(-1, 0) = -π/2
+          lv_cmake(1.0f, 0.0f),   // atan2(0, 1) = 0
+          lv_cmake(-1.0f, 0.0f),  // atan2(0, -1) = π
+          lv_cmake(1.0f, 1.0f),   // atan2(1, 1) = π/4
+          lv_cmake(-1.0f, 1.0f),  // atan2(1, -1) = 3π/4
+          lv_cmake(-1.0f, -1.0f), // atan2(-1, -1) = -3π/4
+          lv_cmake(1.0f, -1.0f),  // atan2(-1, 1) = -π/4
+          lv_cmake(inf, inf),     // atan2(inf, inf) = π/4
+          lv_cmake(inf, -inf),    // atan2(-inf, inf) = -π/4
+          lv_cmake(-inf, inf),    // atan2(inf, -inf) = 3π/4
+          lv_cmake(-inf, -inf),   // atan2(-inf, -inf) = -3π/4
+          lv_cmake(inf, 0.0f),    // atan2(0, inf) = 0
+          lv_cmake(-inf, 0.0f),   // atan2(0, -inf) = π
+          lv_cmake(1.0f, inf),    // atan2(inf, 1) = π/2
+          lv_cmake(1.0f, -inf),   // atan2(-inf, 1) = -π/2
+          lv_cmake(nan, 1.0f),    // atan2(1, nan) = nan (propagate)
+          lv_cmake(1.0f, nan) }); // atan2(nan, 1) = nan (propagate)
+    QA(VOLK_INIT_TEST(volk_32fc_s32f_atan2_32f, test_params_atan2))
     QA(VOLK_INIT_TEST(volk_32fc_x2_conjugate_dot_prod_32fc,
                       test_params.make_absolute(2e-2)))
     QA(VOLK_INIT_TEST(volk_32fc_deinterleave_32f_x2, test_params))

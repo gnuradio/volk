@@ -8,7 +8,7 @@
  */
 
 /*
- * This file is intended to hold AVX2 FMA intrinsics of intrinsics.
+ * This file is intended to hold AVX2 FMA intrinsics.
  * They should be used in VOLK kernels to avoid copy-paste.
  */
 
@@ -23,7 +23,7 @@
  * Maximum relative error ~6.5e-7
  * Polynomial evaluated via Horner's method
  */
-static inline __m256 _m256_arctan_poly_avx2_fma(const __m256 x)
+static inline __m256 _mm256_arctan_poly_avx2_fma(const __m256 x)
 {
     const __m256 a1 = _mm256_set1_ps(+0x1.ffffeap-1f);
     const __m256 a3 = _mm256_set1_ps(-0x1.55437p-2f);

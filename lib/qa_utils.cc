@@ -48,19 +48,68 @@ void random_floats(void* buf, unsigned int n, std::default_random_engine& rnd_en
     }
 }
 
-void load_random_data(void* data, volk_type_t type, unsigned int n)
+void load_random_data(void* data,
+                      volk_type_t type,
+                      unsigned int n,
+                      const std::vector<float>& float_edge_cases,
+                      const std::vector<lv_32fc_t>& complex_edge_cases)
 {
     std::random_device rnd_device;
     std::default_random_engine rnd_engine(rnd_device());
+
+    unsigned int edge_case_count = 0;
+
+    // Inject complex edge cases for complex float types
+    if (type.is_float && type.is_complex && !complex_edge_cases.empty()) {
+        edge_case_count = std::min((unsigned int)complex_edge_cases.size(), n);
+        if (type.size == 8) {
+            lv_64fc_t* array = static_cast<lv_64fc_t*>(data);
+            for (unsigned int i = 0; i < edge_case_count; i++) {
+                array[i] = lv_cmake((double)lv_creal(complex_edge_cases[i]),
+                                    (double)lv_cimag(complex_edge_cases[i]));
+            }
+        } else {
+            lv_32fc_t* array = static_cast<lv_32fc_t*>(data);
+            for (unsigned int i = 0; i < edge_case_count; i++) {
+                array[i] = complex_edge_cases[i];
+            }
+        }
+    }
+    // Inject float edge cases for non-complex float types
+    else if (type.is_float && !type.is_complex && !float_edge_cases.empty()) {
+        edge_case_count = std::min((unsigned int)float_edge_cases.size(), n);
+        if (type.size == 8) {
+            double* array = static_cast<double*>(data);
+            for (unsigned int i = 0; i < edge_case_count; i++) {
+                array[i] = static_cast<double>(float_edge_cases[i]);
+            }
+        } else {
+            float* array = static_cast<float*>(data);
+            for (unsigned int i = 0; i < edge_case_count; i++) {
+                array[i] = float_edge_cases[i];
+            }
+        }
+    }
+
+    unsigned int remaining_n = n - edge_case_count;
     if (type.is_complex)
-        n *= 2;
+        remaining_n *= 2;
+
     if (type.is_float) {
         if (type.size == 8) {
-            random_floats<double>(data, n, rnd_engine);
+            double* array = static_cast<double*>(data);
+            random_floats<double>(array + edge_case_count * (type.is_complex ? 2 : 1),
+                                  remaining_n,
+                                  rnd_engine);
         } else {
-            random_floats<float>(data, n, rnd_engine);
+            float* array = static_cast<float*>(data);
+            random_floats<float>(array + edge_case_count * (type.is_complex ? 2 : 1),
+                                 remaining_n,
+                                 rnd_engine);
         }
     } else {
+        if (type.is_complex)
+            n *= 2;
         switch (type.size) {
         case 8:
             if (type.is_signed) {
@@ -396,6 +445,27 @@ bool fcompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
     bool fail = false;
     int print_max_errs = 10;
     for (unsigned int i = 0; i < vlen; i++) {
+        // Check for special values (NaN, inf)
+        bool in1_special = std::isnan(((t*)(in1))[i]) || std::isinf(((t*)(in1))[i]);
+        bool in2_special = std::isnan(((t*)(in2))[i]) || std::isinf(((t*)(in2))[i]);
+
+        if (in1_special || in2_special) {
+            // For NaN: both must be NaN (NaN != NaN, so use isnan)
+            // For inf: both must be same signed infinity
+            bool values_match =
+                (std::isnan(((t*)(in1))[i]) && std::isnan(((t*)(in2))[i])) ||
+                (((t*)(in1))[i] == ((t*)(in2))[i]);
+            if (!values_match) {
+                fail = true;
+                if (print_max_errs-- > 0) {
+                    std::cout << "offset " << i << " in1: " << t(((t*)(in1))[i])
+                              << " in2: " << t(((t*)(in2))[i]);
+                    std::cout << " tolerance was: " << tol << std::endl;
+                }
+            }
+            continue; // Skip normal comparison for special values
+        }
+
         if (absolute_mode) {
             if (fabs(((t*)(in1))[i] - ((t*)(in2))[i]) > tol) {
                 fail = true;
@@ -439,16 +509,30 @@ bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
     bool fail = false;
     int print_max_errs = 10;
     for (unsigned int i = 0; i < 2 * vlen; i += 2) {
-        if (std::isnan(in1[i]) || std::isnan(in1[i + 1]) || std::isnan(in2[i]) ||
-            std::isnan(in2[i + 1]) || std::isinf(in1[i]) || std::isinf(in1[i + 1]) ||
-            std::isinf(in2[i]) || std::isinf(in2[i + 1])) {
-            fail = true;
-            if (print_max_errs-- > 0) {
-                std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
-                          << in1[i + 1] << "j  in2: " << in2[i] << " + " << in2[i + 1]
-                          << "j";
-                std::cout << " tolerance was: " << tol << std::endl;
+        // Check for special values (NaN, inf) and verify they match
+        bool in1_has_special = std::isnan(in1[i]) || std::isnan(in1[i + 1]) ||
+                               std::isinf(in1[i]) || std::isinf(in1[i + 1]);
+        bool in2_has_special = std::isnan(in2[i]) || std::isnan(in2[i + 1]) ||
+                               std::isinf(in2[i]) || std::isinf(in2[i + 1]);
+
+        if (in1_has_special || in2_has_special) {
+            // For NaN: both must be NaN (NaN != NaN, so use isnan)
+            // For inf: both must be same signed infinity
+            bool real_match =
+                (std::isnan(in1[i]) && std::isnan(in2[i])) || (in1[i] == in2[i]);
+            bool imag_match = (std::isnan(in1[i + 1]) && std::isnan(in2[i + 1])) ||
+                              (in1[i + 1] == in2[i + 1]);
+
+            if (!real_match || !imag_match) {
+                fail = true;
+                if (print_max_errs-- > 0) {
+                    std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
+                              << in1[i + 1] << "j  in2: " << in2[i] << " + " << in2[i + 1]
+                              << "j";
+                    std::cout << " tolerance was: " << tol << std::endl;
+                }
             }
+            continue; // Skip normal comparison for special values
         }
         t diff[2] = { in1[i] - in2[i], in1[i + 1] - in2[i + 1] };
         t err = std::sqrt(diff[0] * diff[0] + diff[1] * diff[1]);
@@ -553,7 +637,9 @@ bool run_volk_tests(volk_func_desc_t desc,
                           results,
                           puppet_master_name,
                           test_params.absolute_mode(),
-                          test_params.benchmark_mode());
+                          test_params.benchmark_mode(),
+                          test_params.float_edge_cases(),
+                          test_params.complex_edge_cases());
 }
 
 bool run_volk_tests(volk_func_desc_t desc,
@@ -566,7 +652,9 @@ bool run_volk_tests(volk_func_desc_t desc,
                     std::vector<volk_test_results_t>* results,
                     std::string puppet_master_name,
                     bool absolute_mode,
-                    bool benchmark_mode)
+                    bool benchmark_mode,
+                    const std::vector<float>& float_edge_cases,
+                    const std::vector<lv_32fc_t>& complex_edge_cases)
 {
     // Initialize this entry in results vector
     results->push_back(volk_test_results_t());
@@ -646,7 +734,8 @@ bool run_volk_tests(volk_func_desc_t desc,
                 mem_pool.get_new(vlen * sig.size * (sig.is_complex ? 2 : 1)));
     }
     for (size_t i = 0; i < inbuffs.size(); i++) {
-        load_random_data(inbuffs[i], inputsig[i], vlen);
+        load_random_data(
+            inbuffs[i], inputsig[i], vlen, float_edge_cases, complex_edge_cases);
     }
 
     // ok let's make a vector of vector of void buffers, which holds the input/output

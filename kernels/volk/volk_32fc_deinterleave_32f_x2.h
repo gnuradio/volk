@@ -63,6 +63,72 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_32fc_deinterleave_32f_x2_generic(float* iBuffer,
+                                                         float* qBuffer,
+                                                         const lv_32fc_t* complexVector,
+                                                         unsigned int num_points)
+{
+    const float* complexVectorPtr = (float*)complexVector;
+    float* iBufferPtr = iBuffer;
+    float* qBufferPtr = qBuffer;
+    unsigned int number;
+    for (number = 0; number < num_points; number++) {
+        *iBufferPtr++ = *complexVectorPtr++;
+        *qBufferPtr++ = *complexVectorPtr++;
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32fc_deinterleave_32f_x2_a_avx512f(float* iBuffer,
+                                                           float* qBuffer,
+                                                           const lv_32fc_t* complexVector,
+                                                           unsigned int num_points)
+{
+    const float* complexVectorPtr = (float*)complexVector;
+    float* iBufferPtr = iBuffer;
+    float* qBufferPtr = qBuffer;
+
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    __m512 cplxValue;
+    __m512 iValue, qValue;
+
+    for (; number < eighthPoints; number++) {
+        // Load 8 complex numbers (16 floats): I0,Q0,I1,Q1,...,I7,Q7
+        cplxValue = _mm512_load_ps(complexVectorPtr);
+
+        // Deinterleave using permute
+        // Extract all I values (even indices: 0,2,4,6,8,10,12,14)
+        iValue = _mm512_permutexvar_ps(
+            _mm512_setr_epi32(0, 2, 4, 6, 8, 10, 12, 14, 0, 0, 0, 0, 0, 0, 0, 0),
+            cplxValue);
+
+        // Extract all Q values (odd indices: 1,3,5,7,9,11,13,15)
+        qValue = _mm512_permutexvar_ps(
+            _mm512_setr_epi32(1, 3, 5, 7, 9, 11, 13, 15, 0, 0, 0, 0, 0, 0, 0, 0),
+            cplxValue);
+
+        // Store only the first 8 results (lower 256 bits)
+        _mm256_store_ps(iBufferPtr, _mm512_castps512_ps256(iValue));
+        _mm256_store_ps(qBufferPtr, _mm512_castps512_ps256(qValue));
+
+        complexVectorPtr += 16;
+        iBufferPtr += 8;
+        qBufferPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    volk_32fc_deinterleave_32f_x2_generic(
+        iBufferPtr, qBufferPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
+}
+#endif /* LV_HAVE_AVX512F */
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 static inline void volk_32fc_deinterleave_32f_x2_a_avx(float* iBuffer,
@@ -182,25 +248,6 @@ static inline void volk_32fc_deinterleave_32f_x2_neon(float* iBuffer,
 }
 #endif /* LV_HAVE_NEON */
 
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_deinterleave_32f_x2_generic(float* iBuffer,
-                                                         float* qBuffer,
-                                                         const lv_32fc_t* complexVector,
-                                                         unsigned int num_points)
-{
-    const float* complexVectorPtr = (float*)complexVector;
-    float* iBufferPtr = iBuffer;
-    float* qBufferPtr = qBuffer;
-    unsigned int number;
-    for (number = 0; number < num_points; number++) {
-        *iBufferPtr++ = *complexVectorPtr++;
-        *qBufferPtr++ = *complexVectorPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
 #endif /* INCLUDED_volk_32fc_deinterleave_32f_x2_a_H */
 
 
@@ -209,6 +256,54 @@ static inline void volk_32fc_deinterleave_32f_x2_generic(float* iBuffer,
 
 #include <inttypes.h>
 #include <stdio.h>
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32fc_deinterleave_32f_x2_u_avx512f(float* iBuffer,
+                                                           float* qBuffer,
+                                                           const lv_32fc_t* complexVector,
+                                                           unsigned int num_points)
+{
+    const float* complexVectorPtr = (float*)complexVector;
+    float* iBufferPtr = iBuffer;
+    float* qBufferPtr = qBuffer;
+
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    __m512 cplxValue;
+    __m512 iValue, qValue;
+
+    for (; number < eighthPoints; number++) {
+        // Load 8 complex numbers (16 floats): I0,Q0,I1,Q1,...,I7,Q7 - unaligned
+        cplxValue = _mm512_loadu_ps(complexVectorPtr);
+
+        // Deinterleave using permute
+        // Extract all I values (even indices: 0,2,4,6,8,10,12,14)
+        iValue = _mm512_permutexvar_ps(
+            _mm512_setr_epi32(0, 2, 4, 6, 8, 10, 12, 14, 0, 0, 0, 0, 0, 0, 0, 0),
+            cplxValue);
+
+        // Extract all Q values (odd indices: 1,3,5,7,9,11,13,15)
+        qValue = _mm512_permutexvar_ps(
+            _mm512_setr_epi32(1, 3, 5, 7, 9, 11, 13, 15, 0, 0, 0, 0, 0, 0, 0, 0),
+            cplxValue);
+
+        // Store only the first 8 results (lower 256 bits) - unaligned
+        _mm256_storeu_ps(iBufferPtr, _mm512_castps512_ps256(iValue));
+        _mm256_storeu_ps(qBufferPtr, _mm512_castps512_ps256(qValue));
+
+        complexVectorPtr += 16;
+        iBufferPtr += 8;
+        qBufferPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    volk_32fc_deinterleave_32f_x2_generic(
+        iBufferPtr, qBufferPtr, (const lv_32fc_t*)complexVectorPtr, num_points - number);
+}
+#endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>

@@ -178,6 +178,14 @@ at the top, as a last resort.
     <alignment>64</alignment>
 </arch>
 
+<arch name="avx512dq">
+    <check name="avx512dq"></check>
+    <flag compiler="gnu">-mavx512dq</flag>
+    <flag compiler="clang">-mavx512dq</flag>
+    <flag compiler="msvc">/arch:AVX512DQ</flag>
+    <alignment>64</alignment>
+</arch>
+
 <arch name="riscv64">
 </arch>
 

@@ -164,9 +164,9 @@ int main(int argc, char* argv[])
                 continue;
             double generic_time = generic_it->second.time;
 
-            // Use best aligned arch for speedup
+            // Use best aligned arch for speedup calculation
             auto best_it = r.results.find(r.best_arch_a);
-            if (best_it != r.results.end() && r.best_arch_a != "generic") {
+            if (best_it != r.results.end()) {
                 double speedup = generic_time / best_it->second.time;
                 sum_speedup += speedup;
                 if (speedup > max_speedup) {
@@ -180,10 +180,11 @@ int main(int argc, char* argv[])
         if (kernel_count > 0) {
             std::cout << std::endl;
             std::cout << "Session summary (" << kernel_count << " kernels):" << std::endl;
-            std::cout << "  Average speedup: " << std::fixed << std::setprecision(2)
-                      << (sum_speedup / kernel_count) << "x" << std::endl;
-            std::cout << "  Max speedup: " << max_speedup << "x (" << max_speedup_kernel
-                      << ")" << std::endl;
+            std::cout << "  Average speedup vs generic: " << std::fixed
+                      << std::setprecision(2) << (sum_speedup / kernel_count) << "x"
+                      << std::endl;
+            std::cout << "  Max speedup vs generic: " << max_speedup << "x ("
+                      << max_speedup_kernel << ")" << std::endl;
         }
     }
 

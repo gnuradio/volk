@@ -53,6 +53,40 @@
 #include <inttypes.h>
 #include <volk/volk_common.h>
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_accumulator_s32f_a_avx512f(float* result,
+                                                       const float* inputBuffer,
+                                                       unsigned int num_points)
+{
+    float returnValue = 0;
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    const float* aPtr = inputBuffer;
+
+    __m512 accumulator = _mm512_setzero_ps();
+    __m512 aVal = _mm512_setzero_ps();
+
+    for (; number < sixteenthPoints; number++) {
+        aVal = _mm512_load_ps(aPtr);
+        accumulator = _mm512_add_ps(accumulator, aVal);
+        aPtr += 16;
+    }
+
+    // Horizontal sum using AVX512 reduce instruction
+    returnValue = _mm512_reduce_add_ps(accumulator);
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        returnValue += (*aPtr++);
+    }
+    *result = returnValue;
+}
+#endif /* LV_HAVE_AVX512F */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -94,6 +128,40 @@ static inline void volk_32f_accumulator_s32f_a_avx(float* result,
     *result = returnValue;
 }
 #endif /* LV_HAVE_AVX */
+
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_accumulator_s32f_u_avx512f(float* result,
+                                                       const float* inputBuffer,
+                                                       unsigned int num_points)
+{
+    float returnValue = 0;
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    const float* aPtr = inputBuffer;
+
+    __m512 accumulator = _mm512_setzero_ps();
+    __m512 aVal = _mm512_setzero_ps();
+
+    for (; number < sixteenthPoints; number++) {
+        aVal = _mm512_loadu_ps(aPtr);
+        accumulator = _mm512_add_ps(accumulator, aVal);
+        aPtr += 16;
+    }
+
+    // Horizontal sum using AVX512 reduce instruction
+    returnValue = _mm512_reduce_add_ps(accumulator);
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        returnValue += (*aPtr++);
+    }
+    *result = returnValue;
+}
+#endif /* LV_HAVE_AVX512F */
 
 
 #ifdef LV_HAVE_AVX

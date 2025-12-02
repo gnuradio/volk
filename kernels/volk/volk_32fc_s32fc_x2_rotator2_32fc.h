@@ -76,6 +76,7 @@
 #define ROTATOR_RELOAD 512
 #define ROTATOR_RELOAD_2 (ROTATOR_RELOAD / 2)
 #define ROTATOR_RELOAD_4 (ROTATOR_RELOAD / 4)
+#define ROTATOR_RELOAD_8 (ROTATOR_RELOAD / 8)
 
 
 #ifdef LV_HAVE_GENERIC
@@ -561,6 +562,175 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx(lv_32fc_t* outVector,
 }
 
 #endif /* LV_HAVE_AVX */
+
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+
+static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx512f(lv_32fc_t* outVector,
+                                                              const lv_32fc_t* inVector,
+                                                              const lv_32fc_t* phase_inc,
+                                                              lv_32fc_t* phase,
+                                                              unsigned int num_points)
+{
+    lv_32fc_t* cPtr = outVector;
+    const lv_32fc_t* aPtr = inVector;
+    lv_32fc_t incr = lv_cmake(1.0f, 0.0f);
+    __VOLK_ATTR_ALIGNED(64)
+    lv_32fc_t phase_Ptr[8] = { (*phase), (*phase), (*phase), (*phase),
+                               (*phase), (*phase), (*phase), (*phase) };
+
+    unsigned int i, j = 0;
+
+    for (i = 0; i < 8; ++i) {
+        phase_Ptr[i] *= incr;
+        incr *= (*phase_inc);
+    }
+
+    __m512 aVal, phase_Val, z;
+
+    phase_Val = _mm512_load_ps((float*)phase_Ptr);
+
+    const __m512 inc_Val = _mm512_set_ps(lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr));
+
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
+        for (j = 0; j < ROTATOR_RELOAD_8; ++j) {
+
+            aVal = _mm512_load_ps((float*)aPtr);
+
+            z = _mm512_complexmul_ps(aVal, phase_Val);
+            phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
+
+            _mm512_store_ps((float*)cPtr, z);
+
+            aPtr += 8;
+            cPtr += 8;
+        }
+        phase_Val = _mm512_normalize_ps(phase_Val);
+    }
+
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 8; ++i) {
+        aVal = _mm512_load_ps((float*)aPtr);
+
+        z = _mm512_complexmul_ps(aVal, phase_Val);
+        phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
+
+        _mm512_store_ps((float*)cPtr, z);
+
+        aPtr += 8;
+        cPtr += 8;
+    }
+    if (i) {
+        phase_Val = _mm512_normalize_ps(phase_Val);
+    }
+
+    _mm512_store_ps((float*)phase_Ptr, phase_Val);
+    (*phase) = phase_Ptr[0];
+    volk_32fc_s32fc_x2_rotator2_32fc_generic(
+        cPtr, aPtr, phase_inc, phase, num_points % 8);
+}
+
+#endif /* LV_HAVE_AVX512F for aligned */
+
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+
+static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx512f(lv_32fc_t* outVector,
+                                                              const lv_32fc_t* inVector,
+                                                              const lv_32fc_t* phase_inc,
+                                                              lv_32fc_t* phase,
+                                                              unsigned int num_points)
+{
+    lv_32fc_t* cPtr = outVector;
+    const lv_32fc_t* aPtr = inVector;
+    lv_32fc_t incr = lv_cmake(1.0f, 0.0f);
+    lv_32fc_t phase_Ptr[8] = { (*phase), (*phase), (*phase), (*phase),
+                               (*phase), (*phase), (*phase), (*phase) };
+
+    unsigned int i, j = 0;
+
+    for (i = 0; i < 8; ++i) {
+        phase_Ptr[i] *= incr;
+        incr *= (*phase_inc);
+    }
+
+    __m512 aVal, phase_Val, z;
+
+    phase_Val = _mm512_loadu_ps((float*)phase_Ptr);
+
+    const __m512 inc_Val = _mm512_set_ps(lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr));
+
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
+        for (j = 0; j < ROTATOR_RELOAD_8; ++j) {
+
+            aVal = _mm512_loadu_ps((float*)aPtr);
+
+            z = _mm512_complexmul_ps(aVal, phase_Val);
+            phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
+
+            _mm512_storeu_ps((float*)cPtr, z);
+
+            aPtr += 8;
+            cPtr += 8;
+        }
+        phase_Val = _mm512_normalize_ps(phase_Val);
+    }
+
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 8; ++i) {
+        aVal = _mm512_loadu_ps((float*)aPtr);
+
+        z = _mm512_complexmul_ps(aVal, phase_Val);
+        phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
+
+        _mm512_storeu_ps((float*)cPtr, z);
+
+        aPtr += 8;
+        cPtr += 8;
+    }
+    if (i) {
+        phase_Val = _mm512_normalize_ps(phase_Val);
+    }
+
+    _mm512_storeu_ps((float*)phase_Ptr, phase_Val);
+    (*phase) = phase_Ptr[0];
+    volk_32fc_s32fc_x2_rotator2_32fc_generic(
+        cPtr, aPtr, phase_inc, phase, num_points % 8);
+}
+
+#endif /* LV_HAVE_AVX512F */
 
 #if LV_HAVE_AVX && LV_HAVE_FMA
 #include <immintrin.h>
