@@ -531,8 +531,14 @@ volk_32f_index_min_32u_rvv(uint32_t* target, const float* src0, uint32_t num_poi
     float min = __riscv_vfmv_f(__riscv_vfredmin(RISCV_SHRINK4(vfmin, f, 32, vmin),
                                                 __riscv_vfmv_v_f_f32m1(FLT_MAX, 1),
                                                 __riscv_vsetvlmax_e32m1()));
+    // Find lanes with min value, set others to UINT32_MAX
     vbool8_t m = __riscv_vmfeq(vmin, min, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmini, __riscv_vfirst(m, vl), vl));
+    vuint32m4_t idx_masked =
+        __riscv_vmerge(__riscv_vmv_v_x_u32m4(UINT32_MAX, vl), vmini, m, vl);
+    // Find minimum index among lanes with min value
+    *target = __riscv_vmv_x(__riscv_vredminu(RISCV_SHRINK4(vminu, u, 32, idx_masked),
+                                             __riscv_vmv_v_x_u32m1(UINT32_MAX, 1),
+                                             __riscv_vsetvlmax_e32m1()));
 }
 #endif /*LV_HAVE_RVV*/
 
