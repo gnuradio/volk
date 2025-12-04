@@ -558,8 +558,20 @@ volk_32fc_index_max_16u_rvv(uint16_t* target, const lv_32fc_t* src0, uint32_t nu
     float max = __riscv_vfmv_f(__riscv_vfredmax(RISCV_SHRINK4(vfmax, f, 32, vmax),
                                                 __riscv_vfmv_v_f_f32m1(0, 1),
                                                 __riscv_vsetvlmax_e32m1()));
-    vbool8_t m = __riscv_vmfeq(vmax, max, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmaxi, __riscv_vfirst(m, vl), vl));
+    // Find minimum index among lanes with max value
+    // Note: mask type mismatch (vbool8_t vs vbool4_t) prevents using vmerge,
+    // so we use scalar comparison
+    __attribute__((aligned(32))) float values[128];
+    __attribute__((aligned(32))) uint16_t indices[128];
+    __riscv_vse32(values, vmax, vl);
+    __riscv_vse16(indices, vmaxi, vl);
+    uint16_t min_idx = UINT16_MAX;
+    for (size_t i = 0; i < vl; i++) {
+        if (values[i] == max && indices[i] < min_idx) {
+            min_idx = indices[i];
+        }
+    }
+    *target = min_idx;
 }
 #endif /*LV_HAVE_RVV*/
 
@@ -589,8 +601,18 @@ static inline void volk_32fc_index_max_16u_rvvseg(uint16_t* target,
     float max = __riscv_vfmv_f(__riscv_vfredmax(RISCV_SHRINK4(vfmax, f, 32, vmax),
                                                 __riscv_vfmv_v_f_f32m1(0, 1),
                                                 __riscv_vsetvlmax_e32m1()));
-    vbool8_t m = __riscv_vmfeq(vmax, max, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmaxi, __riscv_vfirst(m, vl), vl));
+    // Find minimum index among lanes with max value
+    __attribute__((aligned(32))) float values[128];
+    __attribute__((aligned(32))) uint16_t indices[128];
+    __riscv_vse32(values, vmax, vl);
+    __riscv_vse16(indices, vmaxi, vl);
+    uint16_t min_idx = UINT16_MAX;
+    for (size_t i = 0; i < vl; i++) {
+        if (values[i] == max && indices[i] < min_idx) {
+            min_idx = indices[i];
+        }
+    }
+    *target = min_idx;
 }
 #endif /*LV_HAVE_RVVSEG*/
 

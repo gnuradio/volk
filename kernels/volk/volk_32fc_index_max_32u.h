@@ -600,8 +600,14 @@ volk_32fc_index_max_32u_rvv(uint32_t* target, const lv_32fc_t* src0, uint32_t nu
     float max = __riscv_vfmv_f(__riscv_vfredmax(RISCV_SHRINK4(vfmax, f, 32, vmax),
                                                 __riscv_vfmv_v_f_f32m1(0, 1),
                                                 __riscv_vsetvlmax_e32m1()));
+    // Find lanes with max value, set others to UINT32_MAX
     vbool8_t m = __riscv_vmfeq(vmax, max, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmaxi, __riscv_vfirst(m, vl), vl));
+    vuint32m4_t idx_masked =
+        __riscv_vmerge(__riscv_vmv_v_x_u32m4(UINT32_MAX, vl), vmaxi, m, vl);
+    // Find minimum index among lanes with max value
+    *target = __riscv_vmv_x(__riscv_vredminu(RISCV_SHRINK4(vminu, u, 32, idx_masked),
+                                             __riscv_vmv_v_x_u32m1(UINT32_MAX, 1),
+                                             __riscv_vsetvlmax_e32m1()));
 }
 #endif /*LV_HAVE_RVV*/
 
@@ -631,8 +637,14 @@ static inline void volk_32fc_index_max_32u_rvvseg(uint32_t* target,
     float max = __riscv_vfmv_f(__riscv_vfredmax(RISCV_SHRINK4(vfmax, f, 32, vmax),
                                                 __riscv_vfmv_v_f_f32m1(0, 1),
                                                 __riscv_vsetvlmax_e32m1()));
+    // Find lanes with max value, set others to UINT32_MAX
     vbool8_t m = __riscv_vmfeq(vmax, max, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmaxi, __riscv_vfirst(m, vl), vl));
+    vuint32m4_t idx_masked =
+        __riscv_vmerge(__riscv_vmv_v_x_u32m4(UINT32_MAX, vl), vmaxi, m, vl);
+    // Find minimum index among lanes with max value
+    *target = __riscv_vmv_x(__riscv_vredminu(RISCV_SHRINK4(vminu, u, 32, idx_masked),
+                                             __riscv_vmv_v_x_u32m1(UINT32_MAX, 1),
+                                             __riscv_vsetvlmax_e32m1()));
 }
 #endif /*LV_HAVE_RVVSEG*/
 

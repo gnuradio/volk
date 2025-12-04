@@ -560,8 +560,18 @@ static inline void volk_32fc_index_min_16u_rvv(uint16_t* target,
     float min = __riscv_vfmv_f(__riscv_vfredmin(RISCV_SHRINK4(vfmin, f, 32, vmin),
                                                 __riscv_vfmv_v_f_f32m1(FLT_MAX, 1),
                                                 __riscv_vsetvlmax_e32m1()));
-    vbool8_t m = __riscv_vmfeq(vmin, min, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmini, __riscv_vfirst(m, vl), vl));
+    // Find minimum index among lanes with min value
+    __attribute__((aligned(32))) float values[128];
+    __attribute__((aligned(32))) uint16_t indices[128];
+    __riscv_vse32(values, vmin, vl);
+    __riscv_vse16(indices, vmini, vl);
+    uint16_t min_idx = UINT16_MAX;
+    for (size_t i = 0; i < vl; i++) {
+        if (values[i] == min && indices[i] < min_idx) {
+            min_idx = indices[i];
+        }
+    }
+    *target = min_idx;
 }
 #endif /*LV_HAVE_RVV*/
 
@@ -591,8 +601,18 @@ static inline void volk_32fc_index_min_16u_rvvseg(uint16_t* target,
     float min = __riscv_vfmv_f(__riscv_vfredmin(RISCV_SHRINK4(vfmin, f, 32, vmin),
                                                 __riscv_vfmv_v_f_f32m1(FLT_MAX, 1),
                                                 __riscv_vsetvlmax_e32m1()));
-    vbool8_t m = __riscv_vmfeq(vmin, min, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmini, __riscv_vfirst(m, vl), vl));
+    // Find minimum index among lanes with min value
+    __attribute__((aligned(32))) float values[128];
+    __attribute__((aligned(32))) uint16_t indices[128];
+    __riscv_vse32(values, vmin, vl);
+    __riscv_vse16(indices, vmini, vl);
+    uint16_t min_idx = UINT16_MAX;
+    for (size_t i = 0; i < vl; i++) {
+        if (values[i] == min && indices[i] < min_idx) {
+            min_idx = indices[i];
+        }
+    }
+    *target = min_idx;
 }
 #endif /*LV_HAVE_RVVSEG*/
 

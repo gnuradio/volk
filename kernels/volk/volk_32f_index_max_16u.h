@@ -443,8 +443,14 @@ volk_32f_index_max_16u_rvv(uint16_t* target, const float* src0, uint32_t num_poi
     float max = __riscv_vfmv_f(__riscv_vfredmax(RISCV_SHRINK8(vfmax, f, 32, vmax),
                                                 __riscv_vfmv_v_f_f32m1(-FLT_MAX, 1),
                                                 __riscv_vsetvlmax_e32m1()));
+    // Find lanes with max value, set others to UINT16_MAX
     vbool4_t m = __riscv_vmfeq(vmax, max, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmaxi, __riscv_vfirst(m, vl), vl));
+    vuint16m4_t idx_masked = __riscv_vmerge(
+        __riscv_vmv_v_x_u16m4(UINT16_MAX, __riscv_vsetvlmax_e16m4()), vmaxi, m, vl);
+    // Find minimum index among lanes with max value
+    *target = __riscv_vmv_x(__riscv_vredminu(RISCV_SHRINK4(vminu, u, 16, idx_masked),
+                                             __riscv_vmv_v_x_u16m1(UINT16_MAX, 1),
+                                             __riscv_vsetvlmax_e16m1()));
 }
 #endif /*LV_HAVE_RVV*/
 
