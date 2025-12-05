@@ -203,6 +203,66 @@ static inline void volk_32f_s32f_normalize_u_avx(float* vecBuffer,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_normalize_neon(float* vecBuffer,
+                                                const float scalar,
+                                                unsigned int num_points)
+{
+    unsigned int number = 0;
+    float* inputPtr = vecBuffer;
+    const float invScalar = 1.0f / scalar;
+    float32x4_t vInvScalar = vdupq_n_f32(invScalar);
+    const unsigned int quarter_points = num_points / 4;
+
+    for (; number < quarter_points; number++) {
+        float32x4_t input = vld1q_f32(inputPtr);
+        input = vmulq_f32(input, vInvScalar);
+        vst1q_f32(inputPtr, input);
+        inputPtr += 4;
+    }
+
+    number = quarter_points * 4;
+    for (; number < num_points; number++) {
+        *inputPtr++ *= invScalar;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_normalize_neonv8(float* vecBuffer,
+                                                  const float scalar,
+                                                  unsigned int num_points)
+{
+    unsigned int number = 0;
+    float* inputPtr = vecBuffer;
+    const float invScalar = 1.0f / scalar;
+    float32x4_t vInvScalar = vdupq_n_f32(invScalar);
+    const unsigned int eighth_points = num_points / 8;
+
+    for (; number < eighth_points; number++) {
+        float32x4_t input0 = vld1q_f32(inputPtr);
+        float32x4_t input1 = vld1q_f32(inputPtr + 4);
+        __VOLK_PREFETCH(inputPtr + 8);
+
+        input0 = vmulq_f32(input0, vInvScalar);
+        input1 = vmulq_f32(input1, vInvScalar);
+
+        vst1q_f32(inputPtr, input0);
+        vst1q_f32(inputPtr + 4, input1);
+        inputPtr += 8;
+    }
+
+    number = eighth_points * 8;
+    for (; number < num_points; number++) {
+        *inputPtr++ *= invScalar;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

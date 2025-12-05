@@ -301,6 +301,81 @@ static inline void volk_32f_expfast_32f_generic(float* bVector,
 }
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_32f_expfast_32f_neon(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    float32x4_t a = vdupq_n_f32(A / Mln2);
+    float32x4_t b = vdupq_n_f32(B - C);
+
+    for (; number < quarterPoints; number++) {
+        float32x4_t aVal = vld1q_f32(aPtr);
+        int32x4_t exp = vcvtq_s32_f32(vmlaq_f32(b, a, aVal));
+        float32x4_t bVal = vreinterpretq_f32_s32(exp);
+        vst1q_f32(bPtr, bVal);
+
+        aPtr += 4;
+        bPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *bPtr++ = expf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32f_expfast_32f_neonv8(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    float32x4_t a = vdupq_n_f32(A / Mln2);
+    float32x4_t b = vdupq_n_f32(B - C);
+
+    for (; number < eighthPoints; number++) {
+        __VOLK_PREFETCH(aPtr + 16);
+
+        float32x4_t aVal0 = vld1q_f32(aPtr);
+        float32x4_t aVal1 = vld1q_f32(aPtr + 4);
+
+        int32x4_t exp0 = vcvtq_s32_f32(vfmaq_f32(b, a, aVal0));
+        int32x4_t exp1 = vcvtq_s32_f32(vfmaq_f32(b, a, aVal1));
+
+        float32x4_t bVal0 = vreinterpretq_f32_s32(exp0);
+        float32x4_t bVal1 = vreinterpretq_f32_s32(exp1);
+
+        vst1q_f32(bPtr, bVal0);
+        vst1q_f32(bPtr + 4, bVal1);
+
+        aPtr += 8;
+        bPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *bPtr++ = expf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

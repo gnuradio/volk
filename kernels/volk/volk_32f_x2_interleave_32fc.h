@@ -181,6 +181,44 @@ static inline void volk_32f_x2_interleave_32fc_neon(lv_32fc_t* complexVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_interleave_32fc_neonv8(lv_32fc_t* complexVector,
+                                                      const float* iBuffer,
+                                                      const float* qBuffer,
+                                                      unsigned int num_points)
+{
+    const unsigned int eighthPoints = num_points / 8;
+
+    float* outPtr = (float*)complexVector;
+    const float* iPtr = iBuffer;
+    const float* qPtr = qBuffer;
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        float32x4x2_t cplx0, cplx1;
+        cplx0.val[0] = vld1q_f32(iPtr);
+        cplx0.val[1] = vld1q_f32(qPtr);
+        cplx1.val[0] = vld1q_f32(iPtr + 4);
+        cplx1.val[1] = vld1q_f32(qPtr + 4);
+        __VOLK_PREFETCH(iPtr + 16);
+        __VOLK_PREFETCH(qPtr + 16);
+
+        vst2q_f32(outPtr, cplx0);
+        vst2q_f32(outPtr + 8, cplx1);
+
+        iPtr += 8;
+        qPtr += 8;
+        outPtr += 16;
+    }
+
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
+        *outPtr++ = *iPtr++;
+        *outPtr++ = *qPtr++;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 
 #ifdef LV_HAVE_GENERIC
 

@@ -175,4 +175,19 @@ volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+
+#ifdef LV_HAVE_NEONV8
+
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_neonv8(lv_32fc_t* cVector,
+                                                      const lv_32fc_t* aVector,
+                                                      const lv_32fc_t* bVector,
+                                                      const lv_32fc_t scalar,
+                                                      unsigned int num_points)
+{
+    volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_neonv8(
+        cVector, aVector, bVector, &scalar, num_points);
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #endif /* INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_H */

@@ -410,4 +410,66 @@ static inline void volk_32fc_s32fc_multiply2_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_s32fc_multiply2_32fc_neonv8(lv_32fc_t* cVector,
+                                                         const lv_32fc_t* aVector,
+                                                         const lv_32fc_t* scalar,
+                                                         unsigned int num_points)
+{
+    unsigned int n = num_points;
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = aVector;
+
+    /* Broadcast scalar real and imag parts */
+    const float32x4_t sr = vdupq_n_f32(lv_creal(*scalar));
+    const float32x4_t si = vdupq_n_f32(lv_cimag(*scalar));
+
+    /* Process 8 complex numbers per iteration (2x unroll) */
+    while (n >= 8) {
+        float32x4x2_t a0 = vld2q_f32((const float*)a);
+        float32x4x2_t a1 = vld2q_f32((const float*)(a + 4));
+        __VOLK_PREFETCH(a + 8);
+
+        /* Complex multiply using FMA:
+         * real = ar*sr - ai*si = fms(ar*sr, ai, si)
+         * imag = ar*si + ai*sr = fma(ar*si, ai, sr)
+         */
+        float32x4x2_t c0, c1;
+        c0.val[0] = vfmsq_f32(vmulq_f32(a0.val[0], sr), a0.val[1], si);
+        c0.val[1] = vfmaq_f32(vmulq_f32(a0.val[0], si), a0.val[1], sr);
+        c1.val[0] = vfmsq_f32(vmulq_f32(a1.val[0], sr), a1.val[1], si);
+        c1.val[1] = vfmaq_f32(vmulq_f32(a1.val[0], si), a1.val[1], sr);
+
+        vst2q_f32((float*)c, c0);
+        vst2q_f32((float*)(c + 4), c1);
+
+        a += 8;
+        c += 8;
+        n -= 8;
+    }
+
+    /* Process remaining 4 */
+    if (n >= 4) {
+        float32x4x2_t a0 = vld2q_f32((const float*)a);
+        float32x4x2_t c0;
+        c0.val[0] = vfmsq_f32(vmulq_f32(a0.val[0], sr), a0.val[1], si);
+        c0.val[1] = vfmaq_f32(vmulq_f32(a0.val[0], si), a0.val[1], sr);
+        vst2q_f32((float*)c, c0);
+        a += 4;
+        c += 4;
+        n -= 4;
+    }
+
+    /* Scalar tail */
+    while (n > 0) {
+        *c++ = (*a++) * (*scalar);
+        n--;
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
 #endif /* INCLUDED_volk_32fc_x2_multiply2_32fc_a_H */

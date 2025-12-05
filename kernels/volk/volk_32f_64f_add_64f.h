@@ -84,40 +84,45 @@ static inline void volk_32f_64f_add_64f_generic(double* cVector,
 #ifdef LV_HAVE_NEONV8
 #include <arm_neon.h>
 
-static inline void volk_32f_64f_add_64f_neon(double* cVector,
-                                             const float* aVector,
-                                             const double* bVector,
-                                             unsigned int num_points)
+static inline void volk_32f_64f_add_64f_neonv8(double* cVector,
+                                               const float* aVector,
+                                               const double* bVector,
+                                               unsigned int num_points)
 {
     unsigned int number = 0;
-    const unsigned int half_points = num_points / 2;
+    const unsigned int quarter_points = num_points / 4;
 
     double* cPtr = cVector;
     const float* aPtr = aVector;
     const double* bPtr = bVector;
 
-    float64x2_t aVal, bVal, cVal;
-    float32x2_t aVal1;
-    for (number = 0; number < half_points; number++) {
-        // Load in to NEON registers
-        aVal1 = vld1_f32(aPtr);
-        bVal = vld1q_f64(bPtr);
-        __VOLK_PREFETCH(aPtr + 2);
-        __VOLK_PREFETCH(bPtr + 2);
-        aPtr += 2; // q uses quadwords, 4 floats per vadd
-        bPtr += 2;
+    for (; number < quarter_points; number++) {
+        // Load 4 floats
+        float32x4_t aVal_f32 = vld1q_f32(aPtr);
+        // Load 4 doubles (2x2)
+        float64x2_t bVal0 = vld1q_f64(bPtr);
+        float64x2_t bVal1 = vld1q_f64(bPtr + 2);
+        __VOLK_PREFETCH(aPtr + 4);
+        __VOLK_PREFETCH(bPtr + 4);
 
-        // Vector conversion
-        aVal = vcvt_f64_f32(aVal1);
-        // vector add
-        cVal = vaddq_f64(aVal, bVal);
-        // Store the results back into the C container
-        vst1q_f64(cPtr, cVal);
+        // Convert float to double (low and high halves)
+        float64x2_t aVal0 = vcvt_f64_f32(vget_low_f32(aVal_f32));
+        float64x2_t aVal1 = vcvt_f64_f32(vget_high_f32(aVal_f32));
 
-        cPtr += 2;
+        // Add
+        float64x2_t cVal0 = vaddq_f64(aVal0, bVal0);
+        float64x2_t cVal1 = vaddq_f64(aVal1, bVal1);
+
+        // Store
+        vst1q_f64(cPtr, cVal0);
+        vst1q_f64(cPtr + 2, cVal1);
+
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
     }
 
-    number = half_points * 2; // should be = num_points
+    number = quarter_points * 4;
     for (; number < num_points; number++) {
         *cPtr++ = ((double)(*aPtr++)) + (*bPtr++);
     }

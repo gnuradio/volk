@@ -625,6 +625,58 @@ static inline void volk_32fc_x2_divide_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_x2_divide_32fc_neonv8(lv_32fc_t* cVector,
+                                                   const lv_32fc_t* aVector,
+                                                   const lv_32fc_t* bVector,
+                                                   unsigned int num_points)
+{
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const lv_32fc_t* bPtr = bVector;
+
+    float32x4x2_t aVal, bVal, cVal;
+    float32x4_t bMagSq;
+
+    const unsigned int quarterPoints = num_points / 4;
+    unsigned int number = 0;
+
+    for (; number < quarterPoints; number++) {
+        aVal = vld2q_f32((const float*)(aPtr));
+        bVal = vld2q_f32((const float*)(bPtr));
+        aPtr += 4;
+        bPtr += 4;
+        __VOLK_PREFETCH(aPtr + 4);
+        __VOLK_PREFETCH(bPtr + 4);
+
+        /* Compute |b|^2 = br^2 + bi^2 using FMA */
+        bMagSq = vfmaq_f32(vmulq_f32(bVal.val[0], bVal.val[0]), bVal.val[1], bVal.val[1]);
+
+        /* Use ARMv8 native division for 1/|b|^2 */
+        float32x4_t bMagSqInv = vdivq_f32(vdupq_n_f32(1.0f), bMagSq);
+
+        /* real = (ar*br + ai*bi) / |b|^2 */
+        cVal.val[0] =
+            vfmaq_f32(vmulq_f32(aVal.val[0], bVal.val[0]), aVal.val[1], bVal.val[1]);
+        cVal.val[0] = vmulq_f32(cVal.val[0], bMagSqInv);
+
+        /* imag = (ai*br - ar*bi) / |b|^2 */
+        cVal.val[1] =
+            vfmsq_f32(vmulq_f32(aVal.val[1], bVal.val[0]), aVal.val[0], bVal.val[1]);
+        cVal.val[1] = vmulq_f32(cVal.val[1], bMagSqInv);
+
+        vst2q_f32((float*)(cPtr), cVal);
+        cPtr += 4;
+    }
+
+    for (number = quarterPoints * 4; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) / (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

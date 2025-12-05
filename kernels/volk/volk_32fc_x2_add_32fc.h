@@ -273,6 +273,42 @@ static inline void volk_32fc_x2_add_32fc_u_neon(lv_32fc_t* cVector,
 
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_x2_add_32fc_neonv8(lv_32fc_t* cVector,
+                                                const lv_32fc_t* aVector,
+                                                const lv_32fc_t* bVector,
+                                                unsigned int num_points)
+{
+    const unsigned int quarterPoints = num_points / 4;
+
+    const float* aPtr = (const float*)aVector;
+    const float* bPtr = (const float*)bVector;
+    float* cPtr = (float*)cVector;
+
+    for (unsigned int number = 0; number < quarterPoints; number++) {
+        float32x4_t a0 = vld1q_f32(aPtr);
+        float32x4_t a1 = vld1q_f32(aPtr + 4);
+        float32x4_t b0 = vld1q_f32(bPtr);
+        float32x4_t b1 = vld1q_f32(bPtr + 4);
+        __VOLK_PREFETCH(aPtr + 16);
+        __VOLK_PREFETCH(bPtr + 16);
+
+        vst1q_f32(cPtr, vaddq_f32(a0, b0));
+        vst1q_f32(cPtr + 4, vaddq_f32(a1, b1));
+
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
+
+    for (unsigned int number = quarterPoints * 4; number < num_points; number++) {
+        cVector[number] = aVector[number] + bVector[number];
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

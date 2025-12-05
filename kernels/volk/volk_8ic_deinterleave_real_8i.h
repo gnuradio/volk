@@ -291,6 +291,35 @@ static inline void volk_8ic_deinterleave_real_8i_neon(int8_t* iBuffer,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_8ic_deinterleave_real_8i_neonv8(int8_t* iBuffer,
+                                                        const lv_8sc_t* complexVector,
+                                                        unsigned int num_points)
+{
+    const unsigned int thirtysecondPoints = num_points / 32;
+
+    for (unsigned int number = 0; number < thirtysecondPoints; number++) {
+        int8x16x2_t cplx0 = vld2q_s8((const int8_t*)complexVector);
+        int8x16x2_t cplx1 = vld2q_s8((const int8_t*)complexVector + 32);
+        __VOLK_PREFETCH((const int8_t*)complexVector + 64);
+
+        vst1q_s8(iBuffer, cplx0.val[0]);
+        vst1q_s8(iBuffer + 16, cplx1.val[0]);
+
+        iBuffer += 32;
+        complexVector += 32;
+    }
+
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
+    for (unsigned int number = thirtysecondPoints * 32; number < num_points; number++) {
+        *iBuffer++ = *complexVectorPtr++;
+        complexVectorPtr++;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 
 #endif /* INCLUDED_VOLK_8sc_DEINTERLEAVE_REAL_8s_ALIGNED8_H */
 

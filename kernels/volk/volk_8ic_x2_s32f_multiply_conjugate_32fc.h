@@ -247,6 +247,104 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_generic(lv_32fc_t* cVector,
 #endif /* LV_HAVE_GENERIC */
 
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_8ic_x2_s32f_multiply_conjugate_32fc_neon(lv_32fc_t* cVector,
+                                                                 const lv_8sc_t* aVector,
+                                                                 const lv_8sc_t* bVector,
+                                                                 const float scalar,
+                                                                 unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    lv_32fc_t* cPtr = cVector;
+    const lv_8sc_t* aPtr = aVector;
+    const lv_8sc_t* bPtr = bVector;
+    const float invScalar = 1.0f / scalar;
+    float32x4_t vInvScalar = vdupq_n_f32(invScalar);
+
+    int8x8x2_t aVal, bVal;
+    int16x8_t aReal, aImag, bReal, bImag;
+    int32x4_t realLo, realHi, imagLo, imagHi;
+    float32x4_t realFloatLo, realFloatHi, imagFloatLo, imagFloatHi;
+
+    for (; number < eighthPoints; number++) {
+        // Load 8 complex 8-bit values (deinterleaved)
+        aVal = vld2_s8((const int8_t*)aPtr);
+        bVal = vld2_s8((const int8_t*)bPtr);
+
+        // Widen to 16-bit
+        aReal = vmovl_s8(aVal.val[0]);
+        aImag = vmovl_s8(aVal.val[1]);
+        bReal = vmovl_s8(bVal.val[0]);
+        bImag = vmovl_s8(bVal.val[1]);
+
+        // Complex multiply with conjugate: (ar + ai*j) * (br - bi*j)
+        // real = ar*br + ai*bi
+        // imag = ai*br - ar*bi
+
+        // Low half (first 4 complex values)
+        realLo = vmlal_s16(vmull_s16(vget_low_s16(aReal), vget_low_s16(bReal)),
+                           vget_low_s16(aImag),
+                           vget_low_s16(bImag));
+        imagLo = vmlsl_s16(vmull_s16(vget_low_s16(aImag), vget_low_s16(bReal)),
+                           vget_low_s16(aReal),
+                           vget_low_s16(bImag));
+
+        // High half (next 4 complex values)
+        realHi = vmlal_s16(vmull_s16(vget_high_s16(aReal), vget_high_s16(bReal)),
+                           vget_high_s16(aImag),
+                           vget_high_s16(bImag));
+        imagHi = vmlsl_s16(vmull_s16(vget_high_s16(aImag), vget_high_s16(bReal)),
+                           vget_high_s16(aReal),
+                           vget_high_s16(bImag));
+
+        // Convert to float and scale
+        realFloatLo = vmulq_f32(vcvtq_f32_s32(realLo), vInvScalar);
+        imagFloatLo = vmulq_f32(vcvtq_f32_s32(imagLo), vInvScalar);
+        realFloatHi = vmulq_f32(vcvtq_f32_s32(realHi), vInvScalar);
+        imagFloatHi = vmulq_f32(vcvtq_f32_s32(imagHi), vInvScalar);
+
+        // Store interleaved (first 4 complex values)
+        float32x4x2_t resultLo;
+        resultLo.val[0] = realFloatLo;
+        resultLo.val[1] = imagFloatLo;
+        vst2q_f32((float*)cPtr, resultLo);
+        cPtr += 4;
+
+        // Store interleaved (next 4 complex values)
+        float32x4x2_t resultHi;
+        resultHi.val[0] = realFloatHi;
+        resultHi.val[1] = imagFloatHi;
+        vst2q_f32((float*)cPtr, resultHi);
+        cPtr += 4;
+
+        aPtr += 8;
+        bPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    float* cFloatPtr = (float*)&cVector[number];
+    int8_t* a8Ptr = (int8_t*)&aVector[number];
+    int8_t* b8Ptr = (int8_t*)&bVector[number];
+    for (; number < num_points; number++) {
+        float aReal_f = (float)*a8Ptr++;
+        float aImag_f = (float)*a8Ptr++;
+        lv_32fc_t aVal_c = lv_cmake(aReal_f, aImag_f);
+        float bReal_f = (float)*b8Ptr++;
+        float bImag_f = (float)*b8Ptr++;
+        lv_32fc_t bVal_c = lv_cmake(bReal_f, -bImag_f);
+        lv_32fc_t temp = aVal_c * bVal_c;
+
+        *cFloatPtr++ = lv_creal(temp) * invScalar;
+        *cFloatPtr++ = lv_cimag(temp) * invScalar;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+
 #endif /* INCLUDED_volk_8ic_x2_s32f_multiply_conjugate_32fc_a_H */
 
 #ifndef INCLUDED_volk_8ic_x2_s32f_multiply_conjugate_32fc_u_H

@@ -359,6 +359,148 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector,
 }
 #endif /* LV_HAVE_SSE */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_s32f_mod_range_32f_neon(float* outputVector,
+                                                         const float* inputVector,
+                                                         const float lower_bound,
+                                                         const float upper_bound,
+                                                         unsigned int num_points)
+{
+    const float32x4_t lower = vdupq_n_f32(lower_bound);
+    const float32x4_t upper = vdupq_n_f32(upper_bound);
+    const float32x4_t distance = vsubq_f32(upper, lower);
+    const float32x4_t fone = vdupq_n_f32(1.0f);
+    const float32x4_t fmone = vdupq_n_f32(-1.0f);
+
+    const float* inPtr = inputVector;
+    float* outPtr = outputVector;
+    const size_t quarter_points = num_points / 4;
+
+    for (size_t counter = 0; counter < quarter_points; counter++) {
+        float32x4_t input = vld1q_f32(inPtr);
+
+        // Calculate masks
+        uint32x4_t is_smaller = vcltq_f32(input, lower);
+        uint32x4_t is_bigger = vcgtq_f32(input, upper);
+
+        // Find excess (positive values for both cases)
+        float32x4_t excess_low = vsubq_f32(lower, input);
+        float32x4_t excess_high = vsubq_f32(input, upper);
+        float32x4_t excess = vbslq_f32(is_smaller, excess_low, vdupq_n_f32(0.0f));
+        excess = vbslq_f32(is_bigger, excess_high, excess);
+
+        // Calculate count: int(excess / distance)
+        float32x4_t recip = vrecpeq_f32(distance);
+        recip = vmulq_f32(recip, vrecpsq_f32(distance, recip));
+        excess = vmulq_f32(excess, recip);
+
+        // Truncate to integer and back to float
+        int32x4_t excess_int = vcvtq_s32_f32(excess);
+        excess = vcvtq_f32_s32(excess_int);
+
+        // Add 1
+        excess = vaddq_f32(excess, fone);
+
+        // Get sign adjustment
+        float32x4_t adj = vbslq_f32(is_smaller, fone, vdupq_n_f32(0.0f));
+        adj = vbslq_f32(is_bigger, fmone, adj);
+
+        // Scale by distance and sign
+        excess = vmulq_f32(vmulq_f32(excess, adj), distance);
+        float32x4_t output = vaddq_f32(input, excess);
+
+        vst1q_f32(outPtr, output);
+        inPtr += 4;
+        outPtr += 4;
+    }
+
+    volk_32f_s32f_s32f_mod_range_32f_generic(
+        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
+}
+
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_s32f_mod_range_32f_neonv8(float* outputVector,
+                                                           const float* inputVector,
+                                                           const float lower_bound,
+                                                           const float upper_bound,
+                                                           unsigned int num_points)
+{
+    const float32x4_t lower = vdupq_n_f32(lower_bound);
+    const float32x4_t upper = vdupq_n_f32(upper_bound);
+    const float32x4_t distance = vsubq_f32(upper, lower);
+    const float32x4_t fone = vdupq_n_f32(1.0f);
+    const float32x4_t fmone = vdupq_n_f32(-1.0f);
+
+    const float* inPtr = inputVector;
+    float* outPtr = outputVector;
+    const size_t eighth_points = num_points / 8;
+
+    for (size_t counter = 0; counter < eighth_points; counter++) {
+        __VOLK_PREFETCH(inPtr + 16);
+
+        float32x4_t input0 = vld1q_f32(inPtr);
+        float32x4_t input1 = vld1q_f32(inPtr + 4);
+
+        // Calculate masks
+        uint32x4_t is_smaller0 = vcltq_f32(input0, lower);
+        uint32x4_t is_smaller1 = vcltq_f32(input1, lower);
+        uint32x4_t is_bigger0 = vcgtq_f32(input0, upper);
+        uint32x4_t is_bigger1 = vcgtq_f32(input1, upper);
+
+        // Find excess
+        float32x4_t excess_low0 = vsubq_f32(lower, input0);
+        float32x4_t excess_low1 = vsubq_f32(lower, input1);
+        float32x4_t excess_high0 = vsubq_f32(input0, upper);
+        float32x4_t excess_high1 = vsubq_f32(input1, upper);
+        float32x4_t excess0 = vbslq_f32(is_smaller0, excess_low0, vdupq_n_f32(0.0f));
+        float32x4_t excess1 = vbslq_f32(is_smaller1, excess_low1, vdupq_n_f32(0.0f));
+        excess0 = vbslq_f32(is_bigger0, excess_high0, excess0);
+        excess1 = vbslq_f32(is_bigger1, excess_high1, excess1);
+
+        // Calculate count using division
+        excess0 = vdivq_f32(excess0, distance);
+        excess1 = vdivq_f32(excess1, distance);
+
+        // Truncate to integer and back to float
+        int32x4_t excess_int0 = vcvtq_s32_f32(excess0);
+        int32x4_t excess_int1 = vcvtq_s32_f32(excess1);
+        excess0 = vcvtq_f32_s32(excess_int0);
+        excess1 = vcvtq_f32_s32(excess_int1);
+
+        // Add 1
+        excess0 = vaddq_f32(excess0, fone);
+        excess1 = vaddq_f32(excess1, fone);
+
+        // Get sign adjustment
+        float32x4_t adj0 = vbslq_f32(is_smaller0, fone, vdupq_n_f32(0.0f));
+        float32x4_t adj1 = vbslq_f32(is_smaller1, fone, vdupq_n_f32(0.0f));
+        adj0 = vbslq_f32(is_bigger0, fmone, adj0);
+        adj1 = vbslq_f32(is_bigger1, fmone, adj1);
+
+        // Scale by distance and sign
+        excess0 = vmulq_f32(vmulq_f32(excess0, adj0), distance);
+        excess1 = vmulq_f32(vmulq_f32(excess1, adj1), distance);
+        float32x4_t output0 = vaddq_f32(input0, excess0);
+        float32x4_t output1 = vaddq_f32(input1, excess1);
+
+        vst1q_f32(outPtr, output0);
+        vst1q_f32(outPtr + 4, output1);
+        inPtr += 8;
+        outPtr += 8;
+    }
+
+    volk_32f_s32f_s32f_mod_range_32f_generic(
+        outPtr, inPtr, lower_bound, upper_bound, num_points - eighth_points * 8);
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

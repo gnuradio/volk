@@ -235,6 +235,55 @@ static inline void volk_16ic_s32f_deinterleave_32f_x2_neon(float* iBuffer,
 }
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_16ic_s32f_deinterleave_32f_x2_neonv8(float* iBuffer,
+                                          float* qBuffer,
+                                          const lv_16sc_t* complexVector,
+                                          const float scalar,
+                                          unsigned int num_points)
+{
+    const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+    float* iBufferPtr = iBuffer;
+    float* qBufferPtr = qBuffer;
+    const unsigned int eighthPoints = num_points / 8;
+    const float iScalar = 1.f / scalar;
+    const float32x4_t invScalar = vdupq_n_f32(iScalar);
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        int16x8x2_t cplx0 = vld2q_s16(complexVectorPtr);
+        __VOLK_PREFETCH(complexVectorPtr + 32);
+
+        /* Convert lower 4 of each to float */
+        int32x4_t i_lo = vmovl_s16(vget_low_s16(cplx0.val[0]));
+        int32x4_t q_lo = vmovl_s16(vget_low_s16(cplx0.val[1]));
+        int32x4_t i_hi = vmovl_s16(vget_high_s16(cplx0.val[0]));
+        int32x4_t q_hi = vmovl_s16(vget_high_s16(cplx0.val[1]));
+
+        float32x4_t iFloat_lo = vmulq_f32(vcvtq_f32_s32(i_lo), invScalar);
+        float32x4_t qFloat_lo = vmulq_f32(vcvtq_f32_s32(q_lo), invScalar);
+        float32x4_t iFloat_hi = vmulq_f32(vcvtq_f32_s32(i_hi), invScalar);
+        float32x4_t qFloat_hi = vmulq_f32(vcvtq_f32_s32(q_hi), invScalar);
+
+        vst1q_f32(iBufferPtr, iFloat_lo);
+        vst1q_f32(iBufferPtr + 4, iFloat_hi);
+        vst1q_f32(qBufferPtr, qFloat_lo);
+        vst1q_f32(qBufferPtr + 4, qFloat_hi);
+
+        complexVectorPtr += 16;
+        iBufferPtr += 8;
+        qBufferPtr += 8;
+    }
+
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
+        *iBufferPtr++ = (float)(*complexVectorPtr++) / scalar;
+        *qBufferPtr++ = (float)(*complexVectorPtr++) / scalar;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_ORC
 extern void volk_16ic_s32f_deinterleave_32f_x2_a_orc_impl(float* iBuffer,
                                                           float* qBuffer,

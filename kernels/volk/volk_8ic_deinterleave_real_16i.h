@@ -301,6 +301,36 @@ static inline void volk_8ic_deinterleave_real_16i_u_avx2(int16_t* iBuffer,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_8ic_deinterleave_real_16i_neon(int16_t* iBuffer,
+                                                       const lv_8sc_t* complexVector,
+                                                       unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighth_points = num_points / 8;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
+    int16_t* iBufferPtr = iBuffer;
+
+    for (; number < eighth_points; number++) {
+        int8x8x2_t input = vld2_s8(complexVectorPtr);
+        complexVectorPtr += 16;
+
+        int16x8_t iVal = vshll_n_s8(input.val[0], 7);
+
+        vst1q_s16(iBufferPtr, iVal);
+        iBufferPtr += 8;
+    }
+
+    number = eighth_points * 8;
+    for (; number < num_points; number++) {
+        *iBufferPtr++ = ((int16_t)*complexVectorPtr++) * 128;
+        complexVectorPtr++;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

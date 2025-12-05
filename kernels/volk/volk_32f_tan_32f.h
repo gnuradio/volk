@@ -750,6 +750,34 @@ volk_32f_tan_32f_neon(float* bVector, const float* aVector, unsigned int num_poi
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+#include <volk/volk_neon_intrinsics.h>
+
+static inline void
+volk_32f_tan_32f_neonv8(float* bVector, const float* aVector, unsigned int num_points)
+{
+    unsigned int number = 0;
+    unsigned int quarter_points = num_points / 4;
+    float* bVectorPtr = bVector;
+    const float* aVectorPtr = aVector;
+
+    for (number = 0; number < quarter_points; number++) {
+        float32x4_t a_vec = vld1q_f32(aVectorPtr);
+        // Use sincos, then native division for tan = sin/cos
+        const float32x4x2_t sincos = _vsincosq_f32(a_vec);
+        float32x4_t b_vec = vdivq_f32(sincos.val[0], sincos.val[1]);
+        vst1q_f32(bVectorPtr, b_vec);
+        bVectorPtr += 4;
+        aVectorPtr += 4;
+    }
+
+    for (number = quarter_points * 4; number < num_points; number++) {
+        *bVectorPtr++ = tanf(*aVectorPtr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

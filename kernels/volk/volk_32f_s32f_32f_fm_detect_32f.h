@@ -246,6 +246,181 @@ static inline void volk_32f_s32f_32f_fm_detect_32f_generic(float* outputVector,
 #endif /* LV_HAVE_GENERIC */
 
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_32f_fm_detect_32f_neon(float* outputVector,
+                                                        const float* inputVector,
+                                                        const float bound,
+                                                        float* saveValue,
+                                                        unsigned int num_points)
+{
+    if (num_points < 1) {
+        return;
+    }
+
+    float* outPtr = outputVector;
+    const float* inPtr = inputVector;
+
+    const float32x4_t upperBound = vdupq_n_f32(bound);
+    const float32x4_t lowerBound = vdupq_n_f32(-bound);
+    const float32x4_t posBoundAdjust = vdupq_n_f32(-2.f * bound);
+    const float32x4_t negBoundAdjust = vdupq_n_f32(2.f * bound);
+
+    // Do the first element from saveValue
+    *outPtr = *inPtr - *saveValue;
+    if (*outPtr > bound)
+        *outPtr -= 2 * bound;
+    if (*outPtr < -bound)
+        *outPtr += 2 * bound;
+    inPtr++;
+    outPtr++;
+
+    // Do the next 3 elements to align to 4
+    for (unsigned int j = 1; j < ((4 < num_points) ? 4 : num_points); j++) {
+        *outPtr = *inPtr - *(inPtr - 1);
+        if (*outPtr > bound)
+            *outPtr -= 2 * bound;
+        if (*outPtr < -bound)
+            *outPtr += 2 * bound;
+        inPtr++;
+        outPtr++;
+    }
+
+    const unsigned int quarterPoints = (num_points - 1) / 4;
+    for (unsigned int number = 1; number < quarterPoints; number++) {
+        // Load current and previous (offset by 1)
+        float32x4_t curr = vld1q_f32(inPtr);
+        float32x4_t prev = vld1q_f32(inPtr - 1);
+        inPtr += 4;
+
+        // Compute difference
+        float32x4_t diff = vsubq_f32(curr, prev);
+
+        // Apply bound wrapping
+        uint32x4_t aboveMask = vcgtq_f32(diff, upperBound);
+        uint32x4_t belowMask = vcltq_f32(diff, lowerBound);
+
+        float32x4_t adjust = vbslq_f32(aboveMask, posBoundAdjust, vdupq_n_f32(0));
+        adjust = vbslq_f32(belowMask, negBoundAdjust, adjust);
+
+        diff = vaddq_f32(diff, adjust);
+
+        vst1q_f32(outPtr, diff);
+        outPtr += 4;
+    }
+
+    // Handle remainder
+    for (unsigned int number = (4 > (quarterPoints * 4) ? 4 : (4 * quarterPoints));
+         number < num_points;
+         number++) {
+        *outPtr = *inPtr - *(inPtr - 1);
+        if (*outPtr > bound)
+            *outPtr -= 2 * bound;
+        if (*outPtr < -bound)
+            *outPtr += 2 * bound;
+        inPtr++;
+        outPtr++;
+    }
+
+    *saveValue = inputVector[num_points - 1];
+}
+#endif /* LV_HAVE_NEON */
+
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_32f_fm_detect_32f_neonv8(float* outputVector,
+                                                          const float* inputVector,
+                                                          const float bound,
+                                                          float* saveValue,
+                                                          unsigned int num_points)
+{
+    if (num_points < 1) {
+        return;
+    }
+
+    float* outPtr = outputVector;
+    const float* inPtr = inputVector;
+
+    const float32x4_t upperBound = vdupq_n_f32(bound);
+    const float32x4_t lowerBound = vdupq_n_f32(-bound);
+    const float32x4_t posBoundAdjust = vdupq_n_f32(-2.f * bound);
+    const float32x4_t negBoundAdjust = vdupq_n_f32(2.f * bound);
+    const float32x4_t zeros = vdupq_n_f32(0);
+
+    /* Do the first element from saveValue */
+    *outPtr = *inPtr - *saveValue;
+    if (*outPtr > bound)
+        *outPtr -= 2 * bound;
+    if (*outPtr < -bound)
+        *outPtr += 2 * bound;
+    inPtr++;
+    outPtr++;
+
+    /* Do the next 7 elements to align to 8 */
+    for (unsigned int j = 1; j < ((8 < num_points) ? 8 : num_points); j++) {
+        *outPtr = *inPtr - *(inPtr - 1);
+        if (*outPtr > bound)
+            *outPtr -= 2 * bound;
+        if (*outPtr < -bound)
+            *outPtr += 2 * bound;
+        inPtr++;
+        outPtr++;
+    }
+
+    /* Process 8 floats per iteration (2x unroll) */
+    const unsigned int eighthPoints = (num_points - 1) / 8;
+    for (unsigned int number = 1; number < eighthPoints; number++) {
+        /* Load current and previous (offset by 1) */
+        float32x4_t curr0 = vld1q_f32(inPtr);
+        float32x4_t prev0 = vld1q_f32(inPtr - 1);
+        float32x4_t curr1 = vld1q_f32(inPtr + 4);
+        float32x4_t prev1 = vld1q_f32(inPtr + 3);
+        __VOLK_PREFETCH(inPtr + 16);
+        inPtr += 8;
+
+        /* Compute differences */
+        float32x4_t diff0 = vsubq_f32(curr0, prev0);
+        float32x4_t diff1 = vsubq_f32(curr1, prev1);
+
+        /* Apply bound wrapping for first 4 */
+        uint32x4_t above0 = vcgtq_f32(diff0, upperBound);
+        uint32x4_t below0 = vcltq_f32(diff0, lowerBound);
+        float32x4_t adj0 = vbslq_f32(above0, posBoundAdjust, zeros);
+        adj0 = vbslq_f32(below0, negBoundAdjust, adj0);
+        diff0 = vaddq_f32(diff0, adj0);
+
+        /* Apply bound wrapping for second 4 */
+        uint32x4_t above1 = vcgtq_f32(diff1, upperBound);
+        uint32x4_t below1 = vcltq_f32(diff1, lowerBound);
+        float32x4_t adj1 = vbslq_f32(above1, posBoundAdjust, zeros);
+        adj1 = vbslq_f32(below1, negBoundAdjust, adj1);
+        diff1 = vaddq_f32(diff1, adj1);
+
+        vst1q_f32(outPtr, diff0);
+        vst1q_f32(outPtr + 4, diff1);
+        outPtr += 8;
+    }
+
+    /* Handle remainder */
+    for (unsigned int number = (8 > (eighthPoints * 8) ? 8 : (8 * eighthPoints));
+         number < num_points;
+         number++) {
+        *outPtr = *inPtr - *(inPtr - 1);
+        if (*outPtr > bound)
+            *outPtr -= 2 * bound;
+        if (*outPtr < -bound)
+            *outPtr += 2 * bound;
+        inPtr++;
+        outPtr++;
+    }
+
+    *saveValue = inputVector[num_points - 1];
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #endif /* INCLUDED_volk_32f_s32f_32f_fm_detect_32f_a_H */
 
 

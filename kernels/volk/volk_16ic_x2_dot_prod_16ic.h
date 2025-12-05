@@ -691,6 +691,66 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_optvma(lv_16sc_t* out,
 #endif /* LV_HAVE_NEON */
 
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_16ic_x2_dot_prod_16ic_neonv8(lv_16sc_t* out,
+                                                     const lv_16sc_t* in_a,
+                                                     const lv_16sc_t* in_b,
+                                                     unsigned int num_points)
+{
+    unsigned int eighth_points = num_points / 8;
+    unsigned int number;
+
+    const lv_16sc_t* a_ptr = in_a;
+    const lv_16sc_t* b_ptr = in_b;
+
+    /* Use 128-bit registers with deinterleaved loads for better throughput */
+    int16x8x2_t a_val, b_val;
+    int16x8_t acc_real1 = vdupq_n_s16(0);
+    int16x8_t acc_real2 = vdupq_n_s16(0);
+    int16x8_t acc_imag1 = vdupq_n_s16(0);
+    int16x8_t acc_imag2 = vdupq_n_s16(0);
+
+    for (number = 0; number < eighth_points; ++number) {
+        a_val = vld2q_s16((int16_t*)a_ptr);
+        b_val = vld2q_s16((int16_t*)b_ptr);
+        __VOLK_PREFETCH(a_ptr + 16);
+        __VOLK_PREFETCH(b_ptr + 16);
+
+        /* real = ar*br - ai*bi, use two accumulators to avoid dependency */
+        acc_real1 = vmlaq_s16(acc_real1, a_val.val[0], b_val.val[0]);
+        acc_real2 = vmlsq_s16(acc_real2, a_val.val[1], b_val.val[1]);
+
+        /* imag = ar*bi + ai*br, use two accumulators */
+        acc_imag1 = vmlaq_s16(acc_imag1, a_val.val[0], b_val.val[1]);
+        acc_imag2 = vmlaq_s16(acc_imag2, a_val.val[1], b_val.val[0]);
+
+        a_ptr += 8;
+        b_ptr += 8;
+    }
+
+    /* Combine accumulators with saturation */
+    int16x8_t acc_real = vqaddq_s16(acc_real1, acc_real2);
+    int16x8_t acc_imag = vqaddq_s16(acc_imag1, acc_imag2);
+
+    /* Horizontal sum using ARMv8 vaddvq */
+    int16_t sum_real = vaddvq_s16(acc_real);
+    int16_t sum_imag = vaddvq_s16(acc_imag);
+
+    *out = lv_cmake(sum_real, sum_imag);
+
+    /* Tail case */
+    for (number = eighth_points * 8; number < num_points; ++number) {
+        lv_16sc_t tmp = in_a[number] * in_b[number];
+        *out = lv_cmake(sat_adds16i(lv_creal(*out), lv_creal(tmp)),
+                        sat_adds16i(lv_cimag(*out), lv_cimag(tmp)));
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_RVV
 #include "volk_32fc_x2_dot_prod_32fc.h"
 
