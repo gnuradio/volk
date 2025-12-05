@@ -711,13 +711,19 @@ volk_32f_acos_32f_neon(float* bVector, const float* aVector, unsigned int num_po
         x = vbslq_f32(condition, z_recip, z);
 
         // Two iterations: x = x + sqrt(1 + x*x)
+        // Note: For very large x (approaching infinity), the NR rsqrt iteration produces
+        // NaN due to inf*0 in vrsqrtsq. Use approximation sqrt(1+x²) ≈ x for large x.
+        const float32x4_t large_threshold = vdupq_n_f32(1e10f);
         for (i = 0; i < 2; i++) {
             float32x4_t xx = vmulq_f32(x, x);
             float32x4_t sum = vaddq_f32(fones, xx);
+            uint32x4_t is_large = vcgtq_f32(x, large_threshold);
             float32x4_t sqrt_sum_est = vrsqrteq_f32(sum);
             sqrt_sum_est = vmulq_f32(
                 sqrt_sum_est, vrsqrtsq_f32(vmulq_f32(sum, sqrt_sum_est), sqrt_sum_est));
-            x = vaddq_f32(x, vmulq_f32(sum, sqrt_sum_est));
+            float32x4_t sqrt_sum = vmulq_f32(sum, sqrt_sum_est);
+            sqrt_sum = vbslq_f32(is_large, x, sqrt_sum);
+            x = vaddq_f32(x, sqrt_sum);
         }
 
         // x = 1/x
