@@ -346,6 +346,67 @@ volk_32f_index_min_16u_u_avx(uint16_t* target, const float* source, uint32_t num
 
 #endif /*LV_HAVE_AVX*/
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+#include <float.h>
+
+static inline void
+volk_32f_index_min_16u_neon(uint16_t* target, const float* source, uint32_t num_points)
+{
+    num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
+    uint32_t number = 0;
+    const uint32_t quarterPoints = num_points / 4;
+
+    const float* inputPtr = source;
+
+    float32x4_t indexIncrementValues = vdupq_n_f32(4.0f);
+    float32x4_t currentIndexes = { 0.0f, 1.0f, 2.0f, 3.0f };
+
+    float min = source[0];
+    float index = 0;
+    float32x4_t minValues = vdupq_n_f32(min);
+    float32x4_t minValuesIndex = vdupq_n_f32(0.0f);
+
+    for (; number < quarterPoints; number++) {
+        float32x4_t currentValues = vld1q_f32(inputPtr);
+        inputPtr += 4;
+
+        uint32x4_t compareResults = vcltq_f32(currentValues, minValues);
+
+        minValuesIndex = vbslq_f32(compareResults, currentIndexes, minValuesIndex);
+        minValues = vminq_f32(currentValues, minValues);
+
+        currentIndexes = vaddq_f32(currentIndexes, indexIncrementValues);
+    }
+
+    __VOLK_ATTR_ALIGNED(16) float minValuesBuffer[4];
+    __VOLK_ATTR_ALIGNED(16) float minIndexesBuffer[4];
+
+    vst1q_f32(minValuesBuffer, minValues);
+    vst1q_f32(minIndexesBuffer, minValuesIndex);
+
+    for (number = 0; number < 4; number++) {
+        if (minValuesBuffer[number] < min) {
+            index = minIndexesBuffer[number];
+            min = minValuesBuffer[number];
+        } else if (minValuesBuffer[number] == min) {
+            if (index > minIndexesBuffer[number])
+                index = minIndexesBuffer[number];
+        }
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        if (source[number] < min) {
+            index = (float)number;
+            min = source[number];
+        }
+    }
+    target[0] = (uint16_t)index;
+}
+#endif /* LV_HAVE_NEON */
+
 #ifdef LV_HAVE_RVV
 #include <float.h>
 #include <riscv_vector.h>

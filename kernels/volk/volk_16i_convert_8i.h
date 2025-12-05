@@ -363,6 +363,42 @@ static inline void volk_16i_convert_8i_neon(int8_t* outputVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_16i_convert_8i_neonv8(int8_t* outputVector,
+                                              const int16_t* inputVector,
+                                              unsigned int num_points)
+{
+    int8_t* outputVectorPtr = outputVector;
+    const int16_t* inputVectorPtr = inputVector;
+    const unsigned int thirtysecondPoints = num_points / 32;
+
+    for (unsigned int number = 0; number < thirtysecondPoints; number++) {
+        int16x8_t in0 = vld1q_s16(inputVectorPtr);
+        int16x8_t in1 = vld1q_s16(inputVectorPtr + 8);
+        int16x8_t in2 = vld1q_s16(inputVectorPtr + 16);
+        int16x8_t in3 = vld1q_s16(inputVectorPtr + 24);
+        __VOLK_PREFETCH(inputVectorPtr + 64);
+
+        int8x8_t out0 = vshrn_n_s16(in0, 8);
+        int8x8_t out1 = vshrn_n_s16(in1, 8);
+        int8x8_t out2 = vshrn_n_s16(in2, 8);
+        int8x8_t out3 = vshrn_n_s16(in3, 8);
+
+        vst1q_s8(outputVectorPtr, vcombine_s8(out0, out1));
+        vst1q_s8(outputVectorPtr + 16, vcombine_s8(out2, out3));
+
+        inputVectorPtr += 32;
+        outputVectorPtr += 32;
+    }
+
+    for (unsigned int number = thirtysecondPoints * 32; number < num_points; number++) {
+        *outputVectorPtr++ = ((int8_t)(*inputVectorPtr++ >> 8));
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

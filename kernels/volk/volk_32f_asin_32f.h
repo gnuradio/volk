@@ -623,6 +623,192 @@ volk_32f_asin_32f_generic(float* bVector, const float* aVector, unsigned int num
 }
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_32f_asin_32f_neon(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    unsigned int quarterPoints = num_points / 4;
+    int i, j;
+
+    float32x4_t aVal, x, y, z, arcsine;
+    uint32x4_t condition;
+    const float32x4_t fzeroes = vdupq_n_f32(0.0f);
+    const float32x4_t fones = vdupq_n_f32(1.0f);
+    const float32x4_t ftwos = vdupq_n_f32(2.0f);
+    const float32x4_t ffours = vdupq_n_f32(4.0f);
+    const float32x4_t pio2 = vdupq_n_f32(3.14159265358979323846f / 2.0f);
+
+    for (; number < quarterPoints; number++) {
+        aVal = vld1q_f32(aPtr);
+
+        // Compute x / sqrt((1+x)*(1-x)) using reciprocal estimate
+        // For |x| > 1, this produces NaN (matching generic behavior)
+        float32x4_t one_plus = vaddq_f32(fones, aVal);
+        float32x4_t one_minus = vsubq_f32(fones, aVal);
+        float32x4_t sqrt_arg = vmulq_f32(one_plus, one_minus);
+
+        // Newton-Raphson sqrt approximation
+        float32x4_t sqrt_est = vrsqrteq_f32(sqrt_arg);
+        sqrt_est =
+            vmulq_f32(sqrt_est, vrsqrtsq_f32(vmulq_f32(sqrt_arg, sqrt_est), sqrt_est));
+        float32x4_t sqrt_val = vmulq_f32(sqrt_arg, sqrt_est);
+
+        // Reciprocal of sqrt_val
+        float32x4_t recip = vrecpeq_f32(sqrt_val);
+        recip = vmulq_f32(recip, vrecpsq_f32(sqrt_val, recip));
+        float32x4_t tanVal = vmulq_f32(aVal, recip);
+
+        z = tanVal;
+        // z = abs(z)
+        condition = vcltq_f32(z, fzeroes);
+        z = vbslq_f32(condition, vnegq_f32(z), z);
+
+        // x = 1/z if z < 1, else x = z (matching SSE logic)
+        condition = vcltq_f32(z, fones);
+        float32x4_t z_recip = vrecpeq_f32(z);
+        z_recip = vmulq_f32(z_recip, vrecpsq_f32(z, z_recip));
+        x = vbslq_f32(condition, z_recip, z);
+
+        // Two iterations: x = x + sqrt(1 + x*x)
+        // Note: For very large x (approaching infinity), the NR rsqrt iteration produces
+        // NaN due to inf*0 in vrsqrtsq. Use approximation sqrt(1+x²) ≈ x for large x.
+        const float32x4_t large_threshold = vdupq_n_f32(1e10f);
+        for (i = 0; i < 2; i++) {
+            float32x4_t xx = vmulq_f32(x, x);
+            float32x4_t sum = vaddq_f32(fones, xx);
+            uint32x4_t is_large = vcgtq_f32(x, large_threshold);
+            float32x4_t sqrt_sum_est = vrsqrteq_f32(sum);
+            sqrt_sum_est = vmulq_f32(
+                sqrt_sum_est, vrsqrtsq_f32(vmulq_f32(sum, sqrt_sum_est), sqrt_sum_est));
+            float32x4_t sqrt_sum = vmulq_f32(sum, sqrt_sum_est);
+            sqrt_sum = vbslq_f32(is_large, x, sqrt_sum);
+            x = vaddq_f32(x, sqrt_sum);
+        }
+
+        // x = 1/x
+        float32x4_t x_recip = vrecpeq_f32(x);
+        x_recip = vmulq_f32(x_recip, vrecpsq_f32(x, x_recip));
+        x = x_recip;
+
+        // Taylor series
+        y = fzeroes;
+        for (j = ASIN_TERMS - 1; j >= 0; j--) {
+            float coeff = (j % 2 == 0) ? 1.0f / (2 * j + 1) : -1.0f / (2 * j + 1);
+            y = vaddq_f32(vmulq_f32(y, vmulq_f32(x, x)), vdupq_n_f32(coeff));
+        }
+
+        y = vmulq_f32(y, vmulq_f32(x, ffours));
+
+        // Adjust if z > 1: y = y + (pio2 - 2*y)
+        condition = vcgtq_f32(z, fones);
+        float32x4_t y_adj = vsubq_f32(pio2, vmulq_f32(y, ftwos));
+        y = vbslq_f32(condition, vaddq_f32(y, y_adj), y);
+
+        arcsine = y;
+
+        // If tanVal < 0, arcsine = -arcsine
+        condition = vcltq_f32(tanVal, fzeroes);
+        arcsine = vbslq_f32(condition, vnegq_f32(arcsine), arcsine);
+
+        vst1q_f32(bPtr, arcsine);
+        aPtr += 4;
+        bPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *bPtr++ = asinf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32f_asin_32f_neonv8(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    unsigned int quarterPoints = num_points / 4;
+    int i, j;
+
+    float32x4_t aVal, x, y, z, arcsine;
+    const float32x4_t fzeroes = vdupq_n_f32(0.0f);
+    const float32x4_t fones = vdupq_n_f32(1.0f);
+    const float32x4_t ftwos = vdupq_n_f32(2.0f);
+    const float32x4_t ffours = vdupq_n_f32(4.0f);
+    const float32x4_t pio2 = vdupq_n_f32(3.14159265358979323846f / 2.0f);
+
+    for (; number < quarterPoints; number++) {
+        aVal = vld1q_f32(aPtr);
+
+        // Compute x / sqrt((1+x)*(1-x))
+        // For |x| > 1, this produces NaN (matching generic behavior)
+        float32x4_t one_plus = vaddq_f32(fones, aVal);
+        float32x4_t one_minus = vsubq_f32(fones, aVal);
+        float32x4_t sqrt_val = vsqrtq_f32(vmulq_f32(one_plus, one_minus));
+        float32x4_t tanVal = vdivq_f32(aVal, sqrt_val);
+
+        z = tanVal;
+        // z = abs(z)
+        z = vabsq_f32(z);
+
+        // x = 1/z if z < 1, else x = z (matching SSE logic)
+        uint32x4_t z_lt_one = vcltq_f32(z, fones);
+        float32x4_t z_recip = vdivq_f32(fones, z);
+        x = vbslq_f32(z_lt_one, z_recip, z);
+
+        // Two iterations: x = x + sqrt(1 + x*x)
+        for (i = 0; i < 2; i++) {
+            x = vaddq_f32(x, vsqrtq_f32(vfmaq_f32(fones, x, x)));
+        }
+
+        // x = 1/x
+        x = vdivq_f32(fones, x);
+
+        // Taylor series
+        y = fzeroes;
+        for (j = ASIN_TERMS - 1; j >= 0; j--) {
+            float coeff = (j % 2 == 0) ? 1.0f / (2 * j + 1) : -1.0f / (2 * j + 1);
+            y = vfmaq_f32(vdupq_n_f32(coeff), y, vmulq_f32(x, x));
+        }
+
+        y = vmulq_f32(y, vmulq_f32(x, ffours));
+
+        // Adjust if z > 1: y = y + (pio2 - 2*y)
+        uint32x4_t z_gt_one = vcgtq_f32(z, fones);
+        float32x4_t y_adj = vfmsq_f32(pio2, y, ftwos);
+        y = vbslq_f32(z_gt_one, vaddq_f32(y, y_adj), y);
+
+        arcsine = y;
+
+        // If tanVal < 0, arcsine = -arcsine
+        uint32x4_t tanVal_neg = vcltq_f32(tanVal, fzeroes);
+        arcsine = vbslq_f32(tanVal_neg, vnegq_f32(arcsine), arcsine);
+
+        vst1q_f32(bPtr, arcsine);
+        aPtr += 4;
+        bPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *bPtr++ = asinf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 #include <volk/volk_rvv_intrinsics.h>

@@ -329,6 +329,127 @@ static inline void volk_16ic_s32f_magnitude_32f_u_avx2(float* magnitudeVector,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_16ic_s32f_magnitude_32f_neon(float* magnitudeVector,
+                                                     const lv_16sc_t* complexVector,
+                                                     const float scalar,
+                                                     unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarter_points = num_points / 4;
+
+    const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+    float* magnitudeVectorPtr = magnitudeVector;
+    const float invScalar = 1.0f / scalar;
+    float32x4_t vInvScalar = vdupq_n_f32(invScalar);
+
+    for (; number < quarter_points; number++) {
+        int16x4x2_t input = vld2_s16(complexVectorPtr);
+        complexVectorPtr += 8;
+
+        int32x4_t realInt = vmovl_s16(input.val[0]);
+        int32x4_t imagInt = vmovl_s16(input.val[1]);
+
+        float32x4_t realFloat = vcvtq_f32_s32(realInt);
+        float32x4_t imagFloat = vcvtq_f32_s32(imagInt);
+
+        realFloat = vmulq_f32(realFloat, vInvScalar);
+        imagFloat = vmulq_f32(imagFloat, vInvScalar);
+
+        float32x4_t realSquared = vmulq_f32(realFloat, realFloat);
+        float32x4_t imagSquared = vmulq_f32(imagFloat, imagFloat);
+        float32x4_t sumSquared = vaddq_f32(realSquared, imagSquared);
+
+        /* Use reciprocal square root estimate with Newton-Raphson refinement */
+        float32x4_t rsqrt = vrsqrteq_f32(sumSquared);
+        rsqrt = vmulq_f32(rsqrt, vrsqrtsq_f32(vmulq_f32(sumSquared, rsqrt), rsqrt));
+        rsqrt = vmulq_f32(rsqrt, vrsqrtsq_f32(vmulq_f32(sumSquared, rsqrt), rsqrt));
+        float32x4_t result = vmulq_f32(sumSquared, rsqrt);
+
+        /* Handle zero case - if sumSquared is 0, result should be 0 */
+        uint32x4_t zero_mask = vceqq_f32(sumSquared, vdupq_n_f32(0.0f));
+        result = vbslq_f32(zero_mask, sumSquared, result);
+
+        vst1q_f32(magnitudeVectorPtr, result);
+        magnitudeVectorPtr += 4;
+    }
+
+    number = quarter_points * 4;
+    complexVectorPtr = (const int16_t*)&complexVector[number];
+    for (; number < num_points; number++) {
+        float real = ((float)(*complexVectorPtr++)) * invScalar;
+        float imag = ((float)(*complexVectorPtr++)) * invScalar;
+        *magnitudeVectorPtr++ = sqrtf((real * real) + (imag * imag));
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_16ic_s32f_magnitude_32f_neonv8(float* magnitudeVector,
+                                                       const lv_16sc_t* complexVector,
+                                                       const float scalar,
+                                                       unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighth_points = num_points / 8;
+
+    const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+    float* magnitudeVectorPtr = magnitudeVector;
+    const float invScalar = 1.0f / scalar;
+    float32x4_t vInvScalar = vdupq_n_f32(invScalar);
+
+    for (; number < eighth_points; number++) {
+        int16x8x2_t input = vld2q_s16(complexVectorPtr);
+        complexVectorPtr += 16;
+        __VOLK_PREFETCH(complexVectorPtr + 16);
+
+        /* First 4 elements */
+        int32x4_t realInt0 = vmovl_s16(vget_low_s16(input.val[0]));
+        int32x4_t imagInt0 = vmovl_s16(vget_low_s16(input.val[1]));
+
+        float32x4_t realFloat0 = vcvtq_f32_s32(realInt0);
+        float32x4_t imagFloat0 = vcvtq_f32_s32(imagInt0);
+
+        realFloat0 = vmulq_f32(realFloat0, vInvScalar);
+        imagFloat0 = vmulq_f32(imagFloat0, vInvScalar);
+
+        float32x4_t sumSquared0 =
+            vfmaq_f32(vmulq_f32(imagFloat0, imagFloat0), realFloat0, realFloat0);
+        float32x4_t result0 = vsqrtq_f32(sumSquared0);
+
+        /* Second 4 elements */
+        int32x4_t realInt1 = vmovl_s16(vget_high_s16(input.val[0]));
+        int32x4_t imagInt1 = vmovl_s16(vget_high_s16(input.val[1]));
+
+        float32x4_t realFloat1 = vcvtq_f32_s32(realInt1);
+        float32x4_t imagFloat1 = vcvtq_f32_s32(imagInt1);
+
+        realFloat1 = vmulq_f32(realFloat1, vInvScalar);
+        imagFloat1 = vmulq_f32(imagFloat1, vInvScalar);
+
+        float32x4_t sumSquared1 =
+            vfmaq_f32(vmulq_f32(imagFloat1, imagFloat1), realFloat1, realFloat1);
+        float32x4_t result1 = vsqrtq_f32(sumSquared1);
+
+        vst1q_f32(magnitudeVectorPtr, result0);
+        vst1q_f32(magnitudeVectorPtr + 4, result1);
+        magnitudeVectorPtr += 8;
+    }
+
+    number = eighth_points * 8;
+    complexVectorPtr = (const int16_t*)&complexVector[number];
+    for (; number < num_points; number++) {
+        float real = ((float)(*complexVectorPtr++)) * invScalar;
+        float imag = ((float)(*complexVectorPtr++)) * invScalar;
+        *magnitudeVectorPtr++ = sqrtf((real * real) + (imag * imag));
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

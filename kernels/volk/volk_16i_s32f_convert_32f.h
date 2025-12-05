@@ -333,6 +333,57 @@ static inline void volk_16i_s32f_convert_32f_neon(float* outputVector,
 #endif /* LV_HAVE_NEON */
 
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_16i_s32f_convert_32f_neonv8(float* outputVector,
+                                                    const int16_t* inputVector,
+                                                    const float scalar,
+                                                    unsigned int num_points)
+{
+    unsigned int n = num_points;
+    float* out = outputVector;
+    const int16_t* in = inputVector;
+
+    const float32x4_t inv_scale = vdupq_n_f32(1.0f / scalar);
+
+    /* Process 8 int16 values per iteration using 64-bit loads */
+    while (n >= 8) {
+        int16x4_t v0 = vld1_s16(in);
+        int16x4_t v1 = vld1_s16(in + 4);
+        __VOLK_PREFETCH(in + 16);
+
+        /* Widen int16 to int32, convert to float, scale */
+        float32x4_t f0 = vmulq_f32(vcvtq_f32_s32(vmovl_s16(v0)), inv_scale);
+        float32x4_t f1 = vmulq_f32(vcvtq_f32_s32(vmovl_s16(v1)), inv_scale);
+
+        vst1q_f32(out, f0);
+        vst1q_f32(out + 4, f1);
+
+        in += 8;
+        out += 8;
+        n -= 8;
+    }
+
+    /* Process remaining 4 values */
+    if (n >= 4) {
+        int16x4_t v0 = vld1_s16(in);
+        vst1q_f32(out, vmulq_f32(vcvtq_f32_s32(vmovl_s16(v0)), inv_scale));
+        in += 4;
+        out += 4;
+        n -= 4;
+    }
+
+    /* Scalar tail */
+    while (n > 0) {
+        *out++ = ((float)(*in++)) / scalar;
+        n--;
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
 #endif /* INCLUDED_volk_16i_s32f_convert_32f_u_H */
 #ifndef INCLUDED_volk_16i_s32f_convert_32f_a_H
 #define INCLUDED_volk_16i_s32f_convert_32f_a_H

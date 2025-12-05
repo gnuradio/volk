@@ -313,6 +313,82 @@ static inline void volk_32i_s32f_convert_32f_a_sse2(float* outputVector,
 }
 #endif /* LV_HAVE_SSE2 */
 
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32i_s32f_convert_32f_neon(float* outputVector,
+                                                  const int32_t* inputVector,
+                                                  const float scalar,
+                                                  unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    float* outputVectorPtr = outputVector;
+    const int32_t* inputPtr = inputVector;
+    const float iScalar = 1.0f / scalar;
+    float32x4_t invScalar = vdupq_n_f32(iScalar);
+
+    for (; number < quarterPoints; number++) {
+        int32x4_t inputVal = vld1q_s32(inputPtr);
+        float32x4_t ret = vcvtq_f32_s32(inputVal);
+        ret = vmulq_f32(ret, invScalar);
+        vst1q_f32(outputVectorPtr, ret);
+
+        inputPtr += 4;
+        outputVectorPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        outputVector[number] = ((float)(inputVector[number])) * iScalar;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32i_s32f_convert_32f_neonv8(float* outputVector,
+                                                    const int32_t* inputVector,
+                                                    const float scalar,
+                                                    unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    float* outputVectorPtr = outputVector;
+    const int32_t* inputPtr = inputVector;
+    const float iScalar = 1.0f / scalar;
+    float32x4_t invScalar = vdupq_n_f32(iScalar);
+
+    for (; number < eighthPoints; number++) {
+        int32x4_t inputVal0 = vld1q_s32(inputPtr);
+        int32x4_t inputVal1 = vld1q_s32(inputPtr + 4);
+        __VOLK_PREFETCH(inputPtr + 8);
+        inputPtr += 8;
+
+        float32x4_t ret0 = vcvtq_f32_s32(inputVal0);
+        float32x4_t ret1 = vcvtq_f32_s32(inputVal1);
+
+        ret0 = vmulq_f32(ret0, invScalar);
+        ret1 = vmulq_f32(ret1, invScalar);
+
+        vst1q_f32(outputVectorPtr, ret0);
+        vst1q_f32(outputVectorPtr + 4, ret1);
+        outputVectorPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        outputVector[number] = ((float)(inputVector[number])) * iScalar;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

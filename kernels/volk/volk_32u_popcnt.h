@@ -65,6 +65,25 @@ static inline void volk_32u_popcnt_generic(uint32_t* ret, const uint32_t value)
 #endif /*LV_HAVE_GENERIC*/
 
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32u_popcnt_neon(uint32_t* ret, const uint32_t value)
+{
+    // Load value into a 64-bit vector (as 8 bytes)
+    uint8x8_t input = vreinterpret_u8_u32(vdup_n_u32(value));
+    // Count bits in each byte
+    uint8x8_t counts = vcnt_u8(input);
+    // Sum across all bytes (only first 4 matter for 32-bit value)
+    // Use vpaddl to widen and add: 8x8 -> 4x16 -> 2x32 -> 1x64
+    uint16x4_t sum16 = vpaddl_u8(counts);
+    uint32x2_t sum32 = vpaddl_u16(sum16);
+    // Extract the lower 32-bit element which contains the sum of the lower 4 bytes
+    *ret = vget_lane_u32(sum32, 0);
+}
+#endif /* LV_HAVE_NEON */
+
+
 #ifdef LV_HAVE_SSE4_2
 
 #include <nmmintrin.h>
