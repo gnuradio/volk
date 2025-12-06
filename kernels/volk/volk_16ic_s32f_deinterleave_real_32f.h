@@ -334,6 +334,44 @@ volk_16ic_s32f_deinterleave_real_32f_u_avx2(float* iBuffer,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_16ic_s32f_deinterleave_real_32f_neon(float* iBuffer,
+                                          const lv_16sc_t* complexVector,
+                                          const float scalar,
+                                          unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarter_points = num_points / 4;
+
+    float* iBufferPtr = iBuffer;
+    const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+    const float invScalar = 1.0f / scalar;
+    float32x4_t vInvScalar = vdupq_n_f32(invScalar);
+
+    for (; number < quarter_points; number++) {
+        int16x4x2_t input = vld2_s16(complexVectorPtr);
+        complexVectorPtr += 8;
+
+        int32x4_t iInt = vmovl_s16(input.val[0]);
+        float32x4_t iFloat = vcvtq_f32_s32(iInt);
+        iFloat = vmulq_f32(iFloat, vInvScalar);
+
+        vst1q_f32(iBufferPtr, iFloat);
+        iBufferPtr += 4;
+    }
+
+    number = quarter_points * 4;
+    complexVectorPtr = (const int16_t*)&complexVector[number];
+    for (; number < num_points; number++) {
+        *iBufferPtr++ = ((float)(*complexVectorPtr++)) * invScalar;
+        complexVectorPtr++;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

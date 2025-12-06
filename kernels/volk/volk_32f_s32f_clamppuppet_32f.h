@@ -62,6 +62,26 @@ static inline void volk_32f_s32f_clamppuppet_32f_u_sse4_1(float* out,
 }
 #endif
 
+#ifdef LV_HAVE_NEON
+static inline void volk_32f_s32f_clamppuppet_32f_neon(float* out,
+                                                      const float* in,
+                                                      const float min,
+                                                      unsigned int num_points)
+{
+    volk_32f_s32f_x2_clamp_32f_neon(out, in, min, -min, num_points);
+}
+#endif
+
+#ifdef LV_HAVE_NEONV8
+static inline void volk_32f_s32f_clamppuppet_32f_neonv8(float* out,
+                                                        const float* in,
+                                                        const float min,
+                                                        unsigned int num_points)
+{
+    volk_32f_s32f_x2_clamp_32f_neonv8(out, in, min, -min, num_points);
+}
+#endif
+
 #ifdef LV_HAVE_RVV
 static inline void volk_32f_s32f_clamppuppet_32f_rvv(float* out,
                                                      const float* in,

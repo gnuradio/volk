@@ -1000,6 +1000,116 @@ volk_32f_cos_32f_neon(float* bVector, const float* aVector, unsigned int num_poi
 
 #endif /* LV_HAVE_NEON */
 
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+/* ARMv8 NEON with FMA: cos polynomial, 2x unroll for better ILP */
+static inline void
+volk_32f_cos_32f_neonv8(float* bVector, const float* aVector, unsigned int num_points)
+{
+    const float32x4_t c_minus_cephes_DP1 = vdupq_n_f32(-0.78515625f);
+    const float32x4_t c_minus_cephes_DP2 = vdupq_n_f32(-2.4187564849853515625e-4f);
+    const float32x4_t c_minus_cephes_DP3 = vdupq_n_f32(-3.77489497744594108e-8f);
+    const float32x4_t c_sincof_p0 = vdupq_n_f32(-1.9515295891e-4f);
+    const float32x4_t c_sincof_p1 = vdupq_n_f32(8.3321608736e-3f);
+    const float32x4_t c_sincof_p2 = vdupq_n_f32(-1.6666654611e-1f);
+    const float32x4_t c_coscof_p0 = vdupq_n_f32(2.443315711809948e-005f);
+    const float32x4_t c_coscof_p1 = vdupq_n_f32(-1.388731625493765e-003f);
+    const float32x4_t c_coscof_p2 = vdupq_n_f32(4.166664568298827e-002f);
+    const float32x4_t c_cephes_FOPI = vdupq_n_f32(1.27323954473516f);
+    const float32x4_t CONST_1 = vdupq_n_f32(1.f);
+    const float32x4_t CONST_1_2 = vdupq_n_f32(0.5f);
+    const uint32x4_t CONST_2 = vdupq_n_u32(2);
+    const uint32x4_t CONST_4 = vdupq_n_u32(4);
+    const uint32x4_t CONST_1_U = vdupq_n_u32(1);
+    const uint32x4_t CONST_NOT1 = vdupq_n_u32(~1u);
+
+    unsigned int number = 0;
+    const unsigned int eighth_points = num_points / 8;
+
+    for (; number < eighth_points; number++) {
+        /* Load 8 floats (2 x float32x4) */
+        float32x4_t x0 = vld1q_f32(aVector);
+        float32x4_t x1 = vld1q_f32(aVector + 4);
+        aVector += 8;
+
+        /* Process first 4 - cos is even function, take absolute value */
+        x0 = vabsq_f32(x0);
+        float32x4_t y0 = vmulq_f32(x0, c_cephes_FOPI);
+        uint32x4_t emm2_0 = vcvtq_u32_f32(y0);
+        emm2_0 = vandq_u32(vaddq_u32(emm2_0, CONST_1_U), CONST_NOT1);
+        y0 = vcvtq_f32_u32(emm2_0);
+
+        /* For cos: use sin poly when (j & 2) != 0, cos poly when (j & 2) == 0 */
+        uint32x4_t poly_mask0 = vtstq_u32(emm2_0, CONST_2);
+
+        x0 = vfmaq_f32(x0, y0, c_minus_cephes_DP1);
+        x0 = vfmaq_f32(x0, y0, c_minus_cephes_DP2);
+        x0 = vfmaq_f32(x0, y0, c_minus_cephes_DP3);
+
+        /* For cos: sign_mask = ((j+2) & 4) != 0 */
+        uint32x4_t sign_mask0 = vtstq_u32(vaddq_u32(emm2_0, CONST_2), CONST_4);
+
+        float32x4_t z0 = vmulq_f32(x0, x0);
+
+        /* Cos polynomial */
+        float32x4_t y1_0 = vfmaq_f32(c_coscof_p1, z0, c_coscof_p0);
+        y1_0 = vfmaq_f32(c_coscof_p2, z0, y1_0);
+        y1_0 = vmulq_f32(y1_0, z0);
+        y1_0 = vmulq_f32(y1_0, z0);
+        y1_0 = vfmsq_f32(y1_0, z0, CONST_1_2);
+        y1_0 = vaddq_f32(y1_0, CONST_1);
+
+        /* Sin polynomial */
+        float32x4_t y2_0 = vfmaq_f32(c_sincof_p1, z0, c_sincof_p0);
+        y2_0 = vfmaq_f32(c_sincof_p2, z0, y2_0);
+        y2_0 = vmulq_f32(y2_0, z0);
+        y2_0 = vfmaq_f32(x0, x0, y2_0);
+
+        /* Select: cos uses cos poly when poly_mask==0, sin poly when poly_mask==1 */
+        float32x4_t ys0 = vbslq_f32(poly_mask0, y2_0, y1_0);
+        float32x4_t result0 = vbslq_f32(sign_mask0, vnegq_f32(ys0), ys0);
+
+        /* Process second 4 */
+        x1 = vabsq_f32(x1);
+        float32x4_t y1 = vmulq_f32(x1, c_cephes_FOPI);
+        uint32x4_t emm2_1 = vcvtq_u32_f32(y1);
+        emm2_1 = vandq_u32(vaddq_u32(emm2_1, CONST_1_U), CONST_NOT1);
+        y1 = vcvtq_f32_u32(emm2_1);
+        uint32x4_t poly_mask1 = vtstq_u32(emm2_1, CONST_2);
+        x1 = vfmaq_f32(x1, y1, c_minus_cephes_DP1);
+        x1 = vfmaq_f32(x1, y1, c_minus_cephes_DP2);
+        x1 = vfmaq_f32(x1, y1, c_minus_cephes_DP3);
+        uint32x4_t sign_mask1 = vtstq_u32(vaddq_u32(emm2_1, CONST_2), CONST_4);
+        float32x4_t z1 = vmulq_f32(x1, x1);
+        float32x4_t y1_1 = vfmaq_f32(c_coscof_p1, z1, c_coscof_p0);
+        y1_1 = vfmaq_f32(c_coscof_p2, z1, y1_1);
+        y1_1 = vmulq_f32(y1_1, z1);
+        y1_1 = vmulq_f32(y1_1, z1);
+        y1_1 = vfmsq_f32(y1_1, z1, CONST_1_2);
+        y1_1 = vaddq_f32(y1_1, CONST_1);
+        float32x4_t y2_1 = vfmaq_f32(c_sincof_p1, z1, c_sincof_p0);
+        y2_1 = vfmaq_f32(c_sincof_p2, z1, y2_1);
+        y2_1 = vmulq_f32(y2_1, z1);
+        y2_1 = vfmaq_f32(x1, x1, y2_1);
+        float32x4_t ys1 = vbslq_f32(poly_mask1, y2_1, y1_1);
+        float32x4_t result1 = vbslq_f32(sign_mask1, vnegq_f32(ys1), ys1);
+
+        vst1q_f32(bVector, result0);
+        vst1q_f32(bVector + 4, result1);
+        bVector += 8;
+    }
+
+    /* Handle remaining */
+    for (number = eighth_points * 8; number < num_points; number++) {
+        *bVector++ = cosf(*aVector++);
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

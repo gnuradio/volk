@@ -163,6 +163,34 @@ volk_32f_invsqrt_32f_neon(float* cVector, const float* aVector, unsigned int num
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32f_invsqrt_32f_neonv8(float* cVector, const float* aVector, unsigned int num_points)
+{
+    unsigned int number;
+    const unsigned int quarter_points = num_points / 4;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    const float32x4_t fones = vdupq_n_f32(1.0f);
+
+    for (number = 0; number < quarter_points; ++number) {
+        float32x4_t a_val = vld1q_f32(aPtr);
+        // Use native sqrt and division for accurate result
+        float32x4_t c_val = vdivq_f32(fones, vsqrtq_f32(a_val));
+        vst1q_f32(cPtr, c_val);
+        aPtr += 4;
+        cPtr += 4;
+    }
+
+    for (number = quarter_points * 4; number < num_points; number++) {
+        *cPtr++ = Q_rsqrt(*aPtr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 
 #ifdef LV_HAVE_GENERIC
 

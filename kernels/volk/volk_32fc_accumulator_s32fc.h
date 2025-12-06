@@ -364,6 +364,65 @@ static inline void volk_32fc_accumulator_s32fc_neon(lv_32fc_t* result,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_accumulator_s32fc_neonv8(lv_32fc_t* result,
+                                                      const lv_32fc_t* inputBuffer,
+                                                      unsigned int num_points)
+{
+    const lv_32fc_t* aPtr = inputBuffer;
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    /* Keep interleaved like neon version - vld1q is faster than vld2q */
+    float32x4_t in_vec;
+    float32x4_t out_vec0 = vdupq_n_f32(0.f);
+    float32x4_t out_vec1 = vdupq_n_f32(0.f);
+    float32x4_t out_vec2 = vdupq_n_f32(0.f);
+    float32x4_t out_vec3 = vdupq_n_f32(0.f);
+
+    for (; number < eighthPoints; number++) {
+        in_vec = vld1q_f32((float*)aPtr);
+        out_vec0 = vaddq_f32(in_vec, out_vec0);
+        aPtr += 2;
+
+        in_vec = vld1q_f32((float*)aPtr);
+        out_vec1 = vaddq_f32(in_vec, out_vec1);
+        aPtr += 2;
+
+        in_vec = vld1q_f32((float*)aPtr);
+        out_vec2 = vaddq_f32(in_vec, out_vec2);
+        aPtr += 2;
+
+        in_vec = vld1q_f32((float*)aPtr);
+        out_vec3 = vaddq_f32(in_vec, out_vec3);
+        aPtr += 2;
+    }
+
+    /* Combine the 4 accumulators */
+    out_vec0 = vaddq_f32(out_vec0, out_vec1);
+    out_vec2 = vaddq_f32(out_vec2, out_vec3);
+    out_vec0 = vaddq_f32(out_vec0, out_vec2);
+
+    /* Horizontal reduction: out_vec0 = [sum_r0, sum_i0, sum_r1, sum_i1] */
+    /* We need real = sum_r0 + sum_r1, imag = sum_i0 + sum_i1 */
+    float32x2_t low = vget_low_f32(out_vec0);   /* [sum_r0, sum_i0] */
+    float32x2_t high = vget_high_f32(out_vec0); /* [sum_r1, sum_i1] */
+    float32x2_t sum = vadd_f32(low, high);      /* [real_sum, imag_sum] */
+
+    lv_32fc_t returnValue = lv_cmake(vget_lane_f32(sum, 0), vget_lane_f32(sum, 1));
+
+    /* Tail case */
+    for (number = eighthPoints * 8; number < num_points; number++) {
+        returnValue += (*aPtr++);
+    }
+
+    *result = returnValue;
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 #include <volk/volk_rvv_intrinsics.h>

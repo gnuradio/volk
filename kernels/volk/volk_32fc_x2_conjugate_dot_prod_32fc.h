@@ -580,6 +580,97 @@ static inline void volk_32fc_x2_conjugate_dot_prod_32fc_neon(lv_32fc_t* result,
 }
 #endif /*LV_HAVE_NEON*/
 
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_x2_conjugate_dot_prod_32fc_neonv8(lv_32fc_t* result,
+                                                               const lv_32fc_t* input,
+                                                               const lv_32fc_t* taps,
+                                                               unsigned int num_points)
+{
+    unsigned int n = num_points;
+    const lv_32fc_t* a = input; /* input */
+    const lv_32fc_t* b = taps;  /* taps (will be conjugated) */
+
+    /* Use 4 accumulators to break data dependencies */
+    float32x4_t acc0_r = vdupq_n_f32(0);
+    float32x4_t acc0_i = vdupq_n_f32(0);
+    float32x4_t acc1_r = vdupq_n_f32(0);
+    float32x4_t acc1_i = vdupq_n_f32(0);
+
+    /* Process 8 complex numbers per iteration (2x unroll) */
+    while (n >= 8) {
+        float32x4x2_t a0 = vld2q_f32((const float*)a);
+        float32x4x2_t b0 = vld2q_f32((const float*)b);
+        float32x4x2_t a1 = vld2q_f32((const float*)(a + 4));
+        float32x4x2_t b1 = vld2q_f32((const float*)(b + 4));
+        __VOLK_PREFETCH(a + 8);
+        __VOLK_PREFETCH(b + 8);
+
+        /* Conjugate dot product: input * conj(taps)
+         * (ar + j*ai) * (br - j*bi) = ar*br + ai*bi + j*(ai*br - ar*bi)
+         * real += ar*br + ai*bi
+         * imag += ai*br - ar*bi
+         */
+        acc0_r = vfmaq_f32(acc0_r, a0.val[0], b0.val[0]); /* ar*br */
+        acc0_r = vfmaq_f32(acc0_r, a0.val[1], b0.val[1]); /* + ai*bi */
+        acc0_i = vfmaq_f32(acc0_i, a0.val[1], b0.val[0]); /* ai*br */
+        acc0_i = vfmsq_f32(acc0_i, a0.val[0], b0.val[1]); /* - ar*bi */
+
+        acc1_r = vfmaq_f32(acc1_r, a1.val[0], b1.val[0]);
+        acc1_r = vfmaq_f32(acc1_r, a1.val[1], b1.val[1]);
+        acc1_i = vfmaq_f32(acc1_i, a1.val[1], b1.val[0]);
+        acc1_i = vfmsq_f32(acc1_i, a1.val[0], b1.val[1]);
+
+        a += 8;
+        b += 8;
+        n -= 8;
+    }
+
+    /* Process remaining 4 */
+    if (n >= 4) {
+        float32x4x2_t a0 = vld2q_f32((const float*)a);
+        float32x4x2_t b0 = vld2q_f32((const float*)b);
+
+        acc0_r = vfmaq_f32(acc0_r, a0.val[0], b0.val[0]);
+        acc0_r = vfmaq_f32(acc0_r, a0.val[1], b0.val[1]);
+        acc0_i = vfmaq_f32(acc0_i, a0.val[1], b0.val[0]);
+        acc0_i = vfmsq_f32(acc0_i, a0.val[0], b0.val[1]);
+
+        a += 4;
+        b += 4;
+        n -= 4;
+    }
+
+    /* Combine accumulators */
+    acc0_r = vaddq_f32(acc0_r, acc1_r);
+    acc0_i = vaddq_f32(acc0_i, acc1_i);
+
+    /* Horizontal sum using pairwise add */
+    float32x2_t sum_r = vadd_f32(vget_low_f32(acc0_r), vget_high_f32(acc0_r));
+    float32x2_t sum_i = vadd_f32(vget_low_f32(acc0_i), vget_high_f32(acc0_i));
+    sum_r = vpadd_f32(sum_r, sum_r);
+    sum_i = vpadd_f32(sum_i, sum_i);
+
+    float res_r = vget_lane_f32(sum_r, 0);
+    float res_i = vget_lane_f32(sum_i, 0);
+
+    /* Scalar tail */
+    while (n > 0) {
+        res_r += lv_creal(*a) * lv_creal(*b) + lv_cimag(*a) * lv_cimag(*b);
+        res_i += lv_cimag(*a) * lv_creal(*b) - lv_creal(*a) * lv_cimag(*b);
+        a++;
+        b++;
+        n--;
+    }
+
+    *result = lv_cmake(res_r, res_i);
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 #include <volk/volk_rvv_intrinsics.h>

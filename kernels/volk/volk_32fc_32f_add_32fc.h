@@ -230,6 +230,54 @@ static inline void volk_32fc_32f_add_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_32f_add_32fc_neonv8(lv_32fc_t* cVector,
+                                                 const lv_32fc_t* aVector,
+                                                 const float* bVector,
+                                                 unsigned int num_points)
+{
+    const unsigned int eighthPoints = num_points / 8;
+
+    const float* aPtr = (const float*)aVector;
+    const float* bPtr = bVector;
+    float* cPtr = (float*)cVector;
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        /* Load complex values (interleaved real/imag) */
+        float32x4_t a0 = vld1q_f32(aPtr);
+        float32x4_t a1 = vld1q_f32(aPtr + 4);
+        float32x4_t a2 = vld1q_f32(aPtr + 8);
+        float32x4_t a3 = vld1q_f32(aPtr + 12);
+
+        /* Load real values and duplicate for complex add */
+        float32x4_t b0 = vld1q_f32(bPtr);
+        float32x4_t b1 = vld1q_f32(bPtr + 4);
+        __VOLK_PREFETCH(aPtr + 32);
+        __VOLK_PREFETCH(bPtr + 16);
+
+        /* Interleave b values with zeros: [b0, 0, b1, 0] */
+        float32x4x2_t b0_zip = vzipq_f32(b0, vdupq_n_f32(0));
+        float32x4x2_t b1_zip = vzipq_f32(b1, vdupq_n_f32(0));
+
+        /* Add to complex */
+        vst1q_f32(cPtr, vaddq_f32(a0, b0_zip.val[0]));
+        vst1q_f32(cPtr + 4, vaddq_f32(a1, b0_zip.val[1]));
+        vst1q_f32(cPtr + 8, vaddq_f32(a2, b1_zip.val[0]));
+        vst1q_f32(cPtr + 12, vaddq_f32(a3, b1_zip.val[1]));
+
+        aPtr += 16;
+        bPtr += 8;
+        cPtr += 16;
+    }
+
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
+        cVector[number] = aVector[number] + bVector[number];
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

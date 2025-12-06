@@ -174,4 +174,16 @@ static inline void volk_32fc_s32fc_multiply_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+
+#ifdef LV_HAVE_NEONV8
+
+static inline void volk_32fc_s32fc_multiply_32fc_neonv8(lv_32fc_t* cVector,
+                                                        const lv_32fc_t* aVector,
+                                                        const lv_32fc_t scalar,
+                                                        unsigned int num_points)
+{
+    volk_32fc_s32fc_multiply2_32fc_neonv8(cVector, aVector, &scalar, num_points);
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #endif /* INCLUDED_volk_32fc_x2_multiply_32fc_a_H */

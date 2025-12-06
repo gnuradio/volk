@@ -262,6 +262,34 @@ static inline void volk_16u_byteswap_neon_table(uint16_t* intsToSwap,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_16u_byteswap_neonv8(uint16_t* intsToSwap, unsigned int num_points)
+{
+    const unsigned int sixteenthPoints = num_points / 16;
+    uint16_t* inputPtr = intsToSwap;
+
+    for (unsigned int number = 0; number < sixteenthPoints; number++) {
+        uint8x16_t in0 = vld1q_u8((const uint8_t*)inputPtr);
+        uint8x16_t in1 = vld1q_u8((const uint8_t*)(inputPtr + 8));
+        __VOLK_PREFETCH(inputPtr + 32);
+
+        /* ARMv8 has vrev16q_u8 which reverses bytes within 16-bit elements */
+        vst1q_u8((uint8_t*)inputPtr, vrev16q_u8(in0));
+        vst1q_u8((uint8_t*)(inputPtr + 8), vrev16q_u8(in1));
+
+        inputPtr += 16;
+    }
+
+    for (unsigned int number = sixteenthPoints * 16; number < num_points; number++) {
+        uint16_t output = *inputPtr;
+        output = (((output >> 8) & 0xff) | ((output << 8) & 0xff00));
+        *inputPtr++ = output;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_ORC
 
 extern void volk_16u_byteswap_a_orc_impl(uint16_t* intsToSwap, int num_points);

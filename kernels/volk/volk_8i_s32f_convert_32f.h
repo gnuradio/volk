@@ -410,6 +410,58 @@ static inline void volk_8i_s32f_convert_32f_neon(float* outputVector,
 
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_8i_s32f_convert_32f_neonv8(float* outputVector,
+                                                   const int8_t* inputVector,
+                                                   const float scalar,
+                                                   unsigned int num_points)
+{
+    float* outputVectorPtr = outputVector;
+    const int8_t* inputVectorPtr = inputVector;
+    const float iScalar = 1.0f / scalar;
+    const float32x4_t qiScalar = vdupq_n_f32(iScalar);
+    const unsigned int thirtysecondPoints = num_points / 32;
+
+    for (unsigned int number = 0; number < thirtysecondPoints; number++) {
+        int8x16_t in0 = vld1q_s8(inputVectorPtr);
+        int8x16_t in1 = vld1q_s8(inputVectorPtr + 16);
+        __VOLK_PREFETCH(inputVectorPtr + 64);
+
+        /* Widen int8 -> int16 -> int32 -> float */
+        int16x8_t lo0 = vmovl_s8(vget_low_s8(in0));
+        int16x8_t hi0 = vmovl_s8(vget_high_s8(in0));
+        int16x8_t lo1 = vmovl_s8(vget_low_s8(in1));
+        int16x8_t hi1 = vmovl_s8(vget_high_s8(in1));
+
+        vst1q_f32(outputVectorPtr,
+                  vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_low_s16(lo0))), qiScalar));
+        vst1q_f32(outputVectorPtr + 4,
+                  vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_high_s16(lo0))), qiScalar));
+        vst1q_f32(outputVectorPtr + 8,
+                  vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_low_s16(hi0))), qiScalar));
+        vst1q_f32(outputVectorPtr + 12,
+                  vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_high_s16(hi0))), qiScalar));
+        vst1q_f32(outputVectorPtr + 16,
+                  vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_low_s16(lo1))), qiScalar));
+        vst1q_f32(outputVectorPtr + 20,
+                  vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_high_s16(lo1))), qiScalar));
+        vst1q_f32(outputVectorPtr + 24,
+                  vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_low_s16(hi1))), qiScalar));
+        vst1q_f32(outputVectorPtr + 28,
+                  vmulq_f32(vcvtq_f32_s32(vmovl_s16(vget_high_s16(hi1))), qiScalar));
+
+        inputVectorPtr += 32;
+        outputVectorPtr += 32;
+    }
+
+    for (unsigned int number = thirtysecondPoints * 32; number < num_points; number++) {
+        *outputVectorPtr++ = ((float)(*inputVectorPtr++)) * iScalar;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_ORC
 extern void volk_8i_s32f_convert_32f_a_orc_impl(float* outputVector,
                                                 const int8_t* inputVector,

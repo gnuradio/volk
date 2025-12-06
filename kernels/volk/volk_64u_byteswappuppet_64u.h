@@ -92,6 +92,17 @@ static inline void volk_64u_byteswappuppet_64u_a_avx2(uint64_t* output,
 }
 #endif
 
+#ifdef LV_HAVE_NEON
+static inline void volk_64u_byteswappuppet_64u_neon(uint64_t* output,
+                                                    uint64_t* intsToSwap,
+                                                    unsigned int num_points)
+{
+
+    volk_64u_byteswap_neon((uint64_t*)intsToSwap, num_points);
+    memcpy((void*)output, (void*)intsToSwap, num_points * sizeof(uint64_t));
+}
+#endif
+
 #ifdef LV_HAVE_RVV
 static inline void volk_64u_byteswappuppet_64u_rvv(uint64_t* output,
                                                    uint64_t* intsToSwap,

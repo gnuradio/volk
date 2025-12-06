@@ -287,6 +287,48 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_x2_multiply_conjugate_32fc_neonv8(lv_32fc_t* cVector,
+                                                               const lv_32fc_t* aVector,
+                                                               const lv_32fc_t* bVector,
+                                                               unsigned int num_points)
+{
+    const lv_32fc_t* a_ptr = aVector;
+    const lv_32fc_t* b_ptr = bVector;
+    unsigned int quarter_points = num_points / 4;
+    float32x4x2_t a_val, b_val, c_val;
+    unsigned int number = 0;
+
+    for (number = 0; number < quarter_points; ++number) {
+        a_val = vld2q_f32((float*)a_ptr);
+        b_val = vld2q_f32((float*)b_ptr);
+        __VOLK_PREFETCH(a_ptr + 8);
+        __VOLK_PREFETCH(b_ptr + 8);
+
+        /* Conjugate b: negate imaginary part */
+        /* real = ar*br + ai*bi (using FMA) */
+        c_val.val[0] =
+            vfmaq_f32(vmulq_f32(a_val.val[0], b_val.val[0]), a_val.val[1], b_val.val[1]);
+
+        /* imag = ai*br - ar*bi (using FMS) */
+        c_val.val[1] =
+            vfmsq_f32(vmulq_f32(a_val.val[1], b_val.val[0]), a_val.val[0], b_val.val[1]);
+
+        vst2q_f32((float*)cVector, c_val);
+
+        a_ptr += 4;
+        b_ptr += 4;
+        cVector += 4;
+    }
+
+    for (number = quarter_points * 4; number < num_points; number++) {
+        *cVector++ = (*a_ptr++) * lv_conj(*b_ptr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

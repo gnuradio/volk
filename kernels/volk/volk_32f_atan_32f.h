@@ -211,6 +211,102 @@ volk_32f_atan_32f_a_sse4_1(float* out, const float* in, unsigned int num_points)
     }
 }
 #endif /* LV_HAVE_SSE4_1 for aligned */
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+#include <volk/volk_neon_intrinsics.h>
+static inline void
+volk_32f_atan_32f_neon(float* out, const float* in, unsigned int num_points)
+{
+    const float32x4_t one = vdupq_n_f32(1.f);
+    const float32x4_t pi_over_2 = vdupq_n_f32(0x1.921fb6p0f);
+    const uint32x4_t sign_mask = vdupq_n_u32(0x80000000);
+
+    const unsigned int quarter_points = num_points / 4;
+
+    for (unsigned int number = 0; number < quarter_points; number++) {
+        float32x4_t x = vld1q_f32(in);
+        in += 4;
+
+        // swap_mask = |x| > 1
+        float32x4_t abs_x = vabsq_f32(x);
+        uint32x4_t swap_mask = vcgtq_f32(abs_x, one);
+
+        // x_star = swap_mask ? 1/x : x
+        float32x4_t x_star = vbslq_f32(swap_mask, _vinvq_f32(x), x);
+
+        // Compute arctan polynomial
+        float32x4_t result = _varctan_poly_f32(x_star);
+
+        // If swapped: result = sign(x_star)*pi/2 - result
+        uint32x4_t x_star_sign = vandq_u32(vreinterpretq_u32_f32(x_star), sign_mask);
+        float32x4_t term = vreinterpretq_f32_u32(
+            vorrq_u32(vreinterpretq_u32_f32(pi_over_2), x_star_sign));
+        term = vsubq_f32(term, result);
+        result = vbslq_f32(swap_mask, term, result);
+
+        vst1q_f32(out, result);
+        out += 4;
+    }
+
+    for (unsigned int number = quarter_points * 4; number < num_points; number++) {
+        *out++ = volk_arctan(*in++);
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+#include <volk/volk_neon_intrinsics.h>
+/* ARMv8 NEON with FMA and 2x unrolling for better ILP */
+static inline void
+volk_32f_atan_32f_neonv8(float* out, const float* in, unsigned int num_points)
+{
+    const float32x4_t one = vdupq_n_f32(1.f);
+    const float32x4_t pi_over_2 = vdupq_n_f32(0x1.921fb6p0f);
+    const uint32x4_t sign_mask = vdupq_n_u32(0x80000000);
+
+    const unsigned int eighth_points = num_points / 8;
+
+    for (unsigned int number = 0; number < eighth_points; number++) {
+        /* Load 8 floats */
+        float32x4_t x0 = vld1q_f32(in);
+        float32x4_t x1 = vld1q_f32(in + 4);
+        in += 8;
+
+        /* Process first 4 */
+        float32x4_t abs_x0 = vabsq_f32(x0);
+        uint32x4_t swap_mask0 = vcgtq_f32(abs_x0, one);
+        float32x4_t x_star0 = vbslq_f32(swap_mask0, _vinvq_f32(x0), x0);
+        float32x4_t result0 = _varctan_poly_neonv8(x_star0);
+        uint32x4_t x_star_sign0 = vandq_u32(vreinterpretq_u32_f32(x_star0), sign_mask);
+        float32x4_t term0 = vreinterpretq_f32_u32(
+            vorrq_u32(vreinterpretq_u32_f32(pi_over_2), x_star_sign0));
+        term0 = vsubq_f32(term0, result0);
+        result0 = vbslq_f32(swap_mask0, term0, result0);
+
+        /* Process second 4 */
+        float32x4_t abs_x1 = vabsq_f32(x1);
+        uint32x4_t swap_mask1 = vcgtq_f32(abs_x1, one);
+        float32x4_t x_star1 = vbslq_f32(swap_mask1, _vinvq_f32(x1), x1);
+        float32x4_t result1 = _varctan_poly_neonv8(x_star1);
+        uint32x4_t x_star_sign1 = vandq_u32(vreinterpretq_u32_f32(x_star1), sign_mask);
+        float32x4_t term1 = vreinterpretq_f32_u32(
+            vorrq_u32(vreinterpretq_u32_f32(pi_over_2), x_star_sign1));
+        term1 = vsubq_f32(term1, result1);
+        result1 = vbslq_f32(swap_mask1, term1, result1);
+
+        vst1q_f32(out, result0);
+        vst1q_f32(out + 4, result1);
+        out += 8;
+    }
+
+    for (unsigned int number = eighth_points * 8; number < num_points; number++) {
+        *out++ = volk_arctan(*in++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #endif /* INCLUDED_volk_32f_atan_32f_a_H */
 
 #ifndef INCLUDED_volk_32f_atan_32f_u_H

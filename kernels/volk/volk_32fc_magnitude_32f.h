@@ -440,6 +440,44 @@ static inline void volk_32fc_magnitude_32f_neon(float* magnitudeVector,
 #endif /* LV_HAVE_NEON */
 
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_magnitude_32f_neonv8(float* magnitudeVector,
+                                                  const lv_32fc_t* complexVector,
+                                                  unsigned int num_points)
+{
+    unsigned int number;
+    unsigned int quarter_points = num_points / 4;
+    const float* complexVectorPtr = (float*)complexVector;
+    float* magnitudeVectorPtr = magnitudeVector;
+
+    float32x4x2_t complex_vec;
+    float32x4_t magnitude_sq, magnitude_vec;
+    for (number = 0; number < quarter_points; number++) {
+        complex_vec = vld2q_f32(complexVectorPtr);
+        __VOLK_PREFETCH(complexVectorPtr + 8);
+        // Use FMA for magnitude squared: real^2 + imag^2
+        magnitude_sq = vfmaq_f32(vmulq_f32(complex_vec.val[0], complex_vec.val[0]),
+                                 complex_vec.val[1],
+                                 complex_vec.val[1]);
+        // ARMv8 native sqrt
+        magnitude_vec = vsqrtq_f32(magnitude_sq);
+        vst1q_f32(magnitudeVectorPtr, magnitude_vec);
+
+        complexVectorPtr += 8;
+        magnitudeVectorPtr += 4;
+    }
+
+    for (number = quarter_points * 4; number < num_points; number++) {
+        const float real = *complexVectorPtr++;
+        const float imag = *complexVectorPtr++;
+        *magnitudeVectorPtr++ = sqrtf((real * real) + (imag * imag));
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_NEON
 /*!
   \brief Calculates the magnitude of the complexVector and stores the results in the

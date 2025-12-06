@@ -54,6 +54,32 @@ static inline __m256 _mm256_arctan_poly_avx(const __m256 x)
     return arctan;
 }
 
+/*
+ * Approximate arcsin(x) via polynomial expansion
+ * P(u) such that asin(x) = x * P(x^2) on |x| <= 0.5
+ *
+ * Maximum relative error ~1.5e-6
+ * Polynomial evaluated via Horner's method
+ */
+static inline __m256 _mm256_arcsin_poly_avx(const __m256 x)
+{
+    const __m256 c0 = _mm256_set1_ps(0x1.ffffcep-1f);
+    const __m256 c1 = _mm256_set1_ps(0x1.55b648p-3f);
+    const __m256 c2 = _mm256_set1_ps(0x1.24d192p-4f);
+    const __m256 c3 = _mm256_set1_ps(0x1.0a788p-4f);
+
+    const __m256 u = _mm256_mul_ps(x, x);
+    __m256 p = c3;
+    p = _mm256_mul_ps(u, p);
+    p = _mm256_add_ps(p, c2);
+    p = _mm256_mul_ps(u, p);
+    p = _mm256_add_ps(p, c1);
+    p = _mm256_mul_ps(u, p);
+    p = _mm256_add_ps(p, c0);
+
+    return _mm256_mul_ps(x, p);
+}
+
 static inline __m256 _mm256_complexmul_ps(__m256 x, __m256 y)
 {
     __m256 yl, yh, tmp1, tmp2;

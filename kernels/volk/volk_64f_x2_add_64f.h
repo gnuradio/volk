@@ -80,6 +80,50 @@ static inline void volk_64f_x2_add_64f_generic(double* cVector,
 
 #endif /* LV_HAVE_GENERIC */
 
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_64f_x2_add_64f_neonv8(double* cVector,
+                                              const double* aVector,
+                                              const double* bVector,
+                                              unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarter_points = num_points / 4;
+
+    double* cPtr = cVector;
+    const double* aPtr = aVector;
+    const double* bPtr = bVector;
+
+    for (; number < quarter_points; number++) {
+        float64x2_t aVal0 = vld1q_f64(aPtr);
+        float64x2_t aVal1 = vld1q_f64(aPtr + 2);
+        float64x2_t bVal0 = vld1q_f64(bPtr);
+        float64x2_t bVal1 = vld1q_f64(bPtr + 2);
+        __VOLK_PREFETCH(aPtr + 4);
+        __VOLK_PREFETCH(bPtr + 4);
+
+        float64x2_t cVal0 = vaddq_f64(aVal0, bVal0);
+        float64x2_t cVal1 = vaddq_f64(aVal1, bVal1);
+
+        vst1q_f64(cPtr, cVal0);
+        vst1q_f64(cPtr + 2, cVal1);
+
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
+    }
+
+    number = quarter_points * 4;
+    for (; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) + (*bPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
 /*
  * Unaligned versions
  */

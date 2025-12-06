@@ -504,6 +504,70 @@ static inline void volk_32fc_index_min_32u_neon(uint32_t* target,
 
 #endif /*LV_HAVE_NEON*/
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_index_min_32u_neonv8(uint32_t* target,
+                                                  const lv_32fc_t* source,
+                                                  uint32_t num_points)
+{
+    const uint32_t quarter_points = num_points / 4;
+    const lv_32fc_t* sourcePtr = source;
+
+    uint32_t indices[4] = { 0, 1, 2, 3 };
+    const uint32x4_t vec_indices_incr = vdupq_n_u32(4);
+    uint32x4_t vec_indices = vld1q_u32(indices);
+    uint32x4_t vec_min_indices = vec_indices;
+
+    if (num_points) {
+        float min = FLT_MAX;
+        uint32_t index = 0;
+
+        float32x4_t vec_min = vdupq_n_f32(FLT_MAX);
+
+        for (uint32_t number = 0; number < quarter_points; number++) {
+            // Load complex and compute magnitude squared using FMA
+            float32x4x2_t complex_vec = vld2q_f32((float*)sourcePtr);
+            __VOLK_PREFETCH(sourcePtr + 4);
+            const float32x4_t vec_mag2 =
+                vfmaq_f32(vmulq_f32(complex_vec.val[0], complex_vec.val[0]),
+                          complex_vec.val[1],
+                          complex_vec.val[1]);
+            sourcePtr += 4;
+            // a < b?
+            const uint32x4_t lt_mask = vcltq_f32(vec_mag2, vec_min);
+            vec_min = vbslq_f32(lt_mask, vec_mag2, vec_min);
+            vec_min_indices = vbslq_u32(lt_mask, vec_indices, vec_min_indices);
+            vec_indices = vaddq_u32(vec_indices, vec_indices_incr);
+        }
+        uint32_t tmp_min_indices[4];
+        float tmp_min[4];
+        vst1q_u32(tmp_min_indices, vec_min_indices);
+        vst1q_f32(tmp_min, vec_min);
+
+        for (int i = 0; i < 4; i++) {
+            if (tmp_min[i] < min) {
+                min = tmp_min[i];
+                index = tmp_min_indices[i];
+            }
+        }
+
+        // Deal with the rest
+        for (uint32_t number = quarter_points * 4; number < num_points; number++) {
+            const float re = lv_creal(*sourcePtr);
+            const float im = lv_cimag(*sourcePtr);
+            const float sq_dist = re * re + im * im;
+            if (sq_dist < min) {
+                min = sq_dist;
+                index = number;
+            }
+            sourcePtr++;
+        }
+        *target = index;
+    }
+}
+#endif /*LV_HAVE_NEONV8*/
+
 #ifdef LV_HAVE_RVV
 #include <float.h>
 #include <riscv_vector.h>

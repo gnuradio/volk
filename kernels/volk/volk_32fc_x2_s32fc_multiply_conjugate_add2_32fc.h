@@ -342,6 +342,60 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_neon(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_neonv8(lv_32fc_t* cVector,
+                                                       const lv_32fc_t* aVector,
+                                                       const lv_32fc_t* bVector,
+                                                       const lv_32fc_t* scalar,
+                                                       unsigned int num_points)
+{
+    const lv_32fc_t* bPtr = bVector;
+    const lv_32fc_t* aPtr = aVector;
+    lv_32fc_t* cPtr = cVector;
+    unsigned int number = num_points;
+    unsigned int quarter_points = num_points / 4;
+
+    float32x4x2_t a_val, b_val, c_val;
+    float32x4x2_t tmp_val;
+
+    float32x4_t scalar_real = vdupq_n_f32(lv_creal(*scalar));
+    float32x4_t scalar_imag = vdupq_n_f32(lv_cimag(*scalar));
+
+    for (number = 0; number < quarter_points; ++number) {
+        a_val = vld2q_f32((float*)aPtr);
+        b_val = vld2q_f32((float*)bPtr);
+        __VOLK_PREFETCH(aPtr + 8);
+        __VOLK_PREFETCH(bPtr + 8);
+
+        /* Conjugate b: negate imaginary part */
+        /* tmp_real = br*sr - (-bi)*si = br*sr + bi*si */
+        tmp_val.val[0] =
+            vfmaq_f32(vmulq_f32(b_val.val[0], scalar_real), b_val.val[1], scalar_imag);
+
+        /* tmp_imag = (-bi)*sr + br*si = br*si - bi*sr */
+        tmp_val.val[1] =
+            vfmsq_f32(vmulq_f32(b_val.val[0], scalar_imag), b_val.val[1], scalar_real);
+
+        /* c = a + tmp */
+        c_val.val[0] = vaddq_f32(a_val.val[0], tmp_val.val[0]);
+        c_val.val[1] = vaddq_f32(a_val.val[1], tmp_val.val[1]);
+
+        vst2q_f32((float*)cPtr, c_val);
+
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
+    }
+
+    for (number = quarter_points * 4; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) + lv_conj(*bPtr++) * (*scalar);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

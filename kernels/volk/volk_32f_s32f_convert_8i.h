@@ -555,6 +555,176 @@ static inline void volk_32f_s32f_convert_8i_a_sse(int8_t* outputVector,
 
 #endif /* LV_HAVE_SSE */
 
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_convert_8i_neon(int8_t* outputVector,
+                                                 const float* inputVector,
+                                                 const float scalar,
+                                                 unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    const float* inputVectorPtr = inputVector;
+    int8_t* outputVectorPtr = outputVector;
+
+    const float min_val = INT8_MIN;
+    const float max_val = INT8_MAX;
+
+    float32x4_t vScalar = vdupq_n_f32(scalar);
+    float32x4_t vmin_val = vdupq_n_f32(min_val);
+    float32x4_t vmax_val = vdupq_n_f32(max_val);
+
+    for (; number < sixteenthPoints; number++) {
+        float32x4_t inputVal0 = vld1q_f32(inputVectorPtr);
+        float32x4_t inputVal1 = vld1q_f32(inputVectorPtr + 4);
+        float32x4_t inputVal2 = vld1q_f32(inputVectorPtr + 8);
+        float32x4_t inputVal3 = vld1q_f32(inputVectorPtr + 12);
+        inputVectorPtr += 16;
+
+        // Scale and clip
+        float32x4_t ret0 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal0, vScalar), vmax_val), vmin_val);
+        float32x4_t ret1 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal1, vScalar), vmax_val), vmin_val);
+        float32x4_t ret2 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal2, vScalar), vmax_val), vmin_val);
+        float32x4_t ret3 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal3, vScalar), vmax_val), vmin_val);
+
+        // Convert to int32 (truncates towards zero)
+        int32x4_t intVal0 = vcvtq_s32_f32(ret0);
+        int32x4_t intVal1 = vcvtq_s32_f32(ret1);
+        int32x4_t intVal2 = vcvtq_s32_f32(ret2);
+        int32x4_t intVal3 = vcvtq_s32_f32(ret3);
+
+        // Narrow to int16 with saturation
+        int16x4_t narrow16_0 = vqmovn_s32(intVal0);
+        int16x4_t narrow16_1 = vqmovn_s32(intVal1);
+        int16x4_t narrow16_2 = vqmovn_s32(intVal2);
+        int16x4_t narrow16_3 = vqmovn_s32(intVal3);
+        int16x8_t wide16_0 = vcombine_s16(narrow16_0, narrow16_1);
+        int16x8_t wide16_1 = vcombine_s16(narrow16_2, narrow16_3);
+
+        // Narrow to int8 with saturation
+        int8x8_t narrow8_0 = vqmovn_s16(wide16_0);
+        int8x8_t narrow8_1 = vqmovn_s16(wide16_1);
+        int8x16_t result = vcombine_s8(narrow8_0, narrow8_1);
+
+        vst1q_s8(outputVectorPtr, result);
+        outputVectorPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        float r = inputVector[number] * scalar;
+        volk_32f_s32f_convert_8i_single(&outputVector[number], r);
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_convert_8i_neonv8(int8_t* outputVector,
+                                                   const float* inputVector,
+                                                   const float scalar,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int thirtysecondPoints = num_points / 32;
+
+    const float* inputVectorPtr = inputVector;
+    int8_t* outputVectorPtr = outputVector;
+
+    const float min_val = INT8_MIN;
+    const float max_val = INT8_MAX;
+
+    float32x4_t vScalar = vdupq_n_f32(scalar);
+    float32x4_t vmin_val = vdupq_n_f32(min_val);
+    float32x4_t vmax_val = vdupq_n_f32(max_val);
+
+    for (; number < thirtysecondPoints; number++) {
+        float32x4_t inputVal0 = vld1q_f32(inputVectorPtr);
+        float32x4_t inputVal1 = vld1q_f32(inputVectorPtr + 4);
+        float32x4_t inputVal2 = vld1q_f32(inputVectorPtr + 8);
+        float32x4_t inputVal3 = vld1q_f32(inputVectorPtr + 12);
+        float32x4_t inputVal4 = vld1q_f32(inputVectorPtr + 16);
+        float32x4_t inputVal5 = vld1q_f32(inputVectorPtr + 20);
+        float32x4_t inputVal6 = vld1q_f32(inputVectorPtr + 24);
+        float32x4_t inputVal7 = vld1q_f32(inputVectorPtr + 28);
+        __VOLK_PREFETCH(inputVectorPtr + 32);
+        inputVectorPtr += 32;
+
+        // Scale and clip
+        float32x4_t ret0 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal0, vScalar), vmax_val), vmin_val);
+        float32x4_t ret1 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal1, vScalar), vmax_val), vmin_val);
+        float32x4_t ret2 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal2, vScalar), vmax_val), vmin_val);
+        float32x4_t ret3 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal3, vScalar), vmax_val), vmin_val);
+        float32x4_t ret4 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal4, vScalar), vmax_val), vmin_val);
+        float32x4_t ret5 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal5, vScalar), vmax_val), vmin_val);
+        float32x4_t ret6 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal6, vScalar), vmax_val), vmin_val);
+        float32x4_t ret7 =
+            vmaxq_f32(vminq_f32(vmulq_f32(inputVal7, vScalar), vmax_val), vmin_val);
+
+        // Convert to int32 using round-to-nearest (ARMv8)
+        int32x4_t intVal0 = vcvtnq_s32_f32(ret0);
+        int32x4_t intVal1 = vcvtnq_s32_f32(ret1);
+        int32x4_t intVal2 = vcvtnq_s32_f32(ret2);
+        int32x4_t intVal3 = vcvtnq_s32_f32(ret3);
+        int32x4_t intVal4 = vcvtnq_s32_f32(ret4);
+        int32x4_t intVal5 = vcvtnq_s32_f32(ret5);
+        int32x4_t intVal6 = vcvtnq_s32_f32(ret6);
+        int32x4_t intVal7 = vcvtnq_s32_f32(ret7);
+
+        // Narrow to int16 with saturation
+        int16x4_t narrow16_0 = vqmovn_s32(intVal0);
+        int16x4_t narrow16_1 = vqmovn_s32(intVal1);
+        int16x4_t narrow16_2 = vqmovn_s32(intVal2);
+        int16x4_t narrow16_3 = vqmovn_s32(intVal3);
+        int16x4_t narrow16_4 = vqmovn_s32(intVal4);
+        int16x4_t narrow16_5 = vqmovn_s32(intVal5);
+        int16x4_t narrow16_6 = vqmovn_s32(intVal6);
+        int16x4_t narrow16_7 = vqmovn_s32(intVal7);
+
+        int16x8_t wide16_0 = vcombine_s16(narrow16_0, narrow16_1);
+        int16x8_t wide16_1 = vcombine_s16(narrow16_2, narrow16_3);
+        int16x8_t wide16_2 = vcombine_s16(narrow16_4, narrow16_5);
+        int16x8_t wide16_3 = vcombine_s16(narrow16_6, narrow16_7);
+
+        // Narrow to int8 with saturation
+        int8x8_t narrow8_0 = vqmovn_s16(wide16_0);
+        int8x8_t narrow8_1 = vqmovn_s16(wide16_1);
+        int8x8_t narrow8_2 = vqmovn_s16(wide16_2);
+        int8x8_t narrow8_3 = vqmovn_s16(wide16_3);
+
+        int8x16_t result0 = vcombine_s8(narrow8_0, narrow8_1);
+        int8x16_t result1 = vcombine_s8(narrow8_2, narrow8_3);
+
+        vst1q_s8(outputVectorPtr, result0);
+        vst1q_s8(outputVectorPtr + 16, result1);
+        outputVectorPtr += 32;
+    }
+
+    number = thirtysecondPoints * 32;
+    for (; number < num_points; number++) {
+        float r = inputVector[number] * scalar;
+        volk_32f_s32f_convert_8i_single(&outputVector[number], r);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
