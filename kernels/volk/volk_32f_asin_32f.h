@@ -528,7 +528,7 @@ volk_32f_asin_32f_neon(float* bVector, const float* aVector, unsigned int num_po
 
         // Two-range computation
         float32x4_t t = vmulq_f32(vsubq_f32(one, ax), half);
-        float32x4_t s = vsqrtq_f32(t);
+        float32x4_t s = _vsqrtq_f32(t);
 
         // Compute polynomial for both ranges
         float32x4_t poly_small = _varcsinq_f32(ax);

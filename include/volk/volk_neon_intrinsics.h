@@ -1,6 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2015 Free Software Foundation, Inc.
+ * Copyright 2025 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -89,6 +90,14 @@ static inline float32x4_t _vinvsqrtq_f32(float32x4_t x)
         vrsqrtsq_f32(vmulq_f32(x, sqrt_reciprocal), sqrt_reciprocal), sqrt_reciprocal);
 
     return sqrt_reciprocal;
+}
+
+/* Approximate square root for ARMv7 NEON (no vsqrtq_f32)
+ * Uses recip(rsqrt(x)) = 1/(1/sqrt(x)) = sqrt(x)
+ * Note: Low precision, use vsqrtq_f32 on ARMv8 */
+static inline float32x4_t _vsqrtq_f32(float32x4_t x)
+{
+    return vrecpeq_f32(vrsqrteq_f32(x));
 }
 
 /* Inverse */
