@@ -101,6 +101,54 @@ static inline float32x4_t _vinvq_f32(float32x4_t x)
     return recip;
 }
 
+/*
+ * Approximate arcsin(x) via polynomial expansion
+ * P(u) such that asin(x) = x * P(x^2) on |x| <= 0.5
+ *
+ * Maximum relative error ~1.5e-6
+ * Polynomial evaluated via Horner's method
+ */
+static inline float32x4_t _varcsinq_f32(float32x4_t x)
+{
+    const float32x4_t c0 = vdupq_n_f32(0x1.ffffcep-1f);
+    const float32x4_t c1 = vdupq_n_f32(0x1.55b648p-3f);
+    const float32x4_t c2 = vdupq_n_f32(0x1.24d192p-4f);
+    const float32x4_t c3 = vdupq_n_f32(0x1.0a788p-4f);
+
+    const float32x4_t u = vmulq_f32(x, x);
+    float32x4_t p = c3;
+    p = vmlaq_f32(c2, u, p);
+    p = vmlaq_f32(c1, u, p);
+    p = vmlaq_f32(c0, u, p);
+
+    return vmulq_f32(x, p);
+}
+
+#ifdef LV_HAVE_NEONV8
+/*
+ * Approximate arcsin(x) via polynomial expansion (NEONv8 with FMA)
+ * P(u) such that asin(x) = x * P(x^2) on |x| <= 0.5
+ *
+ * Maximum relative error ~1.5e-6
+ * Polynomial evaluated via Horner's method
+ */
+static inline float32x4_t _varcsinq_f32_neonv8(float32x4_t x)
+{
+    const float32x4_t c0 = vdupq_n_f32(0x1.ffffcep-1f);
+    const float32x4_t c1 = vdupq_n_f32(0x1.55b648p-3f);
+    const float32x4_t c2 = vdupq_n_f32(0x1.24d192p-4f);
+    const float32x4_t c3 = vdupq_n_f32(0x1.0a788p-4f);
+
+    const float32x4_t u = vmulq_f32(x, x);
+    float32x4_t p = c3;
+    p = vfmaq_f32(c2, u, p);
+    p = vfmaq_f32(c1, u, p);
+    p = vfmaq_f32(c0, u, p);
+
+    return vmulq_f32(x, p);
+}
+#endif /* LV_HAVE_NEONV8 */
+
 /* Complex multiplication for float32x4x2_t */
 static inline float32x4x2_t _vmultiply_complexq_f32(float32x4x2_t a_val,
                                                     float32x4x2_t b_val)
