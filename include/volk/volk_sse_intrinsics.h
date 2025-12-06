@@ -54,6 +54,32 @@ static inline __m128 _mm_arctan_poly_sse(const __m128 x)
     return arctan;
 }
 
+/*
+ * Approximate arcsin(x) via polynomial expansion
+ * P(u) such that asin(x) = x * P(x^2) on |x| <= 0.5
+ *
+ * Maximum relative error ~1.5e-6
+ * Polynomial evaluated via Horner's method
+ */
+static inline __m128 _mm_arcsin_poly_sse(const __m128 x)
+{
+    const __m128 c0 = _mm_set1_ps(0x1.ffffcep-1f);
+    const __m128 c1 = _mm_set1_ps(0x1.55b648p-3f);
+    const __m128 c2 = _mm_set1_ps(0x1.24d192p-4f);
+    const __m128 c3 = _mm_set1_ps(0x1.0a788p-4f);
+
+    const __m128 u = _mm_mul_ps(x, x);
+    __m128 p = c3;
+    p = _mm_mul_ps(u, p);
+    p = _mm_add_ps(p, c2);
+    p = _mm_mul_ps(u, p);
+    p = _mm_add_ps(p, c1);
+    p = _mm_mul_ps(u, p);
+    p = _mm_add_ps(p, c0);
+
+    return _mm_mul_ps(x, p);
+}
+
 static inline __m128 _mm_magnitudesquared_ps(__m128 cplxValue1, __m128 cplxValue2)
 {
     __m128 iValue, qValue;

@@ -283,4 +283,53 @@ static inline float volk_atan2(const float y, const float x)
     return result;
 }
 
+////////////////////////////////////////////////////////////////////////
+// arcsin(x) polynomial expansion
+// P(u) such that asin(x) = x * P(x^2) on |x| <= 0.5
+// Maximum relative error ~1.5e-6
+////////////////////////////////////////////////////////////////////////
+static inline float volk_arcsin_poly(const float x)
+{
+    const float c0 = 0x1.ffffcep-1f;
+    const float c1 = 0x1.55b648p-3f;
+    const float c2 = 0x1.24d192p-4f;
+    const float c3 = 0x1.0a788p-4f;
+
+    const float u = x * x;
+    float p = c3;
+    p = fmaf(u, p, c2);
+    p = fmaf(u, p, c1);
+    p = fmaf(u, p, c0);
+
+    return x * p;
+}
+////////////////////////////////////////////////////////////////////////
+// arcsin(x) using two-range algorithm
+////////////////////////////////////////////////////////////////////////
+static inline float volk_arcsin(const float x)
+{
+    const float pi_2 = 0x1.921fb6p0f;
+
+    const float ax = fabsf(x);
+    if (ax <= 0.5f) {
+        // Small argument: direct polynomial
+        return volk_arcsin_poly(x);
+    } else {
+        // Large argument: use identity asin(x) = pi/2 - 2*asin(sqrt((1-|x|)/2))
+        const float t = (1.0f - ax) * 0.5f;
+        const float s = sqrtf(t);
+        const float inner = volk_arcsin_poly(s);
+        const float result = pi_2 - 2.0f * inner;
+        return copysignf(result, x);
+    }
+}
+////////////////////////////////////////////////////////////////////////
+// arccos(x) = pi/2 - arcsin(x)
+////////////////////////////////////////////////////////////////////////
+static inline float volk_arccos(const float x)
+{
+    const float pi_2 = 0x1.921fb6p0f;
+    return pi_2 - volk_arcsin(x);
+}
+
 #endif /*INCLUDED_LIBVOLK_COMMON_H*/

@@ -108,8 +108,21 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
                                             -1.0f });
     QA(VOLK_INIT_TEST(volk_32f_atan_32f, test_params_atan))
 
-    QA(VOLK_INIT_TEST(volk_32f_asin_32f, test_params_inacc))
-    QA(VOLK_INIT_TEST(volk_32f_acos_32f, test_params_inacc))
+    volk_test_params_t test_params_asin(test_params);
+    test_params_asin.set_tol(1e-5);
+    test_params_asin.add_float_edge_cases({ std::nanf(""),
+                                            1.0f,
+                                            -1.0f,
+                                            0.0f,
+                                            -0.0f,
+                                            0.5f,
+                                            -0.5f,
+                                            0.99f,
+                                            -0.99f,
+                                            0.707107f,
+                                            -0.707107f });
+    QA(VOLK_INIT_TEST(volk_32f_asin_32f, test_params_asin))
+    QA(VOLK_INIT_TEST(volk_32f_acos_32f, test_params_asin))
     QA(VOLK_INIT_TEST(volk_32fc_s32f_power_32fc, test_params_power))
     QA(VOLK_INIT_TEST(volk_32f_s32f_calc_spectral_noise_floor_32f, test_params_snf))
 
