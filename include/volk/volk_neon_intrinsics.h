@@ -92,12 +92,15 @@ static inline float32x4_t _vinvsqrtq_f32(float32x4_t x)
     return sqrt_reciprocal;
 }
 
-/* Approximate square root for ARMv7 NEON (no vsqrtq_f32)
- * Uses recip(rsqrt(x)) = 1/(1/sqrt(x)) = sqrt(x)
- * Note: Low precision, use vsqrtq_f32 on ARMv8 */
+/* Square root for ARMv7 NEON (no vsqrtq_f32)
+ * Uses sqrt(x) = x * rsqrt(x) with refined rsqrt
+ * Handles x=0 case to avoid NaN from 0 * inf */
 static inline float32x4_t _vsqrtq_f32(float32x4_t x)
 {
-    return vrecpeq_f32(vrsqrteq_f32(x));
+    const float32x4_t zero = vdupq_n_f32(0.0f);
+    uint32x4_t zero_mask = vceqq_f32(x, zero);
+    float32x4_t result = vmulq_f32(x, _vinvsqrtq_f32(x));
+    return vbslq_f32(zero_mask, zero, result);
 }
 
 /* Inverse */
