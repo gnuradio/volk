@@ -522,7 +522,7 @@ volk_32f_acos_32f_neon(float* bVector, const float* aVector, unsigned int num_po
             vandq_u32(vreinterpretq_u32_f32(aVal), vdupq_n_u32(0x80000000));
 
         float32x4_t t = vmulq_f32(vsubq_f32(one, ax), half);
-        float32x4_t s = vsqrtq_f32(t);
+        float32x4_t s = _vsqrtq_f32(t);
 
         float32x4_t poly_small = _varcsinq_f32(ax);
         float32x4_t poly_large = _varcsinq_f32(s);
