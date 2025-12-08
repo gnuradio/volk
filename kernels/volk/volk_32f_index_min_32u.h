@@ -284,7 +284,7 @@ volk_32f_index_min_32u_neon(uint32_t* target, const float* source, uint32_t num_
         if (minValuesBuffer[number] < min) {
             index = minIndexesBuffer[number];
             min = minValuesBuffer[number];
-        } else if (minValues[number] == min) {
+        } else if (minValuesBuffer[number] == min) {
             if (index > minIndexesBuffer[number])
                 index = minIndexesBuffer[number];
         }
@@ -300,6 +300,62 @@ volk_32f_index_min_32u_neon(uint32_t* target, const float* source, uint32_t num_
 }
 
 #endif /*LV_HAVE_NEON*/
+
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+#include <float.h>
+
+static inline void
+volk_32f_index_min_32u_neonv8(uint32_t* target, const float* source, uint32_t num_points)
+{
+    if (num_points == 0)
+        return;
+
+    const uint32_t quarter_points = num_points / 4;
+    const float* inputPtr = source;
+
+    // Use integer indices directly (no float conversion overhead)
+    uint32x4_t vec_indices = { 0, 1, 2, 3 };
+    const uint32x4_t vec_incr = vdupq_n_u32(4);
+
+    float32x4_t vec_min = vdupq_n_f32(FLT_MAX);
+    uint32x4_t vec_min_idx = vdupq_n_u32(0);
+
+    for (uint32_t i = 0; i < quarter_points; i++) {
+        float32x4_t vec_val = vld1q_f32(inputPtr);
+        inputPtr += 4;
+
+        // Compare BEFORE min update to know which lanes change
+        uint32x4_t lt_mask = vcltq_f32(vec_val, vec_min);
+        vec_min_idx = vbslq_u32(lt_mask, vec_indices, vec_min_idx);
+
+        // vminq_f32 is single-cycle, no dependency on comparison result
+        vec_min = vminq_f32(vec_val, vec_min);
+
+        vec_indices = vaddq_u32(vec_indices, vec_incr);
+    }
+
+    // ARMv8 horizontal reduction - find min value across all lanes
+    float min_val = vminvq_f32(vec_min);
+
+    // Find which lane(s) have the min value, get minimum index among them
+    uint32x4_t min_mask = vceqq_f32(vec_min, vdupq_n_f32(min_val));
+    uint32x4_t idx_masked = vbslq_u32(min_mask, vec_min_idx, vdupq_n_u32(UINT32_MAX));
+    uint32_t result_idx = vminvq_u32(idx_masked);
+
+    // Handle tail elements
+    for (uint32_t i = quarter_points * 4; i < num_points; i++) {
+        if (source[i] < min_val) {
+            min_val = source[i];
+            result_idx = i;
+        }
+    }
+
+    *target = result_idx;
+}
+
+#endif /*LV_HAVE_NEONV8*/
 
 
 #ifdef LV_HAVE_GENERIC
@@ -321,6 +377,69 @@ volk_32f_index_min_32u_generic(uint32_t* target, const float* source, uint32_t n
 
 #endif /*LV_HAVE_GENERIC*/
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_index_min_32u_a_avx512f(uint32_t* target,
+                                                    const float* source,
+                                                    uint32_t num_points)
+{
+    if (num_points > 0) {
+        uint32_t number = 0;
+        const uint32_t sixteenthPoints = num_points / 16;
+
+        const float* inputPtr = source;
+
+        __m512 indexIncrementValues = _mm512_set1_ps(16);
+        __m512 currentIndexes = _mm512_set_ps(
+            -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16);
+
+        float min = source[0];
+        float index = 0;
+        __m512 minValues = _mm512_set1_ps(min);
+        __m512 minValuesIndex = _mm512_setzero_ps();
+        __mmask16 compareResults;
+        __m512 currentValues;
+
+        __VOLK_ATTR_ALIGNED(64) float minValuesBuffer[16];
+        __VOLK_ATTR_ALIGNED(64) float minIndexesBuffer[16];
+
+        for (; number < sixteenthPoints; number++) {
+            currentValues = _mm512_load_ps(inputPtr);
+            inputPtr += 16;
+            currentIndexes = _mm512_add_ps(currentIndexes, indexIncrementValues);
+            compareResults = _mm512_cmp_ps_mask(currentValues, minValues, _CMP_LT_OS);
+            minValuesIndex =
+                _mm512_mask_blend_ps(compareResults, minValuesIndex, currentIndexes);
+            minValues = _mm512_mask_blend_ps(compareResults, minValues, currentValues);
+        }
+
+        // Calculate the smallest value from the remaining 16 points
+        _mm512_store_ps(minValuesBuffer, minValues);
+        _mm512_store_ps(minIndexesBuffer, minValuesIndex);
+
+        for (number = 0; number < 16; number++) {
+            if (minValuesBuffer[number] < min) {
+                index = minIndexesBuffer[number];
+                min = minValuesBuffer[number];
+            } else if (minValuesBuffer[number] == min) {
+                if (index > minIndexesBuffer[number])
+                    index = minIndexesBuffer[number];
+            }
+        }
+
+        number = sixteenthPoints * 16;
+        for (; number < num_points; number++) {
+            if (source[number] < min) {
+                index = number;
+                min = source[number];
+            }
+        }
+        target[0] = (uint32_t)index;
+    }
+}
+
+#endif /*LV_HAVE_AVX512F*/
 
 #endif /*INCLUDED_volk_32f_index_min_32u_a_H*/
 
@@ -507,6 +626,70 @@ volk_32f_index_min_32u_u_sse(uint32_t* target, const float* source, uint32_t num
 }
 
 #endif /*LV_HAVE_SSE*/
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_index_min_32u_u_avx512f(uint32_t* target,
+                                                    const float* source,
+                                                    uint32_t num_points)
+{
+    if (num_points > 0) {
+        uint32_t number = 0;
+        const uint32_t sixteenthPoints = num_points / 16;
+
+        const float* inputPtr = source;
+
+        __m512 indexIncrementValues = _mm512_set1_ps(16);
+        __m512 currentIndexes = _mm512_set_ps(
+            -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16);
+
+        float min = source[0];
+        float index = 0;
+        __m512 minValues = _mm512_set1_ps(min);
+        __m512 minValuesIndex = _mm512_setzero_ps();
+        __mmask16 compareResults;
+        __m512 currentValues;
+
+        __VOLK_ATTR_ALIGNED(64) float minValuesBuffer[16];
+        __VOLK_ATTR_ALIGNED(64) float minIndexesBuffer[16];
+
+        for (; number < sixteenthPoints; number++) {
+            currentValues = _mm512_loadu_ps(inputPtr);
+            inputPtr += 16;
+            currentIndexes = _mm512_add_ps(currentIndexes, indexIncrementValues);
+            compareResults = _mm512_cmp_ps_mask(currentValues, minValues, _CMP_LT_OS);
+            minValuesIndex =
+                _mm512_mask_blend_ps(compareResults, minValuesIndex, currentIndexes);
+            minValues = _mm512_mask_blend_ps(compareResults, minValues, currentValues);
+        }
+
+        // Calculate the smallest value from the remaining 16 points
+        _mm512_store_ps(minValuesBuffer, minValues);
+        _mm512_store_ps(minIndexesBuffer, minValuesIndex);
+
+        for (number = 0; number < 16; number++) {
+            if (minValuesBuffer[number] < min) {
+                index = minIndexesBuffer[number];
+                min = minValuesBuffer[number];
+            } else if (minValuesBuffer[number] == min) {
+                if (index > minIndexesBuffer[number])
+                    index = minIndexesBuffer[number];
+            }
+        }
+
+        number = sixteenthPoints * 16;
+        for (; number < num_points; number++) {
+            if (source[number] < min) {
+                index = number;
+                min = source[number];
+            }
+        }
+        target[0] = (uint32_t)index;
+    }
+}
+
+#endif /*LV_HAVE_AVX512F*/
 
 #ifdef LV_HAVE_RVV
 #include <float.h>

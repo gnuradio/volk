@@ -84,10 +84,31 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_16i_32fc_dot_prod_32fc, test_params.make_absolute(1e-1)))
     QA(VOLK_INIT_TEST(volk_32f_accumulator_s32f, test_params.make_absolute(2e-2)))
     QA(VOLK_INIT_TEST(volk_32f_x2_add_32f, test_params))
-    QA(VOLK_INIT_TEST(volk_32f_index_max_16u, test_params))
-    QA(VOLK_INIT_TEST(volk_32f_index_max_32u, test_params))
-    QA(VOLK_INIT_TEST(volk_32f_index_min_16u, test_params))
-    QA(VOLK_INIT_TEST(volk_32f_index_min_32u, test_params))
+
+    // Index kernels need identical values to test tie-breaking (first index wins)
+    volk_test_params_t test_params_index(test_params.make_tol(0));
+    test_params_index.add_float_edge_cases({
+        1.0f,
+        1.0f,
+        1.0f,
+        1.0f, // 4 identical (SSE lane width)
+        1.0f,
+        1.0f,
+        1.0f,
+        1.0f, // 8 total (AVX lane width)
+        1.0f,
+        1.0f,
+        1.0f,
+        1.0f, // 12
+        1.0f,
+        1.0f,
+        1.0f,
+        1.0f, // 16 total (AVX512 lane width)
+    });
+    QA(VOLK_INIT_TEST(volk_32f_index_max_16u, test_params_index))
+    QA(VOLK_INIT_TEST(volk_32f_index_max_32u, test_params_index))
+    QA(VOLK_INIT_TEST(volk_32f_index_min_16u, test_params_index))
+    QA(VOLK_INIT_TEST(volk_32f_index_min_32u, test_params_index))
     QA(VOLK_INIT_TEST(volk_32fc_32f_multiply_32fc, test_params))
     QA(VOLK_INIT_TEST(volk_32fc_32f_add_32fc, test_params))
     QA(VOLK_INIT_TEST(volk_32f_log2_32f, test_params.make_absolute(1.5e-5)))
@@ -149,10 +170,23 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32fc_deinterleave_real_64f, test_params))
     QA(VOLK_INIT_TEST(volk_32fc_x2_dot_prod_32fc, test_params.make_absolute(2e-2)))
     QA(VOLK_INIT_TEST(volk_32fc_32f_dot_prod_32fc, test_params.make_absolute(1e-2)))
-    QA(VOLK_INIT_TEST(volk_32fc_index_max_16u, test_params))
-    QA(VOLK_INIT_TEST(volk_32fc_index_max_32u, test_params))
-    QA(VOLK_INIT_TEST(volk_32fc_index_min_16u, test_params))
-    QA(VOLK_INIT_TEST(volk_32fc_index_min_32u, test_params))
+
+    // Complex index kernels: same magnitude values to test tie-breaking
+    volk_test_params_t test_params_index_fc(test_params.make_tol(0));
+    test_params_index_fc.add_complex_edge_cases({
+        lv_cmake(1.0f, 0.0f),
+        lv_cmake(1.0f, 0.0f), // 2 same magnitude
+        lv_cmake(0.0f, 1.0f),
+        lv_cmake(0.0f, 1.0f), // 4 (all |z|=1)
+        lv_cmake(1.0f, 0.0f),
+        lv_cmake(1.0f, 0.0f), // 6
+        lv_cmake(0.0f, 1.0f),
+        lv_cmake(0.0f, 1.0f), // 8 (covers AVX 8-wide)
+    });
+    QA(VOLK_INIT_TEST(volk_32fc_index_max_16u, test_params_index_fc))
+    QA(VOLK_INIT_TEST(volk_32fc_index_max_32u, test_params_index_fc))
+    QA(VOLK_INIT_TEST(volk_32fc_index_min_16u, test_params_index_fc))
+    QA(VOLK_INIT_TEST(volk_32fc_index_min_32u, test_params_index_fc))
     QA(VOLK_INIT_TEST(volk_32fc_s32f_magnitude_16i, test_params.make_tol(1)))
     QA(VOLK_INIT_TEST(volk_32fc_magnitude_32f, test_params_inacc_tenth))
     QA(VOLK_INIT_TEST(volk_32fc_magnitude_squared_32f, test_params))
