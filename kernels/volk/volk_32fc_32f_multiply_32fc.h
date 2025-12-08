@@ -207,6 +207,68 @@ static inline void volk_32fc_32f_multiply_32fc_neon(lv_32fc_t* cVector,
 #endif /* LV_HAVE_NEON */
 
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_32f_multiply_32fc_neonv8(lv_32fc_t* cVector,
+                                                      const lv_32fc_t* aVector,
+                                                      const float* bVector,
+                                                      unsigned int num_points)
+{
+    unsigned int n = num_points;
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = aVector;
+    const float* b = bVector;
+
+    /* Process 8 complex numbers per iteration (2x unroll) */
+    while (n >= 8) {
+        float32x4x2_t a0 = vld2q_f32((const float*)a);
+        float32x4x2_t a1 = vld2q_f32((const float*)(a + 4));
+        float32x4_t b0 = vld1q_f32(b);
+        float32x4_t b1 = vld1q_f32(b + 4);
+        __VOLK_PREFETCH(a + 8);
+        __VOLK_PREFETCH(b + 8);
+
+        /* Complex × real: just scale both real and imag parts */
+        float32x4x2_t c0, c1;
+        c0.val[0] = vmulq_f32(a0.val[0], b0);
+        c0.val[1] = vmulq_f32(a0.val[1], b0);
+        c1.val[0] = vmulq_f32(a1.val[0], b1);
+        c1.val[1] = vmulq_f32(a1.val[1], b1);
+
+        vst2q_f32((float*)c, c0);
+        vst2q_f32((float*)(c + 4), c1);
+
+        a += 8;
+        b += 8;
+        c += 8;
+        n -= 8;
+    }
+
+    /* Process remaining 4 */
+    if (n >= 4) {
+        float32x4x2_t a0 = vld2q_f32((const float*)a);
+        float32x4_t b0 = vld1q_f32(b);
+        float32x4x2_t c0;
+        c0.val[0] = vmulq_f32(a0.val[0], b0);
+        c0.val[1] = vmulq_f32(a0.val[1], b0);
+        vst2q_f32((float*)c, c0);
+        a += 4;
+        b += 4;
+        c += 4;
+        n -= 4;
+    }
+
+    /* Scalar tail */
+    while (n > 0) {
+        *c++ = (*a++) * (*b++);
+        n--;
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_ORC
 
 extern void volk_32fc_32f_multiply_32fc_a_orc_impl(lv_32fc_t* cVector,

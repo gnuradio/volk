@@ -1193,6 +1193,80 @@ volk_32f_log2_32f_neon(float* bVector, const float* aVector, unsigned int num_po
 
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32f_log2_32f_neonv8(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+    unsigned int number;
+    const unsigned int quarterPoints = num_points / 4;
+
+    // Constants for IEEE float manipulation
+    const int32x4_t exp_mask = vdupq_n_s32(0x7f800000);
+    const int32x4_t sig_mask = vdupq_n_s32(0x007fffff);
+    const int32x4_t exp_bias = vdupq_n_s32(127);
+    const int32x4_t one_bits = vdupq_n_s32(0x3f800000); // 1.0f in IEEE format
+
+    // Polynomial coefficients (same as SSE version)
+    const float32x4_t c0 = vdupq_n_f32(3.1157899f);
+    const float32x4_t c1 = vdupq_n_f32(-3.3241990f);
+    const float32x4_t c2 = vdupq_n_f32(2.5988452f);
+    const float32x4_t c3 = vdupq_n_f32(-1.2315303f);
+    const float32x4_t c4 = vdupq_n_f32(3.1821337e-1f);
+    const float32x4_t c5 = vdupq_n_f32(-3.4436006e-2f);
+    const float32x4_t fone = vdupq_n_f32(1.0f);
+    const float32x4_t fzero = vdupq_n_f32(0.0f);
+    const float32x4_t nan_val = vdupq_n_f32(NAN);
+
+    for (number = 0; number < quarterPoints; ++number) {
+        float32x4_t aVal = vld1q_f32(aPtr);
+
+        // Check for invalid inputs (NaN, negative, or zero)
+        uint32x4_t invalid_mask = vcleq_f32(aVal, fzero);
+        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aVal, aVal));
+        invalid_mask = vorrq_u32(invalid_mask, nan_mask);
+
+        // Reinterpret as int for bit manipulation
+        int32x4_t aVal_i = vreinterpretq_s32_f32(aVal);
+
+        // Extract exponent: (aVal_i & exp_mask) >> 23 - bias
+        int32x4_t exp_i = vshrq_n_s32(vandq_s32(aVal_i, exp_mask), 23);
+        exp_i = vsubq_s32(exp_i, exp_bias);
+        float32x4_t exp_f = vcvtq_f32_s32(exp_i);
+
+        // Extract mantissa: 1.0 | (aVal_i & sig_mask)
+        int32x4_t frac_i = vorrq_s32(one_bits, vandq_s32(aVal_i, sig_mask));
+        float32x4_t frac = vreinterpretq_f32_s32(frac_i);
+
+        // Evaluate polynomial using FMA: c0 + frac*(c1 + frac*(c2 + ...))
+        float32x4_t mantissa = c5;
+        mantissa = vfmaq_f32(c4, mantissa, frac);
+        mantissa = vfmaq_f32(c3, mantissa, frac);
+        mantissa = vfmaq_f32(c2, mantissa, frac);
+        mantissa = vfmaq_f32(c1, mantissa, frac);
+        mantissa = vfmaq_f32(c0, mantissa, frac);
+
+        // result = exp + mantissa * (frac - 1.0)
+        float32x4_t bVal = vfmaq_f32(exp_f, mantissa, vsubq_f32(frac, fone));
+
+        // Replace invalid results with NaN
+        bVal = vbslq_f32(invalid_mask, nan_val, bVal);
+
+        vst1q_f32(bPtr, bVal);
+
+        aPtr += 4;
+        bPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    volk_32f_log2_32f_generic(bPtr, aPtr, num_points - number);
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
 
 #endif /* INCLUDED_volk_32f_log2_32f_a_H */
 

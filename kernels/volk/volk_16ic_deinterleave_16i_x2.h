@@ -269,6 +269,81 @@ static inline void volk_16ic_deinterleave_16i_x2_generic(int16_t* iBuffer,
 }
 #endif /* LV_HAVE_GENERIC */
 
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_16ic_deinterleave_16i_x2_neon(int16_t* iBuffer,
+                                                      int16_t* qBuffer,
+                                                      const lv_16sc_t* complexVector,
+                                                      unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+    const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+    int16_t* iBufferPtr = iBuffer;
+    int16_t* qBufferPtr = qBuffer;
+
+    int16x8x2_t complexVal;
+
+    for (; number < eighthPoints; number++) {
+        complexVal = vld2q_s16(complexVectorPtr);
+        vst1q_s16(iBufferPtr, complexVal.val[0]);
+        vst1q_s16(qBufferPtr, complexVal.val[1]);
+        complexVectorPtr += 16;
+        iBufferPtr += 8;
+        qBufferPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *iBufferPtr++ = *complexVectorPtr++;
+        *qBufferPtr++ = *complexVectorPtr++;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_16ic_deinterleave_16i_x2_neonv8(int16_t* iBuffer,
+                                                        int16_t* qBuffer,
+                                                        const lv_16sc_t* complexVector,
+                                                        unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+    const int16_t* complexVectorPtr = (const int16_t*)complexVector;
+    int16_t* iBufferPtr = iBuffer;
+    int16_t* qBufferPtr = qBuffer;
+
+    int16x8x2_t complexVal0, complexVal1;
+
+    for (; number < sixteenthPoints; number++) {
+        complexVal0 = vld2q_s16(complexVectorPtr);
+        complexVal1 = vld2q_s16(complexVectorPtr + 16);
+        __VOLK_PREFETCH(complexVectorPtr + 32);
+
+        vst1q_s16(iBufferPtr, complexVal0.val[0]);
+        vst1q_s16(iBufferPtr + 8, complexVal1.val[0]);
+        vst1q_s16(qBufferPtr, complexVal0.val[1]);
+        vst1q_s16(qBufferPtr + 8, complexVal1.val[1]);
+
+        complexVectorPtr += 32;
+        iBufferPtr += 16;
+        qBufferPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        *iBufferPtr++ = *complexVectorPtr++;
+        *qBufferPtr++ = *complexVectorPtr++;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_ORC
 
 extern void volk_16ic_deinterleave_16i_x2_a_orc_impl(int16_t* iBuffer,

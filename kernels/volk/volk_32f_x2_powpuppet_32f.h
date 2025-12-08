@@ -75,6 +75,30 @@ static inline void volk_32f_x2_powpuppet_32f_generic(float* cVector,
 }
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_NEON
+static inline void volk_32f_x2_powpuppet_32f_neon(float* cVector,
+                                                  const float* bVector,
+                                                  const float* aVector,
+                                                  unsigned int num_points)
+{
+    float* aVectorPos = make_positive(aVector, num_points);
+    volk_32f_x2_pow_32f_neon(cVector, bVector, aVectorPos, num_points);
+    volk_free(aVectorPos);
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+static inline void volk_32f_x2_powpuppet_32f_neonv8(float* cVector,
+                                                    const float* bVector,
+                                                    const float* aVector,
+                                                    unsigned int num_points)
+{
+    float* aVectorPos = make_positive(aVector, num_points);
+    volk_32f_x2_pow_32f_neonv8(cVector, bVector, aVectorPos, num_points);
+    volk_free(aVectorPos);
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_SSE4_1
 static inline void volk_32f_x2_powpuppet_32f_u_sse4_1(float* cVector,
                                                       const float* bVector,

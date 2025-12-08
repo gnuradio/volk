@@ -217,6 +217,42 @@ static inline void volk_32i_x2_and_32i_neon(int32_t* cVector,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32i_x2_and_32i_neonv8(int32_t* cVector,
+                                              const int32_t* aVector,
+                                              const int32_t* bVector,
+                                              unsigned int num_points)
+{
+    const unsigned int eighthPoints = num_points / 8;
+
+    const int32_t* aPtr = aVector;
+    const int32_t* bPtr = bVector;
+    int32_t* cPtr = cVector;
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        int32x4_t a0 = vld1q_s32(aPtr);
+        int32x4_t a1 = vld1q_s32(aPtr + 4);
+        int32x4_t b0 = vld1q_s32(bPtr);
+        int32x4_t b1 = vld1q_s32(bPtr + 4);
+        __VOLK_PREFETCH(aPtr + 16);
+        __VOLK_PREFETCH(bPtr + 16);
+
+        vst1q_s32(cPtr, vandq_s32(a0, b0));
+        vst1q_s32(cPtr + 4, vandq_s32(a1, b1));
+
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
+
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) & (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 
 #ifdef LV_HAVE_GENERIC
 

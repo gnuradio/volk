@@ -260,6 +260,49 @@ static inline void volk_32fc_conjugate_32fc_a_neon(lv_32fc_t* cVector,
 #endif /* LV_HAVE_NEON */
 
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_conjugate_32fc_neonv8(lv_32fc_t* cVector,
+                                                   const lv_32fc_t* aVector,
+                                                   unsigned int num_points)
+{
+    unsigned int n = num_points;
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = aVector;
+
+    /* Sign mask to flip imaginary parts: [0, -0, 0, -0] */
+    const uint32x4_t sign_mask =
+        vreinterpretq_u32_f32((float32x4_t){ 0.0f, -0.0f, 0.0f, -0.0f });
+
+    /* Process 4 complex numbers per iteration (2x unroll) */
+    while (n >= 4) {
+        float32x4_t v0 = vld1q_f32((const float*)a);
+        float32x4_t v1 = vld1q_f32((const float*)(a + 2));
+        __VOLK_PREFETCH(a + 8);
+
+        /* XOR to flip sign of imaginary parts */
+        v0 = vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(v0), sign_mask));
+        v1 = vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(v1), sign_mask));
+
+        vst1q_f32((float*)c, v0);
+        vst1q_f32((float*)(c + 2), v1);
+
+        a += 4;
+        c += 4;
+        n -= 4;
+    }
+
+    /* Scalar tail */
+    while (n > 0) {
+        *c++ = lv_conj(*a++);
+        n--;
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

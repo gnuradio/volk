@@ -350,6 +350,64 @@ static inline void volk_32fc_magnitude_squared_32f_neon(float* magnitudeVector,
 }
 #endif /* LV_HAVE_NEON */
 
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_magnitude_squared_32f_neonv8(float* magnitudeVector,
+                                                          const lv_32fc_t* complexVector,
+                                                          unsigned int num_points)
+{
+    unsigned int n = num_points;
+    const float* in = (const float*)complexVector;
+    float* out = magnitudeVector;
+
+    /* Process 4 complex numbers per iteration using interleaved loads + pairwise add
+     * Load: [r0,i0,r1,i1] [r2,i2,r3,i3]
+     * Square: [r0²,i0²,r1²,i1²] [r2²,i2²,r3²,i3²]
+     * Pairwise add: [r0²+i0²,r1²+i1²,r2²+i2²,r3²+i3²]
+     */
+    while (n >= 4) {
+        float32x4_t v0 = vld1q_f32(in);     /* r0,i0,r1,i1 */
+        float32x4_t v1 = vld1q_f32(in + 4); /* r2,i2,r3,i3 */
+        __VOLK_PREFETCH(in + 16);
+
+        /* Square all elements */
+        v0 = vmulq_f32(v0, v0); /* r0²,i0²,r1²,i1² */
+        v1 = vmulq_f32(v1, v1); /* r2²,i2²,r3²,i3² */
+
+        /* Pairwise add: vpaddq adds adjacent pairs */
+        float32x4_t mag = vpaddq_f32(v0, v1); /* r0²+i0²,r1²+i1²,r2²+i2²,r3²+i3² */
+
+        vst1q_f32(out, mag);
+
+        in += 8;
+        out += 4;
+        n -= 4;
+    }
+
+    /* Process remaining 2 complex numbers */
+    if (n >= 2) {
+        float32x4_t v0 = vld1q_f32(in); /* r0,i0,r1,i1 */
+        v0 = vmulq_f32(v0, v0);
+        float32x2_t mag = vpadd_f32(vget_low_f32(v0), vget_high_f32(v0));
+        vst1_f32(out, mag);
+        in += 4;
+        out += 2;
+        n -= 2;
+    }
+
+    /* Scalar tail */
+    if (n > 0) {
+        float re = *in++;
+        float im = *in++;
+        *out++ = (re * re) + (im * im);
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

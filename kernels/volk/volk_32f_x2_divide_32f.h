@@ -228,6 +228,43 @@ static inline void volk_32f_x2_divide_32f_neon(float* cVector,
 
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_divide_32f_neonv8(float* cVector,
+                                                 const float* aVector,
+                                                 const float* bVector,
+                                                 unsigned int num_points)
+{
+    const unsigned int eighthPoints = num_points / 8;
+
+    const float* aPtr = aVector;
+    const float* bPtr = bVector;
+    float* cPtr = cVector;
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        float32x4_t a0 = vld1q_f32(aPtr);
+        float32x4_t a1 = vld1q_f32(aPtr + 4);
+        float32x4_t b0 = vld1q_f32(bPtr);
+        float32x4_t b1 = vld1q_f32(bPtr + 4);
+        __VOLK_PREFETCH(aPtr + 16);
+        __VOLK_PREFETCH(bPtr + 16);
+
+        /* ARMv8 has native divide instruction */
+        vst1q_f32(cPtr, vdivq_f32(a0, b0));
+        vst1q_f32(cPtr + 4, vdivq_f32(a1, b1));
+
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
+
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) / (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 
 #ifdef LV_HAVE_GENERIC
 

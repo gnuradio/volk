@@ -110,6 +110,55 @@ static inline void volk_64u_byteswap_u_sse2(uint64_t* intsToSwap, unsigned int n
 #endif /* LV_HAVE_SSE2 */
 
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_64u_byteswap_neon(uint64_t* intsToSwap, unsigned int num_points)
+{
+    uint8_t* inputPtr = (uint8_t*)intsToSwap;
+    unsigned int number = 0;
+    const unsigned int eighth_points = num_points / 8;
+
+    for (; number < eighth_points; number++) {
+        uint8x16_t input0 = vld1q_u8(inputPtr);
+        uint8x16_t input1 = vld1q_u8(inputPtr + 16);
+        uint8x16_t input2 = vld1q_u8(inputPtr + 32);
+        uint8x16_t input3 = vld1q_u8(inputPtr + 48);
+
+        // Reverse bytes within each 64-bit element
+        uint8x16_t output0 = vrev64q_u8(input0);
+        uint8x16_t output1 = vrev64q_u8(input1);
+        uint8x16_t output2 = vrev64q_u8(input2);
+        uint8x16_t output3 = vrev64q_u8(input3);
+
+        vst1q_u8(inputPtr, output0);
+        vst1q_u8(inputPtr + 16, output1);
+        vst1q_u8(inputPtr + 32, output2);
+        vst1q_u8(inputPtr + 48, output3);
+
+        inputPtr += 64;
+    }
+
+    // Handle remaining points
+    number = eighth_points * 8;
+    uint32_t* intPtr = (uint32_t*)(intsToSwap + number);
+    for (; number < num_points; number++) {
+        uint32_t output1 = *intPtr;
+        uint32_t output2 = intPtr[1];
+
+        output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) |
+                   ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
+
+        output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) |
+                   ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
+
+        *intPtr++ = output2;
+        *intPtr++ = output1;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+
 #ifdef LV_HAVE_GENERIC
 
 static inline void volk_64u_byteswap_generic(uint64_t* intsToSwap,

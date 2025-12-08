@@ -678,6 +678,120 @@ static inline void volk_32f_x2_dot_prod_16i_u_avx512f(int16_t* result,
 
 #endif /*LV_HAVE_AVX512F*/
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_dot_prod_16i_neon(int16_t* result,
+                                                 const float* input,
+                                                 const float* taps,
+                                                 unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    float dotProduct = 0;
+    const float* aPtr = input;
+    const float* bPtr = taps;
+
+    float32x4_t dotProdVal0 = vdupq_n_f32(0.0f);
+    float32x4_t dotProdVal1 = vdupq_n_f32(0.0f);
+    float32x4_t dotProdVal2 = vdupq_n_f32(0.0f);
+    float32x4_t dotProdVal3 = vdupq_n_f32(0.0f);
+
+    for (; number < sixteenthPoints; number++) {
+        float32x4_t a0Val = vld1q_f32(aPtr);
+        float32x4_t a1Val = vld1q_f32(aPtr + 4);
+        float32x4_t a2Val = vld1q_f32(aPtr + 8);
+        float32x4_t a3Val = vld1q_f32(aPtr + 12);
+
+        float32x4_t b0Val = vld1q_f32(bPtr);
+        float32x4_t b1Val = vld1q_f32(bPtr + 4);
+        float32x4_t b2Val = vld1q_f32(bPtr + 8);
+        float32x4_t b3Val = vld1q_f32(bPtr + 12);
+
+        dotProdVal0 = vmlaq_f32(dotProdVal0, a0Val, b0Val);
+        dotProdVal1 = vmlaq_f32(dotProdVal1, a1Val, b1Val);
+        dotProdVal2 = vmlaq_f32(dotProdVal2, a2Val, b2Val);
+        dotProdVal3 = vmlaq_f32(dotProdVal3, a3Val, b3Val);
+
+        aPtr += 16;
+        bPtr += 16;
+    }
+
+    dotProdVal0 = vaddq_f32(dotProdVal0, dotProdVal1);
+    dotProdVal0 = vaddq_f32(dotProdVal0, dotProdVal2);
+    dotProdVal0 = vaddq_f32(dotProdVal0, dotProdVal3);
+
+    float32x2_t sum = vadd_f32(vget_low_f32(dotProdVal0), vget_high_f32(dotProdVal0));
+    sum = vpadd_f32(sum, sum);
+    dotProduct = vget_lane_f32(sum, 0);
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        dotProduct += ((*aPtr++) * (*bPtr++));
+    }
+
+    *result = (int16_t)rintf(dotProduct);
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_dot_prod_16i_neonv8(int16_t* result,
+                                                   const float* input,
+                                                   const float* taps,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    float dotProduct = 0;
+    const float* aPtr = input;
+    const float* bPtr = taps;
+
+    float32x4_t dotProdVal0 = vdupq_n_f32(0.0f);
+    float32x4_t dotProdVal1 = vdupq_n_f32(0.0f);
+    float32x4_t dotProdVal2 = vdupq_n_f32(0.0f);
+    float32x4_t dotProdVal3 = vdupq_n_f32(0.0f);
+
+    for (; number < sixteenthPoints; number++) {
+        float32x4_t a0Val = vld1q_f32(aPtr);
+        float32x4_t a1Val = vld1q_f32(aPtr + 4);
+        float32x4_t a2Val = vld1q_f32(aPtr + 8);
+        float32x4_t a3Val = vld1q_f32(aPtr + 12);
+
+        float32x4_t b0Val = vld1q_f32(bPtr);
+        float32x4_t b1Val = vld1q_f32(bPtr + 4);
+        float32x4_t b2Val = vld1q_f32(bPtr + 8);
+        float32x4_t b3Val = vld1q_f32(bPtr + 12);
+        __VOLK_PREFETCH(aPtr + 16);
+        __VOLK_PREFETCH(bPtr + 16);
+
+        dotProdVal0 = vfmaq_f32(dotProdVal0, a0Val, b0Val);
+        dotProdVal1 = vfmaq_f32(dotProdVal1, a1Val, b1Val);
+        dotProdVal2 = vfmaq_f32(dotProdVal2, a2Val, b2Val);
+        dotProdVal3 = vfmaq_f32(dotProdVal3, a3Val, b3Val);
+
+        aPtr += 16;
+        bPtr += 16;
+    }
+
+    dotProdVal0 = vaddq_f32(dotProdVal0, dotProdVal1);
+    dotProdVal0 = vaddq_f32(dotProdVal0, dotProdVal2);
+    dotProdVal0 = vaddq_f32(dotProdVal0, dotProdVal3);
+
+    dotProduct = vaddvq_f32(dotProdVal0);
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        dotProduct += ((*aPtr++) * (*bPtr++));
+    }
+
+    *result = (int16_t)rintf(dotProduct);
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

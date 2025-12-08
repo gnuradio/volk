@@ -612,6 +612,145 @@ static inline void volk_32f_s32f_x2_convert_8u_a_sse(uint8_t* outputVector,
 
 #endif /* LV_HAVE_SSE */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_x2_convert_8u_neon(uint8_t* outputVector,
+                                                    const float* inputVector,
+                                                    const float scale,
+                                                    const float bias,
+                                                    unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenth_points = num_points / 16;
+
+    const float* inputVectorPtr = inputVector;
+    uint8_t* outputVectorPtr = outputVector;
+
+    const float min_val = 0.0f;
+    const float max_val = UINT8_MAX;
+
+    float32x4_t vScale = vdupq_n_f32(scale);
+    float32x4_t vBias = vdupq_n_f32(bias);
+    float32x4_t vmin_val = vdupq_n_f32(min_val);
+    float32x4_t vmax_val = vdupq_n_f32(max_val);
+
+    for (; number < sixteenth_points; number++) {
+        float32x4_t inputVal0 = vld1q_f32(inputVectorPtr);
+        float32x4_t inputVal1 = vld1q_f32(inputVectorPtr + 4);
+        float32x4_t inputVal2 = vld1q_f32(inputVectorPtr + 8);
+        float32x4_t inputVal3 = vld1q_f32(inputVectorPtr + 12);
+        inputVectorPtr += 16;
+
+        inputVal0 = vmlaq_f32(vBias, inputVal0, vScale);
+        inputVal1 = vmlaq_f32(vBias, inputVal1, vScale);
+        inputVal2 = vmlaq_f32(vBias, inputVal2, vScale);
+        inputVal3 = vmlaq_f32(vBias, inputVal3, vScale);
+
+        inputVal0 = vmaxq_f32(vminq_f32(inputVal0, vmax_val), vmin_val);
+        inputVal1 = vmaxq_f32(vminq_f32(inputVal1, vmax_val), vmin_val);
+        inputVal2 = vmaxq_f32(vminq_f32(inputVal2, vmax_val), vmin_val);
+        inputVal3 = vmaxq_f32(vminq_f32(inputVal3, vmax_val), vmin_val);
+
+        uint32x4_t intVal0 = vcvtq_u32_f32(inputVal0);
+        uint32x4_t intVal1 = vcvtq_u32_f32(inputVal1);
+        uint32x4_t intVal2 = vcvtq_u32_f32(inputVal2);
+        uint32x4_t intVal3 = vcvtq_u32_f32(inputVal3);
+
+        uint16x4_t shortVal0 = vqmovn_u32(intVal0);
+        uint16x4_t shortVal1 = vqmovn_u32(intVal1);
+        uint16x4_t shortVal2 = vqmovn_u32(intVal2);
+        uint16x4_t shortVal3 = vqmovn_u32(intVal3);
+
+        uint16x8_t shortVal01 = vcombine_u16(shortVal0, shortVal1);
+        uint16x8_t shortVal23 = vcombine_u16(shortVal2, shortVal3);
+
+        uint8x8_t byteVal01 = vqmovn_u16(shortVal01);
+        uint8x8_t byteVal23 = vqmovn_u16(shortVal23);
+
+        vst1_u8(outputVectorPtr, byteVal01);
+        vst1_u8(outputVectorPtr + 8, byteVal23);
+        outputVectorPtr += 16;
+    }
+
+    number = sixteenth_points * 16;
+    for (; number < num_points; number++) {
+        const float r = inputVector[number] * scale + bias;
+        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_x2_convert_8u_neonv8(uint8_t* outputVector,
+                                                      const float* inputVector,
+                                                      const float scale,
+                                                      const float bias,
+                                                      unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenth_points = num_points / 16;
+
+    const float* inputVectorPtr = inputVector;
+    uint8_t* outputVectorPtr = outputVector;
+
+    const float min_val = 0.0f;
+    const float max_val = UINT8_MAX;
+
+    float32x4_t vScale = vdupq_n_f32(scale);
+    float32x4_t vBias = vdupq_n_f32(bias);
+    float32x4_t vmin_val = vdupq_n_f32(min_val);
+    float32x4_t vmax_val = vdupq_n_f32(max_val);
+
+    for (; number < sixteenth_points; number++) {
+        float32x4_t inputVal0 = vld1q_f32(inputVectorPtr);
+        float32x4_t inputVal1 = vld1q_f32(inputVectorPtr + 4);
+        float32x4_t inputVal2 = vld1q_f32(inputVectorPtr + 8);
+        float32x4_t inputVal3 = vld1q_f32(inputVectorPtr + 12);
+        __VOLK_PREFETCH(inputVectorPtr + 16);
+        inputVectorPtr += 16;
+
+        inputVal0 = vfmaq_f32(vBias, inputVal0, vScale);
+        inputVal1 = vfmaq_f32(vBias, inputVal1, vScale);
+        inputVal2 = vfmaq_f32(vBias, inputVal2, vScale);
+        inputVal3 = vfmaq_f32(vBias, inputVal3, vScale);
+
+        inputVal0 = vmaxq_f32(vminq_f32(inputVal0, vmax_val), vmin_val);
+        inputVal1 = vmaxq_f32(vminq_f32(inputVal1, vmax_val), vmin_val);
+        inputVal2 = vmaxq_f32(vminq_f32(inputVal2, vmax_val), vmin_val);
+        inputVal3 = vmaxq_f32(vminq_f32(inputVal3, vmax_val), vmin_val);
+
+        uint32x4_t intVal0 = vcvtnq_u32_f32(inputVal0);
+        uint32x4_t intVal1 = vcvtnq_u32_f32(inputVal1);
+        uint32x4_t intVal2 = vcvtnq_u32_f32(inputVal2);
+        uint32x4_t intVal3 = vcvtnq_u32_f32(inputVal3);
+
+        uint16x4_t shortVal0 = vqmovn_u32(intVal0);
+        uint16x4_t shortVal1 = vqmovn_u32(intVal1);
+        uint16x4_t shortVal2 = vqmovn_u32(intVal2);
+        uint16x4_t shortVal3 = vqmovn_u32(intVal3);
+
+        uint16x8_t shortVal01 = vcombine_u16(shortVal0, shortVal1);
+        uint16x8_t shortVal23 = vcombine_u16(shortVal2, shortVal3);
+
+        uint8x8_t byteVal01 = vqmovn_u16(shortVal01);
+        uint8x8_t byteVal23 = vqmovn_u16(shortVal23);
+
+        vst1_u8(outputVectorPtr, byteVal01);
+        vst1_u8(outputVectorPtr + 8, byteVal23);
+        outputVectorPtr += 16;
+    }
+
+    number = sixteenth_points * 16;
+    for (; number < num_points; number++) {
+        const float r = inputVector[number] * scale + bias;
+        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

@@ -136,6 +136,68 @@ static inline void volk_16i_32fc_dot_prod_32fc_neon(lv_32fc_t* result,
 
 #endif /*LV_HAVE_NEON*/
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_16i_32fc_dot_prod_32fc_neonv8(lv_32fc_t* result,
+                                                      const short* input,
+                                                      const lv_32fc_t* taps,
+                                                      unsigned int num_points)
+{
+    const unsigned int eighthPoints = num_points / 8;
+    const short* inputPtr = input;
+    const lv_32fc_t* tapsPtr = taps;
+
+    /* Use 2 independent real/imag accumulators for FMA pipelining */
+    float32x4_t real_acc0 = vdupq_n_f32(0);
+    float32x4_t imag_acc0 = vdupq_n_f32(0);
+    float32x4_t real_acc1 = vdupq_n_f32(0);
+    float32x4_t imag_acc1 = vdupq_n_f32(0);
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        /* Load 8 int16 values and convert to float */
+        int16x8_t input16 = vld1q_s16(inputPtr);
+        float32x4_t input_lo = vcvtq_f32_s32(vmovl_s16(vget_low_s16(input16)));
+        float32x4_t input_hi = vcvtq_f32_s32(vmovl_s16(vget_high_s16(input16)));
+
+        /* Load 8 complex taps deinterleaved */
+        float32x4x2_t taps0 = vld2q_f32((const float*)tapsPtr);
+        float32x4x2_t taps1 = vld2q_f32((const float*)(tapsPtr + 4));
+        __VOLK_PREFETCH(inputPtr + 16);
+        __VOLK_PREFETCH(tapsPtr + 16);
+
+        /* FMA: acc += input * taps */
+        real_acc0 = vfmaq_f32(real_acc0, input_lo, taps0.val[0]);
+        imag_acc0 = vfmaq_f32(imag_acc0, input_lo, taps0.val[1]);
+        real_acc1 = vfmaq_f32(real_acc1, input_hi, taps1.val[0]);
+        imag_acc1 = vfmaq_f32(imag_acc1, input_hi, taps1.val[1]);
+
+        inputPtr += 8;
+        tapsPtr += 8;
+    }
+
+    /* Combine accumulators */
+    real_acc0 = vaddq_f32(real_acc0, real_acc1);
+    imag_acc0 = vaddq_f32(imag_acc0, imag_acc1);
+
+    /* Horizontal sum */
+    float real_sum = vaddvq_f32(real_acc0);
+    float imag_sum = vaddvq_f32(imag_acc0);
+
+    lv_32fc_t returnValue = lv_cmake(real_sum, imag_sum);
+
+    /* Handle remainder */
+    const float* bPtr = (const float*)tapsPtr;
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
+        returnValue += lv_cmake(inputPtr[0] * bPtr[0], inputPtr[0] * bPtr[1]);
+        inputPtr += 1;
+        bPtr += 2;
+    }
+
+    *result = returnValue;
+}
+#endif /*LV_HAVE_NEONV8*/
+
 #if LV_HAVE_SSE && LV_HAVE_MMX
 
 static inline void volk_16i_32fc_dot_prod_32fc_u_sse(lv_32fc_t* result,

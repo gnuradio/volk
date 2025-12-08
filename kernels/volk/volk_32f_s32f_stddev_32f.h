@@ -266,6 +266,94 @@ static inline void volk_32f_s32f_stddev_32f_generic(float* stddev,
 #endif /* LV_HAVE_GENERIC */
 
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_stddev_32f_neon(float* stddev,
+                                                 const float* inputBuffer,
+                                                 const float mean,
+                                                 unsigned int num_points)
+{
+    float returnValue = 0;
+    if (num_points > 0) {
+        unsigned int number = 0;
+        const unsigned int quarterPoints = num_points / 4;
+
+        const float* aPtr = inputBuffer;
+
+        float32x4_t squareAccumulator = vdupq_n_f32(0.0f);
+
+        for (; number < quarterPoints; number++) {
+            float32x4_t aVal = vld1q_f32(aPtr);
+            squareAccumulator = vmlaq_f32(squareAccumulator, aVal, aVal);
+            aPtr += 4;
+        }
+
+        // Reduce the accumulator
+        float32x2_t sum =
+            vadd_f32(vget_low_f32(squareAccumulator), vget_high_f32(squareAccumulator));
+        sum = vpadd_f32(sum, sum);
+        returnValue = vget_lane_f32(sum, 0);
+
+        number = quarterPoints * 4;
+        for (; number < num_points; number++) {
+            returnValue += (*aPtr) * (*aPtr);
+            aPtr++;
+        }
+        returnValue /= num_points;
+        returnValue -= (mean * mean);
+        returnValue = sqrtf(returnValue);
+    }
+    *stddev = returnValue;
+}
+
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_stddev_32f_neonv8(float* stddev,
+                                                   const float* inputBuffer,
+                                                   const float mean,
+                                                   unsigned int num_points)
+{
+    float returnValue = 0;
+    if (num_points > 0) {
+        unsigned int number = 0;
+        const unsigned int eighthPoints = num_points / 8;
+
+        const float* aPtr = inputBuffer;
+
+        float32x4_t squareAccumulator0 = vdupq_n_f32(0.0f);
+        float32x4_t squareAccumulator1 = vdupq_n_f32(0.0f);
+
+        for (; number < eighthPoints; number++) {
+            __VOLK_PREFETCH(aPtr + 16);
+            float32x4_t aVal0 = vld1q_f32(aPtr);
+            float32x4_t aVal1 = vld1q_f32(aPtr + 4);
+            squareAccumulator0 = vfmaq_f32(squareAccumulator0, aVal0, aVal0);
+            squareAccumulator1 = vfmaq_f32(squareAccumulator1, aVal1, aVal1);
+            aPtr += 8;
+        }
+
+        // Combine and reduce the accumulators
+        float32x4_t squareAccumulator = vaddq_f32(squareAccumulator0, squareAccumulator1);
+        returnValue = vaddvq_f32(squareAccumulator);
+
+        number = eighthPoints * 8;
+        for (; number < num_points; number++) {
+            returnValue += (*aPtr) * (*aPtr);
+            aPtr++;
+        }
+        returnValue /= num_points;
+        returnValue -= (mean * mean);
+        returnValue = sqrtf(returnValue);
+    }
+    *stddev = returnValue;
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
 #endif /* INCLUDED_volk_32f_s32f_stddev_32f_a_H */
 
 #ifndef INCLUDED_volk_32f_s32f_stddev_32f_u_H

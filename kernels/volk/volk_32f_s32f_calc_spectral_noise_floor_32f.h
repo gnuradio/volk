@@ -328,6 +328,189 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_generic(float* noiseFloorAmplitude,
 }
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_32f_s32f_calc_spectral_noise_floor_32f_neon(float* noiseFloorAmplitude,
+                                                 const float* realDataPoints,
+                                                 const float spectralExclusionValue,
+                                                 const unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    const float* dataPointsPtr = realDataPoints;
+    float32x4_t avgPointsVal = vdupq_n_f32(0.0f);
+
+    // Calculate the sum (for mean) for all points
+    for (; number < quarterPoints; number++) {
+        float32x4_t dataPointsVal = vld1q_f32(dataPointsPtr);
+        dataPointsPtr += 4;
+        avgPointsVal = vaddq_f32(avgPointsVal, dataPointsVal);
+    }
+
+    // Horizontal sum
+    float32x2_t sum2 = vadd_f32(vget_low_f32(avgPointsVal), vget_high_f32(avgPointsVal));
+    float sumMean = vget_lane_f32(vpadd_f32(sum2, sum2), 0);
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        sumMean += realDataPoints[number];
+    }
+
+    // calculate the spectral mean
+    const float meanAmplitude = (sumMean / ((float)num_points)) + spectralExclusionValue;
+
+    dataPointsPtr = realDataPoints;
+    float32x4_t vMeanAmplitudeVector = vdupq_n_f32(meanAmplitude);
+    float32x4_t vOnesVector = vdupq_n_f32(1.0f);
+    float32x4_t vValidBinCount = vdupq_n_f32(0.0f);
+    avgPointsVal = vdupq_n_f32(0.0f);
+    number = 0;
+
+    // Calculate the sum (for mean) for any points which do NOT exceed the mean amplitude
+    for (; number < quarterPoints; number++) {
+        float32x4_t dataPointsVal = vld1q_f32(dataPointsPtr);
+        dataPointsPtr += 4;
+
+        // Identify which items do not exceed the mean amplitude
+        uint32x4_t compareMask = vcleq_f32(dataPointsVal, vMeanAmplitudeVector);
+
+        // Mask off the items that exceed the mean amplitude
+        float32x4_t maskedData = vbslq_f32(compareMask, dataPointsVal, vdupq_n_f32(0.0f));
+        avgPointsVal = vaddq_f32(avgPointsVal, maskedData);
+
+        // Count the number of bins which do not exceed the mean amplitude
+        float32x4_t maskedOnes = vbslq_f32(compareMask, vOnesVector, vdupq_n_f32(0.0f));
+        vValidBinCount = vaddq_f32(vValidBinCount, maskedOnes);
+    }
+
+    // Horizontal sums
+    sum2 = vadd_f32(vget_low_f32(avgPointsVal), vget_high_f32(avgPointsVal));
+    sumMean = vget_lane_f32(vpadd_f32(sum2, sum2), 0);
+
+    float32x2_t cnt2 =
+        vadd_f32(vget_low_f32(vValidBinCount), vget_high_f32(vValidBinCount));
+    float validBinCount = vget_lane_f32(vpadd_f32(cnt2, cnt2), 0);
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        if (realDataPoints[number] <= meanAmplitude) {
+            sumMean += realDataPoints[number];
+            validBinCount += 1.0f;
+        }
+    }
+
+    float localNoiseFloorAmplitude = 0;
+    if (validBinCount > 0.0f) {
+        localNoiseFloorAmplitude = sumMean / validBinCount;
+    } else {
+        localNoiseFloorAmplitude = meanAmplitude;
+    }
+
+    *noiseFloorAmplitude = localNoiseFloorAmplitude;
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32f_s32f_calc_spectral_noise_floor_32f_neonv8(float* noiseFloorAmplitude,
+                                                   const float* realDataPoints,
+                                                   const float spectralExclusionValue,
+                                                   const unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    const float* dataPointsPtr = realDataPoints;
+    float32x4_t avgPointsVal0 = vdupq_n_f32(0.0f);
+    float32x4_t avgPointsVal1 = vdupq_n_f32(0.0f);
+
+    // Calculate the sum (for mean) for all points
+    for (; number < eighthPoints; number++) {
+        __VOLK_PREFETCH(dataPointsPtr + 16);
+        float32x4_t dataPointsVal0 = vld1q_f32(dataPointsPtr);
+        float32x4_t dataPointsVal1 = vld1q_f32(dataPointsPtr + 4);
+        dataPointsPtr += 8;
+        avgPointsVal0 = vaddq_f32(avgPointsVal0, dataPointsVal0);
+        avgPointsVal1 = vaddq_f32(avgPointsVal1, dataPointsVal1);
+    }
+
+    // Combine and horizontal sum using vaddvq_f32
+    float32x4_t avgPointsVal = vaddq_f32(avgPointsVal0, avgPointsVal1);
+    float sumMean = vaddvq_f32(avgPointsVal);
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        sumMean += realDataPoints[number];
+    }
+
+    // calculate the spectral mean
+    const float meanAmplitude = (sumMean / ((float)num_points)) + spectralExclusionValue;
+
+    dataPointsPtr = realDataPoints;
+    float32x4_t vMeanAmplitudeVector = vdupq_n_f32(meanAmplitude);
+    float32x4_t vOnesVector = vdupq_n_f32(1.0f);
+    float32x4_t vValidBinCount0 = vdupq_n_f32(0.0f);
+    float32x4_t vValidBinCount1 = vdupq_n_f32(0.0f);
+    avgPointsVal0 = vdupq_n_f32(0.0f);
+    avgPointsVal1 = vdupq_n_f32(0.0f);
+    number = 0;
+
+    // Calculate the sum (for mean) for any points which do NOT exceed the mean amplitude
+    for (; number < eighthPoints; number++) {
+        __VOLK_PREFETCH(dataPointsPtr + 16);
+        float32x4_t dataPointsVal0 = vld1q_f32(dataPointsPtr);
+        float32x4_t dataPointsVal1 = vld1q_f32(dataPointsPtr + 4);
+        dataPointsPtr += 8;
+
+        // Identify which items do not exceed the mean amplitude
+        uint32x4_t compareMask0 = vcleq_f32(dataPointsVal0, vMeanAmplitudeVector);
+        uint32x4_t compareMask1 = vcleq_f32(dataPointsVal1, vMeanAmplitudeVector);
+
+        // Mask off the items that exceed the mean amplitude
+        float32x4_t maskedData0 =
+            vbslq_f32(compareMask0, dataPointsVal0, vdupq_n_f32(0.0f));
+        float32x4_t maskedData1 =
+            vbslq_f32(compareMask1, dataPointsVal1, vdupq_n_f32(0.0f));
+        avgPointsVal0 = vaddq_f32(avgPointsVal0, maskedData0);
+        avgPointsVal1 = vaddq_f32(avgPointsVal1, maskedData1);
+
+        // Count the number of bins which do not exceed the mean amplitude
+        float32x4_t maskedOnes0 = vbslq_f32(compareMask0, vOnesVector, vdupq_n_f32(0.0f));
+        float32x4_t maskedOnes1 = vbslq_f32(compareMask1, vOnesVector, vdupq_n_f32(0.0f));
+        vValidBinCount0 = vaddq_f32(vValidBinCount0, maskedOnes0);
+        vValidBinCount1 = vaddq_f32(vValidBinCount1, maskedOnes1);
+    }
+
+    // Combine and horizontal sums
+    avgPointsVal = vaddq_f32(avgPointsVal0, avgPointsVal1);
+    sumMean = vaddvq_f32(avgPointsVal);
+
+    float32x4_t vValidBinCount = vaddq_f32(vValidBinCount0, vValidBinCount1);
+    float validBinCount = vaddvq_f32(vValidBinCount);
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        if (realDataPoints[number] <= meanAmplitude) {
+            sumMean += realDataPoints[number];
+            validBinCount += 1.0f;
+        }
+    }
+
+    float localNoiseFloorAmplitude = 0;
+    if (validBinCount > 0.0f) {
+        localNoiseFloorAmplitude = sumMean / validBinCount;
+    } else {
+        localNoiseFloorAmplitude = meanAmplitude;
+    }
+
+    *noiseFloorAmplitude = localNoiseFloorAmplitude;
+}
+#endif /* LV_HAVE_NEONV8 */
 
 #endif /* INCLUDED_volk_32f_s32f_calc_spectral_noise_floor_32f_a_H */
 

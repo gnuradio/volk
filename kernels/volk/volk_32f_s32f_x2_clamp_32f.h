@@ -187,6 +187,85 @@ static inline void volk_32f_s32f_x2_clamp_32f_u_sse4_1(float* out,
 }
 #endif /* LV_HAVE_SSE4_1 */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_x2_clamp_32f_neon(float* out,
+                                                   const float* in,
+                                                   const float min,
+                                                   const float max,
+                                                   unsigned int num_points)
+{
+    const float32x4_t vmin = vdupq_n_f32(min);
+    const float32x4_t vmax = vdupq_n_f32(max);
+
+    unsigned int number = 0;
+    const unsigned int quarter_points = num_points / 4;
+
+    for (; number < quarter_points; number++) {
+        float32x4_t val = vld1q_f32(in);
+        val = vmaxq_f32(val, vmin);
+        val = vminq_f32(val, vmax);
+        vst1q_f32(out, val);
+        in += 4;
+        out += 4;
+    }
+
+    number = quarter_points * 4;
+    for (; number < num_points; number++) {
+        float val = *in++;
+        if (val < min)
+            val = min;
+        else if (val > max)
+            val = max;
+        *out++ = val;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_x2_clamp_32f_neonv8(float* out,
+                                                     const float* in,
+                                                     const float min,
+                                                     const float max,
+                                                     unsigned int num_points)
+{
+    const float32x4_t vmin = vdupq_n_f32(min);
+    const float32x4_t vmax = vdupq_n_f32(max);
+
+    unsigned int number = 0;
+    const unsigned int eighth_points = num_points / 8;
+
+    for (; number < eighth_points; number++) {
+        float32x4_t val0 = vld1q_f32(in);
+        float32x4_t val1 = vld1q_f32(in + 4);
+        __VOLK_PREFETCH(in + 8);
+
+        val0 = vmaxq_f32(val0, vmin);
+        val1 = vmaxq_f32(val1, vmin);
+        val0 = vminq_f32(val0, vmax);
+        val1 = vminq_f32(val1, vmax);
+
+        vst1q_f32(out, val0);
+        vst1q_f32(out + 4, val1);
+        in += 8;
+        out += 8;
+    }
+
+    number = eighth_points * 8;
+    for (; number < num_points; number++) {
+        float val = *in++;
+        if (val < min)
+            val = min;
+        else if (val > max)
+            val = max;
+        *out++ = val;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

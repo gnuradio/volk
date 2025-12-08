@@ -214,31 +214,73 @@ static inline void volk_16ic_convert_32fc_neon(lv_32fc_t* outputVector,
                                                const lv_16sc_t* inputVector,
                                                unsigned int num_points)
 {
-    const unsigned int sse_iters = num_points / 2;
+    const int16_t* _in = (const int16_t*)inputVector;
+    float* _out = (float*)outputVector;
+    unsigned int n = num_points;
 
-    const lv_16sc_t* _in = inputVector;
-    lv_32fc_t* _out = outputVector;
+    // Process 8 complex numbers per iteration using 64-bit loads
+    // This avoids vget_low/vget_high overhead
+    while (n >= 8) {
+        int16x4_t v0 = vld1_s16(_in);
+        int16x4_t v1 = vld1_s16(_in + 4);
+        int16x4_t v2 = vld1_s16(_in + 8);
+        int16x4_t v3 = vld1_s16(_in + 12);
+        __VOLK_PREFETCH(_in + 32);
 
-    int16x4_t a16x4;
-    int32x4_t a32x4;
-    float32x4_t f32x4;
-    unsigned int i, number;
+        vst1q_f32(_out, vcvtq_f32_s32(vmovl_s16(v0)));
+        vst1q_f32(_out + 4, vcvtq_f32_s32(vmovl_s16(v1)));
+        vst1q_f32(_out + 8, vcvtq_f32_s32(vmovl_s16(v2)));
+        vst1q_f32(_out + 12, vcvtq_f32_s32(vmovl_s16(v3)));
 
-    for (number = 0; number < sse_iters; number++) {
-        a16x4 = vld1_s16((const int16_t*)_in);
-        __VOLK_PREFETCH(_in + 4);
-        a32x4 = vmovl_s16(a16x4);
-        f32x4 = vcvtq_f32_s32(a32x4);
-        vst1q_f32((float32_t*)_out, f32x4);
-        _in += 2;
-        _out += 2;
+        _in += 16;
+        _out += 16;
+        n -= 8;
     }
-    for (i = 0; i < (num_points % 2); ++i) {
-        *_out++ = lv_cmake((float)lv_creal(*_in), (float)lv_cimag(*_in));
-        _in++;
+
+    // Handle remaining elements
+    while (n--) {
+        *_out++ = (float)*_in++;
+        *_out++ = (float)*_in++;
     }
 }
 #endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_16ic_convert_32fc_neonv8(lv_32fc_t* outputVector,
+                                                 const lv_16sc_t* inputVector,
+                                                 unsigned int num_points)
+{
+    const int16_t* _in = (const int16_t*)inputVector;
+    float* _out = (float*)outputVector;
+    unsigned int n = num_points;
+
+    /* Process 8 complex numbers per iteration using 64-bit loads */
+    while (n >= 8) {
+        int16x4_t v0 = vld1_s16(_in);
+        int16x4_t v1 = vld1_s16(_in + 4);
+        int16x4_t v2 = vld1_s16(_in + 8);
+        int16x4_t v3 = vld1_s16(_in + 12);
+        __VOLK_PREFETCH(_in + 32);
+
+        vst1q_f32(_out, vcvtq_f32_s32(vmovl_s16(v0)));
+        vst1q_f32(_out + 4, vcvtq_f32_s32(vmovl_s16(v1)));
+        vst1q_f32(_out + 8, vcvtq_f32_s32(vmovl_s16(v2)));
+        vst1q_f32(_out + 12, vcvtq_f32_s32(vmovl_s16(v3)));
+
+        _in += 16;
+        _out += 16;
+        n -= 8;
+    }
+
+    /* Handle remaining elements */
+    while (n--) {
+        *_out++ = (float)*_in++;
+        *_out++ = (float)*_in++;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
 
 #endif /* INCLUDED_volk_32fc_convert_16ic_a_H */
 
