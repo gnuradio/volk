@@ -304,7 +304,7 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_neon(lv_32fc_t* cVector,
     const lv_32fc_t* bPtr = bVector;
     const lv_32fc_t* aPtr = aVector;
     lv_32fc_t* cPtr = cVector;
-    unsigned int number = num_points;
+    unsigned int number = 0;
     unsigned int quarter_points = num_points / 4;
 
     float32x4x2_t a_val, b_val, c_val, scalar_val;
@@ -355,7 +355,7 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_neonv8(lv_32fc_t* cVector,
     const lv_32fc_t* bPtr = bVector;
     const lv_32fc_t* aPtr = aVector;
     lv_32fc_t* cPtr = cVector;
-    unsigned int number = num_points;
+    unsigned int number = 0;
     unsigned int quarter_points = num_points / 4;
 
     float32x4x2_t a_val, b_val, c_val;

@@ -383,7 +383,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_neon(lv_32fc_t* cVector,
 {
     lv_32fc_t* cPtr = cVector;
     const lv_32fc_t* aPtr = aVector;
-    unsigned int number = num_points;
+    unsigned int number = 0;
     unsigned int quarter_points = num_points / 4;
 
     float32x4x2_t a_val, scalar_val;
