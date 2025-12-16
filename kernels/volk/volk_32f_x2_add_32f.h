@@ -374,6 +374,56 @@ extern void volk_32f_x2_add_32f_a_neonpipeline(float* cVector,
 #endif /* LV_HAVE_NEONV7 */
 
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_add_32f_neonv8(float* cVector,
+                                              const float* aVector,
+                                              const float* bVector,
+                                              unsigned int num_points)
+{
+    unsigned int n = num_points;
+    float* c = cVector;
+    const float* a = aVector;
+    const float* b = bVector;
+
+    /* Process 8 floats per iteration (2x unroll) */
+    while (n >= 8) {
+        float32x4_t a0 = vld1q_f32(a);
+        float32x4_t a1 = vld1q_f32(a + 4);
+        float32x4_t b0 = vld1q_f32(b);
+        float32x4_t b1 = vld1q_f32(b + 4);
+        __VOLK_PREFETCH(a + 16);
+        __VOLK_PREFETCH(b + 16);
+
+        vst1q_f32(c, vaddq_f32(a0, b0));
+        vst1q_f32(c + 4, vaddq_f32(a1, b1));
+
+        a += 8;
+        b += 8;
+        c += 8;
+        n -= 8;
+    }
+
+    /* Process remaining 4 floats */
+    if (n >= 4) {
+        vst1q_f32(c, vaddq_f32(vld1q_f32(a), vld1q_f32(b)));
+        a += 4;
+        b += 4;
+        c += 4;
+        n -= 4;
+    }
+
+    /* Scalar tail */
+    while (n > 0) {
+        *c++ = *a++ + *b++;
+        n--;
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_ORC
 
 extern void volk_32f_x2_add_32f_a_orc_impl(float* cVector,

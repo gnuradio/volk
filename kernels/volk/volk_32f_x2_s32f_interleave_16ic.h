@@ -326,6 +326,120 @@ static inline void volk_32f_x2_s32f_interleave_16ic_u_avx2(lv_16sc_t* complexVec
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_s32f_interleave_16ic_neon(lv_16sc_t* complexVector,
+                                                         const float* iBuffer,
+                                                         const float* qBuffer,
+                                                         const float scalar,
+                                                         unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarter_points = num_points / 4;
+
+    const float* iBufferPtr = iBuffer;
+    const float* qBufferPtr = qBuffer;
+    int16_t* complexVectorPtr = (int16_t*)complexVector;
+
+    float32x4_t vScalar = vdupq_n_f32(scalar);
+
+    for (; number < quarter_points; number++) {
+        float32x4_t iValue = vld1q_f32(iBufferPtr);
+        float32x4_t qValue = vld1q_f32(qBufferPtr);
+
+        iValue = vmulq_f32(iValue, vScalar);
+        qValue = vmulq_f32(qValue, vScalar);
+
+        int32x4_t iInt = vcvtq_s32_f32(iValue);
+        int32x4_t qInt = vcvtq_s32_f32(qValue);
+
+        int16x4_t iShort = vqmovn_s32(iInt);
+        int16x4_t qShort = vqmovn_s32(qInt);
+
+        int16x4x2_t interleaved;
+        interleaved.val[0] = iShort;
+        interleaved.val[1] = qShort;
+        vst2_s16(complexVectorPtr, interleaved);
+
+        complexVectorPtr += 8;
+        iBufferPtr += 4;
+        qBufferPtr += 4;
+    }
+
+    number = quarter_points * 4;
+    complexVectorPtr = (int16_t*)(&complexVector[number]);
+    for (; number < num_points; number++) {
+        *complexVectorPtr++ = (int16_t)rintf(*iBufferPtr++ * scalar);
+        *complexVectorPtr++ = (int16_t)rintf(*qBufferPtr++ * scalar);
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_s32f_interleave_16ic_neonv8(lv_16sc_t* complexVector,
+                                                           const float* iBuffer,
+                                                           const float* qBuffer,
+                                                           const float scalar,
+                                                           unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighth_points = num_points / 8;
+
+    const float* iBufferPtr = iBuffer;
+    const float* qBufferPtr = qBuffer;
+    int16_t* complexVectorPtr = (int16_t*)complexVector;
+
+    float32x4_t vScalar = vdupq_n_f32(scalar);
+
+    for (; number < eighth_points; number++) {
+        float32x4_t iValue0 = vld1q_f32(iBufferPtr);
+        float32x4_t iValue1 = vld1q_f32(iBufferPtr + 4);
+        float32x4_t qValue0 = vld1q_f32(qBufferPtr);
+        float32x4_t qValue1 = vld1q_f32(qBufferPtr + 4);
+        __VOLK_PREFETCH(iBufferPtr + 8);
+        __VOLK_PREFETCH(qBufferPtr + 8);
+
+        iValue0 = vmulq_f32(iValue0, vScalar);
+        iValue1 = vmulq_f32(iValue1, vScalar);
+        qValue0 = vmulq_f32(qValue0, vScalar);
+        qValue1 = vmulq_f32(qValue1, vScalar);
+
+        int32x4_t iInt0 = vcvtnq_s32_f32(iValue0);
+        int32x4_t iInt1 = vcvtnq_s32_f32(iValue1);
+        int32x4_t qInt0 = vcvtnq_s32_f32(qValue0);
+        int32x4_t qInt1 = vcvtnq_s32_f32(qValue1);
+
+        int16x4_t iShort0 = vqmovn_s32(iInt0);
+        int16x4_t iShort1 = vqmovn_s32(iInt1);
+        int16x4_t qShort0 = vqmovn_s32(qInt0);
+        int16x4_t qShort1 = vqmovn_s32(qInt1);
+
+        int16x4x2_t interleaved0, interleaved1;
+        interleaved0.val[0] = iShort0;
+        interleaved0.val[1] = qShort0;
+        interleaved1.val[0] = iShort1;
+        interleaved1.val[1] = qShort1;
+
+        vst2_s16(complexVectorPtr, interleaved0);
+        vst2_s16(complexVectorPtr + 8, interleaved1);
+
+        complexVectorPtr += 16;
+        iBufferPtr += 8;
+        qBufferPtr += 8;
+    }
+
+    number = eighth_points * 8;
+    complexVectorPtr = (int16_t*)(&complexVector[number]);
+    for (; number < num_points; number++) {
+        *complexVectorPtr++ = (int16_t)rintf(*iBufferPtr++ * scalar);
+        *complexVectorPtr++ = (int16_t)rintf(*qBufferPtr++ * scalar);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

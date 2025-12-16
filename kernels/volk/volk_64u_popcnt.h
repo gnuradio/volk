@@ -116,6 +116,18 @@ static inline void volk_64u_popcnt_neon(uint64_t* ret, const uint64_t value)
 }
 #endif /*LV_HAVE_NEON*/
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_64u_popcnt_neonv8(uint64_t* ret, const uint64_t value)
+{
+    /* Same as neon, but using cleaner intrinsics available in ARMv8 */
+    uint8x8_t input_val = vreinterpret_u8_u64(vcreate_u64(value));
+    uint8x8_t count8x8_val = vcnt_u8(input_val);
+    *ret = vaddlv_u8(count8x8_val);
+}
+#endif /*LV_HAVE_NEONV8*/
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

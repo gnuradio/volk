@@ -266,6 +266,208 @@ volk_32f_exp_32f_generic(float* bVector, const float* aVector, unsigned int num_
 
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_32f_exp_32f_neon(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    unsigned int quarterPoints = num_points / 4;
+
+    // Constants
+    float32x4_t one = vdupq_n_f32(1.0f);
+    float32x4_t exp_hi = vdupq_n_f32(88.3762626647949f);
+    float32x4_t exp_lo = vdupq_n_f32(-88.3762626647949f);
+    float32x4_t log2EF = vdupq_n_f32(1.44269504088896341f);
+    float32x4_t half = vdupq_n_f32(0.5f);
+    float32x4_t exp_C1 = vdupq_n_f32(0.693359375f);
+    float32x4_t exp_C2 = vdupq_n_f32(-2.12194440e-4f);
+    int32x4_t pi32_0x7f = vdupq_n_s32(0x7f);
+
+    float32x4_t exp_p0 = vdupq_n_f32(1.9875691500e-4f);
+    float32x4_t exp_p1 = vdupq_n_f32(1.3981999507e-3f);
+    float32x4_t exp_p2 = vdupq_n_f32(8.3334519073e-3f);
+    float32x4_t exp_p3 = vdupq_n_f32(4.1665795894e-2f);
+    float32x4_t exp_p4 = vdupq_n_f32(1.6666665459e-1f);
+    float32x4_t exp_p5 = vdupq_n_f32(5.0000001201e-1f);
+
+    for (; number < quarterPoints; number++) {
+        float32x4_t aVal = vld1q_f32(aPtr);
+
+        // Clamp to valid range
+        aVal = vmaxq_f32(vminq_f32(aVal, exp_hi), exp_lo);
+
+        // express exp(x) as exp(g + n*log(2))
+        float32x4_t fx = vmlaq_f32(half, aVal, log2EF);
+
+        // Floor function
+        int32x4_t emm0 = vcvtq_s32_f32(fx);
+        float32x4_t tmp = vcvtq_f32_s32(emm0);
+
+        // If tmp > fx, subtract 1 (floor correction)
+        uint32x4_t mask = vcgtq_f32(tmp, fx);
+        float32x4_t mask_one = vbslq_f32(mask, one, vdupq_n_f32(0.0f));
+        fx = vsubq_f32(tmp, mask_one);
+
+        // Reduce x
+        tmp = vmulq_f32(fx, exp_C1);
+        float32x4_t z = vmulq_f32(fx, exp_C2);
+        aVal = vsubq_f32(vsubq_f32(aVal, tmp), z);
+        z = vmulq_f32(aVal, aVal);
+
+        // Polynomial approximation
+        float32x4_t y = vmlaq_f32(exp_p1, exp_p0, aVal);
+        y = vmulq_f32(y, aVal);
+        y = vaddq_f32(y, exp_p2);
+        y = vmulq_f32(y, aVal);
+        y = vaddq_f32(y, exp_p3);
+        y = vmlaq_f32(exp_p4, y, aVal);
+        y = vmulq_f32(y, aVal);
+        y = vaddq_f32(y, exp_p5);
+        y = vmlaq_f32(aVal, y, z);
+        y = vaddq_f32(y, one);
+
+        // Build 2^n
+        emm0 = vcvtq_s32_f32(fx);
+        emm0 = vaddq_s32(emm0, pi32_0x7f);
+        emm0 = vshlq_n_s32(emm0, 23);
+        float32x4_t pow2n = vreinterpretq_f32_s32(emm0);
+
+        float32x4_t bVal = vmulq_f32(y, pow2n);
+        vst1q_f32(bPtr, bVal);
+
+        aPtr += 4;
+        bPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *bPtr++ = expf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32f_exp_32f_neonv8(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    unsigned int eighthPoints = num_points / 8;
+
+    // Constants
+    float32x4_t one = vdupq_n_f32(1.0f);
+    float32x4_t exp_hi = vdupq_n_f32(88.3762626647949f);
+    float32x4_t exp_lo = vdupq_n_f32(-88.3762626647949f);
+    float32x4_t log2EF = vdupq_n_f32(1.44269504088896341f);
+    float32x4_t half = vdupq_n_f32(0.5f);
+    float32x4_t exp_C1 = vdupq_n_f32(0.693359375f);
+    float32x4_t exp_C2 = vdupq_n_f32(-2.12194440e-4f);
+    int32x4_t pi32_0x7f = vdupq_n_s32(0x7f);
+
+    float32x4_t exp_p0 = vdupq_n_f32(1.9875691500e-4f);
+    float32x4_t exp_p1 = vdupq_n_f32(1.3981999507e-3f);
+    float32x4_t exp_p2 = vdupq_n_f32(8.3334519073e-3f);
+    float32x4_t exp_p3 = vdupq_n_f32(4.1665795894e-2f);
+    float32x4_t exp_p4 = vdupq_n_f32(1.6666665459e-1f);
+    float32x4_t exp_p5 = vdupq_n_f32(5.0000001201e-1f);
+
+    for (; number < eighthPoints; number++) {
+        __VOLK_PREFETCH(aPtr + 16);
+
+        float32x4_t aVal0 = vld1q_f32(aPtr);
+        float32x4_t aVal1 = vld1q_f32(aPtr + 4);
+
+        // Clamp to valid range
+        aVal0 = vmaxq_f32(vminq_f32(aVal0, exp_hi), exp_lo);
+        aVal1 = vmaxq_f32(vminq_f32(aVal1, exp_hi), exp_lo);
+
+        // express exp(x) as exp(g + n*log(2))
+        float32x4_t fx0 = vfmaq_f32(half, aVal0, log2EF);
+        float32x4_t fx1 = vfmaq_f32(half, aVal1, log2EF);
+
+        // Floor function
+        int32x4_t emm0_0 = vcvtq_s32_f32(fx0);
+        int32x4_t emm0_1 = vcvtq_s32_f32(fx1);
+        float32x4_t tmp0 = vcvtq_f32_s32(emm0_0);
+        float32x4_t tmp1 = vcvtq_f32_s32(emm0_1);
+
+        // If tmp > fx, subtract 1 (floor correction)
+        uint32x4_t mask0 = vcgtq_f32(tmp0, fx0);
+        uint32x4_t mask1 = vcgtq_f32(tmp1, fx1);
+        float32x4_t mask_one0 = vbslq_f32(mask0, one, vdupq_n_f32(0.0f));
+        float32x4_t mask_one1 = vbslq_f32(mask1, one, vdupq_n_f32(0.0f));
+        fx0 = vsubq_f32(tmp0, mask_one0);
+        fx1 = vsubq_f32(tmp1, mask_one1);
+
+        // Reduce x
+        tmp0 = vmulq_f32(fx0, exp_C1);
+        tmp1 = vmulq_f32(fx1, exp_C1);
+        float32x4_t z0 = vmulq_f32(fx0, exp_C2);
+        float32x4_t z1 = vmulq_f32(fx1, exp_C2);
+        aVal0 = vsubq_f32(vsubq_f32(aVal0, tmp0), z0);
+        aVal1 = vsubq_f32(vsubq_f32(aVal1, tmp1), z1);
+        z0 = vmulq_f32(aVal0, aVal0);
+        z1 = vmulq_f32(aVal1, aVal1);
+
+        // Polynomial approximation using FMA
+        float32x4_t y0 = vfmaq_f32(exp_p1, exp_p0, aVal0);
+        float32x4_t y1 = vfmaq_f32(exp_p1, exp_p0, aVal1);
+        y0 = vmulq_f32(y0, aVal0);
+        y1 = vmulq_f32(y1, aVal1);
+        y0 = vaddq_f32(y0, exp_p2);
+        y1 = vaddq_f32(y1, exp_p2);
+        y0 = vmulq_f32(y0, aVal0);
+        y1 = vmulq_f32(y1, aVal1);
+        y0 = vaddq_f32(y0, exp_p3);
+        y1 = vaddq_f32(y1, exp_p3);
+        y0 = vfmaq_f32(exp_p4, y0, aVal0);
+        y1 = vfmaq_f32(exp_p4, y1, aVal1);
+        y0 = vmulq_f32(y0, aVal0);
+        y1 = vmulq_f32(y1, aVal1);
+        y0 = vaddq_f32(y0, exp_p5);
+        y1 = vaddq_f32(y1, exp_p5);
+        y0 = vfmaq_f32(aVal0, y0, z0);
+        y1 = vfmaq_f32(aVal1, y1, z1);
+        y0 = vaddq_f32(y0, one);
+        y1 = vaddq_f32(y1, one);
+
+        // Build 2^n
+        emm0_0 = vcvtq_s32_f32(fx0);
+        emm0_1 = vcvtq_s32_f32(fx1);
+        emm0_0 = vaddq_s32(emm0_0, pi32_0x7f);
+        emm0_1 = vaddq_s32(emm0_1, pi32_0x7f);
+        emm0_0 = vshlq_n_s32(emm0_0, 23);
+        emm0_1 = vshlq_n_s32(emm0_1, 23);
+        float32x4_t pow2n0 = vreinterpretq_f32_s32(emm0_0);
+        float32x4_t pow2n1 = vreinterpretq_f32_s32(emm0_1);
+
+        float32x4_t bVal0 = vmulq_f32(y0, pow2n0);
+        float32x4_t bVal1 = vmulq_f32(y1, pow2n1);
+        vst1q_f32(bPtr, bVal0);
+        vst1q_f32(bPtr + 4, bVal1);
+
+        aPtr += 8;
+        bPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *bPtr++ = expf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

@@ -314,6 +314,102 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_generic(float* target,
 
 #endif /*LV_HAVE_GENERIC*/
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_neon(float* target,
+                                                   const lv_32fc_t* src0,
+                                                   const lv_32fc_t* points,
+                                                   float scalar,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    // Load the reference symbol real and imag into vectors
+    const float32x4_t symbolReal = vdupq_n_f32(lv_creal(*src0));
+    const float32x4_t symbolImag = vdupq_n_f32(lv_cimag(*src0));
+    const float32x4_t vScalar = vdupq_n_f32(scalar);
+
+    for (; number < quarterPoints; number++) {
+        // Load 4 complex points (8 floats) and deinterleave
+        float32x4x2_t pts = vld2q_f32((const float*)points);
+        points += 4;
+
+        // Calculate difference
+        float32x4_t diffReal = vsubq_f32(symbolReal, pts.val[0]);
+        float32x4_t diffImag = vsubq_f32(symbolImag, pts.val[1]);
+
+        // Calculate squared magnitude and scale
+        float32x4_t result = vmulq_f32(diffReal, diffReal);
+        result = vmlaq_f32(result, diffImag, diffImag);
+        result = vmulq_f32(result, vScalar);
+
+        vst1q_f32(target, result);
+        target += 4;
+    }
+
+    // Handle remaining points
+    calculate_scaled_distances(
+        target, *src0, points, scalar, num_points - quarterPoints * 4);
+}
+
+#endif /*LV_HAVE_NEON*/
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32fc_x2_s32f_square_dist_scalar_mult_32f_neonv8(float* target,
+                                                     const lv_32fc_t* src0,
+                                                     const lv_32fc_t* points,
+                                                     float scalar,
+                                                     unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    // Load the reference symbol real and imag into vectors
+    const float32x4_t symbolReal = vdupq_n_f32(lv_creal(*src0));
+    const float32x4_t symbolImag = vdupq_n_f32(lv_cimag(*src0));
+    const float32x4_t vScalar = vdupq_n_f32(scalar);
+
+    for (; number < eighthPoints; number++) {
+        __VOLK_PREFETCH(points + 16);
+
+        // Load 8 complex points (16 floats) and deinterleave
+        float32x4x2_t pts0 = vld2q_f32((const float*)points);
+        float32x4x2_t pts1 = vld2q_f32((const float*)(points + 4));
+        points += 8;
+
+        // Calculate difference
+        float32x4_t diffReal0 = vsubq_f32(symbolReal, pts0.val[0]);
+        float32x4_t diffImag0 = vsubq_f32(symbolImag, pts0.val[1]);
+        float32x4_t diffReal1 = vsubq_f32(symbolReal, pts1.val[0]);
+        float32x4_t diffImag1 = vsubq_f32(symbolImag, pts1.val[1]);
+
+        // Calculate squared magnitude: real^2 + imag^2 using FMA
+        float32x4_t result0 =
+            vfmaq_f32(vmulq_f32(diffReal0, diffReal0), diffImag0, diffImag0);
+        float32x4_t result1 =
+            vfmaq_f32(vmulq_f32(diffReal1, diffReal1), diffImag1, diffImag1);
+
+        // Scale
+        result0 = vmulq_f32(result0, vScalar);
+        result1 = vmulq_f32(result1, vScalar);
+
+        vst1q_f32(target, result0);
+        vst1q_f32(target + 4, result1);
+        target += 8;
+    }
+
+    // Handle remaining points
+    const unsigned int remaining = num_points - eighthPoints * 8;
+    calculate_scaled_distances(target, *src0, points, scalar, remaining);
+}
+
+#endif /*LV_HAVE_NEONV8*/
 
 #endif /*INCLUDED_volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_H*/
 

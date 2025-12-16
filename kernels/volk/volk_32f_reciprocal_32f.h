@@ -198,6 +198,36 @@ volk_32f_reciprocal_32f_u_avx512(float* out, const float* in, unsigned int num_p
 }
 #endif /* LV_HAVE_AVX512F */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32f_reciprocal_32f_neonv8(float* out, const float* in, unsigned int num_points)
+{
+    const unsigned int eighth_points = num_points / 8;
+    float32x4_t vOne = vdupq_n_f32(1.0f);
+
+    for (unsigned int number = 0; number < eighth_points; number++) {
+        float32x4_t x0 = vld1q_f32(in);
+        float32x4_t x1 = vld1q_f32(in + 4);
+        __VOLK_PREFETCH(in + 8);
+        in += 8;
+
+        float32x4_t r0 = vdivq_f32(vOne, x0);
+        float32x4_t r1 = vdivq_f32(vOne, x1);
+
+        vst1q_f32(out, r0);
+        vst1q_f32(out + 4, r1);
+        out += 8;
+    }
+
+    const unsigned int done = eighth_points * 8;
+    for (unsigned int i = done; i < num_points; i++) {
+        *out++ = 1.0f / *in++;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

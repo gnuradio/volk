@@ -315,6 +315,45 @@ static inline void volk_64f_convert_32f_a_sse2(float* outputVector,
 }
 #endif /* LV_HAVE_SSE2 */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_64f_convert_32f_neonv8(float* outputVector,
+                                               const double* inputVector,
+                                               unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighth_points = num_points / 8;
+
+    const double* inputPtr = inputVector;
+    float* outputPtr = outputVector;
+
+    for (; number < eighth_points; number++) {
+        float64x2_t in0 = vld1q_f64(inputPtr);
+        float64x2_t in1 = vld1q_f64(inputPtr + 2);
+        float64x2_t in2 = vld1q_f64(inputPtr + 4);
+        float64x2_t in3 = vld1q_f64(inputPtr + 6);
+        __VOLK_PREFETCH(inputPtr + 8);
+
+        float32x2_t out0 = vcvt_f32_f64(in0);
+        float32x2_t out1 = vcvt_f32_f64(in1);
+        float32x2_t out2 = vcvt_f32_f64(in2);
+        float32x2_t out3 = vcvt_f32_f64(in3);
+
+        vst1q_f32(outputPtr, vcombine_f32(out0, out1));
+        vst1q_f32(outputPtr + 4, vcombine_f32(out2, out3));
+
+        inputPtr += 8;
+        outputPtr += 8;
+    }
+
+    number = eighth_points * 8;
+    for (; number < num_points; number++) {
+        *outputPtr++ = (float)(*inputPtr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

@@ -462,6 +462,52 @@ static inline void volk_16ic_x2_multiply_16ic_neon(lv_16sc_t* out,
 }
 #endif /* LV_HAVE_NEON */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_16ic_x2_multiply_16ic_neonv8(lv_16sc_t* out,
+                                                     const lv_16sc_t* in_a,
+                                                     const lv_16sc_t* in_b,
+                                                     unsigned int num_points)
+{
+    const lv_16sc_t* a_ptr = in_a;
+    const lv_16sc_t* b_ptr = in_b;
+    unsigned int eighth_points = num_points / 8;
+    unsigned int number;
+
+    /* Use 128-bit registers for 8 complex values per iteration */
+    int16x8x2_t a_val, b_val, c_val;
+    int16x8_t tmp_real, tmp_imag;
+
+    for (number = 0; number < eighth_points; ++number) {
+        a_val = vld2q_s16((int16_t*)a_ptr);
+        b_val = vld2q_s16((int16_t*)b_ptr);
+        __VOLK_PREFETCH(a_ptr + 16);
+        __VOLK_PREFETCH(b_ptr + 16);
+
+        /* real = ar*br - ai*bi */
+        tmp_real = vmulq_s16(a_val.val[0], b_val.val[0]);
+        tmp_real = vmlsq_s16(tmp_real, a_val.val[1], b_val.val[1]);
+
+        /* imag = ar*bi + ai*br */
+        tmp_imag = vmulq_s16(a_val.val[0], b_val.val[1]);
+        tmp_imag = vmlaq_s16(tmp_imag, a_val.val[1], b_val.val[0]);
+
+        c_val.val[0] = tmp_real;
+        c_val.val[1] = tmp_imag;
+        vst2q_s16((int16_t*)out, c_val);
+
+        a_ptr += 8;
+        b_ptr += 8;
+        out += 8;
+    }
+
+    for (number = eighth_points * 8; number < num_points; number++) {
+        *out++ = (*a_ptr++) * (*b_ptr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

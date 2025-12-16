@@ -261,6 +261,71 @@ static inline void volk_32f_binary_slicer_32i_u_avx(int* cVector,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_binary_slicer_32i_neon(int* cVector,
+                                                   const float* aVector,
+                                                   unsigned int num_points)
+{
+    int* cPtr = cVector;
+    const float* aPtr = aVector;
+    unsigned int number = 0;
+    const unsigned int quarter_points = num_points / 4;
+
+    float32x4_t zero_val = vdupq_n_f32(0.0f);
+
+    for (; number < quarter_points; number++) {
+        float32x4_t a_val = vld1q_f32(aPtr);
+        uint32x4_t cmp = vcgeq_f32(a_val, zero_val);
+        uint32x4_t result = vshrq_n_u32(cmp, 31);
+        vst1q_s32(cPtr, vreinterpretq_s32_u32(result));
+        aPtr += 4;
+        cPtr += 4;
+    }
+
+    for (number = quarter_points * 4; number < num_points; number++) {
+        *cPtr++ = (*aPtr++ >= 0) ? 1 : 0;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_binary_slicer_32i_neonv8(int* cVector,
+                                                     const float* aVector,
+                                                     unsigned int num_points)
+{
+    int* cPtr = cVector;
+    const float* aPtr = aVector;
+    unsigned int number = 0;
+    const unsigned int eighth_points = num_points / 8;
+
+    float32x4_t zero_val = vdupq_n_f32(0.0f);
+
+    for (; number < eighth_points; number++) {
+        float32x4_t a_val0 = vld1q_f32(aPtr);
+        float32x4_t a_val1 = vld1q_f32(aPtr + 4);
+        __VOLK_PREFETCH(aPtr + 8);
+
+        uint32x4_t cmp0 = vcgeq_f32(a_val0, zero_val);
+        uint32x4_t cmp1 = vcgeq_f32(a_val1, zero_val);
+        uint32x4_t result0 = vshrq_n_u32(cmp0, 31);
+        uint32x4_t result1 = vshrq_n_u32(cmp1, 31);
+
+        vst1q_s32(cPtr, vreinterpretq_s32_u32(result0));
+        vst1q_s32(cPtr + 4, vreinterpretq_s32_u32(result1));
+        aPtr += 8;
+        cPtr += 8;
+    }
+
+    for (number = eighth_points * 8; number < num_points; number++) {
+        *cPtr++ = (*aPtr++ >= 0) ? 1 : 0;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

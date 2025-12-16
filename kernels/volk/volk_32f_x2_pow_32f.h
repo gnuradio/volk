@@ -536,6 +536,238 @@ static inline void volk_32f_x2_pow_32f_generic(float* cVector,
 }
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_pow_32f_neon(float* cVector,
+                                            const float* bVector,
+                                            const float* aVector,
+                                            unsigned int num_points)
+{
+    float* cPtr = cVector;
+    const float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    // Constants
+    float32x4_t one = vdupq_n_f32(1.0f);
+    float32x4_t exp_hi = vdupq_n_f32(88.3762626647949f);
+    float32x4_t exp_lo = vdupq_n_f32(-88.3762626647949f);
+    float32x4_t ln2 = vdupq_n_f32(0.6931471805f);
+    float32x4_t log2EF = vdupq_n_f32(1.44269504088896341f);
+    float32x4_t half = vdupq_n_f32(0.5f);
+    float32x4_t exp_C1 = vdupq_n_f32(0.693359375f);
+    float32x4_t exp_C2 = vdupq_n_f32(-2.12194440e-4f);
+    int32x4_t pi32_0x7f = vdupq_n_s32(0x7f);
+    int32x4_t bias = vdupq_n_s32(127);
+    int32x4_t mantMask = vdupq_n_s32(0x7fffff);
+    int32x4_t expMask = vdupq_n_s32(0x7f800000);
+
+    // Polynomial coefficients for log
+    float32x4_t log_c0 = vdupq_n_f32(2.28330284476918490682f);
+    float32x4_t log_c1 = vdupq_n_f32(-1.04913055217340124191f);
+    float32x4_t log_c2 = vdupq_n_f32(0.204446009836232697516f);
+
+    // Polynomial coefficients for exp
+    float32x4_t exp_p0 = vdupq_n_f32(1.9875691500e-4f);
+    float32x4_t exp_p1 = vdupq_n_f32(1.3981999507e-3f);
+    float32x4_t exp_p2 = vdupq_n_f32(8.3334519073e-3f);
+    float32x4_t exp_p3 = vdupq_n_f32(4.1665795894e-2f);
+    float32x4_t exp_p4 = vdupq_n_f32(1.6666665459e-1f);
+    float32x4_t exp_p5 = vdupq_n_f32(5.0000001201e-1f);
+
+    for (; number < quarterPoints; number++) {
+        float32x4_t aVal = vld1q_f32(aPtr);
+
+        // First compute log(a)
+        int32x4_t aInt = vreinterpretq_s32_f32(aVal);
+        int32x4_t expPart = vsubq_s32(vshrq_n_s32(vandq_s32(aInt, expMask), 23), bias);
+        float32x4_t logarithm = vcvtq_f32_s32(expPart);
+
+        int32x4_t mantPart =
+            vorrq_s32(vandq_s32(aInt, mantMask), vreinterpretq_s32_f32(one));
+        float32x4_t frac = vreinterpretq_f32_s32(mantPart);
+
+        // Polynomial for log mantissa (degree 3)
+        float32x4_t mantissa = vmlaq_f32(log_c1, log_c2, frac);
+        mantissa = vmlaq_f32(log_c0, mantissa, frac);
+
+        float32x4_t fracMinusOne = vsubq_f32(frac, one);
+        logarithm = vmlaq_f32(logarithm, mantissa, fracMinusOne);
+        logarithm = vmulq_f32(logarithm, ln2);
+
+        // Now calculate b*log(a)
+        float32x4_t bVal = vld1q_f32(bPtr);
+        bVal = vmulq_f32(bVal, logarithm);
+
+        // Now compute exp(b*log(a))
+        bVal = vmaxq_f32(vminq_f32(bVal, exp_hi), exp_lo);
+
+        float32x4_t fx = vmlaq_f32(half, bVal, log2EF);
+
+        int32x4_t emm0 = vcvtq_s32_f32(fx);
+        float32x4_t tmp = vcvtq_f32_s32(emm0);
+
+        uint32x4_t mask = vcgtq_f32(tmp, fx);
+        float32x4_t mask_one = vbslq_f32(mask, one, vdupq_n_f32(0.0f));
+        fx = vsubq_f32(tmp, mask_one);
+
+        tmp = vmulq_f32(fx, exp_C1);
+        float32x4_t z = vmulq_f32(fx, exp_C2);
+        bVal = vsubq_f32(vsubq_f32(bVal, tmp), z);
+        z = vmulq_f32(bVal, bVal);
+
+        float32x4_t y = vmlaq_f32(exp_p1, exp_p0, bVal);
+        y = vmulq_f32(y, bVal);
+        y = vaddq_f32(y, exp_p2);
+        y = vmulq_f32(y, bVal);
+        y = vaddq_f32(y, exp_p3);
+        y = vmlaq_f32(exp_p4, y, bVal);
+        y = vmulq_f32(y, bVal);
+        y = vaddq_f32(y, exp_p5);
+        y = vmlaq_f32(bVal, y, z);
+        y = vaddq_f32(y, one);
+
+        emm0 = vcvtq_s32_f32(fx);
+        emm0 = vaddq_s32(emm0, pi32_0x7f);
+        emm0 = vshlq_n_s32(emm0, 23);
+        float32x4_t pow2n = vreinterpretq_f32_s32(emm0);
+
+        float32x4_t cVal = vmulq_f32(y, pow2n);
+        vst1q_f32(cPtr, cVal);
+
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *cPtr++ = powf(*aPtr++, *bPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_pow_32f_neonv8(float* cVector,
+                                              const float* bVector,
+                                              const float* aVector,
+                                              unsigned int num_points)
+{
+    float* cPtr = cVector;
+    const float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    // Constants
+    float32x4_t one = vdupq_n_f32(1.0f);
+    float32x4_t exp_hi = vdupq_n_f32(88.3762626647949f);
+    float32x4_t exp_lo = vdupq_n_f32(-88.3762626647949f);
+    float32x4_t ln2 = vdupq_n_f32(0.6931471805f);
+    float32x4_t log2EF = vdupq_n_f32(1.44269504088896341f);
+    float32x4_t half = vdupq_n_f32(0.5f);
+    float32x4_t exp_C1 = vdupq_n_f32(0.693359375f);
+    float32x4_t exp_C2 = vdupq_n_f32(-2.12194440e-4f);
+    int32x4_t pi32_0x7f = vdupq_n_s32(0x7f);
+    int32x4_t bias = vdupq_n_s32(127);
+    int32x4_t mantMask = vdupq_n_s32(0x7fffff);
+    int32x4_t expMask = vdupq_n_s32(0x7f800000);
+
+    // Polynomial coefficients for log
+    float32x4_t log_c0 = vdupq_n_f32(2.28330284476918490682f);
+    float32x4_t log_c1 = vdupq_n_f32(-1.04913055217340124191f);
+    float32x4_t log_c2 = vdupq_n_f32(0.204446009836232697516f);
+
+    // Polynomial coefficients for exp
+    float32x4_t exp_p0 = vdupq_n_f32(1.9875691500e-4f);
+    float32x4_t exp_p1 = vdupq_n_f32(1.3981999507e-3f);
+    float32x4_t exp_p2 = vdupq_n_f32(8.3334519073e-3f);
+    float32x4_t exp_p3 = vdupq_n_f32(4.1665795894e-2f);
+    float32x4_t exp_p4 = vdupq_n_f32(1.6666665459e-1f);
+    float32x4_t exp_p5 = vdupq_n_f32(5.0000001201e-1f);
+
+    for (; number < quarterPoints; number++) {
+        __VOLK_PREFETCH(aPtr + 8);
+        __VOLK_PREFETCH(bPtr + 8);
+
+        float32x4_t aVal = vld1q_f32(aPtr);
+
+        // First compute log(a)
+        int32x4_t aInt = vreinterpretq_s32_f32(aVal);
+        int32x4_t expPart = vsubq_s32(vshrq_n_s32(vandq_s32(aInt, expMask), 23), bias);
+        float32x4_t logarithm = vcvtq_f32_s32(expPart);
+
+        int32x4_t mantPart =
+            vorrq_s32(vandq_s32(aInt, mantMask), vreinterpretq_s32_f32(one));
+        float32x4_t frac = vreinterpretq_f32_s32(mantPart);
+
+        // Polynomial for log mantissa (degree 3)
+        float32x4_t mantissa = vfmaq_f32(log_c1, log_c2, frac);
+        mantissa = vfmaq_f32(log_c0, mantissa, frac);
+
+        float32x4_t fracMinusOne = vsubq_f32(frac, one);
+        logarithm = vfmaq_f32(logarithm, mantissa, fracMinusOne);
+        logarithm = vmulq_f32(logarithm, ln2);
+
+        // Now calculate b*log(a)
+        float32x4_t bVal = vld1q_f32(bPtr);
+        bVal = vmulq_f32(bVal, logarithm);
+
+        // Now compute exp(b*log(a))
+        bVal = vmaxq_f32(vminq_f32(bVal, exp_hi), exp_lo);
+
+        float32x4_t fx = vfmaq_f32(half, bVal, log2EF);
+
+        int32x4_t emm0 = vcvtq_s32_f32(fx);
+        float32x4_t tmp = vcvtq_f32_s32(emm0);
+
+        uint32x4_t mask = vcgtq_f32(tmp, fx);
+        float32x4_t mask_one = vbslq_f32(mask, one, vdupq_n_f32(0.0f));
+        fx = vsubq_f32(tmp, mask_one);
+
+        tmp = vmulq_f32(fx, exp_C1);
+        float32x4_t z = vmulq_f32(fx, exp_C2);
+        bVal = vsubq_f32(vsubq_f32(bVal, tmp), z);
+        z = vmulq_f32(bVal, bVal);
+
+        float32x4_t y = vfmaq_f32(exp_p1, exp_p0, bVal);
+        y = vmulq_f32(y, bVal);
+        y = vaddq_f32(y, exp_p2);
+        y = vmulq_f32(y, bVal);
+        y = vaddq_f32(y, exp_p3);
+        y = vfmaq_f32(exp_p4, y, bVal);
+        y = vmulq_f32(y, bVal);
+        y = vaddq_f32(y, exp_p5);
+        y = vfmaq_f32(bVal, y, z);
+        y = vaddq_f32(y, one);
+
+        emm0 = vcvtq_s32_f32(fx);
+        emm0 = vaddq_s32(emm0, pi32_0x7f);
+        emm0 = vshlq_n_s32(emm0, 23);
+        float32x4_t pow2n = vreinterpretq_f32_s32(emm0);
+
+        float32x4_t cVal = vmulq_f32(y, pow2n);
+        vst1q_f32(cPtr, cVal);
+
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *cPtr++ = powf(*aPtr++, *bPtr++);
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>

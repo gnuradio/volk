@@ -188,6 +188,59 @@ static inline void volk_32f_64f_multiply_64f_a_avx(double* cVector,
 
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_64f_multiply_64f_neonv8(double* cVector,
+                                                    const float* aVector,
+                                                    const double* bVector,
+                                                    unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighth_points = num_points / 8;
+
+    double* cPtr = cVector;
+    const float* aPtr = aVector;
+    const double* bPtr = bVector;
+
+    for (; number < eighth_points; number++) {
+        float32x4_t aVal0 = vld1q_f32(aPtr);
+        float32x4_t aVal1 = vld1q_f32(aPtr + 4);
+        __VOLK_PREFETCH(aPtr + 8);
+
+        float64x2_t bVal0 = vld1q_f64(bPtr);
+        float64x2_t bVal1 = vld1q_f64(bPtr + 2);
+        float64x2_t bVal2 = vld1q_f64(bPtr + 4);
+        float64x2_t bVal3 = vld1q_f64(bPtr + 6);
+        __VOLK_PREFETCH(bPtr + 8);
+
+        float64x2_t aDbl0 = vcvt_f64_f32(vget_low_f32(aVal0));
+        float64x2_t aDbl1 = vcvt_f64_f32(vget_high_f32(aVal0));
+        float64x2_t aDbl2 = vcvt_f64_f32(vget_low_f32(aVal1));
+        float64x2_t aDbl3 = vcvt_f64_f32(vget_high_f32(aVal1));
+
+        float64x2_t cVal0 = vmulq_f64(aDbl0, bVal0);
+        float64x2_t cVal1 = vmulq_f64(aDbl1, bVal1);
+        float64x2_t cVal2 = vmulq_f64(aDbl2, bVal2);
+        float64x2_t cVal3 = vmulq_f64(aDbl3, bVal3);
+
+        vst1q_f64(cPtr, cVal0);
+        vst1q_f64(cPtr + 2, cVal1);
+        vst1q_f64(cPtr + 4, cVal2);
+        vst1q_f64(cPtr + 6, cVal3);
+
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
+
+    number = eighth_points * 8;
+    for (; number < num_points; number++) {
+        *cPtr++ = ((double)(*aPtr++)) * (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 

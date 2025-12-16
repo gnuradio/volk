@@ -205,6 +205,131 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_neon(lv_32fc_t* outVector,
 #endif /* LV_HAVE_NEON */
 
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_s32fc_x2_rotator2_32fc_neonv8(lv_32fc_t* outVector,
+                                                           const lv_32fc_t* inVector,
+                                                           const lv_32fc_t* phase_inc,
+                                                           lv_32fc_t* phase,
+                                                           unsigned int num_points)
+{
+    lv_32fc_t* outputVectorPtr = outVector;
+    const lv_32fc_t* inputVectorPtr = inVector;
+    lv_32fc_t incr = 1;
+    lv_32fc_t phasePtr[4] = { (*phase), (*phase), (*phase), (*phase) };
+    float32x4x2_t input_vec;
+    float32x4x2_t output_vec;
+
+    unsigned int i = 0, j = 0;
+
+    for (i = 0; i < 4; ++i) {
+        phasePtr[i] *= incr;
+        incr *= (*phase_inc);
+    }
+
+    // Notice that incr has be incremented in the previous loop
+    const lv_32fc_t incrPtr[4] = { incr, incr, incr, incr };
+    const float32x4x2_t incr_vec = vld2q_f32((float*)incrPtr);
+    float32x4x2_t phase_vec = vld2q_f32((float*)phasePtr);
+
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
+        for (j = 0; j < ROTATOR_RELOAD_4; j++) {
+            input_vec = vld2q_f32((float*)inputVectorPtr);
+            __VOLK_PREFETCH(inputVectorPtr + 4);
+
+            // Complex multiply input * phase using FMA
+            // real = in_re * ph_re - in_im * ph_im
+            // imag = in_re * ph_im + in_im * ph_re
+            output_vec.val[0] = vfmsq_f32(vmulq_f32(input_vec.val[0], phase_vec.val[0]),
+                                          input_vec.val[1],
+                                          phase_vec.val[1]);
+            output_vec.val[1] = vfmaq_f32(vmulq_f32(input_vec.val[0], phase_vec.val[1]),
+                                          input_vec.val[1],
+                                          phase_vec.val[0]);
+
+            // Increase phase: phase *= incr using FMA
+            float32x4_t new_phase_re =
+                vfmsq_f32(vmulq_f32(phase_vec.val[0], incr_vec.val[0]),
+                          phase_vec.val[1],
+                          incr_vec.val[1]);
+            float32x4_t new_phase_im =
+                vfmaq_f32(vmulq_f32(phase_vec.val[0], incr_vec.val[1]),
+                          phase_vec.val[1],
+                          incr_vec.val[0]);
+            phase_vec.val[0] = new_phase_re;
+            phase_vec.val[1] = new_phase_im;
+
+            // Store output
+            vst2q_f32((float*)outputVectorPtr, output_vec);
+
+            outputVectorPtr += 4;
+            inputVectorPtr += 4;
+        }
+        // normalize phase using ARMv8 native sqrt and div
+        const float32x4_t mag_squared =
+            vfmaq_f32(vmulq_f32(phase_vec.val[0], phase_vec.val[0]),
+                      phase_vec.val[1],
+                      phase_vec.val[1]);
+        const float32x4_t mag = vsqrtq_f32(mag_squared);
+        phase_vec.val[0] = vdivq_f32(phase_vec.val[0], mag);
+        phase_vec.val[1] = vdivq_f32(phase_vec.val[1], mag);
+    }
+
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; i++) {
+        input_vec = vld2q_f32((float*)inputVectorPtr);
+        __VOLK_PREFETCH(inputVectorPtr + 4);
+
+        // Complex multiply using FMA
+        output_vec.val[0] = vfmsq_f32(vmulq_f32(input_vec.val[0], phase_vec.val[0]),
+                                      input_vec.val[1],
+                                      phase_vec.val[1]);
+        output_vec.val[1] = vfmaq_f32(vmulq_f32(input_vec.val[0], phase_vec.val[1]),
+                                      input_vec.val[1],
+                                      phase_vec.val[0]);
+
+        // Increase phase using FMA
+        float32x4_t new_phase_re = vfmsq_f32(vmulq_f32(phase_vec.val[0], incr_vec.val[0]),
+                                             phase_vec.val[1],
+                                             incr_vec.val[1]);
+        float32x4_t new_phase_im = vfmaq_f32(vmulq_f32(phase_vec.val[0], incr_vec.val[1]),
+                                             phase_vec.val[1],
+                                             incr_vec.val[0]);
+        phase_vec.val[0] = new_phase_re;
+        phase_vec.val[1] = new_phase_im;
+
+        // Store output
+        vst2q_f32((float*)outputVectorPtr, output_vec);
+
+        outputVectorPtr += 4;
+        inputVectorPtr += 4;
+    }
+    // if(i) == true means we looped above
+    if (i) {
+        // normalize phase using native sqrt/div
+        const float32x4_t mag_squared =
+            vfmaq_f32(vmulq_f32(phase_vec.val[0], phase_vec.val[0]),
+                      phase_vec.val[1],
+                      phase_vec.val[1]);
+        const float32x4_t mag = vsqrtq_f32(mag_squared);
+        phase_vec.val[0] = vdivq_f32(phase_vec.val[0], mag);
+        phase_vec.val[1] = vdivq_f32(phase_vec.val[1], mag);
+    }
+    // Store current phase
+    vst2q_f32((float*)phasePtr, phase_vec);
+
+    // Deal with the rest
+    for (i = 0; i < num_points % 4; i++) {
+        *outputVectorPtr++ = *inputVectorPtr++ * phasePtr[0];
+        phasePtr[0] *= (*phase_inc);
+    }
+
+    // For continuous phase next time we need to call this function
+    (*phase) = phasePtr[0];
+}
+#endif /* LV_HAVE_NEONV8 */
+
+
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 

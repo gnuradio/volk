@@ -776,6 +776,66 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_neon(lv_32fc_t* __restrict resu
 
 #endif /*LV_HAVE_NEON*/
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_32f_dot_prod_32fc_neonv8(lv_32fc_t* result,
+                                                      const lv_32fc_t* input,
+                                                      const float* taps,
+                                                      unsigned int num_points)
+{
+    const unsigned int eighthPoints = num_points / 8;
+    const float* inputPtr = (const float*)input;
+    const float* tapsPtr = taps;
+
+    /* Use 2 independent real/imag accumulators for FMA pipelining */
+    float32x4_t real_acc0 = vdupq_n_f32(0);
+    float32x4_t imag_acc0 = vdupq_n_f32(0);
+    float32x4_t real_acc1 = vdupq_n_f32(0);
+    float32x4_t imag_acc1 = vdupq_n_f32(0);
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        /* Load 8 complex values deinterleaved */
+        float32x4x2_t cplx0 = vld2q_f32(inputPtr);
+        float32x4x2_t cplx1 = vld2q_f32(inputPtr + 8);
+
+        /* Load 8 real taps */
+        float32x4_t taps0 = vld1q_f32(tapsPtr);
+        float32x4_t taps1 = vld1q_f32(tapsPtr + 4);
+        __VOLK_PREFETCH(inputPtr + 32);
+        __VOLK_PREFETCH(tapsPtr + 16);
+
+        /* FMA: acc += taps * complex */
+        real_acc0 = vfmaq_f32(real_acc0, taps0, cplx0.val[0]);
+        imag_acc0 = vfmaq_f32(imag_acc0, taps0, cplx0.val[1]);
+        real_acc1 = vfmaq_f32(real_acc1, taps1, cplx1.val[0]);
+        imag_acc1 = vfmaq_f32(imag_acc1, taps1, cplx1.val[1]);
+
+        inputPtr += 16;
+        tapsPtr += 8;
+    }
+
+    /* Combine accumulators */
+    real_acc0 = vaddq_f32(real_acc0, real_acc1);
+    imag_acc0 = vaddq_f32(imag_acc0, imag_acc1);
+
+    /* Horizontal sum */
+    float real_sum = vaddvq_f32(real_acc0);
+    float imag_sum = vaddvq_f32(imag_acc0);
+
+    lv_32fc_t returnValue = lv_cmake(real_sum, imag_sum);
+
+    /* Handle remainder */
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
+        returnValue += lv_cmake(inputPtr[0] * tapsPtr[0], inputPtr[1] * tapsPtr[0]);
+        inputPtr += 2;
+        tapsPtr += 1;
+    }
+
+    *result = returnValue;
+}
+#endif /*LV_HAVE_NEONV8*/
+
 #ifdef LV_HAVE_NEONV7
 extern void volk_32fc_32f_dot_prod_32fc_a_neonasm(lv_32fc_t* result,
                                                   const lv_32fc_t* input,

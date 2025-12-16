@@ -331,6 +331,77 @@ static inline void volk_32fc_index_min_16u_generic(uint16_t* target,
 
 #endif /*LV_HAVE_GENERIC*/
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+#include <float.h>
+
+static inline void
+volk_32fc_index_min_16u_neon(uint16_t* target, const lv_32fc_t* src0, uint32_t num_points)
+{
+    num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
+    uint32_t number = 0;
+    const uint32_t quarterPoints = num_points / 4;
+
+    const float* inputPtr = (const float*)src0;
+
+    float32x4_t minMagSquared = vdupq_n_f32(FLT_MAX);
+    float32x4_t minValuesIndex = vdupq_n_f32(0.0f);
+    float32x4_t currentIndexes = { 0.0f, 1.0f, 2.0f, 3.0f };
+    const float32x4_t indexIncrementValues = vdupq_n_f32(4.0f);
+
+    for (; number < quarterPoints; number++) {
+        float32x4x2_t input = vld2q_f32(inputPtr);
+        inputPtr += 8;
+
+        // Compute magnitude squared: real^2 + imag^2
+        float32x4_t magSquared = vmulq_f32(input.val[0], input.val[0]);
+        magSquared = vmlaq_f32(magSquared, input.val[1], input.val[1]);
+
+        // Compare current values with min values (less-than for min)
+        uint32x4_t compareResults = vcltq_f32(magSquared, minMagSquared);
+
+        // Select indices based on comparison
+        minValuesIndex = vbslq_f32(compareResults, currentIndexes, minValuesIndex);
+
+        // Update minimum values
+        minMagSquared = vminq_f32(magSquared, minMagSquared);
+
+        // Increment indices
+        currentIndexes = vaddq_f32(currentIndexes, indexIncrementValues);
+    }
+
+    // Find minimum across the vector
+    float minMagSquaredBuffer[4];
+    float minIndexBuffer[4];
+    vst1q_f32(minMagSquaredBuffer, minMagSquared);
+    vst1q_f32(minIndexBuffer, minValuesIndex);
+
+    float min = FLT_MAX;
+    uint32_t index = 0;
+    for (int i = 0; i < 4; i++) {
+        if (minMagSquaredBuffer[i] < min) {
+            min = minMagSquaredBuffer[i];
+            index = (uint32_t)minIndexBuffer[i];
+        }
+    }
+
+    // Handle remaining points
+    for (number = quarterPoints * 4; number < num_points; number++) {
+        float re = *inputPtr++;
+        float im = *inputPtr++;
+        float magSquared = re * re + im * im;
+        if (magSquared < min) {
+            index = number;
+            min = magSquared;
+        }
+    }
+
+    *target = index;
+}
+
+#endif /*LV_HAVE_NEON*/
+
 #endif /*INCLUDED_volk_32fc_index_min_16u_a_H*/
 
 #ifndef INCLUDED_volk_32fc_index_min_16u_u_H

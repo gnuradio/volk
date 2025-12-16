@@ -251,6 +251,120 @@ volk_32f_tanh_32f_a_avx_fma(float* cVector, const float* aVector, unsigned int n
 }
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void
+volk_32f_tanh_32f_neon(float* cVector, const float* aVector, unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+
+    // Polynomial coefficients for tanh approximation
+    const float32x4_t const1 = vdupq_n_f32(135135.0f);
+    const float32x4_t const2 = vdupq_n_f32(17325.0f);
+    const float32x4_t const3 = vdupq_n_f32(378.0f);
+    const float32x4_t const4 = vdupq_n_f32(62370.0f);
+    const float32x4_t const5 = vdupq_n_f32(3150.0f);
+    const float32x4_t const6 = vdupq_n_f32(28.0f);
+
+    for (; number < quarterPoints; number++) {
+        float32x4_t aVal = vld1q_f32(aPtr);
+        float32x4_t x2 = vmulq_f32(aVal, aVal);
+
+        // a = x * (135135 + x2 * (17325 + x2 * (378 + x2)))
+        float32x4_t inner_a = vaddq_f32(const3, x2);
+        inner_a = vmlaq_f32(const2, x2, inner_a);
+        inner_a = vmlaq_f32(const1, x2, inner_a);
+        float32x4_t a = vmulq_f32(aVal, inner_a);
+
+        // b = 135135 + x2 * (62370 + x2 * (3150 + x2 * 28))
+        float32x4_t inner_b = vmlaq_f32(const5, x2, const6);
+        inner_b = vmlaq_f32(const4, x2, inner_b);
+        float32x4_t b = vmlaq_f32(const1, x2, inner_b);
+
+        // c = a / b (use reciprocal approximation)
+        float32x4_t b_recip = vrecpeq_f32(b);
+        b_recip = vmulq_f32(b_recip, vrecpsq_f32(b, b_recip));
+        b_recip = vmulq_f32(b_recip, vrecpsq_f32(b, b_recip));
+        float32x4_t cVal = vmulq_f32(a, b_recip);
+
+        vst1q_f32(cPtr, cVal);
+        aPtr += 4;
+        cPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    volk_32f_tanh_32f_series(cPtr, aPtr, num_points - number);
+}
+
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32f_tanh_32f_neonv8(float* cVector, const float* aVector, unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+
+    // Polynomial coefficients for tanh approximation
+    const float32x4_t const1 = vdupq_n_f32(135135.0f);
+    const float32x4_t const2 = vdupq_n_f32(17325.0f);
+    const float32x4_t const3 = vdupq_n_f32(378.0f);
+    const float32x4_t const4 = vdupq_n_f32(62370.0f);
+    const float32x4_t const5 = vdupq_n_f32(3150.0f);
+    const float32x4_t const6 = vdupq_n_f32(28.0f);
+
+    for (; number < eighthPoints; number++) {
+        __VOLK_PREFETCH(aPtr + 16);
+
+        float32x4_t aVal0 = vld1q_f32(aPtr);
+        float32x4_t aVal1 = vld1q_f32(aPtr + 4);
+        float32x4_t x2_0 = vmulq_f32(aVal0, aVal0);
+        float32x4_t x2_1 = vmulq_f32(aVal1, aVal1);
+
+        // a = x * (135135 + x2 * (17325 + x2 * (378 + x2))) using FMA
+        float32x4_t inner_a0 = vaddq_f32(const3, x2_0);
+        float32x4_t inner_a1 = vaddq_f32(const3, x2_1);
+        inner_a0 = vfmaq_f32(const2, x2_0, inner_a0);
+        inner_a1 = vfmaq_f32(const2, x2_1, inner_a1);
+        inner_a0 = vfmaq_f32(const1, x2_0, inner_a0);
+        inner_a1 = vfmaq_f32(const1, x2_1, inner_a1);
+        float32x4_t a0 = vmulq_f32(aVal0, inner_a0);
+        float32x4_t a1 = vmulq_f32(aVal1, inner_a1);
+
+        // b = 135135 + x2 * (62370 + x2 * (3150 + x2 * 28)) using FMA
+        float32x4_t inner_b0 = vfmaq_f32(const5, x2_0, const6);
+        float32x4_t inner_b1 = vfmaq_f32(const5, x2_1, const6);
+        inner_b0 = vfmaq_f32(const4, x2_0, inner_b0);
+        inner_b1 = vfmaq_f32(const4, x2_1, inner_b1);
+        float32x4_t b0 = vfmaq_f32(const1, x2_0, inner_b0);
+        float32x4_t b1 = vfmaq_f32(const1, x2_1, inner_b1);
+
+        // c = a / b using native division
+        float32x4_t cVal0 = vdivq_f32(a0, b0);
+        float32x4_t cVal1 = vdivq_f32(a1, b1);
+
+        vst1q_f32(cPtr, cVal0);
+        vst1q_f32(cPtr + 4, cVal1);
+        aPtr += 8;
+        cPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    volk_32f_tanh_32f_series(cPtr, aPtr, num_points - number);
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
 #endif /* INCLUDED_volk_32f_tanh_32f_a_H */
 
 

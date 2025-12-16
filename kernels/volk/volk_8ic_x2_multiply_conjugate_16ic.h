@@ -192,6 +192,99 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_generic(lv_16sc_t* cVecto
 }
 #endif /* LV_HAVE_GENERIC */
 
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_8ic_x2_multiply_conjugate_16ic_neon(lv_16sc_t* cVector,
+                                                            const lv_8sc_t* aVector,
+                                                            const lv_8sc_t* bVector,
+                                                            unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    lv_16sc_t* cPtr = cVector;
+    const lv_8sc_t* aPtr = aVector;
+    const lv_8sc_t* bPtr = bVector;
+
+    int8x8x2_t aVal, bVal;
+    int16x8_t aReal, aImag, bReal, bImag;
+    int32x4_t realLo, realHi, imagLo, imagHi;
+    int16x4_t realNarrowLo, realNarrowHi, imagNarrowLo, imagNarrowHi;
+
+    for (; number < eighthPoints; number++) {
+        // Load 8 complex 8-bit values (deinterleaved)
+        aVal = vld2_s8((const int8_t*)aPtr);
+        bVal = vld2_s8((const int8_t*)bPtr);
+
+        // Widen to 16-bit
+        aReal = vmovl_s8(aVal.val[0]);
+        aImag = vmovl_s8(aVal.val[1]);
+        bReal = vmovl_s8(bVal.val[0]);
+        bImag = vmovl_s8(bVal.val[1]);
+
+        // Complex multiply with conjugate: (ar + ai*j) * (br - bi*j)
+        // real = ar*br + ai*bi
+        // imag = ai*br - ar*bi
+
+        // Low half (first 4 complex values)
+        realLo = vmlal_s16(vmull_s16(vget_low_s16(aReal), vget_low_s16(bReal)),
+                           vget_low_s16(aImag),
+                           vget_low_s16(bImag));
+        imagLo = vmlsl_s16(vmull_s16(vget_low_s16(aImag), vget_low_s16(bReal)),
+                           vget_low_s16(aReal),
+                           vget_low_s16(bImag));
+
+        // High half (next 4 complex values)
+        realHi = vmlal_s16(vmull_s16(vget_high_s16(aReal), vget_high_s16(bReal)),
+                           vget_high_s16(aImag),
+                           vget_high_s16(bImag));
+        imagHi = vmlsl_s16(vmull_s16(vget_high_s16(aImag), vget_high_s16(bReal)),
+                           vget_high_s16(aReal),
+                           vget_high_s16(bImag));
+
+        // Narrow with saturation to 16-bit
+        realNarrowLo = vqmovn_s32(realLo);
+        realNarrowHi = vqmovn_s32(realHi);
+        imagNarrowLo = vqmovn_s32(imagLo);
+        imagNarrowHi = vqmovn_s32(imagHi);
+
+        // Interleave real and imaginary
+        int16x8_t realResult = vcombine_s16(realNarrowLo, realNarrowHi);
+        int16x8_t imagResult = vcombine_s16(imagNarrowLo, imagNarrowHi);
+
+        // Store interleaved
+        int16x8x2_t result;
+        result.val[0] = realResult;
+        result.val[1] = imagResult;
+        vst2q_s16((int16_t*)cPtr, result);
+
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    int16_t* c16Ptr = (int16_t*)&cVector[number];
+    int8_t* a8Ptr = (int8_t*)&aVector[number];
+    int8_t* b8Ptr = (int8_t*)&bVector[number];
+    for (; number < num_points; number++) {
+        float aReal_f = (float)*a8Ptr++;
+        float aImag_f = (float)*a8Ptr++;
+        lv_32fc_t aVal_c = lv_cmake(aReal_f, aImag_f);
+        float bReal_f = (float)*b8Ptr++;
+        float bImag_f = (float)*b8Ptr++;
+        lv_32fc_t bVal_c = lv_cmake(bReal_f, -bImag_f);
+        lv_32fc_t temp = aVal_c * bVal_c;
+
+        *c16Ptr++ = (int16_t)(lv_creal(temp) > SHRT_MAX ? SHRT_MAX : lv_creal(temp));
+        *c16Ptr++ = (int16_t)lv_cimag(temp);
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+
 #endif /* INCLUDED_volk_8ic_x2_multiply_conjugate_16ic_a_H */
 
 #ifndef INCLUDED_volk_8ic_x2_multiply_conjugate_16ic_u_H
