@@ -16,8 +16,6 @@ if(HAVE_POSIX_MEMALIGN)
     add_definitions(-DHAVE_POSIX_MEMALIGN)
 endif(HAVE_POSIX_MEMALIGN)
 
-find_package(fmt REQUIRED)
-
 # MAKE volk_profile
 add_executable(
     volk_profile

@@ -677,8 +677,6 @@ endif(ENABLE_STATIC_LIBS)
 ########################################################################
 if(ENABLE_TESTING)
 
-    find_package(fmt REQUIRED)
-
     make_directory(${CMAKE_CURRENT_BINARY_DIR}/.unittest)
     include(VolkAddTest)
     if(ENABLE_STATIC_LIBS)

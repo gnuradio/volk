@@ -154,6 +154,19 @@ else()
     message(STATUS "Building Volk without cpu_features")
 endif()
 
+# fmt - required for qa_utils table printing
+find_package(fmt QUIET)
+if(NOT fmt_FOUND)
+    message(STATUS "fmt package not found. Using FetchContent to download ...")
+    include(FetchContent)
+    FetchContent_Declare(
+        fmt
+        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+        GIT_TAG 10.2.1
+        GIT_SHALLOW TRUE)
+    FetchContent_MakeAvailable(fmt)
+endif()
+
 # Python
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
 volk_python_check_module("python >= 3.4" sys "sys.version_info >= (3, 4)"
