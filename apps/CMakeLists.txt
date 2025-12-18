@@ -16,6 +16,8 @@ if(HAVE_POSIX_MEMALIGN)
     add_definitions(-DHAVE_POSIX_MEMALIGN)
 endif(HAVE_POSIX_MEMALIGN)
 
+find_package(fmt REQUIRED)
+
 # MAKE volk_profile
 add_executable(
     volk_profile
@@ -38,10 +40,10 @@ target_include_directories(
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(ENABLE_STATIC_LIBS)
-    target_link_libraries(volk_profile PRIVATE volk_static)
+    target_link_libraries(volk_profile PRIVATE volk_static fmt::fmt)
     set_target_properties(volk_profile PROPERTIES LINK_FLAGS "-static")
 else()
-    target_link_libraries(volk_profile PRIVATE volk)
+    target_link_libraries(volk_profile PRIVATE volk fmt::fmt)
 endif()
 
 install(

@@ -22,13 +22,13 @@
 #include <cmath>    // for sqrt, fabs, abs
 #include <cstring>  // for memcpy, memset
 #include <ctime>    // for clock
-#include <iomanip>  // for setw, left
-#include <iostream> // for cout, cerr
+#include <iostream> // for cerr
 #include <limits>   // for numeric_limits
 #include <map>      // for map, map<>::mappe...
 #include <random>
-#include <sstream> // for ostringstream
-#include <vector>  // for vector, _Bit_refe...
+#include <vector> // for vector, _Bit_refe...
+
+#include <fmt/core.h>
 
 // Warmup time for CPU frequency scaling (ms)
 static double g_warmup_ms = 2000.0;
@@ -623,51 +623,37 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
     if (fail_indices.empty())
         return;
 
-    // Column widths
-    const int w_idx = 7;
-    const int w_val = 10;
-    const int w_sci = 9;
-
     // Print header
-    std::cout << std::setw(w_idx) << "index";
+    fmt::print("{:>7}", "index");
     for (size_t k = 0; k < input_sigs.size(); k++) {
-        std::cout << " |" << std::setw(w_val) << ("in" + std::to_string(k));
+        fmt::print(" | {:>10}", fmt::format("in{}", k));
     }
-    std::cout << " |" << std::setw(w_val) << "expected" << " |" << std::setw(w_val)
-              << "actual" << " |" << std::setw(w_sci) << "rel_err" << " |"
-              << std::setw(w_sci) << "tol" << std::endl;
+    fmt::print(
+        " | {:>10} | {:>10} | {:>9} | {:>9}\n", "expected", "actual", "rel_err", "tol");
 
     // Print separator
-    std::cout << std::string(w_idx, '-');
+    fmt::print("{:-<7}", "");
     for (size_t k = 0; k < input_sigs.size(); k++) {
-        std::cout << "-+" << std::string(w_val, '-');
+        fmt::print("-+-{:-<10}", "");
     }
-    std::cout << "-+" << std::string(w_val, '-') << "-+" << std::string(w_val, '-')
-              << "-+" << std::string(w_sci, '-') << "-+" << std::string(w_sci, '-')
-              << std::endl;
+    fmt::print("-+-{:-<10}-+-{:-<10}-+-{:-<9}-+-{:-<9}\n", "", "", "", "");
 
     int print_count = 0;
     for (unsigned int idx : fail_indices) {
         if (print_count++ >= max_errors) {
-            std::cout << "... and " << (fail_indices.size() - max_errors)
-                      << " more errors" << std::endl;
+            fmt::print("... and {} more errors\n", fail_indices.size() - max_errors);
             break;
         }
 
-        std::cout << std::setw(w_idx) << idx;
+        fmt::print("{:>7}", idx);
 
-        // Print input values with fixed precision
-        std::cout << std::fixed << std::setprecision(4);
+        // Print input values
         for (size_t k = 0; k < input_sigs.size(); k++) {
-            std::cout << " |";
             if (input_sigs[k].is_float) {
-                if (input_sigs[k].size == 8) {
-                    std::cout << std::setw(w_val) << ((double*)inputs[k])[idx];
-                } else {
-                    std::cout << std::setw(w_val) << ((float*)inputs[k])[idx];
-                }
+                double val = (input_sigs[k].size == 8) ? ((double*)inputs[k])[idx]
+                                                       : ((float*)inputs[k])[idx];
+                fmt::print(" | {:>10.4f}", val);
             } else {
-                // Integer types
                 int64_t val = 0;
                 switch (input_sigs[k].size) {
                 case 8:
@@ -687,13 +673,12 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
                                                   : (int64_t)((uint8_t*)inputs[k])[idx];
                     break;
                 }
-                std::cout << std::setw(w_val) << val;
+                fmt::print(" | {:>10}", val);
             }
         }
 
-        // Print expected and actual, compute relative error
+        // Get expected and actual values, compute relative error
         double exp_val = 0, act_val = 0, rel_err = 0;
-        std::cout << " |";
         if (output_sig.is_float) {
             if (output_sig.size == 8) {
                 exp_val = ((double*)expected)[idx];
@@ -704,10 +689,8 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
             }
             double abs_err = fabs(exp_val - act_val);
             rel_err = (fabs(exp_val) > 1e-30) ? abs_err / fabs(exp_val) : abs_err;
-            std::cout << std::setw(w_val) << exp_val << " |" << std::setw(w_val)
-                      << act_val;
+            fmt::print(" | {:>10.4f} | {:>10.4f}", exp_val, act_val);
         } else {
-            // Integer output
             int64_t exp_i = 0, act_i = 0;
             switch (output_sig.size) {
             case 8:
@@ -735,17 +718,12 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
                                              : (int64_t)((uint8_t*)actual)[idx];
                 break;
             }
-            std::cout << std::setw(w_val) << exp_i << " |" << std::setw(w_val) << act_i;
+            fmt::print(" | {:>10} | {:>10}", exp_i, act_i);
             double abs_err = (double)abs(exp_i - act_i);
             rel_err = (exp_i != 0) ? abs_err / fabs((double)exp_i) : abs_err;
         }
 
-        // Print relative error and tolerance in scientific notation
-        std::cout << " |" << std::scientific << std::setprecision(1) << std::setw(w_sci)
-                  << rel_err << " |" << std::setw(w_sci) << (double)tol << std::endl;
-
-        // Reset to fixed for next row
-        std::cout << std::fixed;
+        fmt::print(" | {:>9.1e} | {:>9.1e}\n", rel_err, (double)tol);
     }
 }
 
@@ -821,10 +799,8 @@ bool run_volk_tests(volk_func_desc_t desc,
     results->back().name = name;
     results->back().vlen = vlen;
     results->back().iter = iter;
-    std::cout << std::endl; // Blank line for separation
-    std::cout << "RUN_VOLK_TESTS: " << name << "(vlen=" << vlen << ", iter=" << iter
-              << ", tol=" << std::scientific << std::setprecision(0) << tol << ")"
-              << std::fixed << std::endl;
+    fmt::print(
+        "\nRUN_VOLK_TESTS: {}(vlen={}, iter={}, tol={:.0e})\n", name, vlen, iter, tol);
 
     // vlen_twiddle will increase vlen for malloc and data generation
     // but kernels will still be called with the user provided vlen.
@@ -1458,67 +1434,72 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
-    // Column widths for table
-    const int w_arch = 14;
-    const int w_time = 12;
-    const int w_tput = 14;
-    const int w_err = 10;
+    // Column widths for results table
+    constexpr int w_arch = 20;
+    constexpr int w_time = 12;
+    constexpr int w_tput = 14;
+    constexpr int w_err = 10;
 
     // Print table header
-    std::cout << std::left << std::setw(w_arch) << "arch" << " |" << std::right
-              << std::setw(w_time) << "time" << " |" << std::setw(w_tput) << "throughput"
-              << " |" << std::setw(w_err) << "max_err" << " |" << std::endl;
-    std::cout << std::string(w_arch, '-') << "-+" << std::string(w_time, '-') << "-+"
-              << std::string(w_tput, '-') << "-+" << std::string(w_err, '-') << "-+"
-              << std::endl;
+    fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} |\n",
+               "arch",
+               w_arch,
+               "time",
+               w_time,
+               "throughput",
+               w_tput,
+               "max_err",
+               w_err);
+    fmt::print("{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+\n",
+               "",
+               w_arch,
+               "",
+               w_time,
+               "",
+               w_tput,
+               "",
+               w_err);
 
     // Print each architecture row
     for (size_t i = 0; i < arch_list.size(); i++) {
         double time_seconds = profile_times[i] / 1000.0;
         double throughput_mbps = total_mb / time_seconds;
 
-        std::ostringstream time_str, tput_str, err_str;
-        time_str << std::fixed << std::setprecision(4) << profile_times[i] << " ms";
-        tput_str << std::fixed << std::setprecision(1) << throughput_mbps << " MB/s";
+        std::string time_str = fmt::format("{:.4f} ms", profile_times[i]);
+        std::string tput_str = fmt::format("{:.1f} MB/s", throughput_mbps);
+        std::string err_str = (arch_list[i] == "generic")
+                                  ? "-"
+                                  : fmt::format("{:.1e}", arch_max_rel_err[i]);
+        std::string win_str =
+            (arch_list[i] == best_arch_a || arch_list[i] == best_arch_u) ? " *" : "";
 
-        // Format max_rel_err (generic has no error against itself)
-        if (arch_list[i] == "generic") {
-            err_str << "-";
-        } else {
-            err_str << std::scientific << std::setprecision(1) << arch_max_rel_err[i];
-        }
-
-        // Star in win column for best arch
-        std::string win_str = "";
-        if (arch_list[i] == best_arch_a || arch_list[i] == best_arch_u) {
-            win_str = " *";
-        }
-
-        std::cout << std::left << std::setw(w_arch) << arch_list[i] << " |" << std::right
-                  << std::setw(w_time) << time_str.str() << " |" << std::setw(w_tput)
-                  << tput_str.str() << " |" << std::setw(w_err) << err_str.str() << " |"
-                  << win_str << std::endl;
+        fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} |{}\n",
+                   arch_list[i],
+                   w_arch,
+                   time_str,
+                   w_time,
+                   tput_str,
+                   w_tput,
+                   err_str,
+                   w_err,
+                   win_str);
     }
 
-    // Print best arch summary
-    const int label_width = 21; // "Best unaligned arch: " length
+    // Print best arch summary (left-aligned, ":" at arch column width)
     auto print_best_line = [&](const char* label, const std::string& arch, double time) {
-        std::ostringstream speedup_str;
+        std::string speedup_str;
         if (arch != "generic" && generic_time > 0) {
-            double speedup = generic_time / time;
-            speedup_str << " (" << std::fixed << std::setprecision(2) << speedup << "x)";
+            speedup_str = fmt::format(" ({:.2f}x)", generic_time / time);
         }
-        std::cout << std::setw(label_width) << std::right << label << " " << arch
-                  << speedup_str.str() << std::endl;
+        fmt::print("{:<{}} {}{}\n", label, w_arch, arch, speedup_str);
     };
 
-    print_best_line("Best aligned arch  :   ", best_arch_a, best_time_a);
-    print_best_line("Best unaligned arch:   ", best_arch_u, best_time_u);
+    print_best_line("Best aligned arch    |", best_arch_a, best_time_a);
+    print_best_line("Best unaligned arch  |", best_arch_u, best_time_u);
 
     // Print failure details after timing summary
     for (const auto& fi : failures) {
-        std::cout << std::endl;
-        std::cout << name << ": fail on arch " << fi.arch_name << std::endl;
+        fmt::print("\n{}: fail on arch {}\n", name, fi.arch_name);
         print_error_table(fi.fail_indices,
                           input_buffs,
                           inputsig,
@@ -1528,7 +1509,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                           tol_f);
     }
 
-    std::cout << std::string(80, '-') << std::endl;
+    fmt::print("{:-<80}\n", "");
 
     if (puppet_master_name == "NULL") {
         results->back().config_name = name;

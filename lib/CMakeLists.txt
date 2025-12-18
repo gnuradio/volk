@@ -677,6 +677,8 @@ endif(ENABLE_STATIC_LIBS)
 ########################################################################
 if(ENABLE_TESTING)
 
+    find_package(fmt REQUIRED)
+
     make_directory(${CMAKE_CURRENT_BINARY_DIR}/.unittest)
     include(VolkAddTest)
     if(ENABLE_STATIC_LIBS)
@@ -686,6 +688,8 @@ if(ENABLE_TESTING)
         volk_gen_test(volk_test_all SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testqa.cc
                       ${CMAKE_CURRENT_SOURCE_DIR}/qa_utils.cc TARGET_DEPS volk)
     endif()
+    target_link_libraries(volk_test_all fmt::fmt)
+
     foreach(kernel ${h_files})
         get_filename_component(kernel ${kernel} NAME)
         string(REPLACE ".h" "" kernel ${kernel})
