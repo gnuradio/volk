@@ -155,16 +155,26 @@ else()
 endif()
 
 # fmt - required for qa_utils table printing
-find_package(fmt QUIET)
+# For static builds, always use FetchContent to ensure we get a static library
+if(NOT ENABLE_STATIC_LIBS)
+    find_package(fmt QUIET)
+endif()
 if(NOT fmt_FOUND)
-    message(STATUS "fmt package not found. Using FetchContent to download ...")
+    if(ENABLE_STATIC_LIBS)
+        message(STATUS "Static build: using FetchContent to build fmt as static library ...")
+    else()
+        message(STATUS "fmt package not found. Using FetchContent to download ...")
+    endif()
     include(FetchContent)
     FetchContent_Declare(
         fmt
         GIT_REPOSITORY https://github.com/fmtlib/fmt.git
         GIT_TAG 10.2.1
         GIT_SHALLOW TRUE)
+    set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
+    set(BUILD_SHARED_LIBS OFF)
     FetchContent_MakeAvailable(fmt)
+    set(BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS_SAVED}")
 endif()
 
 # Python
