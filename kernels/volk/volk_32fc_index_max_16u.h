@@ -308,6 +308,150 @@ static inline void volk_32fc_index_max_16u_a_sse3(uint16_t* target,
 
 #endif /*LV_HAVE_SSE3*/
 
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+#include <float.h>
+#include <limits.h>
+#include <volk/volk_neon_intrinsics.h>
+
+static inline void
+volk_32fc_index_max_16u_neon(uint16_t* target, const lv_32fc_t* src0, uint32_t num_points)
+{
+    num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
+    if (num_points == 0)
+        return;
+
+    const uint32_t quarter_points = num_points / 4;
+    const lv_32fc_t* inputPtr = src0;
+
+    // Use integer indices directly
+    uint32x4_t vec_indices = { 0, 1, 2, 3 };
+    const uint32x4_t vec_incr = vdupq_n_u32(4);
+
+    float32x4_t vec_max = vdupq_n_f32(0.0f);
+    uint32x4_t vec_max_idx = vdupq_n_u32(0);
+
+    for (uint32_t i = 0; i < quarter_points; i++) {
+        // Load and deinterleave complex values
+        float32x4x2_t cplx = vld2q_f32((const float*)inputPtr);
+        inputPtr += 4;
+
+        // Magnitude squared: re*re + im*im
+        float32x4_t mag2 =
+            vmlaq_f32(vmulq_f32(cplx.val[0], cplx.val[0]), cplx.val[1], cplx.val[1]);
+
+        // Compare BEFORE max update to know which lanes change
+        uint32x4_t gt_mask = vcgtq_f32(mag2, vec_max);
+        vec_max_idx = vbslq_u32(gt_mask, vec_indices, vec_max_idx);
+
+        // vmaxq_f32 is single-cycle, no dependency on comparison result
+        vec_max = vmaxq_f32(mag2, vec_max);
+
+        vec_indices = vaddq_u32(vec_indices, vec_incr);
+    }
+
+    // Scalar reduction
+    __VOLK_ATTR_ALIGNED(16) float max_buf[4];
+    __VOLK_ATTR_ALIGNED(16) uint32_t idx_buf[4];
+    vst1q_f32(max_buf, vec_max);
+    vst1q_u32(idx_buf, vec_max_idx);
+
+    float max_val = max_buf[0];
+    uint32_t result_idx = idx_buf[0];
+    for (int i = 1; i < 4; i++) {
+        if (max_buf[i] > max_val) {
+            max_val = max_buf[i];
+            result_idx = idx_buf[i];
+        } else if (max_buf[i] == max_val && idx_buf[i] < result_idx) {
+            result_idx = idx_buf[i];
+        }
+    }
+
+    // Handle tail
+    for (uint32_t i = quarter_points * 4; i < num_points; i++) {
+        float re = lv_creal(src0[i]);
+        float im = lv_cimag(src0[i]);
+        float mag2 = re * re + im * im;
+        if (mag2 > max_val) {
+            max_val = mag2;
+            result_idx = i;
+        }
+    }
+
+    *target = (uint16_t)result_idx;
+}
+
+#endif /*LV_HAVE_NEON*/
+
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+#include <float.h>
+#include <limits.h>
+
+static inline void volk_32fc_index_max_16u_neonv8(uint16_t* target,
+                                                  const lv_32fc_t* src0,
+                                                  uint32_t num_points)
+{
+    num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
+    if (num_points == 0)
+        return;
+
+    const uint32_t quarter_points = num_points / 4;
+    const lv_32fc_t* inputPtr = src0;
+
+    // Use integer indices directly (no float conversion overhead)
+    uint32x4_t vec_indices = { 0, 1, 2, 3 };
+    const uint32x4_t vec_incr = vdupq_n_u32(4);
+
+    float32x4_t vec_max = vdupq_n_f32(0.0f);
+    uint32x4_t vec_max_idx = vdupq_n_u32(0);
+
+    for (uint32_t i = 0; i < quarter_points; i++) {
+        // Load and deinterleave complex values
+        float32x4x2_t cplx = vld2q_f32((const float*)inputPtr);
+        inputPtr += 4;
+
+        // Magnitude squared using FMA: re*re + im*im
+        float32x4_t mag2 =
+            vfmaq_f32(vmulq_f32(cplx.val[0], cplx.val[0]), cplx.val[1], cplx.val[1]);
+
+        // Compare BEFORE max update to know which lanes change
+        uint32x4_t gt_mask = vcgtq_f32(mag2, vec_max);
+        vec_max_idx = vbslq_u32(gt_mask, vec_indices, vec_max_idx);
+
+        // vmaxq_f32 is single-cycle, no dependency on comparison result
+        vec_max = vmaxq_f32(mag2, vec_max);
+
+        vec_indices = vaddq_u32(vec_indices, vec_incr);
+    }
+
+    // ARMv8 horizontal reduction
+    float max_val = vmaxvq_f32(vec_max);
+    uint32x4_t max_mask = vceqq_f32(vec_max, vdupq_n_f32(max_val));
+    uint32x4_t idx_masked = vbslq_u32(max_mask, vec_max_idx, vdupq_n_u32(UINT32_MAX));
+    uint32_t result_idx = vminvq_u32(idx_masked);
+
+    // Handle tail
+    for (uint32_t i = quarter_points * 4; i < num_points; i++) {
+        float re = lv_creal(src0[i]);
+        float im = lv_cimag(src0[i]);
+        float mag2 = re * re + im * im;
+        if (mag2 > max_val) {
+            max_val = mag2;
+            result_idx = i;
+        }
+    }
+
+    *target = (uint16_t)result_idx;
+}
+
+#endif /*LV_HAVE_NEONV8*/
+
+
 #ifdef LV_HAVE_GENERIC
 static inline void volk_32fc_index_max_16u_generic(uint16_t* target,
                                                    const lv_32fc_t* src0,
@@ -336,6 +480,90 @@ static inline void volk_32fc_index_max_16u_generic(uint16_t* target,
 }
 
 #endif /*LV_HAVE_GENERIC*/
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+#include <limits.h>
+
+static inline void volk_32fc_index_max_16u_a_avx512f(uint16_t* target,
+                                                     const lv_32fc_t* src0,
+                                                     uint32_t num_points)
+{
+    num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
+
+    const lv_32fc_t* src0Ptr = src0;
+    const uint32_t sixteenthPoints = num_points / 16;
+
+    // Index ordering after shuffle: [0,1,8,9, 2,3,10,11, 4,5,12,13, 6,7,14,15]
+    __m512 currentIndexes =
+        _mm512_setr_ps(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
+    const __m512 indexIncrement = _mm512_set1_ps(16);
+
+    __m512 maxValues = _mm512_setzero_ps();
+    __m512 maxIndices = _mm512_setzero_ps();
+
+    for (uint32_t number = 0; number < sixteenthPoints; number++) {
+        // Load 16 complex values (32 floats)
+        __m512 in0 = _mm512_load_ps((const float*)src0Ptr);
+        __m512 in1 = _mm512_load_ps((const float*)(src0Ptr + 8));
+        src0Ptr += 16;
+
+        // Square all values
+        in0 = _mm512_mul_ps(in0, in0);
+        in1 = _mm512_mul_ps(in1, in1);
+
+        // Add adjacent pairs (re² + im²) using within-lane shuffle
+        // 0xB1 = _MM_SHUFFLE(2,3,0,1) swaps adjacent elements
+        __m512 sw0 = _mm512_shuffle_ps(in0, in0, 0xB1);
+        __m512 sw1 = _mm512_shuffle_ps(in1, in1, 0xB1);
+        __m512 sum0 = _mm512_add_ps(in0, sw0);
+        __m512 sum1 = _mm512_add_ps(in1, sw1);
+
+        // Compact: pick elements 0,2 from sum0 and sum1 per 128-bit lane
+        // 0x88 = _MM_SHUFFLE(2,0,2,0)
+        __m512 mag_sq = _mm512_shuffle_ps(sum0, sum1, 0x88);
+
+        // Compare and update maximums
+        __mmask16 cmpMask = _mm512_cmp_ps_mask(mag_sq, maxValues, _CMP_GT_OS);
+        maxIndices = _mm512_mask_blend_ps(cmpMask, maxIndices, currentIndexes);
+        maxValues = _mm512_max_ps(mag_sq, maxValues);
+
+        currentIndexes = _mm512_add_ps(currentIndexes, indexIncrement);
+    }
+
+    // Reduce 16 values to find maximum
+    __VOLK_ATTR_ALIGNED(64) float maxValuesBuffer[16];
+    __VOLK_ATTR_ALIGNED(64) float maxIndexesBuffer[16];
+    _mm512_store_ps(maxValuesBuffer, maxValues);
+    _mm512_store_ps(maxIndexesBuffer, maxIndices);
+
+    float max = 0.0f;
+    uint32_t index = 0;
+    for (uint32_t i = 0; i < 16; i++) {
+        if (maxValuesBuffer[i] > max) {
+            max = maxValuesBuffer[i];
+            index = (uint32_t)maxIndexesBuffer[i];
+        } else if (maxValuesBuffer[i] == max) {
+            if ((uint32_t)maxIndexesBuffer[i] < index)
+                index = (uint32_t)maxIndexesBuffer[i];
+        }
+    }
+
+    // Handle tail
+    for (uint32_t number = sixteenthPoints * 16; number < num_points; number++) {
+        const float re = lv_creal(*src0Ptr);
+        const float im = lv_cimag(*src0Ptr);
+        const float sq_dist = re * re + im * im;
+        if (sq_dist > max) {
+            max = sq_dist;
+            index = number;
+        }
+        src0Ptr++;
+    }
+    *target = (uint16_t)index;
+}
+
+#endif /*LV_HAVE_AVX512F*/
 
 #endif /*INCLUDED_volk_32fc_index_max_16u_a_H*/
 
@@ -468,69 +696,89 @@ static inline void volk_32fc_index_max_16u_u_avx2_variant_1(uint16_t* target,
 
 #endif /*LV_HAVE_AVX2*/
 
-#ifdef LV_HAVE_NEON
-#include <arm_neon.h>
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+#include <limits.h>
 
-static inline void
-volk_32fc_index_max_16u_neon(uint16_t* target, const lv_32fc_t* src0, uint32_t num_points)
+static inline void volk_32fc_index_max_16u_u_avx512f(uint16_t* target,
+                                                     const lv_32fc_t* src0,
+                                                     uint32_t num_points)
 {
     num_points = (num_points > USHRT_MAX) ? USHRT_MAX : num_points;
 
-    uint32_t number = 0;
-    const uint32_t quarterPoints = num_points / 4;
+    const lv_32fc_t* src0Ptr = src0;
+    const uint32_t sixteenthPoints = num_points / 16;
 
-    const float* inputPtr = (const float*)src0;
+    // Index ordering after shuffle: [0,1,8,9, 2,3,10,11, 4,5,12,13, 6,7,14,15]
+    __m512 currentIndexes =
+        _mm512_setr_ps(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
+    const __m512 indexIncrement = _mm512_set1_ps(16);
 
-    float32x4_t indexIncrementValues = vdupq_n_f32(4.0f);
-    float32x4_t currentIndexes = { 0.0f, 1.0f, 2.0f, 3.0f };
+    __m512 maxValues = _mm512_setzero_ps();
+    __m512 maxIndices = _mm512_setzero_ps();
+
+    for (uint32_t number = 0; number < sixteenthPoints; number++) {
+        // Load 16 complex values (32 floats)
+        __m512 in0 = _mm512_loadu_ps((const float*)src0Ptr);
+        __m512 in1 = _mm512_loadu_ps((const float*)(src0Ptr + 8));
+        src0Ptr += 16;
+
+        // Square all values
+        in0 = _mm512_mul_ps(in0, in0);
+        in1 = _mm512_mul_ps(in1, in1);
+
+        // Add adjacent pairs (re² + im²) using within-lane shuffle
+        // 0xB1 = _MM_SHUFFLE(2,3,0,1) swaps adjacent elements
+        __m512 sw0 = _mm512_shuffle_ps(in0, in0, 0xB1);
+        __m512 sw1 = _mm512_shuffle_ps(in1, in1, 0xB1);
+        __m512 sum0 = _mm512_add_ps(in0, sw0);
+        __m512 sum1 = _mm512_add_ps(in1, sw1);
+
+        // Compact: pick elements 0,2 from sum0 and sum1 per 128-bit lane
+        // 0x88 = _MM_SHUFFLE(2,0,2,0)
+        __m512 mag_sq = _mm512_shuffle_ps(sum0, sum1, 0x88);
+
+        // Compare and update maximums
+        __mmask16 cmpMask = _mm512_cmp_ps_mask(mag_sq, maxValues, _CMP_GT_OS);
+        maxIndices = _mm512_mask_blend_ps(cmpMask, maxIndices, currentIndexes);
+        maxValues = _mm512_max_ps(mag_sq, maxValues);
+
+        currentIndexes = _mm512_add_ps(currentIndexes, indexIncrement);
+    }
+
+    // Reduce 16 values to find maximum
+    __VOLK_ATTR_ALIGNED(64) float maxValuesBuffer[16];
+    __VOLK_ATTR_ALIGNED(64) float maxIndexesBuffer[16];
+    _mm512_store_ps(maxValuesBuffer, maxValues);
+    _mm512_store_ps(maxIndexesBuffer, maxIndices);
 
     float max = 0.0f;
-    float index = 0;
-    float32x4_t maxMagSquared = vdupq_n_f32(0.0f);
-    float32x4_t maxValuesIndex = vdupq_n_f32(0.0f);
-
-    for (; number < quarterPoints; number++) {
-        float32x4x2_t input = vld2q_f32(inputPtr);
-        inputPtr += 8;
-
-        /* Compute magnitude squared: real^2 + imag^2 */
-        float32x4_t magSquared =
-            vmlaq_f32(vmulq_f32(input.val[0], input.val[0]), input.val[1], input.val[1]);
-
-        uint32x4_t compareResults = vcgtq_f32(magSquared, maxMagSquared);
-
-        maxValuesIndex = vbslq_f32(compareResults, currentIndexes, maxValuesIndex);
-        maxMagSquared = vmaxq_f32(magSquared, maxMagSquared);
-
-        currentIndexes = vaddq_f32(currentIndexes, indexIncrementValues);
-    }
-
-    __VOLK_ATTR_ALIGNED(16) float maxValuesBuffer[4];
-    __VOLK_ATTR_ALIGNED(16) float maxIndexesBuffer[4];
-
-    vst1q_f32(maxValuesBuffer, maxMagSquared);
-    vst1q_f32(maxIndexesBuffer, maxValuesIndex);
-
-    for (unsigned i = 0; i < 4; i++) {
+    uint32_t index = 0;
+    for (uint32_t i = 0; i < 16; i++) {
         if (maxValuesBuffer[i] > max) {
-            index = maxIndexesBuffer[i];
             max = maxValuesBuffer[i];
+            index = (uint32_t)maxIndexesBuffer[i];
+        } else if (maxValuesBuffer[i] == max) {
+            if ((uint32_t)maxIndexesBuffer[i] < index)
+                index = (uint32_t)maxIndexesBuffer[i];
         }
     }
 
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        float real = *inputPtr++;
-        float imag = *inputPtr++;
-        float magSquared = real * real + imag * imag;
-        if (magSquared > max) {
-            index = (float)number;
-            max = magSquared;
+    // Handle tail
+    for (uint32_t number = sixteenthPoints * 16; number < num_points; number++) {
+        const float re = lv_creal(*src0Ptr);
+        const float im = lv_cimag(*src0Ptr);
+        const float sq_dist = re * re + im * im;
+        if (sq_dist > max) {
+            max = sq_dist;
+            index = number;
         }
+        src0Ptr++;
     }
-    target[0] = (uint16_t)index;
+    *target = (uint16_t)index;
 }
-#endif /* LV_HAVE_NEON */
+
+#endif /*LV_HAVE_AVX512F*/
 
 #ifdef LV_HAVE_RVV
 #include <float.h>
@@ -558,8 +806,20 @@ volk_32fc_index_max_16u_rvv(uint16_t* target, const lv_32fc_t* src0, uint32_t nu
     float max = __riscv_vfmv_f(__riscv_vfredmax(RISCV_SHRINK4(vfmax, f, 32, vmax),
                                                 __riscv_vfmv_v_f_f32m1(0, 1),
                                                 __riscv_vsetvlmax_e32m1()));
-    vbool8_t m = __riscv_vmfeq(vmax, max, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmaxi, __riscv_vfirst(m, vl), vl));
+    // Find minimum index among lanes with max value
+    // Note: mask type mismatch (vbool8_t vs vbool4_t) prevents using vmerge,
+    // so we use scalar comparison
+    __attribute__((aligned(32))) float values[128];
+    __attribute__((aligned(32))) uint16_t indices[128];
+    __riscv_vse32(values, vmax, vl);
+    __riscv_vse16(indices, vmaxi, vl);
+    uint16_t min_idx = UINT16_MAX;
+    for (size_t i = 0; i < vl; i++) {
+        if (values[i] == max && indices[i] < min_idx) {
+            min_idx = indices[i];
+        }
+    }
+    *target = min_idx;
 }
 #endif /*LV_HAVE_RVV*/
 
@@ -589,8 +849,18 @@ static inline void volk_32fc_index_max_16u_rvvseg(uint16_t* target,
     float max = __riscv_vfmv_f(__riscv_vfredmax(RISCV_SHRINK4(vfmax, f, 32, vmax),
                                                 __riscv_vfmv_v_f_f32m1(0, 1),
                                                 __riscv_vsetvlmax_e32m1()));
-    vbool8_t m = __riscv_vmfeq(vmax, max, vl);
-    *target = __riscv_vmv_x(__riscv_vslidedown(vmaxi, __riscv_vfirst(m, vl), vl));
+    // Find minimum index among lanes with max value
+    __attribute__((aligned(32))) float values[128];
+    __attribute__((aligned(32))) uint16_t indices[128];
+    __riscv_vse32(values, vmax, vl);
+    __riscv_vse16(indices, vmaxi, vl);
+    uint16_t min_idx = UINT16_MAX;
+    for (size_t i = 0; i < vl; i++) {
+        if (values[i] == max && indices[i] < min_idx) {
+            min_idx = indices[i];
+        }
+    }
+    *target = min_idx;
 }
 #endif /*LV_HAVE_RVVSEG*/
 
