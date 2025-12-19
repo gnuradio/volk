@@ -22,13 +22,13 @@
 #include <cmath>    // for sqrt, fabs, abs
 #include <cstring>  // for memcpy, memset
 #include <ctime>    // for clock
-#include <iomanip>  // for setw, left
-#include <iostream> // for cout, cerr
+#include <iostream> // for cerr
 #include <limits>   // for numeric_limits
 #include <map>      // for map, map<>::mappe...
 #include <random>
-#include <sstream> // for ostringstream
-#include <vector>  // for vector, _Bit_refe...
+#include <vector> // for vector, _Bit_refe...
+
+#include <fmt/core.h>
 
 // Warmup time for CPU frequency scaling (ms)
 static double g_warmup_ms = 2000.0;
@@ -440,63 +440,64 @@ inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func,
 }
 
 template <class t>
-bool fcompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
+bool fcompare(t* expected,
+              t* actual,
+              unsigned int vlen,
+              float tol,
+              bool absolute_mode,
+              std::vector<unsigned int>& fail_indices,
+              double& max_rel_err)
 {
     bool fail = false;
-    int print_max_errs = 10;
+    max_rel_err = 0.0;
     for (unsigned int i = 0; i < vlen; i++) {
-        // Check for special values (NaN, inf)
-        bool in1_special = std::isnan(((t*)(in1))[i]) || std::isinf(((t*)(in1))[i]);
-        bool in2_special = std::isnan(((t*)(in2))[i]) || std::isinf(((t*)(in2))[i]);
+        t exp_val = expected[i];
+        t act_val = actual[i];
 
-        if (in1_special || in2_special) {
+        // Check for special values (NaN, inf)
+        bool exp_special = std::isnan(exp_val) || std::isinf(exp_val);
+        bool act_special = std::isnan(act_val) || std::isinf(act_val);
+
+        bool this_fail = false;
+        double rel_err = 0.0;
+        if (exp_special || act_special) {
             // For NaN: both must be NaN (NaN != NaN, so use isnan)
             // For inf: both must be same signed infinity
             bool values_match =
-                (std::isnan(((t*)(in1))[i]) && std::isnan(((t*)(in2))[i])) ||
-                (((t*)(in1))[i] == ((t*)(in2))[i]);
+                (std::isnan(exp_val) && std::isnan(act_val)) || (exp_val == act_val);
             if (!values_match) {
-                fail = true;
-                if (print_max_errs-- > 0) {
-                    std::cout << "offset " << i << " in1: " << t(((t*)(in1))[i])
-                              << " in2: " << t(((t*)(in2))[i]);
-                    std::cout << " tolerance was: " << tol << std::endl;
-                }
+                this_fail = true;
+                rel_err = std::numeric_limits<double>::infinity();
             }
-            continue; // Skip normal comparison for special values
-        }
-
-        if (absolute_mode) {
-            if (fabs(((t*)(in1))[i] - ((t*)(in2))[i]) > tol) {
-                fail = true;
-                if (print_max_errs-- > 0) {
-                    std::cout << "offset " << i << " in1: " << t(((t*)(in1))[i])
-                              << " in2: " << t(((t*)(in2))[i]);
-                    std::cout << " tolerance was: " << tol << std::endl;
-                }
+        } else if (absolute_mode) {
+            double abs_err = fabs(exp_val - act_val);
+            rel_err = (fabs(exp_val) > 1e-30) ? abs_err / fabs(exp_val) : abs_err;
+            if (abs_err > tol) {
+                this_fail = true;
             }
         } else {
             // for very small numbers we'll see round off errors due to limited
             // precision. So a special test case...
-            if (fabs(((t*)(in1))[i]) < 1e-30) {
-                if (fabs(((t*)(in2))[i]) > tol) {
-                    fail = true;
-                    if (print_max_errs-- > 0) {
-                        std::cout << "offset " << i << " in1: " << t(((t*)(in1))[i])
-                                  << " in2: " << t(((t*)(in2))[i]);
-                        std::cout << " tolerance was: " << tol << std::endl;
-                    }
+            if (fabs(exp_val) < 1e-30) {
+                rel_err = fabs(act_val);
+                if (fabs(act_val) > tol) {
+                    this_fail = true;
                 }
             }
             // the primary test is the percent different greater than given tol
-            else if (fabs(((t*)(in1))[i] - ((t*)(in2))[i]) / fabs(((t*)in1)[i]) > tol) {
-                fail = true;
-                if (print_max_errs-- > 0) {
-                    std::cout << "offset " << i << " in1: " << t(((t*)(in1))[i])
-                              << " in2: " << t(((t*)(in2))[i]);
-                    std::cout << " tolerance was: " << tol << std::endl;
+            else {
+                rel_err = fabs(exp_val - act_val) / fabs(exp_val);
+                if (rel_err > tol) {
+                    this_fail = true;
                 }
             }
+        }
+        if (rel_err > max_rel_err) {
+            max_rel_err = rel_err;
+        }
+        if (this_fail) {
+            fail = true;
+            fail_indices.push_back(i);
         }
     }
 
@@ -504,74 +505,76 @@ bool fcompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
 }
 
 template <class t>
-bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
+bool ccompare(t* expected,
+              t* actual,
+              unsigned int vlen,
+              float tol,
+              bool absolute_mode,
+              std::vector<unsigned int>& fail_indices,
+              double& max_rel_err)
 {
     bool fail = false;
-    int print_max_errs = 10;
+    max_rel_err = 0.0;
     for (unsigned int i = 0; i < 2 * vlen; i += 2) {
-        // Check for special values (NaN, inf) and verify they match
-        bool in1_has_special = std::isnan(in1[i]) || std::isnan(in1[i + 1]) ||
-                               std::isinf(in1[i]) || std::isinf(in1[i + 1]);
-        bool in2_has_special = std::isnan(in2[i]) || std::isnan(in2[i + 1]) ||
-                               std::isinf(in2[i]) || std::isinf(in2[i + 1]);
+        t exp_re = expected[i];
+        t exp_im = expected[i + 1];
+        t act_re = actual[i];
+        t act_im = actual[i + 1];
 
-        if (in1_has_special || in2_has_special) {
+        // Check for special values (NaN, inf) and verify they match
+        bool exp_has_special = std::isnan(exp_re) || std::isnan(exp_im) ||
+                               std::isinf(exp_re) || std::isinf(exp_im);
+        bool act_has_special = std::isnan(act_re) || std::isnan(act_im) ||
+                               std::isinf(act_re) || std::isinf(act_im);
+
+        bool this_fail = false;
+        double rel_err = 0.0;
+        if (exp_has_special || act_has_special) {
             // For NaN: both must be NaN (NaN != NaN, so use isnan)
             // For inf: both must be same signed infinity
             bool real_match =
-                (std::isnan(in1[i]) && std::isnan(in2[i])) || (in1[i] == in2[i]);
-            bool imag_match = (std::isnan(in1[i + 1]) && std::isnan(in2[i + 1])) ||
-                              (in1[i + 1] == in2[i + 1]);
+                (std::isnan(exp_re) && std::isnan(act_re)) || (exp_re == act_re);
+            bool imag_match =
+                (std::isnan(exp_im) && std::isnan(act_im)) || (exp_im == act_im);
 
             if (!real_match || !imag_match) {
-                fail = true;
-                if (print_max_errs-- > 0) {
-                    std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
-                              << in1[i + 1] << "j  in2: " << in2[i] << " + " << in2[i + 1]
-                              << "j";
-                    std::cout << " tolerance was: " << tol << std::endl;
-                }
-            }
-            continue; // Skip normal comparison for special values
-        }
-        t diff[2] = { in1[i] - in2[i], in1[i + 1] - in2[i + 1] };
-        t err = std::sqrt(diff[0] * diff[0] + diff[1] * diff[1]);
-        t norm = std::sqrt(in1[i] * in1[i] + in1[i + 1] * in1[i + 1]);
-
-        if (absolute_mode) {
-            if (err > tol) {
-                fail = true;
-                if (print_max_errs-- > 0) {
-                    std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
-                              << in1[i + 1] << "j  in2: " << in2[i] << " + " << in2[i + 1]
-                              << "j";
-                    std::cout << " tolerance was: " << tol << std::endl;
-                }
+                this_fail = true;
+                rel_err = std::numeric_limits<double>::infinity();
             }
         } else {
-            // for very small numbers we'll see round off errors due to limited
-            // precision. So a special test case...
-            if (norm < 1e-30) {
+            t diff[2] = { exp_re - act_re, exp_im - act_im };
+            t err = std::sqrt(diff[0] * diff[0] + diff[1] * diff[1]);
+            t norm = std::sqrt(exp_re * exp_re + exp_im * exp_im);
+
+            if (absolute_mode) {
+                rel_err = (norm > 1e-30) ? err / norm : err;
                 if (err > tol) {
-                    fail = true;
-                    if (print_max_errs-- > 0) {
-                        std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
-                                  << in1[i + 1] << "j  in2: " << in2[i] << " + "
-                                  << in2[i + 1] << "j";
-                        std::cout << " tolerance was: " << tol << std::endl;
+                    this_fail = true;
+                }
+            } else {
+                // for very small numbers we'll see round off errors due to limited
+                // precision. So a special test case...
+                if (norm < 1e-30) {
+                    rel_err = err;
+                    if (err > tol) {
+                        this_fail = true;
+                    }
+                }
+                // the primary test is the percent different greater than given tol
+                else {
+                    rel_err = err / norm;
+                    if (rel_err > tol) {
+                        this_fail = true;
                     }
                 }
             }
-            // the primary test is the percent different greater than given tol
-            else if ((err / norm) > tol) {
-                fail = true;
-                if (print_max_errs-- > 0) {
-                    std::cout << "offset " << i / 2 << " in1: " << in1[i] << " + "
-                              << in1[i + 1] << "j  in2: " << in2[i] << " + " << in2[i + 1]
-                              << "j";
-                    std::cout << " tolerance was: " << tol << std::endl;
-                }
-            }
+        }
+        if (rel_err > max_rel_err) {
+            max_rel_err = rel_err;
+        }
+        if (this_fail) {
+            fail = true;
+            fail_indices.push_back(i / 2);
         }
     }
 
@@ -579,24 +582,159 @@ bool ccompare(t* in1, t* in2, unsigned int vlen, float tol, bool absolute_mode)
 }
 
 template <class t>
-bool icompare(t* in1, t* in2, unsigned int vlen, unsigned int tol)
+bool icompare(t* expected,
+              t* actual,
+              unsigned int vlen,
+              unsigned int tol,
+              std::vector<unsigned int>& fail_indices,
+              double& max_rel_err)
 {
     bool fail = false;
-    int print_max_errs = 10;
+    max_rel_err = 0.0;
     for (unsigned int i = 0; i < vlen; i++) {
-        if (((uint64_t)abs(int64_t(((t*)(in1))[i]) - int64_t(((t*)(in2))[i]))) > tol) {
+        t exp_val = expected[i];
+        t act_val = actual[i];
+        uint64_t abs_err = (uint64_t)abs(int64_t(exp_val) - int64_t(act_val));
+        double rel_err =
+            (exp_val != 0) ? (double)abs_err / fabs((double)exp_val) : (double)abs_err;
+        if (rel_err > max_rel_err) {
+            max_rel_err = rel_err;
+        }
+        if (abs_err > tol) {
             fail = true;
-            if (print_max_errs-- > 0) {
-                std::cout << "offset " << i
-                          << " in1: " << static_cast<int64_t>(t(((t*)(in1))[i]))
-                          << " in2: " << static_cast<int64_t>(t(((t*)(in2))[i]));
-                std::cout << " tolerance was: " << tol << std::endl;
-            }
+            fail_indices.push_back(i);
         }
     }
 
     return fail;
 }
+
+// Print error table for failed comparisons
+// Shows: index, input(s), expected, actual, rel_error, tol
+void print_error_table(const std::vector<unsigned int>& fail_indices,
+                       const std::vector<void*>& inputs,
+                       const std::vector<volk_type_t>& input_sigs,
+                       void* expected,
+                       void* actual,
+                       const volk_type_t& output_sig,
+                       float tol,
+                       int max_errors = 10)
+{
+    if (fail_indices.empty())
+        return;
+
+    // Print header
+    fmt::print("{:>7}", "index");
+    for (size_t k = 0; k < input_sigs.size(); k++) {
+        fmt::print(" | {:>10}", fmt::format("in{}", k));
+    }
+    fmt::print(
+        " | {:>10} | {:>10} | {:>9} | {:>9}\n", "expected", "actual", "rel_err", "tol");
+
+    // Print separator
+    fmt::print("{:-<7}", "");
+    for (size_t k = 0; k < input_sigs.size(); k++) {
+        fmt::print("-+-{:-<10}", "");
+    }
+    fmt::print("-+-{:-<10}-+-{:-<10}-+-{:-<9}-+-{:-<9}\n", "", "", "", "");
+
+    int print_count = 0;
+    for (unsigned int idx : fail_indices) {
+        if (print_count++ >= max_errors) {
+            fmt::print("... and {} more errors\n", fail_indices.size() - max_errors);
+            break;
+        }
+
+        fmt::print("{:>7}", idx);
+
+        // Print input values
+        for (size_t k = 0; k < input_sigs.size(); k++) {
+            if (input_sigs[k].is_float) {
+                double val = (input_sigs[k].size == 8) ? ((double*)inputs[k])[idx]
+                                                       : ((float*)inputs[k])[idx];
+                fmt::print(" | {:>10.4f}", val);
+            } else {
+                int64_t val = 0;
+                switch (input_sigs[k].size) {
+                case 8:
+                    val = input_sigs[k].is_signed ? ((int64_t*)inputs[k])[idx]
+                                                  : (int64_t)((uint64_t*)inputs[k])[idx];
+                    break;
+                case 4:
+                    val = input_sigs[k].is_signed ? ((int32_t*)inputs[k])[idx]
+                                                  : (int64_t)((uint32_t*)inputs[k])[idx];
+                    break;
+                case 2:
+                    val = input_sigs[k].is_signed ? ((int16_t*)inputs[k])[idx]
+                                                  : (int64_t)((uint16_t*)inputs[k])[idx];
+                    break;
+                case 1:
+                    val = input_sigs[k].is_signed ? ((int8_t*)inputs[k])[idx]
+                                                  : (int64_t)((uint8_t*)inputs[k])[idx];
+                    break;
+                }
+                fmt::print(" | {:>10}", val);
+            }
+        }
+
+        // Get expected and actual values, compute relative error
+        double exp_val = 0, act_val = 0, rel_err = 0;
+        if (output_sig.is_float) {
+            if (output_sig.size == 8) {
+                exp_val = ((double*)expected)[idx];
+                act_val = ((double*)actual)[idx];
+            } else {
+                exp_val = ((float*)expected)[idx];
+                act_val = ((float*)actual)[idx];
+            }
+            double abs_err = fabs(exp_val - act_val);
+            rel_err = (fabs(exp_val) > 1e-30) ? abs_err / fabs(exp_val) : abs_err;
+            fmt::print(" | {:>10.4f} | {:>10.4f}", exp_val, act_val);
+        } else {
+            int64_t exp_i = 0, act_i = 0;
+            switch (output_sig.size) {
+            case 8:
+                exp_i = output_sig.is_signed ? ((int64_t*)expected)[idx]
+                                             : (int64_t)((uint64_t*)expected)[idx];
+                act_i = output_sig.is_signed ? ((int64_t*)actual)[idx]
+                                             : (int64_t)((uint64_t*)actual)[idx];
+                break;
+            case 4:
+                exp_i = output_sig.is_signed ? ((int32_t*)expected)[idx]
+                                             : (int64_t)((uint32_t*)expected)[idx];
+                act_i = output_sig.is_signed ? ((int32_t*)actual)[idx]
+                                             : (int64_t)((uint32_t*)actual)[idx];
+                break;
+            case 2:
+                exp_i = output_sig.is_signed ? ((int16_t*)expected)[idx]
+                                             : (int64_t)((uint16_t*)expected)[idx];
+                act_i = output_sig.is_signed ? ((int16_t*)actual)[idx]
+                                             : (int64_t)((uint16_t*)actual)[idx];
+                break;
+            case 1:
+                exp_i = output_sig.is_signed ? ((int8_t*)expected)[idx]
+                                             : (int64_t)((uint8_t*)expected)[idx];
+                act_i = output_sig.is_signed ? ((int8_t*)actual)[idx]
+                                             : (int64_t)((uint8_t*)actual)[idx];
+                break;
+            }
+            fmt::print(" | {:>10} | {:>10}", exp_i, act_i);
+            double abs_err = (double)abs(exp_i - act_i);
+            rel_err = (exp_i != 0) ? abs_err / fabs((double)exp_i) : abs_err;
+        }
+
+        fmt::print(" | {:>9.1e} | {:>9.1e}\n", rel_err, (double)tol);
+    }
+}
+
+// Structure to hold failure info for deferred printing
+struct fail_info_t {
+    std::string arch_name;
+    std::vector<unsigned int> fail_indices;
+    size_t output_idx;
+    size_t arch_index;
+    double max_rel_err;
+};
 
 class volk_qa_aligned_mem_pool
 {
@@ -661,9 +799,8 @@ bool run_volk_tests(volk_func_desc_t desc,
     results->back().name = name;
     results->back().vlen = vlen;
     results->back().iter = iter;
-    std::cout << std::endl; // Blank line for separation
-    std::cout << "RUN_VOLK_TESTS: " << name << "(" << vlen << "," << iter << ")"
-              << std::endl;
+    fmt::print(
+        "\nRUN_VOLK_TESTS: {}(vlen={}, iter={}, tol={:.0e})\n", name, vlen, iter, tol);
 
     // vlen_twiddle will increase vlen for malloc and data generation
     // but kernels will still be called with the user provided vlen.
@@ -676,6 +813,12 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     // first let's get a list of available architectures for the test
     std::vector<std::string> arch_list = get_arch_list(desc);
+
+    // Build map from arch name to original index (for impl_alignment lookup)
+    std::map<std::string, size_t> arch_to_orig_idx;
+    for (size_t i = 0; i < arch_list.size(); i++) {
+        arch_to_orig_idx[arch_list[i]] = i;
+    }
 
     // Reorder arch_list to put generic implementations first for consistent output
     // Priority: "generic" first, then other generic_* variants, then everything else
@@ -1073,10 +1216,25 @@ bool run_volk_tests(volk_func_desc_t desc,
     bool fail;
     bool fail_global = false;
     std::vector<bool> arch_results;
+
+    // Collect input buffers for error reporting (inputs are after outputs in test_data)
+    std::vector<void*> input_buffs;
+    for (size_t k = outputsig.size(); k < both_sigs.size(); k++) {
+        input_buffs.push_back(test_data[generic_offset][k]);
+    }
+
+    // Collect failures for deferred printing (after timing summary)
+    std::vector<fail_info_t> failures;
+
+    // Track max relative error per architecture
+    std::vector<double> arch_max_rel_err(arch_list.size(), 0.0);
+
     for (size_t i = 0; i < arch_list.size(); i++) {
         fail = false;
         if (i != generic_offset) {
-            for (size_t j = 0; j < both_sigs.size(); j++) {
+            for (size_t j = 0; j < outputsig.size(); j++) {
+                std::vector<unsigned int> fail_indices;
+                double max_rel_err = 0.0;
                 if (both_sigs[j].is_float) {
                     if (both_sigs[j].size == 8) {
                         if (both_sigs[j].is_complex) {
@@ -1084,13 +1242,17 @@ bool run_volk_tests(volk_func_desc_t desc,
                                             (double*)test_data[i][j],
                                             vlen,
                                             tol_f,
-                                            absolute_mode);
+                                            absolute_mode,
+                                            fail_indices,
+                                            max_rel_err);
                         } else {
                             fail = fcompare((double*)test_data[generic_offset][j],
                                             (double*)test_data[i][j],
                                             vlen,
                                             tol_f,
-                                            absolute_mode);
+                                            absolute_mode,
+                                            fail_indices,
+                                            max_rel_err);
                         }
                     } else {
                         if (both_sigs[j].is_complex) {
@@ -1098,13 +1260,17 @@ bool run_volk_tests(volk_func_desc_t desc,
                                             (float*)test_data[i][j],
                                             vlen,
                                             tol_f,
-                                            absolute_mode);
+                                            absolute_mode,
+                                            fail_indices,
+                                            max_rel_err);
                         } else {
                             fail = fcompare((float*)test_data[generic_offset][j],
                                             (float*)test_data[i][j],
                                             vlen,
                                             tol_f,
-                                            absolute_mode);
+                                            absolute_mode,
+                                            fail_indices,
+                                            max_rel_err);
                         }
                     }
                 } else {
@@ -1116,12 +1282,16 @@ bool run_volk_tests(volk_func_desc_t desc,
                             fail = icompare((int64_t*)test_data[generic_offset][j],
                                             (int64_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i);
+                                            tol_i,
+                                            fail_indices,
+                                            max_rel_err);
                         } else {
                             fail = icompare((uint64_t*)test_data[generic_offset][j],
                                             (uint64_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i);
+                                            tol_i,
+                                            fail_indices,
+                                            max_rel_err);
                         }
                         break;
                     case 4:
@@ -1130,24 +1300,32 @@ bool run_volk_tests(volk_func_desc_t desc,
                                 fail = icompare((int16_t*)test_data[generic_offset][j],
                                                 (int16_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i);
+                                                tol_i,
+                                                fail_indices,
+                                                max_rel_err);
                             } else {
                                 fail = icompare((uint16_t*)test_data[generic_offset][j],
                                                 (uint16_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i);
+                                                tol_i,
+                                                fail_indices,
+                                                max_rel_err);
                             }
                         } else {
                             if (both_sigs[j].is_signed) {
                                 fail = icompare((int32_t*)test_data[generic_offset][j],
                                                 (int32_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i);
+                                                tol_i,
+                                                fail_indices,
+                                                max_rel_err);
                             } else {
                                 fail = icompare((uint32_t*)test_data[generic_offset][j],
                                                 (uint32_t*)test_data[i][j],
                                                 vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i);
+                                                tol_i,
+                                                fail_indices,
+                                                max_rel_err);
                             }
                         }
                         break;
@@ -1156,12 +1334,16 @@ bool run_volk_tests(volk_func_desc_t desc,
                             fail = icompare((int16_t*)test_data[generic_offset][j],
                                             (int16_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i);
+                                            tol_i,
+                                            fail_indices,
+                                            max_rel_err);
                         } else {
                             fail = icompare((uint16_t*)test_data[generic_offset][j],
                                             (uint16_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i);
+                                            tol_i,
+                                            fail_indices,
+                                            max_rel_err);
                         }
                         break;
                     case 1:
@@ -1169,23 +1351,38 @@ bool run_volk_tests(volk_func_desc_t desc,
                             fail = icompare((int8_t*)test_data[generic_offset][j],
                                             (int8_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i);
+                                            tol_i,
+                                            fail_indices,
+                                            max_rel_err);
                         } else {
                             fail = icompare((uint8_t*)test_data[generic_offset][j],
                                             (uint8_t*)test_data[i][j],
                                             vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i);
+                                            tol_i,
+                                            fail_indices,
+                                            max_rel_err);
                         }
                         break;
                     default:
                         fail = 1;
                     }
                 }
+                // Track max error for this arch across all outputs
+                if (max_rel_err > arch_max_rel_err[i]) {
+                    arch_max_rel_err[i] = max_rel_err;
+                }
                 if (fail) {
                     volk_test_time_t* result = &results->back().results[arch_list[i]];
                     result->pass = false;
                     fail_global = true;
-                    std::cout << name << ": fail on arch " << arch_list[i] << std::endl;
+                    // Store failure info for later printing
+                    fail_info_t fi;
+                    fi.max_rel_err = max_rel_err;
+                    fi.arch_name = arch_list[i];
+                    fi.fail_indices = fail_indices;
+                    fi.output_idx = j;
+                    fi.arch_index = i;
+                    failures.push_back(fi);
                 }
             }
         }
@@ -1197,8 +1394,11 @@ bool run_volk_tests(volk_func_desc_t desc,
     std::string best_arch_a = "generic";
     std::string best_arch_u = "generic";
     for (size_t i = 0; i < arch_list.size(); i++) {
-        if ((profile_times[i] < best_time_u) && arch_results[i] &&
-            desc.impl_alignment[i] == 0) {
+        // Look up alignment using original index (before reordering)
+        size_t orig_idx = arch_to_orig_idx[arch_list[i]];
+        bool requires_alignment = desc.impl_alignment[orig_idx];
+
+        if ((profile_times[i] < best_time_u) && arch_results[i] && !requires_alignment) {
             best_time_u = profile_times[i];
             best_arch_u = arch_list[i];
         }
@@ -1206,6 +1406,13 @@ bool run_volk_tests(volk_func_desc_t desc,
             best_time_a = profile_times[i];
             best_arch_a = arch_list[i];
         }
+    }
+
+    // Unaligned implementations (alignment == 0) work on any memory alignment.
+    // If an unaligned impl is faster than all aligned impls, use it for both.
+    if (best_time_u < best_time_a) {
+        best_time_a = best_time_u;
+        best_arch_a = best_arch_u;
     }
 
     // Calculate total data transferred (bytes read + written) for throughput display
@@ -1218,56 +1425,6 @@ bool run_volk_tests(volk_func_desc_t desc,
     }
     double total_mb = (bytes_per_call * iter) / 1e6; // Total megabytes transferred
 
-    // Build formatted output strings with proper alignment
-    std::vector<std::string> output_lines;
-    const int total_width = 60;
-    int ms_end_position = 0;  // Track where " ms" ends (arch name alignment)
-    int mbs_end_position = 0; // Track where "MB/s)" ends (speedup alignment)
-
-    for (size_t i = 0; i < arch_list.size(); i++) {
-        // Calculate throughput in MB/s
-        double time_seconds = profile_times[i] / 1000.0;
-        double throughput_mbps = total_mb / time_seconds;
-
-        // Build the timing/throughput string
-        std::ostringstream timing_str;
-        timing_str << std::fixed << std::setprecision(4) << profile_times[i] << " ms"
-                   << " (" << std::setw(8) << std::setprecision(1) << throughput_mbps
-                   << " MB/s)";
-
-        // Calculate padding needed (without star)
-        int padding = total_width - arch_list[i].length() - timing_str.str().length();
-        if (padding < 1)
-            padding = 1;
-
-        // Build the full line with left-adjusted name and right-adjusted timing
-        std::string line = arch_list[i] + std::string(padding, ' ') + timing_str.str();
-
-        // Add star if this is a best arch (after padding calculation)
-        if (arch_list[i] == best_arch_a || arch_list[i] == best_arch_u) {
-            line += " *";
-        }
-
-        // Track alignment positions
-        if (i == 0) {
-            size_t ms_pos = line.find(" ms");
-            if (ms_pos != std::string::npos) {
-                ms_end_position = ms_pos + 3; // Position after " ms"
-            }
-            size_t mbs_pos = line.find("MB/s)");
-            if (mbs_pos != std::string::npos) {
-                mbs_end_position = mbs_pos + 5; // Position after "MB/s)"
-            }
-        }
-
-        output_lines.push_back(line);
-    }
-
-    // Print all lines
-    for (const auto& line : output_lines) {
-        std::cout << line << std::endl;
-    }
-
     // Get generic timing for speedup calculation
     double generic_time = 0.0;
     for (size_t i = 0; i < arch_list.size(); i++) {
@@ -1277,36 +1434,82 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
-    // Print best arch lines: arch name aligns to "ms", speedup ) aligns to MB/s )
+    // Column widths for results table
+    constexpr int w_arch = 20;
+    constexpr int w_time = 12;
+    constexpr int w_tput = 14;
+    constexpr int w_err = 10;
+
+    // Print table header
+    fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} |\n",
+               "arch",
+               w_arch,
+               "time",
+               w_time,
+               "throughput",
+               w_tput,
+               "max_err",
+               w_err);
+    fmt::print("{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+\n",
+               "",
+               w_arch,
+               "",
+               w_time,
+               "",
+               w_tput,
+               "",
+               w_err);
+
+    // Print each architecture row
+    for (size_t i = 0; i < arch_list.size(); i++) {
+        double time_seconds = profile_times[i] / 1000.0;
+        double throughput_mbps = total_mb / time_seconds;
+
+        std::string time_str = fmt::format("{:.4f} ms", profile_times[i]);
+        std::string tput_str = fmt::format("{:.1f} MB/s", throughput_mbps);
+        std::string err_str = (arch_list[i] == "generic")
+                                  ? "-"
+                                  : fmt::format("{:.1e}", arch_max_rel_err[i]);
+        std::string win_str =
+            (arch_list[i] == best_arch_a || arch_list[i] == best_arch_u) ? " *" : "";
+
+        fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} |{}\n",
+                   arch_list[i],
+                   w_arch,
+                   time_str,
+                   w_time,
+                   tput_str,
+                   w_tput,
+                   err_str,
+                   w_err,
+                   win_str);
+    }
+
+    // Print best arch summary (left-aligned, ":" at arch column width)
     auto print_best_line = [&](const char* label, const std::string& arch, double time) {
-        std::ostringstream speedup_str;
+        std::string speedup_str;
         if (arch != "generic" && generic_time > 0) {
-            double speedup = generic_time / time;
-            speedup_str << "(" << std::fixed << std::setprecision(2) << speedup << "x)";
+            speedup_str = fmt::format(" ({:.2f}x)", generic_time / time);
         }
-
-        // Arch name right-aligned to ms_end_position
-        std::string line = label;
-        int arch_padding = ms_end_position - line.length() - arch.length();
-        if (arch_padding < 1)
-            arch_padding = 1;
-        line += std::string(arch_padding, ' ') + arch;
-
-        // Speedup right-aligned to mbs_end_position
-        if (speedup_str.str().length() > 0) {
-            int speedup_padding =
-                mbs_end_position - line.length() - speedup_str.str().length();
-            if (speedup_padding < 1)
-                speedup_padding = 1;
-            line += std::string(speedup_padding, ' ') + speedup_str.str();
-        }
-        std::cout << line << std::endl;
+        fmt::print("{:<{}} {}{}\n", label, w_arch, arch, speedup_str);
     };
 
-    print_best_line("Best aligned arch:", best_arch_a, best_time_a);
-    print_best_line("Best unaligned arch:", best_arch_u, best_time_u);
+    print_best_line("Best aligned arch    |", best_arch_a, best_time_a);
+    print_best_line("Best unaligned arch  |", best_arch_u, best_time_u);
 
-    std::cout << std::string(80, '-') << std::endl;
+    // Print failure details after timing summary
+    for (const auto& fi : failures) {
+        fmt::print("\n{}: fail on arch {}\n", name, fi.arch_name);
+        print_error_table(fi.fail_indices,
+                          input_buffs,
+                          inputsig,
+                          test_data[generic_offset][fi.output_idx],
+                          test_data[fi.arch_index][fi.output_idx],
+                          outputsig[fi.output_idx],
+                          tol_f);
+    }
+
+    fmt::print("{:-<80}\n", "");
 
     if (puppet_master_name == "NULL") {
         results->back().config_name = name;
