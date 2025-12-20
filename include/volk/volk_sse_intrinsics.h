@@ -94,4 +94,46 @@ static inline __m128 _mm_accumulate_square_sum_ps(
     return _mm_add_ps(sq_acc, aux);
 }
 
+/*
+ * Approximate sin(x) via polynomial expansion
+ * on the interval [-pi/4, pi/4]
+ *
+ * Maximum absolute error ~7.3e-9
+ * sin(x) = x + x^3 * (s1 + x^2 * (s2 + x^2 * s3))
+ */
+static inline __m128 _mm_sin_poly_sse(const __m128 x)
+{
+    const __m128 s1 = _mm_set1_ps(-0x1.555552p-3f);
+    const __m128 s2 = _mm_set1_ps(+0x1.110be2p-7f);
+    const __m128 s3 = _mm_set1_ps(-0x1.9ab22ap-13f);
+
+    const __m128 x2 = _mm_mul_ps(x, x);
+    const __m128 x3 = _mm_mul_ps(x2, x);
+
+    __m128 poly = _mm_add_ps(_mm_mul_ps(x2, s3), s2);
+    poly = _mm_add_ps(_mm_mul_ps(x2, poly), s1);
+    return _mm_add_ps(_mm_mul_ps(x3, poly), x);
+}
+
+/*
+ * Approximate cos(x) via polynomial expansion
+ * on the interval [-pi/4, pi/4]
+ *
+ * Maximum absolute error ~1.1e-7
+ * cos(x) = 1 + x^2 * (c1 + x^2 * (c2 + x^2 * c3))
+ */
+static inline __m128 _mm_cos_poly_sse(const __m128 x)
+{
+    const __m128 c1 = _mm_set1_ps(-0x1.fffff4p-2f);
+    const __m128 c2 = _mm_set1_ps(+0x1.554a46p-5f);
+    const __m128 c3 = _mm_set1_ps(-0x1.661be2p-10f);
+    const __m128 one = _mm_set1_ps(1.0f);
+
+    const __m128 x2 = _mm_mul_ps(x, x);
+
+    __m128 poly = _mm_add_ps(_mm_mul_ps(x2, c3), c2);
+    poly = _mm_add_ps(_mm_mul_ps(x2, poly), c1);
+    return _mm_add_ps(_mm_mul_ps(x2, poly), one);
+}
+
 #endif /* INCLUDE_VOLK_VOLK_SSE_INTRINSICS_H_ */

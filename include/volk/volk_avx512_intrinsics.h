@@ -147,4 +147,44 @@ static inline __m512 _mm512_normalize_ps(const __m512 val)
     return _mm512_div_ps(val, mag);
 }
 
+////////////////////////////////////////////////////////////////////////
+// Approximate sin(x) via polynomial expansion on the interval [-pi/4, pi/4]
+// Maximum absolute error ~7.3e-9
+// sin(x) = x + x^3 * (s1 + x^2 * (s2 + x^2 * s3))
+// Requires AVX512F
+////////////////////////////////////////////////////////////////////////
+static inline __m512 _mm512_sin_poly_avx512(const __m512 x)
+{
+    const __m512 s1 = _mm512_set1_ps(-0x1.555552p-3f);
+    const __m512 s2 = _mm512_set1_ps(+0x1.110be2p-7f);
+    const __m512 s3 = _mm512_set1_ps(-0x1.9ab22ap-13f);
+
+    const __m512 x2 = _mm512_mul_ps(x, x);
+    const __m512 x3 = _mm512_mul_ps(x2, x);
+
+    __m512 poly = _mm512_fmadd_ps(x2, s3, s2);
+    poly = _mm512_fmadd_ps(x2, poly, s1);
+    return _mm512_fmadd_ps(x3, poly, x);
+}
+
+////////////////////////////////////////////////////////////////////////
+// Approximate cos(x) via polynomial expansion on the interval [-pi/4, pi/4]
+// Maximum absolute error ~1.1e-7
+// cos(x) = 1 + x^2 * (c1 + x^2 * (c2 + x^2 * c3))
+// Requires AVX512F
+////////////////////////////////////////////////////////////////////////
+static inline __m512 _mm512_cos_poly_avx512(const __m512 x)
+{
+    const __m512 c1 = _mm512_set1_ps(-0x1.fffff4p-2f);
+    const __m512 c2 = _mm512_set1_ps(+0x1.554a46p-5f);
+    const __m512 c3 = _mm512_set1_ps(-0x1.661be2p-10f);
+    const __m512 one = _mm512_set1_ps(1.0f);
+
+    const __m512 x2 = _mm512_mul_ps(x, x);
+
+    __m512 poly = _mm512_fmadd_ps(x2, c3, c2);
+    poly = _mm512_fmadd_ps(x2, poly, c1);
+    return _mm512_fmadd_ps(x2, poly, one);
+}
+
 #endif /* INCLUDE_VOLK_VOLK_AVX512_INTRINSICS_H_ */
