@@ -317,6 +317,8 @@ static inline void volk_32fc_s32f_magnitude_16i_neon(int16_t* magnitudeVector,
     int16_t* magnitudeVectorPtr = magnitudeVector;
     float32x4_t vScalar = vdupq_n_f32(scalar);
 
+    float32x4_t half = vdupq_n_f32(0.5f);
+
     for (; number < quarter_points; number++) {
         float32x4x2_t input = vld2q_f32(complexVectorPtr);
         complexVectorPtr += 8;
@@ -335,7 +337,8 @@ static inline void volk_32fc_s32f_magnitude_16i_neon(int16_t* magnitudeVector,
         uint32x4_t zero_mask = vceqq_f32(sumSquared, vdupq_n_f32(0.0f));
         magnitude = vbslq_f32(zero_mask, sumSquared, magnitude);
 
-        float32x4_t scaled = vmulq_f32(magnitude, vScalar);
+        // Magnitude is always non-negative, so just add 0.5 for rounding
+        float32x4_t scaled = vaddq_f32(vmulq_f32(magnitude, vScalar), half);
         int32x4_t intVal = vcvtq_s32_f32(scaled);
         int16x4_t shortVal = vqmovn_s32(intVal);
 

@@ -425,11 +425,17 @@ static inline void volk_32f_s32f_convert_32i_neon(int32_t* outputVector,
     float32x4_t vScalar = vdupq_n_f32(scalar);
     float32x4_t vmin_val = vdupq_n_f32(min_val);
     float32x4_t vmax_val = vdupq_n_f32(max_val);
+    float32x4_t half = vdupq_n_f32(0.5f);
+    float32x4_t neg_half = vdupq_n_f32(-0.5f);
+    float32x4_t zero = vdupq_n_f32(0.0f);
 
     for (; number < quarter_points; number++) {
         float32x4_t inputVal = vld1q_f32(inputPtr);
         inputVal = vmulq_f32(inputVal, vScalar);
         inputVal = vmaxq_f32(vminq_f32(inputVal, vmax_val), vmin_val);
+        // Round to nearest: add copysign(0.5, x) before truncating
+        uint32x4_t neg = vcltq_f32(inputVal, zero);
+        inputVal = vaddq_f32(inputVal, vbslq_f32(neg, neg_half, half));
         int32x4_t intVal = vcvtq_s32_f32(inputVal);
         vst1q_s32(outputPtr, intVal);
         inputPtr += 4;
