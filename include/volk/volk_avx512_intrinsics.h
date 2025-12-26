@@ -69,6 +69,29 @@ static inline __m512 _mm512_arctan_poly_avx512(const __m512 x)
 }
 
 ////////////////////////////////////////////////////////////////////////
+// Approximate arcsin(x) via polynomial expansion
+// P(u) such that asin(x) = x * P(x^2) on |x| <= 0.5
+// Maximum relative error ~1.5e-6
+// Polynomial evaluated via Horner's method
+// Requires AVX512F
+////////////////////////////////////////////////////////////////////////
+static inline __m512 _mm512_arcsin_poly_avx512(const __m512 x)
+{
+    const __m512 c0 = _mm512_set1_ps(0x1.ffffcep-1f);
+    const __m512 c1 = _mm512_set1_ps(0x1.55b648p-3f);
+    const __m512 c2 = _mm512_set1_ps(0x1.24d192p-4f);
+    const __m512 c3 = _mm512_set1_ps(0x1.0a788p-4f);
+
+    const __m512 u = _mm512_mul_ps(x, x);
+    __m512 p = c3;
+    p = _mm512_fmadd_ps(u, p, c2);
+    p = _mm512_fmadd_ps(u, p, c1);
+    p = _mm512_fmadd_ps(u, p, c0);
+
+    return _mm512_mul_ps(x, p);
+}
+
+////////////////////////////////////////////////////////////////////////
 // Complex multiply: (a+bi) * (c+di) = (ac-bd) + i(ad+bc)
 // Requires AVX512F
 ////////////////////////////////////////////////////////////////////////
