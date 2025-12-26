@@ -48,7 +48,9 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     test_params_clamp.set_scalar(-.5f);
 
     volk_test_params_t test_params_rotator(test_params);
-    test_params_rotator.set_scalar(std::polar(1.0f, 0.1f));
+    auto rotator_value = std::polar(1.0f, 0.1f);
+    test_params_rotator.set_scalar(
+        lv_32fc_t{ rotator_value.real(), rotator_value.imag() });
     test_params_rotator.set_tol(1e-3);
 
     volk_test_params_t test_params_snf(test_params);
