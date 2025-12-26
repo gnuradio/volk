@@ -1165,20 +1165,24 @@ volk_32f_log2_32f_neon(float* bVector, const float* aVector, unsigned int num_po
     //   (-1)^sign * 2^exp * 1.significand, so the log2 is
     // log2(2^exp * sig) = exponent + log2(1 + significand/(1<<23)
     for (number = 0; number < quarterPoints; ++number) {
-        // Check for NaN or negative/zero (invalid inputs for log2)
+        // Check for negative, zero, and NaN inputs
         float32x4_t aval_f = vld1q_f32(aPtr);
-        uint32x4_t invalid_mask = vcleq_f32(aval_f, vdupq_n_f32(0.0f)); // aVal <= 0
+        uint32x4_t neg_mask = vcltq_f32(aval_f, vdupq_n_f32(0.0f));  // aVal < 0
+        uint32x4_t zero_mask = vceqq_f32(aval_f, vdupq_n_f32(0.0f)); // aVal == 0
         // Check for NaN: NaN comparison with itself returns false
         uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aval_f, aval_f)); // NOT(aVal == aVal)
-        invalid_mask = vorrq_u32(invalid_mask, nan_mask);           // Combine masks
+        uint32x4_t invalid_mask = vorrq_u32(neg_mask, nan_mask);    // neg or NaN -> NaN
         float32x4_t nan_value = vdupq_n_f32(NAN);
+        float32x4_t neg_inf_value = vdupq_n_f32(-127.0f); // log2(0) = -inf mapped to -127
 
         // load float in to an int register without conversion
         aval = vld1q_s32((int*)aPtr);
 
         VLOG2Q_NEON_F32(log2_approx, aval)
 
-        // Replace invalid results with NaN
+        // Replace zero inputs with -127.0 (log2(0) = -inf mapped to -127)
+        log2_approx = vbslq_f32(zero_mask, neg_inf_value, log2_approx);
+        // Replace negative/NaN inputs with NaN
         log2_approx = vbslq_f32(invalid_mask, nan_value, log2_approx);
 
         vst1q_f32(bPtr, log2_approx);
@@ -1220,14 +1224,16 @@ volk_32f_log2_32f_neonv8(float* bVector, const float* aVector, unsigned int num_
     const float32x4_t fone = vdupq_n_f32(1.0f);
     const float32x4_t fzero = vdupq_n_f32(0.0f);
     const float32x4_t nan_val = vdupq_n_f32(NAN);
+    const float32x4_t neg_inf_val = vdupq_n_f32(-127.0f); // log2(0) = -inf mapped to -127
 
     for (number = 0; number < quarterPoints; ++number) {
         float32x4_t aVal = vld1q_f32(aPtr);
 
-        // Check for invalid inputs (NaN, negative, or zero)
-        uint32x4_t invalid_mask = vcleq_f32(aVal, fzero);
-        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aVal, aVal));
-        invalid_mask = vorrq_u32(invalid_mask, nan_mask);
+        // Check for negative, zero, and NaN inputs
+        uint32x4_t neg_mask = vcltq_f32(aVal, fzero);            // aVal < 0
+        uint32x4_t zero_mask = vceqq_f32(aVal, fzero);           // aVal == 0
+        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aVal, aVal));  // NaN check
+        uint32x4_t invalid_mask = vorrq_u32(neg_mask, nan_mask); // neg or NaN -> NaN
 
         // Reinterpret as int for bit manipulation
         int32x4_t aVal_i = vreinterpretq_s32_f32(aVal);
@@ -1252,7 +1258,9 @@ volk_32f_log2_32f_neonv8(float* bVector, const float* aVector, unsigned int num_
         // result = exp + mantissa * (frac - 1.0)
         float32x4_t bVal = vfmaq_f32(exp_f, mantissa, vsubq_f32(frac, fone));
 
-        // Replace invalid results with NaN
+        // Replace zero inputs with -127.0 (log2(0) = -inf mapped to -127)
+        bVal = vbslq_f32(zero_mask, neg_inf_val, bVal);
+        // Replace negative/NaN inputs with NaN
         bVal = vbslq_f32(invalid_mask, nan_val, bVal);
 
         vst1q_f32(bPtr, bVal);

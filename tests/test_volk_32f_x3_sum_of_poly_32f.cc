@@ -92,7 +92,6 @@ protected:
     }
 
     // void TearDown() override {}
-    size_t vector_length;
     volk::vector<float> vec0;
     volk::vector<float> ua_vec0;
     volk::vector<float> center_points;
