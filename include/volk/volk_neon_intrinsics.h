@@ -306,18 +306,6 @@ static inline float32x4x2_t _vsincosq_f32(float32x4_t x)
     return sincos;
 }
 
-static inline float32x4_t _vsinq_f32(float32x4_t x)
-{
-    const float32x4x2_t sincos = _vsincosq_f32(x);
-    return sincos.val[0];
-}
-
-static inline float32x4_t _vcosq_f32(float32x4_t x)
-{
-    const float32x4x2_t sincos = _vsincosq_f32(x);
-    return sincos.val[1];
-}
-
 static inline float32x4_t _vtanq_f32(float32x4_t x)
 {
     const float32x4x2_t sincos = _vsincosq_f32(x);
@@ -372,6 +360,46 @@ static inline float32x4_t _neon_accumulate_square_sum_f32(float32x4_t sq_acc,
 #endif
 }
 
+/*
+ * Minimax polynomial for sin(x) on [-pi/4, pi/4]
+ * Coefficients via Remez algorithm (Sollya)
+ * Max |error| < 7.3e-9
+ * sin(x) = x + x^3 * (s1 + x^2 * (s2 + x^2 * s3))
+ */
+static inline float32x4_t _vsin_poly_f32(float32x4_t x)
+{
+    const float32x4_t s1 = vdupq_n_f32(-0x1.555552p-3f);
+    const float32x4_t s2 = vdupq_n_f32(+0x1.110be2p-7f);
+    const float32x4_t s3 = vdupq_n_f32(-0x1.9ab22ap-13f);
+
+    const float32x4_t x2 = vmulq_f32(x, x);
+    const float32x4_t x3 = vmulq_f32(x2, x);
+
+    float32x4_t poly = vmlaq_f32(s2, x2, s3);
+    poly = vmlaq_f32(s1, x2, poly);
+    return vmlaq_f32(x, x3, poly);
+}
+
+/*
+ * Minimax polynomial for cos(x) on [-pi/4, pi/4]
+ * Coefficients via Remez algorithm (Sollya)
+ * Max |error| < 1.1e-7
+ * cos(x) = 1 + x^2 * (c1 + x^2 * (c2 + x^2 * c3))
+ */
+static inline float32x4_t _vcos_poly_f32(float32x4_t x)
+{
+    const float32x4_t c1 = vdupq_n_f32(-0x1.fffff4p-2f);
+    const float32x4_t c2 = vdupq_n_f32(+0x1.554a46p-5f);
+    const float32x4_t c3 = vdupq_n_f32(-0x1.661be2p-10f);
+    const float32x4_t one = vdupq_n_f32(1.0f);
+
+    const float32x4_t x2 = vmulq_f32(x, x);
+
+    float32x4_t poly = vmlaq_f32(c2, x2, c3);
+    poly = vmlaq_f32(c1, x2, poly);
+    return vmlaq_f32(one, x2, poly);
+}
+
 #ifdef LV_HAVE_NEONV8
 /* ARMv8 NEON FMA-based arctan polynomial for better accuracy and throughput */
 static inline float32x4_t _varctan_poly_neonv8(float32x4_t x)
@@ -395,6 +423,36 @@ static inline float32x4_t _varctan_poly_neonv8(float32x4_t x)
     result = vmulq_f32(x, result);
 
     return result;
+}
+
+/* NEONv8 FMA sin polynomial on [-pi/4, pi/4], coeffs via Remez (Sollya) */
+static inline float32x4_t _vsin_poly_neonv8(float32x4_t x)
+{
+    const float32x4_t s1 = vdupq_n_f32(-0x1.555552p-3f);
+    const float32x4_t s2 = vdupq_n_f32(+0x1.110be2p-7f);
+    const float32x4_t s3 = vdupq_n_f32(-0x1.9ab22ap-13f);
+
+    const float32x4_t x2 = vmulq_f32(x, x);
+    const float32x4_t x3 = vmulq_f32(x2, x);
+
+    float32x4_t poly = vfmaq_f32(s2, x2, s3);
+    poly = vfmaq_f32(s1, x2, poly);
+    return vfmaq_f32(x, x3, poly);
+}
+
+/* NEONv8 FMA cos polynomial on [-pi/4, pi/4], coeffs via Remez (Sollya) */
+static inline float32x4_t _vcos_poly_neonv8(float32x4_t x)
+{
+    const float32x4_t c1 = vdupq_n_f32(-0x1.fffff4p-2f);
+    const float32x4_t c2 = vdupq_n_f32(+0x1.554a46p-5f);
+    const float32x4_t c3 = vdupq_n_f32(-0x1.661be2p-10f);
+    const float32x4_t one = vdupq_n_f32(1.0f);
+
+    const float32x4_t x2 = vmulq_f32(x, x);
+
+    float32x4_t poly = vfmaq_f32(c2, x2, c3);
+    poly = vfmaq_f32(c1, x2, poly);
+    return vfmaq_f32(one, x2, poly);
 }
 #endif /* LV_HAVE_NEONV8 */
 
