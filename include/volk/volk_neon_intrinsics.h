@@ -302,10 +302,9 @@ static inline float32x4_t _neon_accumulate_square_sum_f32(float32x4_t sq_acc,
 }
 
 /*
- * Approximate sin(x) via polynomial expansion
- * on the interval [-pi/4, pi/4]
- *
- * Maximum absolute error ~7.3e-9
+ * Minimax polynomial for sin(x) on [-pi/4, pi/4]
+ * Coefficients via Remez algorithm (Sollya)
+ * Max |error| < 7.3e-9
  * sin(x) = x + x^3 * (s1 + x^2 * (s2 + x^2 * s3))
  */
 static inline float32x4_t _vsin_poly_f32(float32x4_t x)
@@ -323,10 +322,9 @@ static inline float32x4_t _vsin_poly_f32(float32x4_t x)
 }
 
 /*
- * Approximate cos(x) via polynomial expansion
- * on the interval [-pi/4, pi/4]
- *
- * Maximum absolute error ~1.1e-7
+ * Minimax polynomial for cos(x) on [-pi/4, pi/4]
+ * Coefficients via Remez algorithm (Sollya)
+ * Max |error| < 1.1e-7
  * cos(x) = 1 + x^2 * (c1 + x^2 * (c2 + x^2 * c3))
  */
 static inline float32x4_t _vcos_poly_f32(float32x4_t x)
@@ -368,7 +366,7 @@ static inline float32x4_t _varctan_poly_neonv8(float32x4_t x)
     return result;
 }
 
-/* NEONv8 FMA-based sin polynomial for interval [-pi/4, pi/4] */
+/* NEONv8 FMA sin polynomial on [-pi/4, pi/4], coeffs via Remez (Sollya) */
 static inline float32x4_t _vsin_poly_neonv8(float32x4_t x)
 {
     const float32x4_t s1 = vdupq_n_f32(-0x1.555552p-3f);
@@ -383,7 +381,7 @@ static inline float32x4_t _vsin_poly_neonv8(float32x4_t x)
     return vfmaq_f32(x, x3, poly);
 }
 
-/* NEONv8 FMA-based cos polynomial for interval [-pi/4, pi/4] */
+/* NEONv8 FMA cos polynomial on [-pi/4, pi/4], coeffs via Remez (Sollya) */
 static inline float32x4_t _vcos_poly_neonv8(float32x4_t x)
 {
     const float32x4_t c1 = vdupq_n_f32(-0x1.fffff4p-2f);

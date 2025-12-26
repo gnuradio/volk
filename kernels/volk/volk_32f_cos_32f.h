@@ -79,6 +79,18 @@ volk_32f_cos_32f_generic(float* bVector, const float* aVector, unsigned int num_
 
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_GENERIC
+#include <volk/volk_common.h>
+
+static inline void
+volk_32f_cos_32f_polynomial(float* bVector, const float* aVector, unsigned int num_points)
+{
+    for (unsigned int number = 0; number < num_points; number++) {
+        *bVector++ = volk_cos(*aVector++);
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 #include <volk/volk_avx512_intrinsics.h>

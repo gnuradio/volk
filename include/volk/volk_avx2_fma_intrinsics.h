@@ -48,10 +48,9 @@ static inline __m256 _mm256_arctan_poly_avx2_fma(const __m256 x)
 }
 
 /*
- * Approximate sin(x) via polynomial expansion
- * on the interval [-pi/4, pi/4]
- *
- * Maximum absolute error ~7.3e-9
+ * Minimax polynomial for sin(x) on [-pi/4, pi/4]
+ * Coefficients via Remez algorithm (Sollya)
+ * Max |error| < 7.3e-9
  * sin(x) = x + x^3 * (s1 + x^2 * (s2 + x^2 * s3))
  */
 static inline __m256 _mm256_sin_poly_avx2_fma(const __m256 x)
@@ -69,10 +68,9 @@ static inline __m256 _mm256_sin_poly_avx2_fma(const __m256 x)
 }
 
 /*
- * Approximate cos(x) via polynomial expansion
- * on the interval [-pi/4, pi/4]
- *
- * Maximum absolute error ~1.1e-7
+ * Minimax polynomial for cos(x) on [-pi/4, pi/4]
+ * Coefficients via Remez algorithm (Sollya)
+ * Max |error| < 1.1e-7
  * cos(x) = 1 + x^2 * (c1 + x^2 * (c2 + x^2 * c3))
  */
 static inline __m256 _mm256_cos_poly_avx2_fma(const __m256 x)

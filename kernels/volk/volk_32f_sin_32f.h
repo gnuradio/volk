@@ -64,6 +64,18 @@
 #ifndef INCLUDED_volk_32f_sin_32f_a_H
 #define INCLUDED_volk_32f_sin_32f_a_H
 
+#ifdef LV_HAVE_GENERIC
+#include <volk/volk_common.h>
+
+static inline void
+volk_32f_sin_32f_polynomial(float* bVector, const float* aVector, unsigned int num_points)
+{
+    for (unsigned int number = 0; number < num_points; number++) {
+        *bVector++ = volk_sin(*aVector++);
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 #include <volk/volk_avx512_intrinsics.h>

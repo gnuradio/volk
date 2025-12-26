@@ -77,6 +77,44 @@ static inline void volk_32f_sincos_32f_x2_generic(float* sinVector,
 
 #endif /* LV_HAVE_GENERIC */
 
+#ifdef LV_HAVE_GENERIC
+#include <volk/volk_common.h>
+
+static inline void volk_32f_sincos_32f_x2_polynomial(float* sinVector,
+                                                     float* cosVector,
+                                                     const float* inVector,
+                                                     unsigned int num_points)
+{
+    /*
+     * Cody-Waite argument reduction with shared sin/cos polynomial evaluation
+     */
+    const float two_over_pi = 0x1.45f306p-1f;
+    const float pi_over_2_hi = 0x1.921fb6p+0f;
+    const float pi_over_2_lo = -0x1.777a5cp-25f;
+
+    for (unsigned int i = 0; i < num_points; i++) {
+        float x = inVector[i];
+
+        float n_f = rintf(x * two_over_pi);
+        int n = (int)n_f;
+
+        float r = fmaf(-n_f, pi_over_2_hi, x);
+        r = fmaf(-n_f, pi_over_2_lo, r);
+
+        float sin_r = volk_sin_poly(r);
+        float cos_r = volk_cos_poly(r);
+
+        // Sin: n&1 swaps, n&2 negates
+        float sin_result = (n & 1) ? cos_r : sin_r;
+        sinVector[i] = (n & 2) ? -sin_result : sin_result;
+
+        // Cos: n&1 swaps, (n+1)&2 negates
+        float cos_result = (n & 1) ? sin_r : cos_r;
+        cosVector[i] = ((n + 1) & 2) ? -cos_result : cos_result;
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 #include <volk/volk_avx512_intrinsics.h>
