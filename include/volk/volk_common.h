@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2010, 2011, 2015-2017, 2019, 2020 Free Software Foundation, Inc.
- * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2023 - 2025 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -198,6 +198,101 @@ static inline float volk_arctan_poly(const float x)
     arctan *= x;
 
     return arctan;
+}
+////////////////////////////////////////////////////////////////////////
+// sin(x) polynomial expansion
+////////////////////////////////////////////////////////////////////////
+static inline float volk_sin_poly(const float x)
+{
+    /*
+     * Minimax polynomial for sin(x) on [-pi/4, pi/4]
+     * Coefficients via Remez algorithm (Sollya)
+     * Max |error| < 7.3e-9
+     * sin(x) = x + x^3 * (s1 + x^2 * (s2 + x^2 * s3))
+     */
+    const float s1 = -0x1.555552p-3f;
+    const float s2 = +0x1.110be2p-7f;
+    const float s3 = -0x1.9ab22ap-13f;
+
+    const float x2 = x * x;
+    const float x3 = x2 * x;
+
+    float poly = fmaf(x2, s3, s2);
+    poly = fmaf(x2, poly, s1);
+    return fmaf(x3, poly, x);
+}
+////////////////////////////////////////////////////////////////////////
+// cos(x) polynomial expansion
+////////////////////////////////////////////////////////////////////////
+static inline float volk_cos_poly(const float x)
+{
+    /*
+     * Minimax polynomial for cos(x) on [-pi/4, pi/4]
+     * Coefficients via Remez algorithm (Sollya)
+     * Max |error| < 1.1e-7
+     * cos(x) = 1 + x^2 * (c1 + x^2 * (c2 + x^2 * c3))
+     */
+    const float c1 = -0x1.fffff4p-2f;
+    const float c2 = +0x1.554a46p-5f;
+    const float c3 = -0x1.661be2p-10f;
+
+    const float x2 = x * x;
+
+    float poly = fmaf(x2, c3, c2);
+    poly = fmaf(x2, poly, c1);
+    return fmaf(x2, poly, 1.0f);
+}
+////////////////////////////////////////////////////////////////////////
+// sin(x) with Cody-Waite argument reduction
+////////////////////////////////////////////////////////////////////////
+static inline float volk_sin(const float x)
+{
+    /*
+     * Cody-Waite argument reduction: n = round(x * 2/pi), r = x - n * pi/2
+     * Then use sin/cos polynomials based on quadrant
+     */
+    const float two_over_pi = 0x1.45f306p-1f;
+    const float pi_over_2_hi = 0x1.921fb6p+0f;
+    const float pi_over_2_lo = -0x1.777a5cp-25f;
+
+    float n_f = rintf(x * two_over_pi);
+    int n = (int)n_f;
+
+    float r = fmaf(-n_f, pi_over_2_hi, x);
+    r = fmaf(-n_f, pi_over_2_lo, r);
+
+    float sin_r = volk_sin_poly(r);
+    float cos_r = volk_cos_poly(r);
+
+    // Quadrant selection: n&1 swaps sin/cos, n&2 negates
+    float result = (n & 1) ? cos_r : sin_r;
+    return (n & 2) ? -result : result;
+}
+////////////////////////////////////////////////////////////////////////
+// cos(x) with Cody-Waite argument reduction
+////////////////////////////////////////////////////////////////////////
+static inline float volk_cos(const float x)
+{
+    /*
+     * Cody-Waite argument reduction: n = round(x * 2/pi), r = x - n * pi/2
+     * Then use sin/cos polynomials based on quadrant
+     */
+    const float two_over_pi = 0x1.45f306p-1f;
+    const float pi_over_2_hi = 0x1.921fb6p+0f;
+    const float pi_over_2_lo = -0x1.777a5cp-25f;
+
+    float n_f = rintf(x * two_over_pi);
+    int n = (int)n_f;
+
+    float r = fmaf(-n_f, pi_over_2_hi, x);
+    r = fmaf(-n_f, pi_over_2_lo, r);
+
+    float sin_r = volk_sin_poly(r);
+    float cos_r = volk_cos_poly(r);
+
+    // Quadrant selection: n&1 swaps sin/cos, (n+1)&2 negates
+    float result = (n & 1) ? sin_r : cos_r;
+    return ((n + 1) & 2) ? -result : result;
 }
 ////////////////////////////////////////////////////////////////////////
 // arctan(x)
