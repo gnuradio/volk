@@ -692,7 +692,16 @@ static inline void volk_32f_s32f_convert_16i_neon(int16_t* outputVector,
         float32x4_t ret2 =
             vmaxq_f32(vminq_f32(vmulq_f32(inputVal2, vScalar), vmax_val), vmin_val);
 
-        // Convert to int32 (truncates towards zero)
+        // Round to nearest: add copysign(0.5, x) before truncating
+        float32x4_t half = vdupq_n_f32(0.5f);
+        float32x4_t neg_half = vdupq_n_f32(-0.5f);
+        float32x4_t zero = vdupq_n_f32(0.0f);
+        uint32x4_t neg1 = vcltq_f32(ret1, zero);
+        uint32x4_t neg2 = vcltq_f32(ret2, zero);
+        ret1 = vaddq_f32(ret1, vbslq_f32(neg1, neg_half, half));
+        ret2 = vaddq_f32(ret2, vbslq_f32(neg2, neg_half, half));
+
+        // Convert to int32 (truncates towards zero, but we pre-rounded)
         int32x4_t intVal1 = vcvtq_s32_f32(ret1);
         int32x4_t intVal2 = vcvtq_s32_f32(ret2);
 

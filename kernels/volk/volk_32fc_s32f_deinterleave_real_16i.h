@@ -269,11 +269,18 @@ volk_32fc_s32f_deinterleave_real_16i_neon(int16_t* iBuffer,
     int16_t* iBufferPtr = iBuffer;
     float32x4_t vScalar = vdupq_n_f32(scalar);
 
+    float32x4_t half = vdupq_n_f32(0.5f);
+    float32x4_t neg_half = vdupq_n_f32(-0.5f);
+    float32x4_t zero = vdupq_n_f32(0.0f);
+
     for (; number < quarter_points; number++) {
         float32x4x2_t input = vld2q_f32(complexVectorPtr);
         complexVectorPtr += 8;
 
         float32x4_t scaled = vmulq_f32(input.val[0], vScalar);
+        // Round to nearest: add copysign(0.5, x) before truncating
+        uint32x4_t neg = vcltq_f32(scaled, zero);
+        scaled = vaddq_f32(scaled, vbslq_f32(neg, neg_half, half));
         int32x4_t intVal = vcvtq_s32_f32(scaled);
         int16x4_t shortVal = vqmovn_s32(intVal);
 

@@ -576,6 +576,9 @@ static inline void volk_32f_s32f_convert_8i_neon(int8_t* outputVector,
     float32x4_t vScalar = vdupq_n_f32(scalar);
     float32x4_t vmin_val = vdupq_n_f32(min_val);
     float32x4_t vmax_val = vdupq_n_f32(max_val);
+    float32x4_t half = vdupq_n_f32(0.5f);
+    float32x4_t neg_half = vdupq_n_f32(-0.5f);
+    float32x4_t zero = vdupq_n_f32(0.0f);
 
     for (; number < sixteenthPoints; number++) {
         float32x4_t inputVal0 = vld1q_f32(inputVectorPtr);
@@ -594,7 +597,17 @@ static inline void volk_32f_s32f_convert_8i_neon(int8_t* outputVector,
         float32x4_t ret3 =
             vmaxq_f32(vminq_f32(vmulq_f32(inputVal3, vScalar), vmax_val), vmin_val);
 
-        // Convert to int32 (truncates towards zero)
+        // Round to nearest: add copysign(0.5, x) before truncating
+        uint32x4_t neg0 = vcltq_f32(ret0, zero);
+        uint32x4_t neg1 = vcltq_f32(ret1, zero);
+        uint32x4_t neg2 = vcltq_f32(ret2, zero);
+        uint32x4_t neg3 = vcltq_f32(ret3, zero);
+        ret0 = vaddq_f32(ret0, vbslq_f32(neg0, neg_half, half));
+        ret1 = vaddq_f32(ret1, vbslq_f32(neg1, neg_half, half));
+        ret2 = vaddq_f32(ret2, vbslq_f32(neg2, neg_half, half));
+        ret3 = vaddq_f32(ret3, vbslq_f32(neg3, neg_half, half));
+
+        // Convert to int32 (truncates towards zero, but we pre-rounded)
         int32x4_t intVal0 = vcvtq_s32_f32(ret0);
         int32x4_t intVal1 = vcvtq_s32_f32(ret1);
         int32x4_t intVal2 = vcvtq_s32_f32(ret2);
