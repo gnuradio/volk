@@ -230,6 +230,24 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32f_s32f_power_32f, test_params))
     QA(VOLK_INIT_TEST(volk_32f_reciprocal_32f, test_params.make_tol(6.15e-5)))
     QA(VOLK_INIT_TEST(volk_32f_sqrt_32f, test_params_inacc))
+
+    volk_test_params_t test_params_invsqrt(test_params.make_tol(1e-6));
+    test_params_invsqrt.add_float_edge_cases({ 0.01f,
+                                               0.1f,
+                                               0.5f,
+                                               1.0f,
+                                               2.0f,
+                                               4.0f,
+                                               9.0f,
+                                               16.0f,
+                                               25.0f,
+                                               100.0f,
+                                               10000.0f,
+                                               1e-6f,
+                                               1e6f,
+                                               0.25f,
+                                               0.0625f });
+    QA(VOLK_INIT_TEST(volk_32f_invsqrt_32f, test_params_invsqrt))
     QA(VOLK_INIT_TEST(volk_32f_s32f_stddev_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_stddev_and_mean_32f_x2, test_params.make_absolute(1e-5)))
     QA(VOLK_INIT_TEST(volk_32f_x2_subtract_32f, test_params))
