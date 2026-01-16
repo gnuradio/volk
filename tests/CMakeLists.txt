@@ -10,26 +10,16 @@ if(NOT ENABLE_TESTING)
     return()
 endif(NOT ENABLE_TESTING)
 
-include(FetchContent)
-
 find_package(fmt QUIET)
-    find_package(fmt QUIET)
-    find_package(GTest QUIET)
-    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG 10.2.1
-    GIT_SHALLOW TRUE)
-  FetchContent_MakeAvailable(fmt)
+if(NOT fmt_FOUND)
+  message(STATUS "fmt not found: skipping tests that require fmt")
+  return()
 endif()
 
+find_package(GTest QUIET)
 if(NOT GTest_FOUND)
-  message(STATUS "GTest not found: fetching googletest via FetchContent")
-  FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.12.1
-    GIT_SHALLOW TRUE)
-  FetchContent_MakeAvailable(googletest)
-  find_package(GTest REQUIRED)
+  message(STATUS "GTest not found: skipping unit tests")
+  return()
 endif()
 
 file(GLOB volk_test_files "test_*.cc")

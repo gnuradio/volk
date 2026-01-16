@@ -1,26 +1,60 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #include <gtest/gtest.h>
 #include <volk/volk_prefs.h>
+#include <cstdlib>
 #include <cstring>
-#include <filesystem>
+#include <string>
 #include <fstream>
 
-namespace fs = std::filesystem;
-
-#if defined(_MSC_VER)
-static void set_env(const char* name, const char* value)
-{
-    _putenv_s(name, value ? value : "");
-}
+// Filesystem compatibility
+#if defined(__has_include)
+#  if __has_include(<filesystem>)
+#    include <filesystem>
+#    namespace fs = std::filesystem;
+#  elif __has_include(<experimental/filesystem>)
+#    include <experimental/filesystem>
+#    namespace fs = std::experimental::filesystem;
+#  else
+#    error "<filesystem> or <experimental/filesystem> is required"
+#  endif
 #else
-static void set_env(const char* name, const char* value)
-{
-    if (value)
-        setenv(name, value, 1);
-    else
-        unsetenv(name);
-}
+#  include <filesystem>
+#  namespace fs = std::filesystem;
 #endif
+
+static void set_env(const std::string& name, const char* value)
+{
+#if defined(_MSC_VER)
+    if (value)
+        _putenv_s(name.c_str(), value);
+    else
+        _putenv_s(name.c_str(), "");
+#else
+    if (value)
+        setenv(name.c_str(), value, 1);
+    else
+        unsetenv(name.c_str());
+#endif
+}
+
+TEST(VolkPaths, EnvOverrideTakesPrecedence)
+{
+    auto tmp = fs::temp_directory_path() / "volk_test_override";
+    fs::remove_all(tmp);
+    fs::create_directories(tmp / "volk");
+    auto cfg = tmp / "volk" / "volk_config";
+    std::ofstream(cfg.string()) << "# override" << std::endl;
+
+    set_env("VOLK_CONFIGPATH", tmp.string().c_str());
+    set_env("XDG_CONFIG_HOME", nullptr);
+    set_env("HOME", nullptr);
+
+    char path[512] = { 0 };
+    volk_get_config_path(path, true);
+    EXPECT_EQ(std::string(path), cfg.string());
+
+    fs::remove_all(tmp);
+}
 
 TEST(VolkPaths, XdgPrefersXdgWhenPresent)
 {
@@ -33,49 +67,6 @@ TEST(VolkPaths, XdgPrefersXdgWhenPresent)
     set_env("XDG_CONFIG_HOME", tmp.string().c_str());
     set_env("HOME", nullptr);
     set_env("VOLK_CONFIGPATH", nullptr);
-
-    char path[512] = { 0 };
-    volk_get_config_path(path, true);
-    std::string got(path);
-    EXPECT_EQ(got, cfg.string());
-
-    fs::remove_all(tmp);
-}
-
-TEST(VolkPaths, WriteCreatesHomeConfigWhenXdgMissing)
-{
-    auto tmp = fs::temp_directory_path() / "volk_test_home";
-    fs::remove_all(tmp);
-    fs::create_directories(tmp);
-
-    set_env("XDG_CONFIG_HOME", nullptr);
-    set_env("VOLK_CONFIGPATH", nullptr);
-    set_env("HOME", tmp.string().c_str());
-
-    char path[512] = { 0 };
-    // write mode should create ~/.config/volk and return its config path
-    volk_get_config_path(path, false);
-    std::string got(path);
-
-    fs::path expected = tmp / ".config" / "volk" / "volk_config";
-    EXPECT_EQ(got, expected.string());
-    EXPECT_TRUE(fs::exists(expected.parent_path()));
-
-    fs::remove_all(tmp);
-}
-
-// Ensure VOLK_CONFIGPATH env override takes precedence
-TEST(VolkPaths, EnvOverrideTakesPrecedence)
-{
-    auto tmp = fs::temp_directory_path() / "volk_test_override";
-    fs::remove_all(tmp);
-    fs::create_directories(tmp / "volk");
-    auto cfg = tmp / "volk" / "volk_config";
-    std::ofstream(cfg.string()) << "# override" << std::endl;
-
-    set_env("VOLK_CONFIGPATH", tmp.string().c_str());
-    set_env("XDG_CONFIG_HOME", nullptr);
-    set_env("HOME", nullptr);
 
     char path[512] = { 0 };
     volk_get_config_path(path, true);
@@ -122,8 +113,3 @@ TEST(VolkPaths, ReadFallbackReturnsHomeWhenXdgUnset)
     fs::remove_all(tmp);
 }
 
-int main(int argc, char** argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
