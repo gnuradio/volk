@@ -1433,8 +1433,9 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     // Column widths for results table
     constexpr int w_arch = 26;
-    constexpr int w_time = 12;
+    constexpr int w_time = 14;
     constexpr int w_tput = 14;
+    constexpr int w_speedup = 8;
     constexpr int w_err = 10;
 
     // Column header depends on error mode
@@ -1448,23 +1449,46 @@ bool run_volk_tests(volk_func_desc_t desc,
     }
     const char* err_col = (absolute_mode || has_int_output) ? "max_abs" : "max_rel";
 
+    // Helper for adaptive decimal places based on magnitude
+    auto format_time = [](double ms) -> std::string {
+        if (ms >= 10000.0)
+            return fmt::format("{:.1f} ms", ms);
+        if (ms >= 1000.0)
+            return fmt::format("{:.2f} ms", ms);
+        if (ms >= 100.0)
+            return fmt::format("{:.3f} ms", ms);
+        return fmt::format("{:.4f} ms", ms);
+    };
+
+    auto format_throughput = [](double mbps) -> std::string {
+        if (mbps >= 100000.0)
+            return fmt::format("{:.0f} MB/s", mbps);
+        if (mbps >= 10000.0)
+            return fmt::format("{:.1f} MB/s", mbps);
+        return fmt::format("{:.1f} MB/s", mbps);
+    };
+
     // Print table header
-    fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} |\n",
+    fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} |\n",
                "arch",
                w_arch,
                "time",
                w_time,
                "throughput",
                w_tput,
+               "speedup",
+               w_speedup,
                err_col,
                w_err);
-    fmt::print("{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+\n",
+    fmt::print("{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+\n",
                "",
                w_arch,
                "",
                w_time,
                "",
                w_tput,
+               "",
+               w_speedup,
                "",
                w_err);
 
@@ -1473,20 +1497,34 @@ bool run_volk_tests(volk_func_desc_t desc,
         double time_seconds = profile_times[i] / 1000.0;
         double throughput_mbps = total_mb / time_seconds;
 
-        std::string time_str = fmt::format("{:.4f} ms", profile_times[i]);
-        std::string tput_str = fmt::format("{:.1f} MB/s", throughput_mbps);
+        std::string time_str = format_time(profile_times[i]);
+        std::string tput_str = format_throughput(throughput_mbps);
+        std::string speedup_str;
+        if (arch_list[i] == "generic" || generic_time <= 0) {
+            speedup_str = "-";
+        } else {
+            double speedup = generic_time / profile_times[i];
+            if (speedup >= 100.0)
+                speedup_str = fmt::format("{:.1f}x", speedup);
+            else if (speedup >= 10.0)
+                speedup_str = fmt::format("{:.2f}x", speedup);
+            else
+                speedup_str = fmt::format("{:.2f}x", speedup);
+        }
         std::string err_str =
             (arch_list[i] == "generic") ? "-" : fmt::format("{:.1e}", arch_max_err[i]);
         std::string win_str =
             (arch_list[i] == best_arch_a || arch_list[i] == best_arch_u) ? " *" : "";
 
-        fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} |{}\n",
+        fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} |{}\n",
                    arch_list[i],
                    w_arch,
                    time_str,
                    w_time,
                    tput_str,
                    w_tput,
+                   speedup_str,
+                   w_speedup,
                    err_str,
                    w_err,
                    win_str);
@@ -1516,7 +1554,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                           tol_f);
     }
 
-    fmt::print("{:-<80}\n", "");
+    fmt::print("{:-<88}\n", "");
 
     if (puppet_master_name == "NULL") {
         results->back().config_name = name;

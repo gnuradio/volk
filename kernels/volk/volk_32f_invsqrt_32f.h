@@ -186,32 +186,26 @@ static inline void
 volk_32f_invsqrt_32f_neonv8(float* cVector, const float* aVector, unsigned int num_points)
 {
     unsigned int number;
-    const unsigned int eighth_points = num_points / 8;
+    const unsigned int quarter_points = num_points / 4;
 
     float* cPtr = cVector;
     const float* aPtr = aVector;
 
-    // Process 8 elements at a time (2 vectors)
-    for (number = 0; number < eighth_points; ++number) {
-        float32x4_t a0 = vld1q_f32(aPtr);
-        float32x4_t a1 = vld1q_f32(aPtr + 4);
-
-        float32x4_t x0 = vrsqrteq_f32(a0);
-        float32x4_t x1 = vrsqrteq_f32(a1);
+    // Process 4 elements at a time (1 vector)
+    for (number = 0; number < quarter_points; ++number) {
+        float32x4_t a = vld1q_f32(aPtr);
+        float32x4_t x = vrsqrteq_f32(a);
 
         // Two Newton-Raphson iterations for float32 accuracy
-        x0 = vmulq_f32(x0, vrsqrtsq_f32(vmulq_f32(a0, x0), x0));
-        x1 = vmulq_f32(x1, vrsqrtsq_f32(vmulq_f32(a1, x1), x1));
-        x0 = vmulq_f32(x0, vrsqrtsq_f32(vmulq_f32(a0, x0), x0));
-        x1 = vmulq_f32(x1, vrsqrtsq_f32(vmulq_f32(a1, x1), x1));
+        x = vmulq_f32(x, vrsqrtsq_f32(vmulq_f32(a, x), x));
+        x = vmulq_f32(x, vrsqrtsq_f32(vmulq_f32(a, x), x));
 
-        vst1q_f32(cPtr, x0);
-        vst1q_f32(cPtr + 4, x1);
-        aPtr += 8;
-        cPtr += 8;
+        vst1q_f32(cPtr, x);
+        aPtr += 4;
+        cPtr += 4;
     }
 
-    for (number = eighth_points * 8; number < num_points; number++) {
+    for (number = quarter_points * 4; number < num_points; number++) {
         *cPtr++ = 1.0f / sqrtf(*aPtr++);
     }
 }
