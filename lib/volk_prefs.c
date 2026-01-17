@@ -55,12 +55,19 @@ void volk_get_config_path(char* path, bool read)
     if (xdg) {
         snprintf(tmp, sizeof(tmp), "%s/volk/volk_config", xdg);
         if (!read) {
+            char parent[512];
             char dir[512];
+            /* ensure XDG_CONFIG_HOME exists, then create XDG/volk */
+            snprintf(parent, sizeof(parent), "%s", xdg);
             snprintf(dir, sizeof(dir), "%s/volk", xdg);
 #if defined(_MSC_VER)
+            _mkdir(parent);
             _mkdir(dir);
 #else
             struct stat st = { 0 };
+            if (stat(parent, &st) == -1) {
+                mkdir(parent, 0755);
+            }
             if (stat(dir, &st) == -1) {
                 mkdir(dir, 0755);
             }
@@ -77,12 +84,19 @@ void volk_get_config_path(char* path, bool read)
     if (home) {
         snprintf(tmp, sizeof(tmp), "%s/.config/volk/volk_config", home);
         if (!read) {
+            char parent[512];
             char dir[512];
+            /* ensure HOME/.config exists, then create HOME/.config/volk */
+            snprintf(parent, sizeof(parent), "%s/.config", home);
             snprintf(dir, sizeof(dir), "%s/.config/volk", home);
 #if defined(_MSC_VER)
+            _mkdir(parent);
             _mkdir(dir);
 #else
             struct stat st = { 0 };
+            if (stat(parent, &st) == -1) {
+                mkdir(parent, 0755);
+            }
             if (stat(dir, &st) == -1) {
                 mkdir(dir, 0755);
             }
