@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2015 Free Software Foundation, Inc.
- * Copyright 2025 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2025, 2026 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
