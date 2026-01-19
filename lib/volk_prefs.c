@@ -31,15 +31,6 @@ void volk_get_config_path(char* path, bool read)
     const char* nonhidden_suffix = "/volk/volk_config"; // non-hidden
     char tmp[512] = { 0 };
 
-    /* helper to ensure directory exists for write-mode */
-    {
-#if defined(_MSC_VER)
-        /* use _mkdir on MSVC */
-#else
-        /* ensure sys/stat available */
-#endif
-    }
-
     /* 1) explicit override via VOLK_CONFIGPATH */
     const char* env_override = getenv("VOLK_CONFIGPATH");
     if (env_override) {
@@ -127,29 +118,14 @@ void volk_get_config_path(char* path, bool read)
         }
     }
 
-    /* System-wide */
+    /* 6) System-wide */
     if (access("/etc/volk/volk_config", F_OK) == 0) {
         strncpy(path, "/etc/volk/volk_config", 512);
         return;
     }
-    /* If nothing found, follow the XDG-first fallback behavior:
-       - if XDG_CONFIG_HOME is set, return XDG_CONFIG_HOME/volk/volk_config
-       - else if HOME is set, return HOME/.config/volk/volk_config
-       - otherwise return empty string
-       This ensures read-mode returns the new XDG location as fallback. */
-    if (xdg) {
-        snprintf(tmp, sizeof(tmp), "%s/volk/volk_config", xdg);
-        strncpy(path, tmp, 512);
-        return;
-    }
-    if (home) {
-        snprintf(tmp, sizeof(tmp), "%s/.config/volk/volk_config", home);
-        strncpy(path, tmp, 512);
-        return;
-    }
 
+    /* Nothing found - return empty path */
     path[0] = '\0';
-    return;
 }
 
 size_t volk_load_preferences(volk_arch_pref_t** prefs_res)

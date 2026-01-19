@@ -12,18 +12,7 @@ endif(NOT ENABLE_TESTING)
 
 include(FetchContent)
 
-# Prefer system fmt if available, otherwise fetch a pinned version.
-find_package(fmt QUIET)
-if(NOT fmt_FOUND)
-  message(STATUS "fmt not found: fetching fmt via FetchContent")
-  FetchContent_Declare(
-    fmt
-    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG 10.2.1
-    GIT_SHALLOW TRUE
-  )
-  FetchContent_MakeAvailable(fmt)
-endif()
+# fmt is provided by the top-level CMakeLists.txt, no need to fetch here.
 
 # Prefer system GTest if available, otherwise fetch googletest.
 find_package(GTest QUIET)
@@ -34,7 +23,7 @@ if(NOT GTest_FOUND)
   FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.12.1
+    GIT_TAG v1.17.0
     GIT_SHALLOW TRUE
   )
   FetchContent_GetProperties(googletest)
