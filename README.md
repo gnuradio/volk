@@ -47,6 +47,15 @@ $ sudo ldconfig
 $ volk_profile
 ```
 
+## Configuration location
+
+On Linux and other UNIX-like systems VOLK follows the XDG Base Directory
+Specification for user configuration files where possible. User configuration
+is sought in the following order: `VOLK_CONFIGPATH` (if set), `$XDG_CONFIG_HOME/volk`,
+`$HOME/.config/volk`, and finally the legacy `$HOME/.volk`. For write operations
+the library will create the XDG config directory when needed. Use the
+`VOLK_CONFIGPATH` environment variable to override or force a custom location.
+
 #### Missing submodule
 We use [cpu_features](https://github.com/google/cpu_features) to detect CPU features, e.g. AVX.
 Some platforms require a very recent version that is not available through the appropriate package manager.
