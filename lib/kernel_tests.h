@@ -36,7 +36,9 @@
 #define QA(test) test_cases.push_back(test);
 std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
 {
-
+    const float inf = std::numeric_limits<float>::infinity();
+    const float nan = std::nanf("");
+    
     // Some kernels need a lower tolerance
     volk_test_params_t test_params_inacc = test_params.make_tol(1e-2);
     volk_test_params_t test_params_inacc_tenth = test_params.make_tol(1e-1);
@@ -111,7 +113,11 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32f_index_min_32u, test_params_index))
     QA(VOLK_INIT_TEST(volk_32fc_32f_multiply_32fc, test_params))
     QA(VOLK_INIT_TEST(volk_32fc_32f_add_32fc, test_params))
-    QA(VOLK_INIT_TEST(volk_32f_log2_32f, test_params.make_absolute(1.5e-5)))
+
+    volk_test_params_t test_params_log2(test_params.make_absolute(5e-6));
+    test_params_log2.add_float_edge_cases({ -1.f, 0.f, inf, 65536.f });
+    QA(VOLK_INIT_TEST(volk_32f_log2_32f, test_params_log2))
+
     QA(VOLK_INIT_TEST(volk_32f_expfast_32f, test_params_inacc_tenth))
     QA(VOLK_INIT_TEST(volk_32f_sin_32f, test_params))
     QA(VOLK_INIT_TEST(volk_32f_cos_32f, test_params))
@@ -149,8 +155,6 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32f_s32f_calc_spectral_noise_floor_32f, test_params_snf))
 
     volk_test_params_t test_params_atan2(test_params);
-    const float inf = std::numeric_limits<float>::infinity();
-    const float nan = std::nanf("");
     test_params_atan2.add_complex_edge_cases(
         { lv_cmake(0.0f, 0.0f),   // atan2(0, 0) = 0
           lv_cmake(0.0f, -0.0f),  // atan2(-0, 0) = -0 (preserve sign)
