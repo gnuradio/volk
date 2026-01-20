@@ -622,10 +622,10 @@ static inline void volk_32f_log2_32f_u_avx512dq(float* bVector,
         __m512 aVal = _mm512_loadu_ps(aPtr);
 
         // Use fpclass for special value detection (AVX512DQ feature)
-        // 0x01 = QNaN, 0x80 = SNaN, 0x10 = +Inf, 0x04 = +Zero, 0x02 = -Zero
+        // 0x01 = QNaN, 0x02 = +0, 0x04 = -0, 0x08 = +Inf, 0x10 = -Inf, 0x80 = SNaN
         __mmask16 nan_mask = _mm512_fpclass_ps_mask(aVal, 0x81);  // NaN (QNaN | SNaN)
         __mmask16 zero_mask = _mm512_fpclass_ps_mask(aVal, 0x06); // Zero (+0 | -0)
-        __mmask16 inf_mask = _mm512_fpclass_ps_mask(aVal, 0x10);  // +Inf only
+        __mmask16 inf_mask = _mm512_fpclass_ps_mask(aVal, 0x08);  // +Inf only
         __mmask16 neg_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OQ);
         __mmask16 invalid_mask = _kor_mask16(nan_mask, neg_mask); // neg or NaN -> NaN
 
@@ -685,9 +685,10 @@ static inline void volk_32f_log2_32f_a_avx512dq(float* bVector,
         __m512 aVal = _mm512_load_ps(aPtr);
 
         // Use fpclass for special value detection (AVX512DQ feature)
+        // 0x01 = QNaN, 0x02 = +0, 0x04 = -0, 0x08 = +Inf, 0x10 = -Inf, 0x80 = SNaN
         __mmask16 nan_mask = _mm512_fpclass_ps_mask(aVal, 0x81);  // NaN (QNaN | SNaN)
         __mmask16 zero_mask = _mm512_fpclass_ps_mask(aVal, 0x06); // Zero (+0 | -0)
-        __mmask16 inf_mask = _mm512_fpclass_ps_mask(aVal, 0x10);  // +Inf only
+        __mmask16 inf_mask = _mm512_fpclass_ps_mask(aVal, 0x08);  // +Inf only
         __mmask16 neg_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OQ);
         __mmask16 invalid_mask = _kor_mask16(nan_mask, neg_mask); // neg or NaN -> NaN
 
