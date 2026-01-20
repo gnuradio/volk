@@ -38,7 +38,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
 {
     const float inf = std::numeric_limits<float>::infinity();
     const float nan = std::nanf("");
-    
+
     // Some kernels need a lower tolerance
     volk_test_params_t test_params_inacc = test_params.make_tol(1e-2);
     volk_test_params_t test_params_inacc_tenth = test_params.make_tol(1e-1);
