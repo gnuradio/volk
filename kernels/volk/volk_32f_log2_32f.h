@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2014 Free Software Foundation, Inc.
- * Copyright 2025 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2025-2026 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -85,8 +85,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define LOG_POLY_DEGREE 6
-
 #ifdef LV_HAVE_GENERIC
 
 static inline void
@@ -104,16 +102,7 @@ volk_32f_log2_32f_generic(float* bVector, const float* aVector, unsigned int num
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
-
-#define POLY0(x, c0) _mm_set1_ps(c0)
-#define POLY1(x, c0, c1) _mm_add_ps(_mm_mul_ps(POLY0(x, c1), x), _mm_set1_ps(c0))
-#define POLY2(x, c0, c1, c2) _mm_add_ps(_mm_mul_ps(POLY1(x, c1, c2), x), _mm_set1_ps(c0))
-#define POLY3(x, c0, c1, c2, c3) \
-    _mm_add_ps(_mm_mul_ps(POLY2(x, c1, c2, c3), x), _mm_set1_ps(c0))
-#define POLY4(x, c0, c1, c2, c3, c4) \
-    _mm_add_ps(_mm_mul_ps(POLY3(x, c1, c2, c3, c4), x), _mm_set1_ps(c0))
-#define POLY5(x, c0, c1, c2, c3, c4, c5) \
-    _mm_add_ps(_mm_mul_ps(POLY4(x, c1, c2, c3, c4, c5), x), _mm_set1_ps(c0))
+#include <volk/volk_sse_intrinsics.h>
 
 static inline void
 volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
@@ -124,64 +113,43 @@ volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
-    __m128 aVal, bVal, mantissa, frac, leadingOne;
-    __m128i bias, exp;
+    const __m128i exp_mask = _mm_set1_epi32(0x7f800000);
+    const __m128i mant_mask = _mm_set1_epi32(0x007fffff);
+    const __m128i one_bits = _mm_set1_epi32(0x3f800000);
+    const __m128i exp_bias = _mm_set1_epi32(127);
+    const __m128 one = _mm_set1_ps(1.0f);
 
     for (; number < quarterPoints; number++) {
+        __m128 aVal = _mm_loadu_ps(aPtr);
 
-        aVal = _mm_loadu_ps(aPtr);
+        // Check for special values
+        __m128 zero_mask = _mm_cmpeq_ps(aVal, _mm_setzero_ps());
+        __m128 neg_mask = _mm_cmplt_ps(aVal, _mm_setzero_ps());
+        __m128 inf_mask = _mm_cmpeq_ps(aVal, _mm_set1_ps(INFINITY));
+        __m128 nan_mask = _mm_cmpunord_ps(aVal, aVal);
+        __m128 invalid_mask = _mm_or_ps(neg_mask, nan_mask);
 
-        // Check for NaN or negative/zero (invalid inputs for log2)
-        __m128 invalid_mask = _mm_cmple_ps(aVal, _mm_setzero_ps());          // aVal <= 0
-        invalid_mask = _mm_or_ps(invalid_mask, _mm_cmpunord_ps(aVal, aVal)); // Or NaN
-        __m128 nan_value = _mm_set1_ps(NAN);
+        __m128i aVal_i = _mm_castps_si128(aVal);
 
-        bias = _mm_set1_epi32(127);
-        leadingOne = _mm_set1_ps(1.0f);
-        exp = _mm_sub_epi32(
-            _mm_srli_epi32(
-                _mm_and_si128(_mm_castps_si128(aVal), _mm_set1_epi32(0x7f800000)), 23),
-            bias);
-        bVal = _mm_cvtepi32_ps(exp);
+        // Extract exponent: (aVal_i & exp_mask) >> 23 - bias
+        __m128i exp_i = _mm_srli_epi32(_mm_and_si128(aVal_i, exp_mask), 23);
+        exp_i = _mm_sub_epi32(exp_i, exp_bias);
+        __m128 exp_f = _mm_cvtepi32_ps(exp_i);
 
-        // Now to extract mantissa
-        frac = _mm_or_ps(leadingOne,
-                         _mm_and_ps(aVal, _mm_castsi128_ps(_mm_set1_epi32(0x7fffff))));
+        // Extract mantissa as float in [1, 2)
+        __m128 frac =
+            _mm_castsi128_ps(_mm_or_si128(_mm_and_si128(aVal_i, mant_mask), one_bits));
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5(frac,
-                         3.1157899f,
-                         -3.3241990f,
-                         2.5988452f,
-                         -1.2315303f,
-                         3.1821337e-1f,
-                         -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4(frac,
-                         2.8882704548164776201f,
-                         -2.52074962577807006663f,
-                         1.48116647521213171641f,
-                         -0.465725644288844778798f,
-                         0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3(frac,
-                         2.61761038894603480148f,
-                         -1.75647175389045657003f,
-                         0.688243882994381274313f,
-                         -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2(frac,
-                         2.28330284476918490682f,
-                         -1.04913055217340124191f,
-                         0.204446009836232697516f);
-#else
-#error
-#endif
+        // Evaluate degree-6 polynomial
+        __m128 poly = _mm_log2_poly_sse(frac);
 
-        bVal = _mm_add_ps(bVal, _mm_mul_ps(mantissa, _mm_sub_ps(frac, leadingOne)));
+        // result = exp + poly * (frac - 1)
+        __m128 bVal = _mm_add_ps(exp_f, _mm_mul_ps(poly, _mm_sub_ps(frac, one)));
 
-        // Replace invalid results with NaN
-        bVal = _mm_blendv_ps(bVal, nan_value, invalid_mask);
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm_blendv_ps(bVal, _mm_set1_ps(-127.0f), zero_mask);
+        bVal = _mm_blendv_ps(bVal, _mm_set1_ps(127.0f), inf_mask);
+        bVal = _mm_blendv_ps(bVal, _mm_set1_ps(NAN), invalid_mask);
 
         _mm_storeu_ps(bPtr, bVal);
 
@@ -196,17 +164,6 @@ volk_32f_log2_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int nu
 #endif /* LV_HAVE_SSE4_1 for unaligned */
 
 #ifdef LV_HAVE_SSE4_1
-#include <smmintrin.h>
-
-#define POLY0(x, c0) _mm_set1_ps(c0)
-#define POLY1(x, c0, c1) _mm_add_ps(_mm_mul_ps(POLY0(x, c1), x), _mm_set1_ps(c0))
-#define POLY2(x, c0, c1, c2) _mm_add_ps(_mm_mul_ps(POLY1(x, c1, c2), x), _mm_set1_ps(c0))
-#define POLY3(x, c0, c1, c2, c3) \
-    _mm_add_ps(_mm_mul_ps(POLY2(x, c1, c2, c3), x), _mm_set1_ps(c0))
-#define POLY4(x, c0, c1, c2, c3, c4) \
-    _mm_add_ps(_mm_mul_ps(POLY3(x, c1, c2, c3, c4), x), _mm_set1_ps(c0))
-#define POLY5(x, c0, c1, c2, c3, c4, c5) \
-    _mm_add_ps(_mm_mul_ps(POLY4(x, c1, c2, c3, c4, c5), x), _mm_set1_ps(c0))
 
 static inline void
 volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num_points)
@@ -217,64 +174,43 @@ volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
-    __m128 aVal, bVal, mantissa, frac, leadingOne;
-    __m128i bias, exp;
+    const __m128i exp_mask = _mm_set1_epi32(0x7f800000);
+    const __m128i mant_mask = _mm_set1_epi32(0x007fffff);
+    const __m128i one_bits = _mm_set1_epi32(0x3f800000);
+    const __m128i exp_bias = _mm_set1_epi32(127);
+    const __m128 one = _mm_set1_ps(1.0f);
 
     for (; number < quarterPoints; number++) {
+        __m128 aVal = _mm_load_ps(aPtr);
 
-        aVal = _mm_load_ps(aPtr);
+        // Check for special values
+        __m128 zero_mask = _mm_cmpeq_ps(aVal, _mm_setzero_ps());
+        __m128 neg_mask = _mm_cmplt_ps(aVal, _mm_setzero_ps());
+        __m128 inf_mask = _mm_cmpeq_ps(aVal, _mm_set1_ps(INFINITY));
+        __m128 nan_mask = _mm_cmpunord_ps(aVal, aVal);
+        __m128 invalid_mask = _mm_or_ps(neg_mask, nan_mask);
 
-        // Check for NaN or negative/zero (invalid inputs for log2)
-        __m128 invalid_mask = _mm_cmple_ps(aVal, _mm_setzero_ps());          // aVal <= 0
-        invalid_mask = _mm_or_ps(invalid_mask, _mm_cmpunord_ps(aVal, aVal)); // Or NaN
-        __m128 nan_value = _mm_set1_ps(NAN);
+        __m128i aVal_i = _mm_castps_si128(aVal);
 
-        bias = _mm_set1_epi32(127);
-        leadingOne = _mm_set1_ps(1.0f);
-        exp = _mm_sub_epi32(
-            _mm_srli_epi32(
-                _mm_and_si128(_mm_castps_si128(aVal), _mm_set1_epi32(0x7f800000)), 23),
-            bias);
-        bVal = _mm_cvtepi32_ps(exp);
+        // Extract exponent: (aVal_i & exp_mask) >> 23 - bias
+        __m128i exp_i = _mm_srli_epi32(_mm_and_si128(aVal_i, exp_mask), 23);
+        exp_i = _mm_sub_epi32(exp_i, exp_bias);
+        __m128 exp_f = _mm_cvtepi32_ps(exp_i);
 
-        // Now to extract mantissa
-        frac = _mm_or_ps(leadingOne,
-                         _mm_and_ps(aVal, _mm_castsi128_ps(_mm_set1_epi32(0x7fffff))));
+        // Extract mantissa as float in [1, 2)
+        __m128 frac =
+            _mm_castsi128_ps(_mm_or_si128(_mm_and_si128(aVal_i, mant_mask), one_bits));
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5(frac,
-                         3.1157899f,
-                         -3.3241990f,
-                         2.5988452f,
-                         -1.2315303f,
-                         3.1821337e-1f,
-                         -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4(frac,
-                         2.8882704548164776201f,
-                         -2.52074962577807006663f,
-                         1.48116647521213171641f,
-                         -0.465725644288844778798f,
-                         0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3(frac,
-                         2.61761038894603480148f,
-                         -1.75647175389045657003f,
-                         0.688243882994381274313f,
-                         -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2(frac,
-                         2.28330284476918490682f,
-                         -1.04913055217340124191f,
-                         0.204446009836232697516f);
-#else
-#error
-#endif
+        // Evaluate degree-6 polynomial
+        __m128 poly = _mm_log2_poly_sse(frac);
 
-        bVal = _mm_add_ps(bVal, _mm_mul_ps(mantissa, _mm_sub_ps(frac, leadingOne)));
+        // result = exp + poly * (frac - 1)
+        __m128 bVal = _mm_add_ps(exp_f, _mm_mul_ps(poly, _mm_sub_ps(frac, one)));
 
-        // Replace invalid results with NaN
-        bVal = _mm_blendv_ps(bVal, nan_value, invalid_mask);
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm_blendv_ps(bVal, _mm_set1_ps(-127.0f), zero_mask);
+        bVal = _mm_blendv_ps(bVal, _mm_set1_ps(127.0f), inf_mask);
+        bVal = _mm_blendv_ps(bVal, _mm_set1_ps(NAN), invalid_mask);
 
         _mm_store_ps(bPtr, bVal);
 
@@ -286,22 +222,11 @@ volk_32f_log2_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int nu
     volk_32f_log2_32f_generic(bPtr, aPtr, num_points - number);
 }
 
-#endif /* LV_HAVE_SSE4_1 for aligned */
+#endif /* LV_HAVE_SSE4_1 */
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
-
-#define POLY0_AVX2(x, c0) _mm256_set1_ps(c0)
-#define POLY1_AVX2(x, c0, c1) \
-    _mm256_add_ps(_mm256_mul_ps(POLY0_AVX2(x, c1), x), _mm256_set1_ps(c0))
-#define POLY2_AVX2(x, c0, c1, c2) \
-    _mm256_add_ps(_mm256_mul_ps(POLY1_AVX2(x, c1, c2), x), _mm256_set1_ps(c0))
-#define POLY3_AVX2(x, c0, c1, c2, c3) \
-    _mm256_add_ps(_mm256_mul_ps(POLY2_AVX2(x, c1, c2, c3), x), _mm256_set1_ps(c0))
-#define POLY4_AVX2(x, c0, c1, c2, c3, c4) \
-    _mm256_add_ps(_mm256_mul_ps(POLY3_AVX2(x, c1, c2, c3, c4), x), _mm256_set1_ps(c0))
-#define POLY5_AVX2(x, c0, c1, c2, c3, c4, c5) \
-    _mm256_add_ps(_mm256_mul_ps(POLY4_AVX2(x, c1, c2, c3, c4, c5), x), _mm256_set1_ps(c0))
+#include <volk/volk_avx2_intrinsics.h>
 
 static inline void
 volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_points)
@@ -312,69 +237,43 @@ volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    __m256 aVal, bVal, mantissa, frac, leadingOne;
-    __m256i bias, exp;
+    const __m256i exp_mask = _mm256_set1_epi32(0x7f800000);
+    const __m256i mant_mask = _mm256_set1_epi32(0x007fffff);
+    const __m256i one_bits = _mm256_set1_epi32(0x3f800000);
+    const __m256i exp_bias = _mm256_set1_epi32(127);
+    const __m256 one = _mm256_set1_ps(1.0f);
 
     for (; number < eighthPoints; number++) {
+        __m256 aVal = _mm256_loadu_ps(aPtr);
 
-        aVal = _mm256_loadu_ps(aPtr);
+        // Check for special values
+        __m256 zero_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_EQ_OQ);
+        __m256 neg_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LT_OQ);
+        __m256 inf_mask = _mm256_cmp_ps(aVal, _mm256_set1_ps(INFINITY), _CMP_EQ_OQ);
+        __m256 nan_mask = _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q);
+        __m256 invalid_mask = _mm256_or_ps(neg_mask, nan_mask);
 
-        // Check for NaN or negative/zero (invalid inputs for log2)
-        __m256 invalid_mask =
-            _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ); // aVal <= 0
-        invalid_mask =
-            _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q)); // Or NaN
-        __m256 nan_value = _mm256_set1_ps(NAN);
+        __m256i aVal_i = _mm256_castps_si256(aVal);
 
-        bias = _mm256_set1_epi32(127);
-        leadingOne = _mm256_set1_ps(1.0f);
-        exp = _mm256_sub_epi32(
-            _mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal),
-                                               _mm256_set1_epi32(0x7f800000)),
-                              23),
-            bias);
-        bVal = _mm256_cvtepi32_ps(exp);
+        // Extract exponent
+        __m256i exp_i = _mm256_srli_epi32(_mm256_and_si256(aVal_i, exp_mask), 23);
+        exp_i = _mm256_sub_epi32(exp_i, exp_bias);
+        __m256 exp_f = _mm256_cvtepi32_ps(exp_i);
 
-        // Now to extract mantissa
-        frac = _mm256_or_ps(
-            leadingOne,
-            _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
+        // Extract mantissa as float in [1, 2)
+        __m256 frac = _mm256_castsi256_ps(
+            _mm256_or_si256(_mm256_and_si256(aVal_i, mant_mask), one_bits));
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5_AVX2(frac,
-                              3.1157899f,
-                              -3.3241990f,
-                              2.5988452f,
-                              -1.2315303f,
-                              3.1821337e-1f,
-                              -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4_AVX2(frac,
-                              2.8882704548164776201f,
-                              -2.52074962577807006663f,
-                              1.48116647521213171641f,
-                              -0.465725644288844778798f,
-                              0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3_AVX2(frac,
-                              2.61761038894603480148f,
-                              -1.75647175389045657003f,
-                              0.688243882994381274313f,
-                              -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2_AVX2(frac,
-                              2.28330284476918490682f,
-                              -1.04913055217340124191f,
-                              0.204446009836232697516f);
-#else
-#error
-#endif
+        // Evaluate degree-6 polynomial
+        __m256 poly = _mm256_log2_poly_avx2(frac);
 
-        bVal =
-            _mm256_add_ps(_mm256_mul_ps(mantissa, _mm256_sub_ps(frac, leadingOne)), bVal);
+        // result = exp + poly * (frac - 1)
+        __m256 bVal = _mm256_add_ps(exp_f, _mm256_mul_ps(poly, _mm256_sub_ps(frac, one)));
 
-        // Replace invalid results with NaN
-        bVal = _mm256_blendv_ps(bVal, nan_value, invalid_mask);
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(-127.0f), zero_mask);
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(127.0f), inf_mask);
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(NAN), invalid_mask);
 
         _mm256_storeu_ps(bPtr, bVal);
 
@@ -389,19 +288,6 @@ volk_32f_log2_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_
 #endif /* LV_HAVE_AVX2 for unaligned */
 
 #ifdef LV_HAVE_AVX2
-#include <immintrin.h>
-
-#define POLY0_AVX2(x, c0) _mm256_set1_ps(c0)
-#define POLY1_AVX2(x, c0, c1) \
-    _mm256_add_ps(_mm256_mul_ps(POLY0_AVX2(x, c1), x), _mm256_set1_ps(c0))
-#define POLY2_AVX2(x, c0, c1, c2) \
-    _mm256_add_ps(_mm256_mul_ps(POLY1_AVX2(x, c1, c2), x), _mm256_set1_ps(c0))
-#define POLY3_AVX2(x, c0, c1, c2, c3) \
-    _mm256_add_ps(_mm256_mul_ps(POLY2_AVX2(x, c1, c2, c3), x), _mm256_set1_ps(c0))
-#define POLY4_AVX2(x, c0, c1, c2, c3, c4) \
-    _mm256_add_ps(_mm256_mul_ps(POLY3_AVX2(x, c1, c2, c3, c4), x), _mm256_set1_ps(c0))
-#define POLY5_AVX2(x, c0, c1, c2, c3, c4, c5) \
-    _mm256_add_ps(_mm256_mul_ps(POLY4_AVX2(x, c1, c2, c3, c4, c5), x), _mm256_set1_ps(c0))
 
 static inline void
 volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_points)
@@ -412,69 +298,43 @@ volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    __m256 aVal, bVal, mantissa, frac, leadingOne;
-    __m256i bias, exp;
+    const __m256i exp_mask = _mm256_set1_epi32(0x7f800000);
+    const __m256i mant_mask = _mm256_set1_epi32(0x007fffff);
+    const __m256i one_bits = _mm256_set1_epi32(0x3f800000);
+    const __m256i exp_bias = _mm256_set1_epi32(127);
+    const __m256 one = _mm256_set1_ps(1.0f);
 
     for (; number < eighthPoints; number++) {
+        __m256 aVal = _mm256_load_ps(aPtr);
 
-        aVal = _mm256_load_ps(aPtr);
+        // Check for special values
+        __m256 zero_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_EQ_OQ);
+        __m256 neg_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LT_OQ);
+        __m256 inf_mask = _mm256_cmp_ps(aVal, _mm256_set1_ps(INFINITY), _CMP_EQ_OQ);
+        __m256 nan_mask = _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q);
+        __m256 invalid_mask = _mm256_or_ps(neg_mask, nan_mask);
 
-        // Check for NaN or negative/zero (invalid inputs for log2)
-        __m256 invalid_mask =
-            _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ); // aVal <= 0
-        invalid_mask =
-            _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q)); // Or NaN
-        __m256 nan_value = _mm256_set1_ps(NAN);
+        __m256i aVal_i = _mm256_castps_si256(aVal);
 
-        bias = _mm256_set1_epi32(127);
-        leadingOne = _mm256_set1_ps(1.0f);
-        exp = _mm256_sub_epi32(
-            _mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal),
-                                               _mm256_set1_epi32(0x7f800000)),
-                              23),
-            bias);
-        bVal = _mm256_cvtepi32_ps(exp);
+        // Extract exponent
+        __m256i exp_i = _mm256_srli_epi32(_mm256_and_si256(aVal_i, exp_mask), 23);
+        exp_i = _mm256_sub_epi32(exp_i, exp_bias);
+        __m256 exp_f = _mm256_cvtepi32_ps(exp_i);
 
-        // Now to extract mantissa
-        frac = _mm256_or_ps(
-            leadingOne,
-            _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
+        // Extract mantissa as float in [1, 2)
+        __m256 frac = _mm256_castsi256_ps(
+            _mm256_or_si256(_mm256_and_si256(aVal_i, mant_mask), one_bits));
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5_AVX2(frac,
-                              3.1157899f,
-                              -3.3241990f,
-                              2.5988452f,
-                              -1.2315303f,
-                              3.1821337e-1f,
-                              -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4_AVX2(frac,
-                              2.8882704548164776201f,
-                              -2.52074962577807006663f,
-                              1.48116647521213171641f,
-                              -0.465725644288844778798f,
-                              0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3_AVX2(frac,
-                              2.61761038894603480148f,
-                              -1.75647175389045657003f,
-                              0.688243882994381274313f,
-                              -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2_AVX2(frac,
-                              2.28330284476918490682f,
-                              -1.04913055217340124191f,
-                              0.204446009836232697516f);
-#else
-#error
-#endif
+        // Evaluate degree-6 polynomial
+        __m256 poly = _mm256_log2_poly_avx2(frac);
 
-        bVal =
-            _mm256_add_ps(_mm256_mul_ps(mantissa, _mm256_sub_ps(frac, leadingOne)), bVal);
+        // result = exp + poly * (frac - 1)
+        __m256 bVal = _mm256_add_ps(exp_f, _mm256_mul_ps(poly, _mm256_sub_ps(frac, one)));
 
-        // Replace invalid results with NaN
-        bVal = _mm256_blendv_ps(bVal, nan_value, invalid_mask);
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(-127.0f), zero_mask);
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(127.0f), inf_mask);
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(NAN), invalid_mask);
 
         _mm256_store_ps(bPtr, bVal);
 
@@ -486,22 +346,11 @@ volk_32f_log2_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_
     volk_32f_log2_32f_generic(bPtr, aPtr, num_points - number);
 }
 
-#endif /* LV_HAVE_AVX2 for aligned */
+#endif /* LV_HAVE_AVX2 */
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
-
-#define POLY0_FMAAVX2(x, c0) _mm256_set1_ps(c0)
-#define POLY1_FMAAVX2(x, c0, c1) \
-    _mm256_fmadd_ps(POLY0_FMAAVX2(x, c1), x, _mm256_set1_ps(c0))
-#define POLY2_FMAAVX2(x, c0, c1, c2) \
-    _mm256_fmadd_ps(POLY1_FMAAVX2(x, c1, c2), x, _mm256_set1_ps(c0))
-#define POLY3_FMAAVX2(x, c0, c1, c2, c3) \
-    _mm256_fmadd_ps(POLY2_FMAAVX2(x, c1, c2, c3), x, _mm256_set1_ps(c0))
-#define POLY4_FMAAVX2(x, c0, c1, c2, c3, c4) \
-    _mm256_fmadd_ps(POLY3_FMAAVX2(x, c1, c2, c3, c4), x, _mm256_set1_ps(c0))
-#define POLY5_FMAAVX2(x, c0, c1, c2, c3, c4, c5) \
-    _mm256_fmadd_ps(POLY4_FMAAVX2(x, c1, c2, c3, c4, c5), x, _mm256_set1_ps(c0))
+#include <volk/volk_avx2_fma_intrinsics.h>
 
 static inline void volk_32f_log2_32f_u_avx2_fma(float* bVector,
                                                 const float* aVector,
@@ -513,68 +362,43 @@ static inline void volk_32f_log2_32f_u_avx2_fma(float* bVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    __m256 aVal, bVal, mantissa, frac, leadingOne;
-    __m256i bias, exp;
+    const __m256i exp_mask = _mm256_set1_epi32(0x7f800000);
+    const __m256i mant_mask = _mm256_set1_epi32(0x007fffff);
+    const __m256i one_bits = _mm256_set1_epi32(0x3f800000);
+    const __m256i exp_bias = _mm256_set1_epi32(127);
+    const __m256 one = _mm256_set1_ps(1.0f);
 
     for (; number < eighthPoints; number++) {
+        __m256 aVal = _mm256_loadu_ps(aPtr);
 
-        aVal = _mm256_loadu_ps(aPtr);
+        // Check for special values
+        __m256 zero_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_EQ_OQ);
+        __m256 neg_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LT_OQ);
+        __m256 inf_mask = _mm256_cmp_ps(aVal, _mm256_set1_ps(INFINITY), _CMP_EQ_OQ);
+        __m256 nan_mask = _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q);
+        __m256 invalid_mask = _mm256_or_ps(neg_mask, nan_mask);
 
-        // Check for NaN or negative/zero (invalid inputs for log2)
-        __m256 invalid_mask =
-            _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ); // aVal <= 0
-        invalid_mask =
-            _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q)); // Or NaN
-        __m256 nan_value = _mm256_set1_ps(NAN);
+        __m256i aVal_i = _mm256_castps_si256(aVal);
 
-        bias = _mm256_set1_epi32(127);
-        leadingOne = _mm256_set1_ps(1.0f);
-        exp = _mm256_sub_epi32(
-            _mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal),
-                                               _mm256_set1_epi32(0x7f800000)),
-                              23),
-            bias);
-        bVal = _mm256_cvtepi32_ps(exp);
+        // Extract exponent
+        __m256i exp_i = _mm256_srli_epi32(_mm256_and_si256(aVal_i, exp_mask), 23);
+        exp_i = _mm256_sub_epi32(exp_i, exp_bias);
+        __m256 exp_f = _mm256_cvtepi32_ps(exp_i);
 
-        // Now to extract mantissa
-        frac = _mm256_or_ps(
-            leadingOne,
-            _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
+        // Extract mantissa as float in [1, 2)
+        __m256 frac = _mm256_castsi256_ps(
+            _mm256_or_si256(_mm256_and_si256(aVal_i, mant_mask), one_bits));
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5_FMAAVX2(frac,
-                                 3.1157899f,
-                                 -3.3241990f,
-                                 2.5988452f,
-                                 -1.2315303f,
-                                 3.1821337e-1f,
-                                 -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4_FMAAVX2(frac,
-                                 2.8882704548164776201f,
-                                 -2.52074962577807006663f,
-                                 1.48116647521213171641f,
-                                 -0.465725644288844778798f,
-                                 0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3_FMAAVX2(frac,
-                                 2.61761038894603480148f,
-                                 -1.75647175389045657003f,
-                                 0.688243882994381274313f,
-                                 -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2_FMAAVX2(frac,
-                                 2.28330284476918490682f,
-                                 -1.04913055217340124191f,
-                                 0.204446009836232697516f);
-#else
-#error
-#endif
+        // Evaluate degree-6 polynomial with FMA
+        __m256 poly = _mm256_log2_poly_avx2_fma(frac);
 
-        bVal = _mm256_fmadd_ps(mantissa, _mm256_sub_ps(frac, leadingOne), bVal);
+        // result = exp + poly * (frac - 1)
+        __m256 bVal = _mm256_fmadd_ps(poly, _mm256_sub_ps(frac, one), exp_f);
 
-        // Replace invalid results with NaN
-        bVal = _mm256_blendv_ps(bVal, nan_value, invalid_mask);
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(-127.0f), zero_mask);
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(127.0f), inf_mask);
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(NAN), invalid_mask);
 
         _mm256_storeu_ps(bPtr, bVal);
 
@@ -589,19 +413,6 @@ static inline void volk_32f_log2_32f_u_avx2_fma(float* bVector,
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for unaligned */
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
-#include <immintrin.h>
-
-#define POLY0_FMAAVX2(x, c0) _mm256_set1_ps(c0)
-#define POLY1_FMAAVX2(x, c0, c1) \
-    _mm256_fmadd_ps(POLY0_FMAAVX2(x, c1), x, _mm256_set1_ps(c0))
-#define POLY2_FMAAVX2(x, c0, c1, c2) \
-    _mm256_fmadd_ps(POLY1_FMAAVX2(x, c1, c2), x, _mm256_set1_ps(c0))
-#define POLY3_FMAAVX2(x, c0, c1, c2, c3) \
-    _mm256_fmadd_ps(POLY2_FMAAVX2(x, c1, c2, c3), x, _mm256_set1_ps(c0))
-#define POLY4_FMAAVX2(x, c0, c1, c2, c3, c4) \
-    _mm256_fmadd_ps(POLY3_FMAAVX2(x, c1, c2, c3, c4), x, _mm256_set1_ps(c0))
-#define POLY5_FMAAVX2(x, c0, c1, c2, c3, c4, c5) \
-    _mm256_fmadd_ps(POLY4_FMAAVX2(x, c1, c2, c3, c4, c5), x, _mm256_set1_ps(c0))
 
 static inline void volk_32f_log2_32f_a_avx2_fma(float* bVector,
                                                 const float* aVector,
@@ -613,68 +424,43 @@ static inline void volk_32f_log2_32f_a_avx2_fma(float* bVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    __m256 aVal, bVal, mantissa, frac, leadingOne;
-    __m256i bias, exp;
+    const __m256i exp_mask = _mm256_set1_epi32(0x7f800000);
+    const __m256i mant_mask = _mm256_set1_epi32(0x007fffff);
+    const __m256i one_bits = _mm256_set1_epi32(0x3f800000);
+    const __m256i exp_bias = _mm256_set1_epi32(127);
+    const __m256 one = _mm256_set1_ps(1.0f);
 
     for (; number < eighthPoints; number++) {
+        __m256 aVal = _mm256_load_ps(aPtr);
 
-        aVal = _mm256_load_ps(aPtr);
+        // Check for special values
+        __m256 zero_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_EQ_OQ);
+        __m256 neg_mask = _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LT_OQ);
+        __m256 inf_mask = _mm256_cmp_ps(aVal, _mm256_set1_ps(INFINITY), _CMP_EQ_OQ);
+        __m256 nan_mask = _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q);
+        __m256 invalid_mask = _mm256_or_ps(neg_mask, nan_mask);
 
-        // Check for NaN or negative/zero (invalid inputs for log2)
-        __m256 invalid_mask =
-            _mm256_cmp_ps(aVal, _mm256_setzero_ps(), _CMP_LE_OQ); // aVal <= 0
-        invalid_mask =
-            _mm256_or_ps(invalid_mask, _mm256_cmp_ps(aVal, aVal, _CMP_UNORD_Q)); // Or NaN
-        __m256 nan_value = _mm256_set1_ps(NAN);
+        __m256i aVal_i = _mm256_castps_si256(aVal);
 
-        bias = _mm256_set1_epi32(127);
-        leadingOne = _mm256_set1_ps(1.0f);
-        exp = _mm256_sub_epi32(
-            _mm256_srli_epi32(_mm256_and_si256(_mm256_castps_si256(aVal),
-                                               _mm256_set1_epi32(0x7f800000)),
-                              23),
-            bias);
-        bVal = _mm256_cvtepi32_ps(exp);
+        // Extract exponent
+        __m256i exp_i = _mm256_srli_epi32(_mm256_and_si256(aVal_i, exp_mask), 23);
+        exp_i = _mm256_sub_epi32(exp_i, exp_bias);
+        __m256 exp_f = _mm256_cvtepi32_ps(exp_i);
 
-        // Now to extract mantissa
-        frac = _mm256_or_ps(
-            leadingOne,
-            _mm256_and_ps(aVal, _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffff))));
+        // Extract mantissa as float in [1, 2)
+        __m256 frac = _mm256_castsi256_ps(
+            _mm256_or_si256(_mm256_and_si256(aVal_i, mant_mask), one_bits));
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5_FMAAVX2(frac,
-                                 3.1157899f,
-                                 -3.3241990f,
-                                 2.5988452f,
-                                 -1.2315303f,
-                                 3.1821337e-1f,
-                                 -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4_FMAAVX2(frac,
-                                 2.8882704548164776201f,
-                                 -2.52074962577807006663f,
-                                 1.48116647521213171641f,
-                                 -0.465725644288844778798f,
-                                 0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3_FMAAVX2(frac,
-                                 2.61761038894603480148f,
-                                 -1.75647175389045657003f,
-                                 0.688243882994381274313f,
-                                 -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2_FMAAVX2(frac,
-                                 2.28330284476918490682f,
-                                 -1.04913055217340124191f,
-                                 0.204446009836232697516f);
-#else
-#error
-#endif
+        // Evaluate degree-6 polynomial with FMA
+        __m256 poly = _mm256_log2_poly_avx2_fma(frac);
 
-        bVal = _mm256_fmadd_ps(mantissa, _mm256_sub_ps(frac, leadingOne), bVal);
+        // result = exp + poly * (frac - 1)
+        __m256 bVal = _mm256_fmadd_ps(poly, _mm256_sub_ps(frac, one), exp_f);
 
-        // Replace invalid results with NaN
-        bVal = _mm256_blendv_ps(bVal, nan_value, invalid_mask);
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(-127.0f), zero_mask);
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(127.0f), inf_mask);
+        bVal = _mm256_blendv_ps(bVal, _mm256_set1_ps(NAN), invalid_mask);
 
         _mm256_store_ps(bPtr, bVal);
 
@@ -686,22 +472,11 @@ static inline void volk_32f_log2_32f_a_avx2_fma(float* bVector,
     volk_32f_log2_32f_generic(bPtr, aPtr, num_points - number);
 }
 
-#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for aligned */
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
 
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
-
-#define POLY0_AVX512(x, c0) _mm512_set1_ps(c0)
-#define POLY1_AVX512(x, c0, c1) \
-    _mm512_fmadd_ps(POLY0_AVX512(x, c1), x, _mm512_set1_ps(c0))
-#define POLY2_AVX512(x, c0, c1, c2) \
-    _mm512_fmadd_ps(POLY1_AVX512(x, c1, c2), x, _mm512_set1_ps(c0))
-#define POLY3_AVX512(x, c0, c1, c2, c3) \
-    _mm512_fmadd_ps(POLY2_AVX512(x, c1, c2, c3), x, _mm512_set1_ps(c0))
-#define POLY4_AVX512(x, c0, c1, c2, c3, c4) \
-    _mm512_fmadd_ps(POLY3_AVX512(x, c1, c2, c3, c4), x, _mm512_set1_ps(c0))
-#define POLY5_AVX512(x, c0, c1, c2, c3, c4, c5) \
-    _mm512_fmadd_ps(POLY4_AVX512(x, c1, c2, c3, c4, c5), x, _mm512_set1_ps(c0))
+#include <volk/volk_avx512_intrinsics.h>
 
 static inline void
 volk_32f_log2_32f_u_avx512(float* bVector, const float* aVector, unsigned int num_points)
@@ -712,68 +487,44 @@ volk_32f_log2_32f_u_avx512(float* bVector, const float* aVector, unsigned int nu
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    __m512 aVal, bVal, mantissa, frac, leadingOne;
-    __m512i bias, exp;
+    const __m512i exp_mask = _mm512_set1_epi32(0x7f800000);
+    const __m512i mant_mask = _mm512_set1_epi32(0x007fffff);
+    const __m512i one_bits = _mm512_set1_epi32(0x3f800000);
+    const __m512i exp_bias = _mm512_set1_epi32(127);
+    const __m512 one = _mm512_set1_ps(1.0f);
 
     for (; number < sixteenthPoints; number++) {
+        __m512 aVal = _mm512_loadu_ps(aPtr);
 
-        aVal = _mm512_loadu_ps(aPtr);
-
-        // Check for NaN or negative/zero (invalid inputs for log2)
-        __mmask16 invalid_mask =
-            _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LE_OQ);
+        // Check for special values
+        __mmask16 zero_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_EQ_OQ);
+        __mmask16 neg_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OQ);
+        __mmask16 inf_mask =
+            _mm512_cmp_ps_mask(aVal, _mm512_set1_ps(INFINITY), _CMP_EQ_OQ);
         __mmask16 nan_mask = _mm512_cmp_ps_mask(aVal, aVal, _CMP_UNORD_Q);
-        invalid_mask = _kor_mask16(invalid_mask, nan_mask);
-        __m512 nan_value = _mm512_set1_ps(NAN);
+        __mmask16 invalid_mask = _kor_mask16(neg_mask, nan_mask);
 
-        bias = _mm512_set1_epi32(127);
-        leadingOne = _mm512_set1_ps(1.0f);
-        exp = _mm512_sub_epi32(
-            _mm512_srli_epi32(_mm512_and_si512(_mm512_castps_si512(aVal),
-                                               _mm512_set1_epi32(0x7f800000)),
-                              23),
-            bias);
-        bVal = _mm512_cvtepi32_ps(exp);
+        __m512i aVal_i = _mm512_castps_si512(aVal);
 
-        // Now to extract mantissa
-        frac = _mm512_castsi512_ps(_mm512_or_si512(
-            _mm512_castps_si512(leadingOne),
-            _mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffff))));
+        // Extract exponent
+        __m512i exp_i = _mm512_srli_epi32(_mm512_and_si512(aVal_i, exp_mask), 23);
+        exp_i = _mm512_sub_epi32(exp_i, exp_bias);
+        __m512 exp_f = _mm512_cvtepi32_ps(exp_i);
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5_AVX512(frac,
-                                3.1157899f,
-                                -3.3241990f,
-                                2.5988452f,
-                                -1.2315303f,
-                                3.1821337e-1f,
-                                -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4_AVX512(frac,
-                                2.8882704548164776201f,
-                                -2.52074962577807006663f,
-                                1.48116647521213171641f,
-                                -0.465725644288844778798f,
-                                0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3_AVX512(frac,
-                                2.61761038894603480148f,
-                                -1.75647175389045657003f,
-                                0.688243882994381274313f,
-                                -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2_AVX512(frac,
-                                2.28330284476918490682f,
-                                -1.04913055217340124191f,
-                                0.204446009836232697516f);
-#else
-#error
-#endif
+        // Extract mantissa as float in [1, 2)
+        __m512 frac = _mm512_castsi512_ps(
+            _mm512_or_si512(_mm512_and_si512(aVal_i, mant_mask), one_bits));
 
-        bVal = _mm512_fmadd_ps(mantissa, _mm512_sub_ps(frac, leadingOne), bVal);
+        // Evaluate degree-6 polynomial with FMA
+        __m512 poly = _mm512_log2_poly_avx512(frac);
 
-        // Replace invalid results with NaN
-        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, nan_value);
+        // result = exp + poly * (frac - 1)
+        __m512 bVal = _mm512_fmadd_ps(poly, _mm512_sub_ps(frac, one), exp_f);
+
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm512_mask_blend_ps(zero_mask, bVal, _mm512_set1_ps(-127.0f));
+        bVal = _mm512_mask_blend_ps(inf_mask, bVal, _mm512_set1_ps(127.0f));
+        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, _mm512_set1_ps(NAN));
 
         _mm512_storeu_ps(bPtr, bVal);
 
@@ -788,19 +539,6 @@ volk_32f_log2_32f_u_avx512(float* bVector, const float* aVector, unsigned int nu
 #endif /* LV_HAVE_AVX512F for unaligned */
 
 #ifdef LV_HAVE_AVX512F
-#include <immintrin.h>
-
-#define POLY0_AVX512(x, c0) _mm512_set1_ps(c0)
-#define POLY1_AVX512(x, c0, c1) \
-    _mm512_fmadd_ps(POLY0_AVX512(x, c1), x, _mm512_set1_ps(c0))
-#define POLY2_AVX512(x, c0, c1, c2) \
-    _mm512_fmadd_ps(POLY1_AVX512(x, c1, c2), x, _mm512_set1_ps(c0))
-#define POLY3_AVX512(x, c0, c1, c2, c3) \
-    _mm512_fmadd_ps(POLY2_AVX512(x, c1, c2, c3), x, _mm512_set1_ps(c0))
-#define POLY4_AVX512(x, c0, c1, c2, c3, c4) \
-    _mm512_fmadd_ps(POLY3_AVX512(x, c1, c2, c3, c4), x, _mm512_set1_ps(c0))
-#define POLY5_AVX512(x, c0, c1, c2, c3, c4, c5) \
-    _mm512_fmadd_ps(POLY4_AVX512(x, c1, c2, c3, c4, c5), x, _mm512_set1_ps(c0))
 
 static inline void
 volk_32f_log2_32f_a_avx512(float* bVector, const float* aVector, unsigned int num_points)
@@ -811,68 +549,44 @@ volk_32f_log2_32f_a_avx512(float* bVector, const float* aVector, unsigned int nu
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    __m512 aVal, bVal, mantissa, frac, leadingOne;
-    __m512i bias, exp;
+    const __m512i exp_mask = _mm512_set1_epi32(0x7f800000);
+    const __m512i mant_mask = _mm512_set1_epi32(0x007fffff);
+    const __m512i one_bits = _mm512_set1_epi32(0x3f800000);
+    const __m512i exp_bias = _mm512_set1_epi32(127);
+    const __m512 one = _mm512_set1_ps(1.0f);
 
     for (; number < sixteenthPoints; number++) {
+        __m512 aVal = _mm512_load_ps(aPtr);
 
-        aVal = _mm512_load_ps(aPtr);
-
-        // Check for NaN or negative/zero (invalid inputs for log2)
-        __mmask16 invalid_mask =
-            _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LE_OQ);
+        // Check for special values
+        __mmask16 zero_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_EQ_OQ);
+        __mmask16 neg_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OQ);
+        __mmask16 inf_mask =
+            _mm512_cmp_ps_mask(aVal, _mm512_set1_ps(INFINITY), _CMP_EQ_OQ);
         __mmask16 nan_mask = _mm512_cmp_ps_mask(aVal, aVal, _CMP_UNORD_Q);
-        invalid_mask = _kor_mask16(invalid_mask, nan_mask);
-        __m512 nan_value = _mm512_set1_ps(NAN);
+        __mmask16 invalid_mask = _kor_mask16(neg_mask, nan_mask);
 
-        bias = _mm512_set1_epi32(127);
-        leadingOne = _mm512_set1_ps(1.0f);
-        exp = _mm512_sub_epi32(
-            _mm512_srli_epi32(_mm512_and_si512(_mm512_castps_si512(aVal),
-                                               _mm512_set1_epi32(0x7f800000)),
-                              23),
-            bias);
-        bVal = _mm512_cvtepi32_ps(exp);
+        __m512i aVal_i = _mm512_castps_si512(aVal);
 
-        // Now to extract mantissa
-        frac = _mm512_castsi512_ps(_mm512_or_si512(
-            _mm512_castps_si512(leadingOne),
-            _mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffff))));
+        // Extract exponent
+        __m512i exp_i = _mm512_srli_epi32(_mm512_and_si512(aVal_i, exp_mask), 23);
+        exp_i = _mm512_sub_epi32(exp_i, exp_bias);
+        __m512 exp_f = _mm512_cvtepi32_ps(exp_i);
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5_AVX512(frac,
-                                3.1157899f,
-                                -3.3241990f,
-                                2.5988452f,
-                                -1.2315303f,
-                                3.1821337e-1f,
-                                -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4_AVX512(frac,
-                                2.8882704548164776201f,
-                                -2.52074962577807006663f,
-                                1.48116647521213171641f,
-                                -0.465725644288844778798f,
-                                0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3_AVX512(frac,
-                                2.61761038894603480148f,
-                                -1.75647175389045657003f,
-                                0.688243882994381274313f,
-                                -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2_AVX512(frac,
-                                2.28330284476918490682f,
-                                -1.04913055217340124191f,
-                                0.204446009836232697516f);
-#else
-#error
-#endif
+        // Extract mantissa as float in [1, 2)
+        __m512 frac = _mm512_castsi512_ps(
+            _mm512_or_si512(_mm512_and_si512(aVal_i, mant_mask), one_bits));
 
-        bVal = _mm512_fmadd_ps(mantissa, _mm512_sub_ps(frac, leadingOne), bVal);
+        // Evaluate degree-6 polynomial with FMA
+        __m512 poly = _mm512_log2_poly_avx512(frac);
 
-        // Replace invalid results with NaN
-        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, nan_value);
+        // result = exp + poly * (frac - 1)
+        __m512 bVal = _mm512_fmadd_ps(poly, _mm512_sub_ps(frac, one), exp_f);
+
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm512_mask_blend_ps(zero_mask, bVal, _mm512_set1_ps(-127.0f));
+        bVal = _mm512_mask_blend_ps(inf_mask, bVal, _mm512_set1_ps(127.0f));
+        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, _mm512_set1_ps(NAN));
 
         _mm512_store_ps(bPtr, bVal);
 
@@ -884,22 +598,9 @@ volk_32f_log2_32f_a_avx512(float* bVector, const float* aVector, unsigned int nu
     volk_32f_log2_32f_generic(bPtr, aPtr, num_points - number);
 }
 
-#endif /* LV_HAVE_AVX512F for aligned */
+#endif /* LV_HAVE_AVX512F */
 
 #if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
-#include <immintrin.h>
-
-#define POLY0_AVX512DQ(x, c0) _mm512_set1_ps(c0)
-#define POLY1_AVX512DQ(x, c0, c1) \
-    _mm512_fmadd_ps(POLY0_AVX512DQ(x, c1), x, _mm512_set1_ps(c0))
-#define POLY2_AVX512DQ(x, c0, c1, c2) \
-    _mm512_fmadd_ps(POLY1_AVX512DQ(x, c1, c2), x, _mm512_set1_ps(c0))
-#define POLY3_AVX512DQ(x, c0, c1, c2, c3) \
-    _mm512_fmadd_ps(POLY2_AVX512DQ(x, c1, c2, c3), x, _mm512_set1_ps(c0))
-#define POLY4_AVX512DQ(x, c0, c1, c2, c3, c4) \
-    _mm512_fmadd_ps(POLY3_AVX512DQ(x, c1, c2, c3, c4), x, _mm512_set1_ps(c0))
-#define POLY5_AVX512DQ(x, c0, c1, c2, c3, c4, c5) \
-    _mm512_fmadd_ps(POLY4_AVX512DQ(x, c1, c2, c3, c4, c5), x, _mm512_set1_ps(c0))
 
 static inline void volk_32f_log2_32f_u_avx512dq(float* bVector,
                                                 const float* aVector,
@@ -911,71 +612,44 @@ static inline void volk_32f_log2_32f_u_avx512dq(float* bVector,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    __m512 aVal, bVal, mantissa, frac, leadingOne;
-    __m512i bias, exp;
+    const __m512i exp_mask = _mm512_set1_epi32(0x7f800000);
+    const __m512i mant_mask = _mm512_set1_epi32(0x007fffff);
+    const __m512i one_bits = _mm512_set1_epi32(0x3f800000);
+    const __m512i exp_bias = _mm512_set1_epi32(127);
+    const __m512 one = _mm512_set1_ps(1.0f);
 
     for (; number < sixteenthPoints; number++) {
+        __m512 aVal = _mm512_loadu_ps(aPtr);
 
-        aVal = _mm512_loadu_ps(aPtr);
-
-        // Use fpclass for cleaner special value detection
-        // 0x81 = NaN (0x01) | NegInf (0x80)
-        // 0x18 = PosInf (0x10) | NegInf (0x08)
-        // 0x06 = +Zero (0x04) | -Zero (0x02)
-        __mmask16 nan_mask = _mm512_fpclass_ps_mask(aVal, 0x01);
-        __mmask16 zero_mask = _mm512_fpclass_ps_mask(aVal, 0x06);
+        // Use fpclass for special value detection (AVX512DQ feature)
+        // 0x01 = QNaN, 0x02 = +0, 0x04 = -0, 0x08 = +Inf, 0x10 = -Inf, 0x80 = SNaN
+        __mmask16 nan_mask = _mm512_fpclass_ps_mask(aVal, 0x81);  // NaN (QNaN | SNaN)
+        __mmask16 zero_mask = _mm512_fpclass_ps_mask(aVal, 0x06); // Zero (+0 | -0)
+        __mmask16 inf_mask = _mm512_fpclass_ps_mask(aVal, 0x08);  // +Inf only
         __mmask16 neg_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OQ);
-        __mmask16 invalid_mask = _kor_mask16(_kor_mask16(nan_mask, zero_mask), neg_mask);
-        __m512 nan_value = _mm512_set1_ps(NAN);
+        __mmask16 invalid_mask = _kor_mask16(nan_mask, neg_mask); // neg or NaN -> NaN
 
-        bias = _mm512_set1_epi32(127);
-        leadingOne = _mm512_set1_ps(1.0f);
-        exp = _mm512_sub_epi32(
-            _mm512_srli_epi32(_mm512_and_si512(_mm512_castps_si512(aVal),
-                                               _mm512_set1_epi32(0x7f800000)),
-                              23),
-            bias);
-        bVal = _mm512_cvtepi32_ps(exp);
+        __m512i aVal_i = _mm512_castps_si512(aVal);
 
-        // Now to extract mantissa
-        frac = _mm512_castsi512_ps(_mm512_or_si512(
-            _mm512_castps_si512(leadingOne),
-            _mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffff))));
+        // Extract exponent
+        __m512i exp_i = _mm512_srli_epi32(_mm512_and_si512(aVal_i, exp_mask), 23);
+        exp_i = _mm512_sub_epi32(exp_i, exp_bias);
+        __m512 exp_f = _mm512_cvtepi32_ps(exp_i);
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5_AVX512DQ(frac,
-                                  3.1157899f,
-                                  -3.3241990f,
-                                  2.5988452f,
-                                  -1.2315303f,
-                                  3.1821337e-1f,
-                                  -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4_AVX512DQ(frac,
-                                  2.8882704548164776201f,
-                                  -2.52074962577807006663f,
-                                  1.48116647521213171641f,
-                                  -0.465725644288844778798f,
-                                  0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3_AVX512DQ(frac,
-                                  2.61761038894603480148f,
-                                  -1.75647175389045657003f,
-                                  0.688243882994381274313f,
-                                  -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2_AVX512DQ(frac,
-                                  2.28330284476918490682f,
-                                  -1.04913055217340124191f,
-                                  0.204446009836232697516f);
-#else
-#error
-#endif
+        // Extract mantissa as float in [1, 2)
+        __m512 frac = _mm512_castsi512_ps(
+            _mm512_or_si512(_mm512_and_si512(aVal_i, mant_mask), one_bits));
 
-        bVal = _mm512_fmadd_ps(mantissa, _mm512_sub_ps(frac, leadingOne), bVal);
+        // Evaluate degree-6 polynomial with FMA
+        __m512 poly = _mm512_log2_poly_avx512(frac);
 
-        // Replace invalid results with NaN
-        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, nan_value);
+        // result = exp + poly * (frac - 1)
+        __m512 bVal = _mm512_fmadd_ps(poly, _mm512_sub_ps(frac, one), exp_f);
+
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm512_mask_blend_ps(zero_mask, bVal, _mm512_set1_ps(-127.0f));
+        bVal = _mm512_mask_blend_ps(inf_mask, bVal, _mm512_set1_ps(127.0f));
+        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, _mm512_set1_ps(NAN));
 
         _mm512_storeu_ps(bPtr, bVal);
 
@@ -990,19 +664,6 @@ static inline void volk_32f_log2_32f_u_avx512dq(float* bVector,
 #endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for unaligned */
 
 #if LV_HAVE_AVX512F && LV_HAVE_AVX512DQ
-#include <immintrin.h>
-
-#define POLY0_AVX512DQ_A(x, c0) _mm512_set1_ps(c0)
-#define POLY1_AVX512DQ_A(x, c0, c1) \
-    _mm512_fmadd_ps(POLY0_AVX512DQ_A(x, c1), x, _mm512_set1_ps(c0))
-#define POLY2_AVX512DQ_A(x, c0, c1, c2) \
-    _mm512_fmadd_ps(POLY1_AVX512DQ_A(x, c1, c2), x, _mm512_set1_ps(c0))
-#define POLY3_AVX512DQ_A(x, c0, c1, c2, c3) \
-    _mm512_fmadd_ps(POLY2_AVX512DQ_A(x, c1, c2, c3), x, _mm512_set1_ps(c0))
-#define POLY4_AVX512DQ_A(x, c0, c1, c2, c3, c4) \
-    _mm512_fmadd_ps(POLY3_AVX512DQ_A(x, c1, c2, c3, c4), x, _mm512_set1_ps(c0))
-#define POLY5_AVX512DQ_A(x, c0, c1, c2, c3, c4, c5) \
-    _mm512_fmadd_ps(POLY4_AVX512DQ_A(x, c1, c2, c3, c4, c5), x, _mm512_set1_ps(c0))
 
 static inline void volk_32f_log2_32f_a_avx512dq(float* bVector,
                                                 const float* aVector,
@@ -1014,68 +675,44 @@ static inline void volk_32f_log2_32f_a_avx512dq(float* bVector,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    __m512 aVal, bVal, mantissa, frac, leadingOne;
-    __m512i bias, exp;
+    const __m512i exp_mask = _mm512_set1_epi32(0x7f800000);
+    const __m512i mant_mask = _mm512_set1_epi32(0x007fffff);
+    const __m512i one_bits = _mm512_set1_epi32(0x3f800000);
+    const __m512i exp_bias = _mm512_set1_epi32(127);
+    const __m512 one = _mm512_set1_ps(1.0f);
 
     for (; number < sixteenthPoints; number++) {
+        __m512 aVal = _mm512_load_ps(aPtr);
 
-        aVal = _mm512_load_ps(aPtr);
-
-        // Use fpclass for cleaner special value detection
-        __mmask16 nan_mask = _mm512_fpclass_ps_mask(aVal, 0x01);
-        __mmask16 zero_mask = _mm512_fpclass_ps_mask(aVal, 0x06);
+        // Use fpclass for special value detection (AVX512DQ feature)
+        // 0x01 = QNaN, 0x02 = +0, 0x04 = -0, 0x08 = +Inf, 0x10 = -Inf, 0x80 = SNaN
+        __mmask16 nan_mask = _mm512_fpclass_ps_mask(aVal, 0x81);  // NaN (QNaN | SNaN)
+        __mmask16 zero_mask = _mm512_fpclass_ps_mask(aVal, 0x06); // Zero (+0 | -0)
+        __mmask16 inf_mask = _mm512_fpclass_ps_mask(aVal, 0x08);  // +Inf only
         __mmask16 neg_mask = _mm512_cmp_ps_mask(aVal, _mm512_setzero_ps(), _CMP_LT_OQ);
-        __mmask16 invalid_mask = _kor_mask16(_kor_mask16(nan_mask, zero_mask), neg_mask);
-        __m512 nan_value = _mm512_set1_ps(NAN);
+        __mmask16 invalid_mask = _kor_mask16(nan_mask, neg_mask); // neg or NaN -> NaN
 
-        bias = _mm512_set1_epi32(127);
-        leadingOne = _mm512_set1_ps(1.0f);
-        exp = _mm512_sub_epi32(
-            _mm512_srli_epi32(_mm512_and_si512(_mm512_castps_si512(aVal),
-                                               _mm512_set1_epi32(0x7f800000)),
-                              23),
-            bias);
-        bVal = _mm512_cvtepi32_ps(exp);
+        __m512i aVal_i = _mm512_castps_si512(aVal);
 
-        // Now to extract mantissa
-        frac = _mm512_castsi512_ps(_mm512_or_si512(
-            _mm512_castps_si512(leadingOne),
-            _mm512_and_si512(_mm512_castps_si512(aVal), _mm512_set1_epi32(0x7fffff))));
+        // Extract exponent
+        __m512i exp_i = _mm512_srli_epi32(_mm512_and_si512(aVal_i, exp_mask), 23);
+        exp_i = _mm512_sub_epi32(exp_i, exp_bias);
+        __m512 exp_f = _mm512_cvtepi32_ps(exp_i);
 
-#if LOG_POLY_DEGREE == 6
-        mantissa = POLY5_AVX512DQ_A(frac,
-                                    3.1157899f,
-                                    -3.3241990f,
-                                    2.5988452f,
-                                    -1.2315303f,
-                                    3.1821337e-1f,
-                                    -3.4436006e-2f);
-#elif LOG_POLY_DEGREE == 5
-        mantissa = POLY4_AVX512DQ_A(frac,
-                                    2.8882704548164776201f,
-                                    -2.52074962577807006663f,
-                                    1.48116647521213171641f,
-                                    -0.465725644288844778798f,
-                                    0.0596515482674574969533f);
-#elif LOG_POLY_DEGREE == 4
-        mantissa = POLY3_AVX512DQ_A(frac,
-                                    2.61761038894603480148f,
-                                    -1.75647175389045657003f,
-                                    0.688243882994381274313f,
-                                    -0.107254423828329604454f);
-#elif LOG_POLY_DEGREE == 3
-        mantissa = POLY2_AVX512DQ_A(frac,
-                                    2.28330284476918490682f,
-                                    -1.04913055217340124191f,
-                                    0.204446009836232697516f);
-#else
-#error
-#endif
+        // Extract mantissa as float in [1, 2)
+        __m512 frac = _mm512_castsi512_ps(
+            _mm512_or_si512(_mm512_and_si512(aVal_i, mant_mask), one_bits));
 
-        bVal = _mm512_fmadd_ps(mantissa, _mm512_sub_ps(frac, leadingOne), bVal);
+        // Evaluate degree-6 polynomial with FMA
+        __m512 poly = _mm512_log2_poly_avx512(frac);
 
-        // Replace invalid results with NaN
-        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, nan_value);
+        // result = exp + poly * (frac - 1)
+        __m512 bVal = _mm512_fmadd_ps(poly, _mm512_sub_ps(frac, one), exp_f);
+
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = _mm512_mask_blend_ps(zero_mask, bVal, _mm512_set1_ps(-127.0f));
+        bVal = _mm512_mask_blend_ps(inf_mask, bVal, _mm512_set1_ps(127.0f));
+        bVal = _mm512_mask_blend_ps(invalid_mask, bVal, _mm512_set1_ps(NAN));
 
         _mm512_store_ps(bPtr, bVal);
 
@@ -1087,62 +724,11 @@ static inline void volk_32f_log2_32f_a_avx512dq(float* bVector,
     volk_32f_log2_32f_generic(bPtr, aPtr, num_points - number);
 }
 
-#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ for aligned */
+#endif /* LV_HAVE_AVX512F && LV_HAVE_AVX512DQ */
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
-
-/* these macros allow us to embed logs in other kernels */
-#define VLOG2Q_NEON_PREAMBLE()                         \
-    int32x4_t one = vdupq_n_s32(0x000800000);          \
-    /* minimax polynomial */                           \
-    float32x4_t p0 = vdupq_n_f32(-3.0400402727048585); \
-    float32x4_t p1 = vdupq_n_f32(6.1129631282966113);  \
-    float32x4_t p2 = vdupq_n_f32(-5.3419892024633207); \
-    float32x4_t p3 = vdupq_n_f32(3.2865287703753912);  \
-    float32x4_t p4 = vdupq_n_f32(-1.2669182593441635); \
-    float32x4_t p5 = vdupq_n_f32(0.2751487703421256);  \
-    float32x4_t p6 = vdupq_n_f32(-0.0256910888150985); \
-    int32x4_t exp_mask = vdupq_n_s32(0x7f800000);      \
-    int32x4_t sig_mask = vdupq_n_s32(0x007fffff);      \
-    int32x4_t exp_bias = vdupq_n_s32(127);
-
-
-#define VLOG2Q_NEON_F32(log2_approx, aval)                                      \
-    int32x4_t exponent_i = vandq_s32(aval, exp_mask);                           \
-    int32x4_t significand_i = vandq_s32(aval, sig_mask);                        \
-    exponent_i = vshrq_n_s32(exponent_i, 23);                                   \
-                                                                                \
-    /* extract the exponent and significand                                     \
-       we can treat this as fixed point to save ~9% on the                      \
-       conversion + float add */                                                \
-    significand_i = vorrq_s32(one, significand_i);                              \
-    float32x4_t significand_f = vcvtq_n_f32_s32(significand_i, 23);             \
-    /* debias the exponent and convert to float */                              \
-    exponent_i = vsubq_s32(exponent_i, exp_bias);                               \
-    float32x4_t exponent_f = vcvtq_f32_s32(exponent_i);                         \
-                                                                                \
-    /* put the significand through a polynomial fit of log2(x) [1,2]            \
-       add the result to the exponent */                                        \
-    log2_approx = vaddq_f32(exponent_f, p0);         /* p0 */                   \
-    float32x4_t tmp1 = vmulq_f32(significand_f, p1); /* p1 * x */               \
-    log2_approx = vaddq_f32(log2_approx, tmp1);                                 \
-    float32x4_t sig_2 = vmulq_f32(significand_f, significand_f); /* x^2 */      \
-    tmp1 = vmulq_f32(sig_2, p2);                                 /* p2 * x^2 */ \
-    log2_approx = vaddq_f32(log2_approx, tmp1);                                 \
-                                                                                \
-    float32x4_t sig_3 = vmulq_f32(sig_2, significand_f); /* x^3 */              \
-    tmp1 = vmulq_f32(sig_3, p3);                         /* p3 * x^3 */         \
-    log2_approx = vaddq_f32(log2_approx, tmp1);                                 \
-    float32x4_t sig_4 = vmulq_f32(sig_2, sig_2); /* x^4 */                      \
-    tmp1 = vmulq_f32(sig_4, p4);                 /* p4 * x^4 */                 \
-    log2_approx = vaddq_f32(log2_approx, tmp1);                                 \
-    float32x4_t sig_5 = vmulq_f32(sig_3, sig_2); /* x^5 */                      \
-    tmp1 = vmulq_f32(sig_5, p5);                 /* p5 * x^5 */                 \
-    log2_approx = vaddq_f32(log2_approx, tmp1);                                 \
-    float32x4_t sig_6 = vmulq_f32(sig_3, sig_3); /* x^6 */                      \
-    tmp1 = vmulq_f32(sig_6, p6);                 /* p6 * x^6 */                 \
-    log2_approx = vaddq_f32(log2_approx, tmp1);
+#include <volk/volk_neon_intrinsics.h>
 
 static inline void
 volk_32f_log2_32f_neon(float* bVector, const float* aVector, unsigned int num_points)
@@ -1152,40 +738,50 @@ volk_32f_log2_32f_neon(float* bVector, const float* aVector, unsigned int num_po
     unsigned int number;
     const unsigned int quarterPoints = num_points / 4;
 
-    int32x4_t aval;
-    float32x4_t log2_approx;
+    const int32x4_t exp_mask = vdupq_n_s32(0x7f800000);
+    const int32x4_t mant_mask = vdupq_n_s32(0x007fffff);
+    const int32x4_t one_bits = vdupq_n_s32(0x3f800000);
+    const int32x4_t exp_bias = vdupq_n_s32(127);
+    const float32x4_t one = vdupq_n_f32(1.0f);
+    const float32x4_t zero = vdupq_n_f32(0.0f);
+    const float32x4_t inf_val = vdupq_n_f32(INFINITY);
+    const float32x4_t nan_val = vdupq_n_f32(NAN);
+    const float32x4_t neg_inf_out = vdupq_n_f32(-127.0f);
+    const float32x4_t pos_inf_out = vdupq_n_f32(127.0f);
 
-    VLOG2Q_NEON_PREAMBLE()
-    // lms
-    // p0 = vdupq_n_f32(-1.649132280361871);
-    // p1 = vdupq_n_f32(1.995047138579499);
-    // p2 = vdupq_n_f32(-0.336914839219728);
-
-    // keep in mind a single precision float is represented as
-    //   (-1)^sign * 2^exp * 1.significand, so the log2 is
-    // log2(2^exp * sig) = exponent + log2(1 + significand/(1<<23)
     for (number = 0; number < quarterPoints; ++number) {
-        // Check for negative, zero, and NaN inputs
-        float32x4_t aval_f = vld1q_f32(aPtr);
-        uint32x4_t neg_mask = vcltq_f32(aval_f, vdupq_n_f32(0.0f));  // aVal < 0
-        uint32x4_t zero_mask = vceqq_f32(aval_f, vdupq_n_f32(0.0f)); // aVal == 0
-        // Check for NaN: NaN comparison with itself returns false
-        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aval_f, aval_f)); // NOT(aVal == aVal)
-        uint32x4_t invalid_mask = vorrq_u32(neg_mask, nan_mask);    // neg or NaN -> NaN
-        float32x4_t nan_value = vdupq_n_f32(NAN);
-        float32x4_t neg_inf_value = vdupq_n_f32(-127.0f); // log2(0) = -inf mapped to -127
+        float32x4_t aVal = vld1q_f32(aPtr);
 
-        // load float in to an int register without conversion
-        aval = vld1q_s32((int*)aPtr);
+        // Check for special values
+        uint32x4_t neg_mask = vcltq_f32(aVal, zero);
+        uint32x4_t zero_mask = vceqq_f32(aVal, zero);
+        uint32x4_t inf_mask = vceqq_f32(aVal, inf_val);
+        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aVal, aVal));
+        uint32x4_t invalid_mask = vorrq_u32(neg_mask, nan_mask);
 
-        VLOG2Q_NEON_F32(log2_approx, aval)
+        int32x4_t aVal_i = vreinterpretq_s32_f32(aVal);
 
-        // Replace zero inputs with -127.0 (log2(0) = -inf mapped to -127)
-        log2_approx = vbslq_f32(zero_mask, neg_inf_value, log2_approx);
-        // Replace negative/NaN inputs with NaN
-        log2_approx = vbslq_f32(invalid_mask, nan_value, log2_approx);
+        // Extract exponent
+        int32x4_t exp_i = vshrq_n_s32(vandq_s32(aVal_i, exp_mask), 23);
+        exp_i = vsubq_s32(exp_i, exp_bias);
+        float32x4_t exp_f = vcvtq_f32_s32(exp_i);
 
-        vst1q_f32(bPtr, log2_approx);
+        // Extract mantissa as float in [1, 2)
+        int32x4_t frac_i = vorrq_s32(vandq_s32(aVal_i, mant_mask), one_bits);
+        float32x4_t frac = vreinterpretq_f32_s32(frac_i);
+
+        // Evaluate degree-6 polynomial
+        float32x4_t poly = _vlog2_poly_f32(frac);
+
+        // result = exp + poly * (frac - 1)
+        float32x4_t bVal = vaddq_f32(exp_f, vmulq_f32(poly, vsubq_f32(frac, one)));
+
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = vbslq_f32(zero_mask, neg_inf_out, bVal);
+        bVal = vbslq_f32(inf_mask, pos_inf_out, bVal);
+        bVal = vbslq_f32(invalid_mask, nan_val, bVal);
+
+        vst1q_f32(bPtr, bVal);
 
         aPtr += 4;
         bPtr += 4;
@@ -1198,7 +794,6 @@ volk_32f_log2_32f_neon(float* bVector, const float* aVector, unsigned int num_po
 #endif /* LV_HAVE_NEON */
 
 #ifdef LV_HAVE_NEONV8
-#include <arm_neon.h>
 
 static inline void
 volk_32f_log2_32f_neonv8(float* bVector, const float* aVector, unsigned int num_points)
@@ -1208,59 +803,47 @@ volk_32f_log2_32f_neonv8(float* bVector, const float* aVector, unsigned int num_
     unsigned int number;
     const unsigned int quarterPoints = num_points / 4;
 
-    // Constants for IEEE float manipulation
     const int32x4_t exp_mask = vdupq_n_s32(0x7f800000);
-    const int32x4_t sig_mask = vdupq_n_s32(0x007fffff);
+    const int32x4_t mant_mask = vdupq_n_s32(0x007fffff);
+    const int32x4_t one_bits = vdupq_n_s32(0x3f800000);
     const int32x4_t exp_bias = vdupq_n_s32(127);
-    const int32x4_t one_bits = vdupq_n_s32(0x3f800000); // 1.0f in IEEE format
-
-    // Polynomial coefficients (same as SSE version)
-    const float32x4_t c0 = vdupq_n_f32(3.1157899f);
-    const float32x4_t c1 = vdupq_n_f32(-3.3241990f);
-    const float32x4_t c2 = vdupq_n_f32(2.5988452f);
-    const float32x4_t c3 = vdupq_n_f32(-1.2315303f);
-    const float32x4_t c4 = vdupq_n_f32(3.1821337e-1f);
-    const float32x4_t c5 = vdupq_n_f32(-3.4436006e-2f);
-    const float32x4_t fone = vdupq_n_f32(1.0f);
-    const float32x4_t fzero = vdupq_n_f32(0.0f);
+    const float32x4_t one = vdupq_n_f32(1.0f);
+    const float32x4_t zero = vdupq_n_f32(0.0f);
+    const float32x4_t inf_val = vdupq_n_f32(INFINITY);
     const float32x4_t nan_val = vdupq_n_f32(NAN);
-    const float32x4_t neg_inf_val = vdupq_n_f32(-127.0f); // log2(0) = -inf mapped to -127
+    const float32x4_t neg_inf_out = vdupq_n_f32(-127.0f);
+    const float32x4_t pos_inf_out = vdupq_n_f32(127.0f);
 
     for (number = 0; number < quarterPoints; ++number) {
         float32x4_t aVal = vld1q_f32(aPtr);
 
-        // Check for negative, zero, and NaN inputs
-        uint32x4_t neg_mask = vcltq_f32(aVal, fzero);            // aVal < 0
-        uint32x4_t zero_mask = vceqq_f32(aVal, fzero);           // aVal == 0
-        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aVal, aVal));  // NaN check
-        uint32x4_t invalid_mask = vorrq_u32(neg_mask, nan_mask); // neg or NaN -> NaN
+        // Check for special values
+        uint32x4_t neg_mask = vcltq_f32(aVal, zero);
+        uint32x4_t zero_mask = vceqq_f32(aVal, zero);
+        uint32x4_t inf_mask = vceqq_f32(aVal, inf_val);
+        uint32x4_t nan_mask = vmvnq_u32(vceqq_f32(aVal, aVal));
+        uint32x4_t invalid_mask = vorrq_u32(neg_mask, nan_mask);
 
-        // Reinterpret as int for bit manipulation
         int32x4_t aVal_i = vreinterpretq_s32_f32(aVal);
 
-        // Extract exponent: (aVal_i & exp_mask) >> 23 - bias
+        // Extract exponent
         int32x4_t exp_i = vshrq_n_s32(vandq_s32(aVal_i, exp_mask), 23);
         exp_i = vsubq_s32(exp_i, exp_bias);
         float32x4_t exp_f = vcvtq_f32_s32(exp_i);
 
-        // Extract mantissa: 1.0 | (aVal_i & sig_mask)
-        int32x4_t frac_i = vorrq_s32(one_bits, vandq_s32(aVal_i, sig_mask));
+        // Extract mantissa as float in [1, 2)
+        int32x4_t frac_i = vorrq_s32(vandq_s32(aVal_i, mant_mask), one_bits);
         float32x4_t frac = vreinterpretq_f32_s32(frac_i);
 
-        // Evaluate polynomial using FMA: c0 + frac*(c1 + frac*(c2 + ...))
-        float32x4_t mantissa = c5;
-        mantissa = vfmaq_f32(c4, mantissa, frac);
-        mantissa = vfmaq_f32(c3, mantissa, frac);
-        mantissa = vfmaq_f32(c2, mantissa, frac);
-        mantissa = vfmaq_f32(c1, mantissa, frac);
-        mantissa = vfmaq_f32(c0, mantissa, frac);
+        // Evaluate degree-6 polynomial with FMA
+        float32x4_t poly = _vlog2_poly_neonv8(frac);
 
-        // result = exp + mantissa * (frac - 1.0)
-        float32x4_t bVal = vfmaq_f32(exp_f, mantissa, vsubq_f32(frac, fone));
+        // result = exp + poly * (frac - 1)
+        float32x4_t bVal = vfmaq_f32(exp_f, poly, vsubq_f32(frac, one));
 
-        // Replace zero inputs with -127.0 (log2(0) = -inf mapped to -127)
-        bVal = vbslq_f32(zero_mask, neg_inf_val, bVal);
-        // Replace negative/NaN inputs with NaN
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        bVal = vbslq_f32(zero_mask, neg_inf_out, bVal);
+        bVal = vbslq_f32(inf_mask, pos_inf_out, bVal);
         bVal = vbslq_f32(invalid_mask, nan_val, bVal);
 
         vst1q_f32(bPtr, bVal);
@@ -1283,81 +866,57 @@ volk_32f_log2_32f_neonv8(float* bVector, const float* aVector, unsigned int num_
 
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
 
 static inline void
 volk_32f_log2_32f_rvv(float* bVector, const float* aVector, unsigned int num_points)
 {
     size_t vlmax = __riscv_vsetvlmax_e32m2();
 
-#if LOG_POLY_DEGREE == 6
-    const vfloat32m2_t c5 = __riscv_vfmv_v_f_f32m2(3.1157899f, vlmax);
-    const vfloat32m2_t c4 = __riscv_vfmv_v_f_f32m2(-3.3241990f, vlmax);
-    const vfloat32m2_t c3 = __riscv_vfmv_v_f_f32m2(2.5988452f, vlmax);
-    const vfloat32m2_t c2 = __riscv_vfmv_v_f_f32m2(-1.2315303f, vlmax);
-    const vfloat32m2_t c1 = __riscv_vfmv_v_f_f32m2(3.1821337e-1f, vlmax);
-    const vfloat32m2_t c0 = __riscv_vfmv_v_f_f32m2(-3.4436006e-2f, vlmax);
-#elif LOG_POLY_DEGREE == 5
-    const vfloat32m2_t c4 = __riscv_vfmv_v_f_f32m2(2.8882704548164776201f, vlmax);
-    const vfloat32m2_t c3 = __riscv_vfmv_v_f_f32m2(-2.52074962577807006663f, vlmax);
-    const vfloat32m2_t c2 = __riscv_vfmv_v_f_f32m2(1.48116647521213171641f, vlmax);
-    const vfloat32m2_t c1 = __riscv_vfmv_v_f_f32m2(-0.465725644288844778798f, vlmax);
-    const vfloat32m2_t c0 = __riscv_vfmv_v_f_f32m2(0.0596515482674574969533f, vlmax);
-#elif LOG_POLY_DEGREE == 4
-    const vfloat32m2_t c3 = __riscv_vfmv_v_f_f32m2(2.61761038894603480148f, vlmax);
-    const vfloat32m2_t c2 = __riscv_vfmv_v_f_f32m2(-1.75647175389045657003f, vlmax);
-    const vfloat32m2_t c1 = __riscv_vfmv_v_f_f32m2(0.688243882994381274313f, vlmax);
-    const vfloat32m2_t c0 = __riscv_vfmv_v_f_f32m2(-0.107254423828329604454f, vlmax);
-#elif LOG_POLY_DEGREE == 3
-    const vfloat32m2_t c2 = __riscv_vfmv_v_f_f32m2(2.28330284476918490682f, vlmax);
-    const vfloat32m2_t c1 = __riscv_vfmv_v_f_f32m2(-1.04913055217340124191f, vlmax);
-    const vfloat32m2_t c0 = __riscv_vfmv_v_f_f32m2(0.204446009836232697516f, vlmax);
-#else
-#error
-#endif
-
-    const vfloat32m2_t cf1 = __riscv_vfmv_v_f_f32m2(1.0f, vlmax);
-    const vint32m2_t m1 = __riscv_vreinterpret_i32m2(cf1);
-    const vint32m2_t m2 = __riscv_vmv_v_x_i32m2(0x7FFFFF, vlmax);
-    const vint32m2_t c127 = __riscv_vmv_v_x_i32m2(127, vlmax);
+    const vfloat32m2_t one = __riscv_vfmv_v_f_f32m2(1.0f, vlmax);
+    const vint32m2_t one_bits = __riscv_vreinterpret_i32m2(one);
+    const vint32m2_t mant_mask = __riscv_vmv_v_x_i32m2(0x7FFFFF, vlmax);
+    const vint32m2_t exp_bias = __riscv_vmv_v_x_i32m2(127, vlmax);
 
     const vfloat32m2_t zero = __riscv_vfmv_v_f_f32m2(0.0f, vlmax);
+    const vfloat32m2_t inf_val = __riscv_vfmv_v_f_f32m2(INFINITY, vlmax);
     const vfloat32m2_t nan_val = __riscv_vfmv_v_f_f32m2(NAN, vlmax);
+    const vfloat32m2_t neg_inf_out = __riscv_vfmv_v_f_f32m2(-127.0f, vlmax);
+    const vfloat32m2_t pos_inf_out = __riscv_vfmv_v_f_f32m2(127.0f, vlmax);
 
     size_t n = num_points;
     for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl) {
         vl = __riscv_vsetvl_e32m2(n);
         vfloat32m2_t v = __riscv_vle32_v_f32m2(aVector, vl);
 
-        // Check for invalid inputs (NaN, negative, or zero)
-        vbool16_t invalid_mask = __riscv_vmfle(v, zero, vl); // v <= 0
-        vbool16_t nan_mask = __riscv_vmfne(v, v, vl);        // NaN check: v != v
-        invalid_mask = __riscv_vmor(invalid_mask, nan_mask, vl);
+        // Check for special values
+        vbool16_t zero_mask = __riscv_vmfeq(v, zero, vl);
+        vbool16_t neg_mask = __riscv_vmflt(v, zero, vl);
+        vbool16_t inf_mask = __riscv_vmfeq(v, inf_val, vl);
+        vbool16_t nan_mask = __riscv_vmfne(v, v, vl);
+        vbool16_t invalid_mask = __riscv_vmor(neg_mask, nan_mask, vl);
 
         vfloat32m2_t a = __riscv_vfabs(v, vl);
-        vfloat32m2_t exp = __riscv_vfcvt_f(
-            __riscv_vsub(__riscv_vsra(__riscv_vreinterpret_i32m2(a), 23, vl), c127, vl),
+        vfloat32m2_t exp_f = __riscv_vfcvt_f(
+            __riscv_vsub(
+                __riscv_vsra(__riscv_vreinterpret_i32m2(a), 23, vl), exp_bias, vl),
             vl);
-        vfloat32m2_t frac = __riscv_vreinterpret_f32m2(
-            __riscv_vor(__riscv_vand(__riscv_vreinterpret_i32m2(v), m2, vl), m1, vl));
+        vfloat32m2_t frac = __riscv_vreinterpret_f32m2(__riscv_vor(
+            __riscv_vand(__riscv_vreinterpret_i32m2(v), mant_mask, vl), one_bits, vl));
 
-        vfloat32m2_t mant = c0;
-        mant = __riscv_vfmadd(mant, frac, c1, vl);
-        mant = __riscv_vfmadd(mant, frac, c2, vl);
-#if LOG_POLY_DEGREE >= 4
-        mant = __riscv_vfmadd(mant, frac, c3, vl);
-#if LOG_POLY_DEGREE >= 5
-        mant = __riscv_vfmadd(mant, frac, c4, vl);
-#if LOG_POLY_DEGREE >= 6
-        mant = __riscv_vfmadd(mant, frac, c5, vl);
-#endif
-#endif
-#endif
-        exp = __riscv_vfmacc(exp, mant, __riscv_vfsub(frac, cf1, vl), vl);
+        // Evaluate degree-6 polynomial with FMA
+        vfloat32m2_t poly = __riscv_vlog2_poly_f32m2(frac, vl, vlmax);
 
-        // Replace invalid results with NaN
-        exp = __riscv_vmerge(exp, nan_val, invalid_mask, vl);
+        // result = exp + poly * (frac - 1)
+        vfloat32m2_t result =
+            __riscv_vfmacc(exp_f, poly, __riscv_vfsub(frac, one, vl), vl);
 
-        __riscv_vse32(bVector, exp, vl);
+        // Replace special values: zero → -127, inf → 127, neg/NaN → NaN
+        result = __riscv_vmerge(result, neg_inf_out, zero_mask, vl);
+        result = __riscv_vmerge(result, pos_inf_out, inf_mask, vl);
+        result = __riscv_vmerge(result, nan_val, invalid_mask, vl);
+
+        __riscv_vse32(bVector, result, vl);
     }
 }
 #endif /*LV_HAVE_RVV*/

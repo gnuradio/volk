@@ -146,6 +146,10 @@ volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput,
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
+#ifndef LOG_POLY_DEGREE
+#define LOG_POLY_DEGREE 6
+#endif
+
 static inline void volk_32fc_s32f_power_spectrum_32f_rvv(float* logPowerOutput,
                                                          const lv_32fc_t* complexFFTInput,
                                                          const float normalizationFactor,
@@ -225,6 +229,10 @@ static inline void volk_32fc_s32f_power_spectrum_32f_rvv(float* logPowerOutput,
 
 #ifdef LV_HAVE_RVVSEG
 #include <riscv_vector.h>
+
+#ifndef LOG_POLY_DEGREE
+#define LOG_POLY_DEGREE 6
+#endif
 
 static inline void
 volk_32fc_s32f_power_spectrum_32f_rvvseg(float* logPowerOutput,

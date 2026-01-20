@@ -212,4 +212,34 @@ static inline __m512 _mm512_cos_poly_avx512(const __m512 x)
     return _mm512_fmadd_ps(x2, poly, one);
 }
 
+////////////////////////////////////////////////////////////////////////
+// Polynomial coefficients for log2(x)/(x-1) on [1, 2]
+// Generated with Sollya: remez(log2(x)/(x-1), 6, [1+1b-20, 2])
+// Max error: ~1.55e-6
+//
+// Usage: log2(x) ≈ poly(x) * (x - 1) for x ∈ [1, 2]
+// Polynomial evaluated via Horner's method with FMA
+// Requires AVX512F
+////////////////////////////////////////////////////////////////////////
+static inline __m512 _mm512_log2_poly_avx512(const __m512 x)
+{
+    const __m512 c0 = _mm512_set1_ps(+0x1.a8a726p+1f);
+    const __m512 c1 = _mm512_set1_ps(-0x1.0b7f7ep+2f);
+    const __m512 c2 = _mm512_set1_ps(+0x1.05d9ccp+2f);
+    const __m512 c3 = _mm512_set1_ps(-0x1.4d476cp+1f);
+    const __m512 c4 = _mm512_set1_ps(+0x1.04fc3ap+0f);
+    const __m512 c5 = _mm512_set1_ps(-0x1.c97982p-3f);
+    const __m512 c6 = _mm512_set1_ps(+0x1.57aa42p-6f);
+
+    // Horner's method with FMA: c0 + x*(c1 + x*(c2 + ...))
+    __m512 poly = c6;
+    poly = _mm512_fmadd_ps(poly, x, c5);
+    poly = _mm512_fmadd_ps(poly, x, c4);
+    poly = _mm512_fmadd_ps(poly, x, c3);
+    poly = _mm512_fmadd_ps(poly, x, c2);
+    poly = _mm512_fmadd_ps(poly, x, c1);
+    poly = _mm512_fmadd_ps(poly, x, c0);
+    return poly;
+}
+
 #endif /* INCLUDE_VOLK_VOLK_AVX512_INTRINSICS_H_ */
