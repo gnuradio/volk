@@ -232,7 +232,8 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32f_sqrt_32f, test_params_inacc))
 
     volk_test_params_t test_params_invsqrt(test_params.make_tol(1e-6));
-    test_params_invsqrt.add_float_edge_cases({ -1.f, 0.f, inf, 0.01f, 100.0f });
+    test_params_invsqrt.add_float_edge_cases(
+        { -1.f, 1.f, 0.f, inf, 1e-2f, 1e2f, 1e-10, 1e10 });
     QA(VOLK_INIT_TEST(volk_32f_invsqrt_32f, test_params_invsqrt))
     QA(VOLK_INIT_TEST(volk_32f_s32f_stddev_32f, test_params_inacc))
     QA(VOLK_INIT_TEST(volk_32f_stddev_and_mean_32f_x2, test_params.make_absolute(1e-5)))

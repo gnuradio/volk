@@ -1451,20 +1451,10 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     // Helper for adaptive decimal places based on magnitude
     auto format_time = [](double ms) -> std::string {
-        if (ms >= 10000.0)
-            return fmt::format("{:.1f} ms", ms);
-        if (ms >= 1000.0)
-            return fmt::format("{:.2f} ms", ms);
-        if (ms >= 100.0)
-            return fmt::format("{:.3f} ms", ms);
-        return fmt::format("{:.4f} ms", ms);
+        return fmt::format("{:.2f} ms", ms);
     };
 
     auto format_throughput = [](double mbps) -> std::string {
-        if (mbps >= 100000.0)
-            return fmt::format("{:.0f} MB/s", mbps);
-        if (mbps >= 10000.0)
-            return fmt::format("{:.1f} MB/s", mbps);
         return fmt::format("{:.1f} MB/s", mbps);
     };
 
@@ -1504,12 +1494,7 @@ bool run_volk_tests(volk_func_desc_t desc,
             speedup_str = "-";
         } else {
             double speedup = generic_time / profile_times[i];
-            if (speedup >= 100.0)
-                speedup_str = fmt::format("{:.1f}x", speedup);
-            else if (speedup >= 10.0)
-                speedup_str = fmt::format("{:.2f}x", speedup);
-            else
-                speedup_str = fmt::format("{:.2f}x", speedup);
+            speedup_str = fmt::format("{:.2f}x", speedup);
         }
         std::string err_str =
             (arch_list[i] == "generic") ? "-" : fmt::format("{:.1e}", arch_max_err[i]);
