@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2015 Free Software Foundation, Inc.
- * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2023-2026 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -16,6 +16,43 @@
 #ifndef INCLUDE_VOLK_VOLK_AVX_INTRINSICS_H_
 #define INCLUDE_VOLK_VOLK_AVX_INTRINSICS_H_
 #include <immintrin.h>
+
+/*
+ * Newton-Raphson refined reciprocal square root: 1/sqrt(a)
+ * One iteration doubles precision from ~12-bit to ~24-bit
+ * x1 = x0 * (1.5 - 0.5 * a * x0^2)
+ * Handles edge cases: +0 → +Inf, +Inf → 0
+ */
+static inline __m256 _mm256_rsqrt_nr_ps(const __m256 a)
+{
+    const __m256 HALF = _mm256_set1_ps(0.5f);
+    const __m256 THREE_HALFS = _mm256_set1_ps(1.5f);
+
+    const __m256 x0 = _mm256_rsqrt_ps(a); // +Inf for +0, 0 for +Inf
+
+    // Newton-Raphson: x1 = x0 * (1.5 - 0.5 * a * x0^2)
+    __m256 x1 = _mm256_mul_ps(
+        x0,
+        _mm256_sub_ps(THREE_HALFS,
+                      _mm256_mul_ps(HALF, _mm256_mul_ps(_mm256_mul_ps(x0, x0), a))));
+
+    // For +0 and +Inf inputs, x0 is correct but NR produces NaN due to Inf*0
+    // Blend: use x0 where a == +0 or a == +Inf, else use x1
+    // AVX-only: use SSE2 integer compare, then reconstruct AVX mask
+    __m128i a_lo = _mm256_castsi256_si128(_mm256_castps_si256(a));
+    __m128i a_hi = _mm_castps_si128(_mm256_extractf128_ps(a, 1));
+    __m128i zero_si = _mm_setzero_si128();
+    __m128i inf_si = _mm_set1_epi32(0x7F800000);
+    __m128i zero_mask_lo = _mm_cmpeq_epi32(a_lo, zero_si);
+    __m128i zero_mask_hi = _mm_cmpeq_epi32(a_hi, zero_si);
+    __m128i inf_mask_lo = _mm_cmpeq_epi32(a_lo, inf_si);
+    __m128i inf_mask_hi = _mm_cmpeq_epi32(a_hi, inf_si);
+    __m128 mask_lo = _mm_castsi128_ps(_mm_or_si128(zero_mask_lo, inf_mask_lo));
+    __m128 mask_hi = _mm_castsi128_ps(_mm_or_si128(zero_mask_hi, inf_mask_hi));
+    __m256 special_mask =
+        _mm256_insertf128_ps(_mm256_castps128_ps256(mask_lo), mask_hi, 1);
+    return _mm256_blendv_ps(x1, x0, special_mask);
+}
 
 /*
  * Approximate arctan(x) via polynomial expansion

@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2024 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2024-2026 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -15,6 +15,32 @@
 #ifndef INCLUDE_VOLK_VOLK_AVX512_INTRINSICS_H_
 #define INCLUDE_VOLK_VOLK_AVX512_INTRINSICS_H_
 #include <immintrin.h>
+
+////////////////////////////////////////////////////////////////////////
+// Newton-Raphson refined reciprocal square root: 1/sqrt(a)
+// One iteration doubles precision from ~12-bit to ~24-bit
+// x1 = x0 * (1.5 - 0.5 * a * x0^2)
+// Handles edge cases: +0 → +Inf, +Inf → 0
+// Requires AVX512F
+////////////////////////////////////////////////////////////////////////
+static inline __m512 _mm512_rsqrt_nr_ps(const __m512 a)
+{
+    const __m512 HALF = _mm512_set1_ps(0.5f);
+    const __m512 THREE_HALFS = _mm512_set1_ps(1.5f);
+
+    const __m512 x0 = _mm512_rsqrt14_ps(a); // +Inf for +0, 0 for +Inf
+
+    // Newton-Raphson: x1 = x0 * (1.5 - 0.5 * a * x0^2)
+    __m512 x1 = _mm512_mul_ps(
+        x0, _mm512_fnmadd_ps(HALF, _mm512_mul_ps(_mm512_mul_ps(x0, x0), a), THREE_HALFS));
+
+    // For +0 and +Inf inputs, x0 is correct but NR produces NaN due to Inf*0
+    // Blend: use x0 where a == +0 or a == +Inf, else use x1
+    __m512i a_si = _mm512_castps_si512(a);
+    __mmask16 zero_mask = _mm512_cmpeq_epi32_mask(a_si, _mm512_setzero_si512());
+    __mmask16 inf_mask = _mm512_cmpeq_epi32_mask(a_si, _mm512_set1_epi32(0x7F800000));
+    return _mm512_mask_blend_ps(zero_mask | inf_mask, x1, x0);
+}
 
 ////////////////////////////////////////////////////////////////////////
 // Place real parts of two complex vectors in output

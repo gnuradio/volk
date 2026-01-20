@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2015 Free Software Foundation, Inc.
- * Copyright 2025 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2025, 2026 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -80,16 +80,23 @@ static inline float32x4_t _vmagnitudesquaredq_f32(float32x4x2_t cmplxValue)
     return result;
 }
 
-/* Inverse square root for float32x4_t */
+/* Inverse square root for float32x4_t
+ * Handles edge cases: +0 → +Inf, +Inf → 0 */
 static inline float32x4_t _vinvsqrtq_f32(float32x4_t x)
 {
-    float32x4_t sqrt_reciprocal = vrsqrteq_f32(x);
-    sqrt_reciprocal = vmulq_f32(
-        vrsqrtsq_f32(vmulq_f32(x, sqrt_reciprocal), sqrt_reciprocal), sqrt_reciprocal);
-    sqrt_reciprocal = vmulq_f32(
-        vrsqrtsq_f32(vmulq_f32(x, sqrt_reciprocal), sqrt_reciprocal), sqrt_reciprocal);
+    float32x4_t x0 = vrsqrteq_f32(x); // +Inf for +0, 0 for +Inf
 
-    return sqrt_reciprocal;
+    // Newton-Raphson refinement using vrsqrtsq_f32
+    float32x4_t x1 = vmulq_f32(vrsqrtsq_f32(vmulq_f32(x, x0), x0), x0);
+    x1 = vmulq_f32(vrsqrtsq_f32(vmulq_f32(x, x1), x1), x1);
+
+    // For +0 and +Inf inputs, x0 is correct but NR produces NaN due to Inf*0
+    // Blend: use x0 where x == +0 or x == +Inf, else use x1
+    uint32x4_t x_bits = vreinterpretq_u32_f32(x);
+    uint32x4_t zero_mask = vceqq_u32(x_bits, vdupq_n_u32(0x00000000));
+    uint32x4_t inf_mask = vceqq_u32(x_bits, vdupq_n_u32(0x7F800000));
+    uint32x4_t special_mask = vorrq_u32(zero_mask, inf_mask);
+    return vbslq_f32(special_mask, x0, x1);
 }
 
 /* Square root for ARMv7 NEON (no vsqrtq_f32)

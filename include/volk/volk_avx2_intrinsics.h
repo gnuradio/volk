@@ -18,6 +18,33 @@
 #include "volk/volk_avx_intrinsics.h"
 #include <immintrin.h>
 
+/*
+ * Newton-Raphson refined reciprocal square root: 1/sqrt(a)
+ * AVX2 version with native 256-bit integer operations for edge case handling
+ * Handles edge cases: +0 → +Inf, +Inf → 0
+ */
+static inline __m256 _mm256_rsqrt_nr_avx2(const __m256 a)
+{
+    const __m256 HALF = _mm256_set1_ps(0.5f);
+    const __m256 THREE_HALFS = _mm256_set1_ps(1.5f);
+
+    const __m256 x0 = _mm256_rsqrt_ps(a); // +Inf for +0, 0 for +Inf
+
+    // Newton-Raphson: x1 = x0 * (1.5 - 0.5 * a * x0^2)
+    __m256 x1 = _mm256_mul_ps(
+        x0,
+        _mm256_sub_ps(THREE_HALFS,
+                      _mm256_mul_ps(HALF, _mm256_mul_ps(_mm256_mul_ps(x0, x0), a))));
+
+    // For +0 and +Inf inputs, x0 is correct but NR produces NaN due to Inf*0
+    // AVX2: native 256-bit integer compare
+    __m256i a_si = _mm256_castps_si256(a);
+    __m256i zero_mask = _mm256_cmpeq_epi32(a_si, _mm256_setzero_si256());
+    __m256i inf_mask = _mm256_cmpeq_epi32(a_si, _mm256_set1_epi32(0x7F800000));
+    __m256 special_mask = _mm256_castsi256_ps(_mm256_or_si256(zero_mask, inf_mask));
+    return _mm256_blendv_ps(x1, x0, special_mask);
+}
+
 static inline __m256 _mm256_real(const __m256 z1, const __m256 z2)
 {
     const __m256i permute_mask = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
