@@ -1122,7 +1122,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                 } else {
                     run_cast_test1_s32f((volk_fn_1arg_s32f)(manual_func),
                                         test_data[i],
-                                        scalar.real(),
+                                        __real__ scalar,
                                         vlen,
                                         iter,
                                         arch_list[i]);
@@ -1145,7 +1145,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                 } else {
                     run_cast_test2_s32f((volk_fn_2arg_s32f)(manual_func),
                                         test_data[i],
-                                        scalar.real(),
+                                        __real__ scalar,
                                         vlen,
                                         iter,
                                         arch_list[i]);
@@ -1168,7 +1168,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                 } else {
                     run_cast_test3_s32f((volk_fn_3arg_s32f)(manual_func),
                                         test_data[i],
-                                        scalar.real(),
+                                        __real__ scalar,
                                         vlen,
                                         iter,
                                         arch_list[i]);

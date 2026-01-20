@@ -26,55 +26,61 @@
  * - lv_conj - take the conjugate of the complex number
  */
 
-#ifdef __cplusplus
-
-#include <stdint.h>
-#include <complex>
-
-typedef std::complex<int8_t> lv_8sc_t;
-typedef std::complex<int16_t> lv_16sc_t;
-typedef std::complex<int32_t> lv_32sc_t;
-typedef std::complex<int64_t> lv_64sc_t;
-typedef std::complex<float> lv_32fc_t;
-typedef std::complex<double> lv_64fc_t;
-
-template <typename T>
-inline std::complex<T> lv_cmake(const T& r, const T& i)
-{
-    return std::complex<T>(r, i);
-}
-
-template <typename T>
-inline typename T::value_type lv_creal(const T& x)
-{
-    return x.real();
-}
-
-template <typename T>
-inline typename T::value_type lv_cimag(const T& x)
-{
-    return x.imag();
-}
-
-template <typename T>
-inline T lv_conj(const T& x)
-{
-    return std::conj(x);
-}
-
-#else /* __cplusplus */
-
 #include <complex.h>
-#include <tgmath.h>
+#include <volk/volk_common.h>
 
-typedef char complex lv_8sc_t;
-typedef short complex lv_16sc_t;
-typedef long complex lv_32sc_t;
-typedef long long complex lv_64sc_t;
-typedef float complex lv_32fc_t;
-typedef double complex lv_64fc_t;
+__VOLK_DECL_BEGIN
+#ifndef _MSC_VER
+// Obviously, we would love `typedef float complex lv_32fc_t` to work.
+// However, this clashes with C++ definitions.
+// error: expected initializer before ‘lv_32fc_t’
+//    --> typedef float complex lv_32fc_t;
+// https://stackoverflow.com/a/10540302
+
+typedef char _Complex lv_8sc_t;
+typedef short _Complex lv_16sc_t;
+typedef long _Complex lv_32sc_t;
+typedef long long _Complex lv_64sc_t;
+typedef float _Complex lv_32fc_t;
+typedef double _Complex lv_64fc_t;
+
+#else
+// MSVC requires different treatment.
+// https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-160
+// https://docs.microsoft.com/en-us/cpp/c-runtime-library/complex-math-support?view=msvc-160
+// Refer to `complex.h` in
+// https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/
+// https://github.com/microsoft/STL/blob/main/stl/inc/complex
+
+typedef _Fcomplex lv_32fc_t;
+typedef _Dcomplex lv_64fc_t;
+
+// typedef char _Complex lv_8sc_t;
+typedef struct lv_8sc_t {
+    char _Val[2];
+} lv_8sc_t;
+
+// typedef short _Complex lv_16sc_t;
+typedef struct lv_16sc_t {
+    short _Val[2];
+} lv_16sc_t;
+
+// typedef long _Complex lv_32sc_t;
+typedef struct lv_32sc_t {
+    long _Val[2];
+} lv_32sc_t;
+
+// typedef long long _Complex lv_64sc_t;
+typedef struct lv_64sc_t {
+    long long _Val[2];
+} lv_64sc_t;
+#endif
 
 #define lv_cmake(r, i) ((r) + _Complex_I * (i))
+// We want `_Imaginary_I` to ensure the correct sign.
+// https://en.cppreference.com/w/c/numeric/complex/Imaginary_I
+// It does not compile. Complex numbers are a terribly implemented afterthought.
+// #define lv_cmake(r, i) ((r) + _Imaginary_I * (i))
 
 // When GNUC is available, use the complex extensions.
 // The extensions always return the correct value type.
@@ -93,6 +99,7 @@ typedef double complex lv_64fc_t;
 // with type-generic versions.
 #else /* __GNUC__ */
 
+
 #define lv_creal(x) (creal(x))
 
 #define lv_cimag(x) (cimag(x))
@@ -101,6 +108,6 @@ typedef double complex lv_64fc_t;
 
 #endif /* __GNUC__ */
 
-#endif /* __cplusplus */
+__VOLK_DECL_END
 
 #endif /* INCLUDE_VOLK_COMPLEX_H */
