@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2015 Free Software Foundation, Inc.
- * Copyright 2023 Magnus Lundmark <magnuslundmark@gmail.com>
+ * Copyright 2023-2026 Magnus Lundmark <magnuslundmark@gmail.com>
  *
  * This file is part of VOLK
  *
@@ -15,7 +15,35 @@
 
 #ifndef INCLUDE_VOLK_VOLK_SSE_INTRINSICS_H_
 #define INCLUDE_VOLK_VOLK_SSE_INTRINSICS_H_
+#include <emmintrin.h>
 #include <xmmintrin.h>
+
+/*
+ * Newton-Raphson refined reciprocal square root: 1/sqrt(a)
+ * One iteration doubles precision from ~12-bit to ~24-bit
+ * x1 = x0 * (1.5 - 0.5 * a * x0^2)
+ * Handles edge cases: +0 → +Inf, +Inf → 0
+ */
+static inline __m128 _mm_rsqrt_nr_ps(const __m128 a)
+{
+    const __m128 HALF = _mm_set1_ps(0.5f);
+    const __m128 THREE_HALFS = _mm_set1_ps(1.5f);
+
+    const __m128 x0 = _mm_rsqrt_ps(a); // +Inf for +0, 0 for +Inf
+
+    // Newton-Raphson: x1 = x0 * (1.5 - 0.5 * a * x0^2)
+    __m128 x1 = _mm_mul_ps(
+        x0, _mm_sub_ps(THREE_HALFS, _mm_mul_ps(HALF, _mm_mul_ps(_mm_mul_ps(x0, x0), a))));
+
+    // For +0 and +Inf inputs, x0 is correct but NR produces NaN due to Inf*0
+    // Blend: use x0 where a == +0 or a == +Inf, else use x1
+    __m128i a_si = _mm_castps_si128(a);
+    __m128i zero_mask = _mm_cmpeq_epi32(a_si, _mm_setzero_si128());
+    __m128i inf_mask = _mm_cmpeq_epi32(a_si, _mm_set1_epi32(0x7F800000));
+    __m128 special_mask = _mm_castsi128_ps(_mm_or_si128(zero_mask, inf_mask));
+    // SSE2-compatible blend: (x0 & mask) | (x1 & ~mask)
+    return _mm_or_ps(_mm_and_ps(special_mask, x0), _mm_andnot_ps(special_mask, x1));
+}
 
 /*
  * Approximate arctan(x) via polynomial expansion
