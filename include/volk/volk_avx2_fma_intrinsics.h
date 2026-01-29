@@ -110,4 +110,33 @@ static inline __m256 _mm256_cos_poly_avx2_fma(const __m256 x)
     return _mm256_fmadd_ps(x2, poly, one);
 }
 
+/*
+ * Polynomial coefficients for log2(x)/(x-1) on [1, 2]
+ * Generated with Sollya: remez(log2(x)/(x-1), 6, [1+1b-20, 2])
+ * Max error: ~1.55e-6
+ *
+ * Usage: log2(x) ≈ poly(x) * (x - 1) for x ∈ [1, 2]
+ * Polynomial evaluated via Horner's method with FMA
+ */
+static inline __m256 _mm256_log2_poly_avx2_fma(const __m256 x)
+{
+    const __m256 c0 = _mm256_set1_ps(+0x1.a8a726p+1f);
+    const __m256 c1 = _mm256_set1_ps(-0x1.0b7f7ep+2f);
+    const __m256 c2 = _mm256_set1_ps(+0x1.05d9ccp+2f);
+    const __m256 c3 = _mm256_set1_ps(-0x1.4d476cp+1f);
+    const __m256 c4 = _mm256_set1_ps(+0x1.04fc3ap+0f);
+    const __m256 c5 = _mm256_set1_ps(-0x1.c97982p-3f);
+    const __m256 c6 = _mm256_set1_ps(+0x1.57aa42p-6f);
+
+    // Horner's method with FMA: c0 + x*(c1 + x*(c2 + ...))
+    __m256 poly = c6;
+    poly = _mm256_fmadd_ps(poly, x, c5);
+    poly = _mm256_fmadd_ps(poly, x, c4);
+    poly = _mm256_fmadd_ps(poly, x, c3);
+    poly = _mm256_fmadd_ps(poly, x, c2);
+    poly = _mm256_fmadd_ps(poly, x, c1);
+    poly = _mm256_fmadd_ps(poly, x, c0);
+    return poly;
+}
+
 #endif /* INCLUDE_VOLK_VOLK_AVX2_FMA_INTRINSICS_H_ */

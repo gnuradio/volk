@@ -407,6 +407,35 @@ static inline float32x4_t _vcos_poly_f32(float32x4_t x)
     return vmlaq_f32(one, x2, poly);
 }
 
+/*
+ * Polynomial coefficients for log2(x)/(x-1) on [1, 2]
+ * Generated with Sollya: remez(log2(x)/(x-1), 6, [1+1b-20, 2])
+ * Max error: ~1.55e-6
+ *
+ * Usage: log2(x) ≈ poly(x) * (x - 1) for x ∈ [1, 2]
+ * Polynomial evaluated via Horner's method
+ */
+static inline float32x4_t _vlog2_poly_f32(float32x4_t x)
+{
+    const float32x4_t c0 = vdupq_n_f32(+0x1.a8a726p+1f);
+    const float32x4_t c1 = vdupq_n_f32(-0x1.0b7f7ep+2f);
+    const float32x4_t c2 = vdupq_n_f32(+0x1.05d9ccp+2f);
+    const float32x4_t c3 = vdupq_n_f32(-0x1.4d476cp+1f);
+    const float32x4_t c4 = vdupq_n_f32(+0x1.04fc3ap+0f);
+    const float32x4_t c5 = vdupq_n_f32(-0x1.c97982p-3f);
+    const float32x4_t c6 = vdupq_n_f32(+0x1.57aa42p-6f);
+
+    // Horner's method: c0 + x*(c1 + x*(c2 + ...))
+    float32x4_t poly = c6;
+    poly = vmlaq_f32(c5, poly, x);
+    poly = vmlaq_f32(c4, poly, x);
+    poly = vmlaq_f32(c3, poly, x);
+    poly = vmlaq_f32(c2, poly, x);
+    poly = vmlaq_f32(c1, poly, x);
+    poly = vmlaq_f32(c0, poly, x);
+    return poly;
+}
+
 #ifdef LV_HAVE_NEONV8
 /* ARMv8 NEON FMA-based arctan polynomial for better accuracy and throughput */
 static inline float32x4_t _varctan_poly_neonv8(float32x4_t x)
@@ -460,6 +489,32 @@ static inline float32x4_t _vcos_poly_neonv8(float32x4_t x)
     float32x4_t poly = vfmaq_f32(c2, x2, c3);
     poly = vfmaq_f32(c1, x2, poly);
     return vfmaq_f32(one, x2, poly);
+}
+
+/*
+ * NEONv8 FMA log2 polynomial on [1, 2]
+ * log2(x) ≈ poly(x) * (x - 1)
+ * Max error: ~1.55e-6
+ */
+static inline float32x4_t _vlog2_poly_neonv8(float32x4_t x)
+{
+    const float32x4_t c0 = vdupq_n_f32(+0x1.a8a726p+1f);
+    const float32x4_t c1 = vdupq_n_f32(-0x1.0b7f7ep+2f);
+    const float32x4_t c2 = vdupq_n_f32(+0x1.05d9ccp+2f);
+    const float32x4_t c3 = vdupq_n_f32(-0x1.4d476cp+1f);
+    const float32x4_t c4 = vdupq_n_f32(+0x1.04fc3ap+0f);
+    const float32x4_t c5 = vdupq_n_f32(-0x1.c97982p-3f);
+    const float32x4_t c6 = vdupq_n_f32(+0x1.57aa42p-6f);
+
+    // Horner's method with FMA: c0 + x*(c1 + x*(c2 + ...))
+    float32x4_t poly = c6;
+    poly = vfmaq_f32(c5, poly, x);
+    poly = vfmaq_f32(c4, poly, x);
+    poly = vfmaq_f32(c3, poly, x);
+    poly = vfmaq_f32(c2, poly, x);
+    poly = vfmaq_f32(c1, poly, x);
+    poly = vfmaq_f32(c0, poly, x);
+    return poly;
 }
 #endif /* LV_HAVE_NEONV8 */
 
