@@ -48,7 +48,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 endif()
 
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules
-)#location for custom "Modules"
+) #location for custom "Modules"
 
 include(VolkBuildTypes)
 #select the release build type by default to get optimization flags
@@ -67,7 +67,7 @@ message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 ########################################################################
 
 set(VERSION_INFO_MAJOR_VERSION 3)
-set(VERSION_INFO_MINOR_VERSION 2)
+set(VERSION_INFO_MINOR_VERSION 3)
 set(VERSION_INFO_MAINT_VERSION 0)
 include(VolkVersion) #setup version info
 
@@ -93,7 +93,7 @@ set(CROSSCOMPILE_MULTILIB
 
 if(MSVC)
     add_definitions(-D_USE_MATH_DEFINES
-    )#enables math constants on all supported versions of MSVC
+    ) #enables math constants on all supported versions of MSVC
     add_compile_options(/W1) #reduce warnings
     add_compile_options(/wo4309)
     add_compile_options(/wd4752)
