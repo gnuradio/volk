@@ -10,13 +10,28 @@ if(NOT ENABLE_TESTING)
     return()
 endif(NOT ENABLE_TESTING)
 
-find_package(fmt)
-find_package(GTest)
+include(FetchContent)
 
-if(NOT fmt_FOUND OR NOT GTest_FOUND)
-    message(warning "Missing fmtlib and/or googletest for this test suite")
-    return()
-endif(NOT fmt_FOUND OR NOT GTest_FOUND)
+# fmt is provided by the top-level CMakeLists.txt, no need to fetch here.
+
+# Prefer system GTest if available, otherwise fetch googletest.
+find_package(GTest QUIET)
+if(NOT GTest_FOUND)
+  message(STATUS "GTest not found: fetching googletest via FetchContent")
+  set(BUILD_GMOCK OFF CACHE BOOL "Disable gmock" FORCE)
+  set(INSTALL_GTEST OFF CACHE BOOL "Disable gtest install" FORCE)
+  FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.17.0
+    GIT_SHALLOW TRUE
+  )
+  FetchContent_GetProperties(googletest)
+  if(NOT googletest_POPULATED)
+    FetchContent_Populate(googletest)
+    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+  endif()
+endif()
 
 file(GLOB volk_test_files "test_*.cc")
 
