@@ -54,10 +54,12 @@
  *   volk_free(out);
  * \endcode
  */
-#include <math.h>
-
 #ifndef INCLUDED_volk_32f_atan_32f_a_H
 #define INCLUDED_volk_32f_atan_32f_a_H
+
+#include <volk/volk_mathfun.h>
+
+#include <math.h>
 
 #ifdef LV_HAVE_GENERIC
 static inline void
