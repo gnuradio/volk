@@ -55,13 +55,14 @@
  * \endcode
  */
 
+#ifndef INCLUDED_volk_32f_acos_32f_a_H
+#define INCLUDED_volk_32f_acos_32f_a_H
+
+#include <volk/volk_mathfun.h>
+
 #include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
-#include <volk/volk_common.h>
-
-#ifndef INCLUDED_volk_32f_acos_32f_a_H
-#define INCLUDED_volk_32f_acos_32f_a_H
 
 #ifdef LV_HAVE_GENERIC
 

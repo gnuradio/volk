@@ -54,6 +54,7 @@
  *   volk_free(cos_out);
  * \endcode
  */
+#include <volk/volk_mathfun.h>
 
 #include <inttypes.h>
 #include <math.h>

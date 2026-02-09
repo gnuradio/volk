@@ -80,6 +80,8 @@
 #ifndef INCLUDED_volk_32f_log2_32f_a_H
 #define INCLUDED_volk_32f_log2_32f_a_H
 
+#include <volk/volk_mathfun.h>
+
 #include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
@@ -95,7 +97,7 @@ volk_32f_log2_32f_generic(float* bVector, const float* aVector, unsigned int num
     unsigned int number = 0;
 
     for (number = 0; number < num_points; number++) {
-        *bPtr++ = log2f_non_ieee(*aPtr++);
+        *bPtr++ = volk_log2f_non_ieee(*aPtr++);
     }
 }
 #endif /* LV_HAVE_GENERIC */
