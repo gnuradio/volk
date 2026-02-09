@@ -258,6 +258,7 @@ install(
           ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_alloc.hh
           ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_complex.h
           ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_common.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_mathfun.h
           ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/saturation_arithmetic.h
           ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
           ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
