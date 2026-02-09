@@ -55,6 +55,7 @@
  *   volk_free(out);
  * \endcode
  */
+#include <volk/volk_mathfun.h>
 
 #include <inttypes.h>
 #include <math.h>
