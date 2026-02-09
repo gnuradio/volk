@@ -40,6 +40,8 @@
 #ifndef INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
 #define INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
 
+#include <volk/volk_mathfun.h>
+
 #include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
@@ -86,7 +88,7 @@ volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutput,
     // * log2(x)
     volk_32f_log2_32f(logPowerOutput, logPowerOutput, num_points);
     volk_32f_s32f_multiply_32f(
-        logPowerOutput, logPowerOutput, volk_log2to10factor, num_points);
+        logPowerOutput, logPowerOutput, VOLK_LOG2TO10FACTOR, num_points);
 }
 #endif /* LV_HAVE_GENERIC */
 
@@ -134,7 +136,7 @@ volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput,
         const float imag = lv_cimag(*complexFFTInputPtr) * iNormalizationFactor;
 
         *logPowerOutputPtr =
-            volk_log2to10factor * log2f_non_ieee(((real * real) + (imag * imag)));
+            VOLK_LOG2TO10FACTOR * volk_log2f_non_ieee(((real * real) + (imag * imag)));
         complexFFTInputPtr++;
         logPowerOutputPtr++;
     }
@@ -219,7 +221,7 @@ static inline void volk_32fc_s32f_power_spectrum_32f_rvv(float* logPowerOutput,
 #endif
 #endif
         v = __riscv_vfmacc(exp, mant, __riscv_vfsub(frac, cf1, vl), vl);
-        v = __riscv_vfmul(v, volk_log2to10factor, vl);
+        v = __riscv_vfmul(v, VOLK_LOG2TO10FACTOR, vl);
 
         __riscv_vse32(logPowerOutput, v, vl);
     }
@@ -305,7 +307,7 @@ volk_32fc_s32f_power_spectrum_32f_rvvseg(float* logPowerOutput,
 #endif
 #endif
         v = __riscv_vfmacc(exp, mant, __riscv_vfsub(frac, cf1, vl), vl);
-        v = __riscv_vfmul(v, volk_log2to10factor, vl);
+        v = __riscv_vfmul(v, VOLK_LOG2TO10FACTOR, vl);
 
         __riscv_vse32(logPowerOutput, v, vl);
     }
