@@ -40,7 +40,7 @@
 #ifndef INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
 #define INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
 
-#include <volk/volk_mathfun.h>
+#include <volk/volk_mathematical_functions.h>
 
 #include <inttypes.h>
 #include <math.h>
