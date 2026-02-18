@@ -61,7 +61,7 @@
 #ifndef INCLUDED_volk_32fc_s32f_atan2_32f_a_H
 #define INCLUDED_volk_32fc_s32f_atan2_32f_a_H
 
-#include <volk/volk_mathfun.h>
+#include <volk/volk_mathematical_functions.h>
 
 #include <math.h>
 
