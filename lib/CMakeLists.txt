@@ -93,8 +93,8 @@ execute_process(
     OUTPUT_VARIABLE arch_flag_lines
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-try_compile(HAVE_RVV_INTRINSICS ${CMAKE_BINARY_DIR}
-            ${CMAKE_SOURCE_DIR}/cmake/Checks/check-rvv-intrinsics.c)
+try_compile(HAVE_RVV_INTRINSICS ${PROJECT_BINARY_DIR}
+            ${PROJECT_SOURCE_DIR}/cmake/Checks/check-rvv-intrinsics.c)
 if(HAVE_RVV_INTRINSICS)
     message(STATUS "Checking RVV intrinsics - found")
 else()
@@ -287,9 +287,9 @@ endif()
 
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^riscv64$")
     message("---- Adding RISC-V ASM files")
-    message("DEBUG: looking for ASM files in ${CMAKE_SOURCE_DIR}/kernels/volk/asm/riscv")
-    include_directories(${CMAKE_SOURCE_DIR}/kernels/volk/asm/riscv)
-    file(GLOB asm_files ${CMAKE_SOURCE_DIR}/kernels/volk/asm/riscv/*.s)
+    message("DEBUG: looking for ASM files in ${PROJECT_SOURCE_DIR}/kernels/volk/asm/riscv")
+    include_directories(${PROJECT_SOURCE_DIR}/kernels/volk/asm/riscv)
+    file(GLOB asm_files ${PROJECT_SOURCE_DIR}/kernels/volk/asm/riscv/*.s)
     foreach(asm_file ${asm_files})
         list(APPEND volk_sources ${asm_file})
         message(STATUS "Adding source file: ${asm_file}")
@@ -506,7 +506,7 @@ message(STATUS "Loading version ${VERSION} into constants...")
 
 #double escape for windows backslash path separators
 string(REPLACE "\\" "\\\\" prefix "${prefix}")
-string(REPLACE "${CMAKE_SOURCE_DIR}" "$BUILD_DIR" COMPILER_INFO "${COMPILER_INFO}")
+string(REPLACE "${PROJECT_SOURCE_DIR}" "$BUILD_DIR" COMPILER_INFO "${COMPILER_INFO}")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/constants.c.in
                ${CMAKE_CURRENT_BINARY_DIR}/constants.c @ONLY)
