@@ -19,7 +19,6 @@ set(__INCLUDED_VOLK_ADD_TEST TRUE)
 ########################################################################
 
 function(VOLK_GEN_TEST executable_name)
-    include(CMakeParseArgumentsCopy)
     cmake_parse_arguments(VOLK_TEST "" ""
                           "SOURCES;TARGET_DEPS;EXTRA_LIB_DIRS;ENVIRONS;ARGS" ${ARGN})
     add_executable(${executable_name} ${VOLK_TEST_SOURCES})
@@ -44,7 +43,6 @@ endfunction()
 function(VOLK_ADD_TEST test_name executable_name)
 
     #parse the arguments for component names
-    include(CMakeParseArgumentsCopy)
     cmake_parse_arguments(VOLK_TEST "" "" "TARGET_DEPS;EXTRA_LIB_DIRS;ENVIRONS;ARGS"
                           ${ARGN})
 
