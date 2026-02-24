@@ -154,7 +154,6 @@ endfunction(VOLK_UNIQUE_TARGET)
 # Install python sources (also builds and installs byte-compiled python)
 ########################################################################
 function(VOLK_PYTHON_INSTALL)
-    include(CMakeParseArgumentsCopy)
     cmake_parse_arguments(VOLK_PYTHON_INSTALL "" "DESTINATION;COMPONENT" "FILES;PROGRAMS"
                           ${ARGN})
 
