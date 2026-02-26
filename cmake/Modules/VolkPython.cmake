@@ -15,48 +15,16 @@ set(__INCLUDED_VOLK_PYTHON_CMAKE TRUE)
 # This allows the user to specify a specific interpreter,
 # or finds the interpreter via the built-in cmake module.
 ########################################################################
-#this allows the user to override PYTHON_EXECUTABLE
-
-# `PythonInterp` is deprecated in 3.12, we should use `Python3` instead.
-# The `Python3` CMake module is introduced in CMake 3.12, e.g. Ubuntu 18.04 comes with CMake 3.10 though.
-# https://cmake.org/cmake/help/latest/module/FindPythonInterp.html
-# https://cmake.org/cmake/help/latest/module/FindPython3.html#module:FindPython3
-
-# FUTURE TODO: With CMake 3.12+ we can simply do:
-#if(PYTHON_EXECUTABLE)
-#    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-#else(PYTHON_EXECUTABLE)
-#    find_package(Python3 COMPONENTS Interpreter)
-#endif(PYTHON_EXECUTABLE)
-#
-##make the path to the executable appear in the cmake gui
-#set(PYTHON_EXECUTABLE ${Python_EXECUTABLE} CACHE FILEPATH "python interpreter")
-# END FUTURE TODO: Stick with following version as long as we set CMake 3.8 minimum.
-
+# Allow users/CI to override the interpreter explicitly.
+# FindPython3 uses Python3_EXECUTABLE as its override input.
 if(PYTHON_EXECUTABLE)
+    set(Python3_EXECUTABLE "${PYTHON_EXECUTABLE}")
+endif()
+find_package(Python3 3.4 COMPONENTS Interpreter REQUIRED)
 
-    set(PYTHONINTERP_FOUND TRUE)
-
-    #otherwise if not set, try to automatically find it
-else(PYTHON_EXECUTABLE)
-
-    #use the built-in find script
-    set(Python_ADDITIONAL_VERSIONS 3.4 3.5 3.6 3.7 3.8)
-    find_package(PythonInterp 3)
-
-    #and if that fails use the find program routine
-    if(NOT PYTHONINTERP_FOUND)
-        find_program(PYTHON_EXECUTABLE NAMES python3 python)
-        if(PYTHON_EXECUTABLE)
-            set(PYTHONINTERP_FOUND TRUE)
-        endif(PYTHON_EXECUTABLE)
-    endif(NOT PYTHONINTERP_FOUND)
-
-endif(PYTHON_EXECUTABLE)
-
-#make the path to the executable appear in the cmake gui
+# Expose the resolved interpreter path in the CMake cache/GUI.
 set(PYTHON_EXECUTABLE
-    ${PYTHON_EXECUTABLE}
+    ${Python3_EXECUTABLE}
     CACHE FILEPATH "python interpreter")
 
 ########################################################################
