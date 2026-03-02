@@ -7,6 +7,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,7 +46,11 @@ void* volk_malloc(size_t size, size_t alignment)
     // requested for correct alignment. Any allocation size change here will in general
     // not impact the end result since initial size alignment is required either way.
     if (size % alignment) {
-        size += alignment - (size % alignment);
+        size_t padding = alignment - (size % alignment);
+        if (padding > SIZE_MAX - size) {
+            return NULL; // overflow guard
+        }
+        size += padding;
     }
 #if HAVE_POSIX_MEMALIGN
     // quoting posix_memalign() man page:

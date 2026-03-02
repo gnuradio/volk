@@ -26,13 +26,13 @@ void volk_get_config_path(char* path, bool read)
         return;
     const char* suffix = "/.volk/volk_config";
     const char* suffix2 = "/volk/volk_config"; // non-hidden
+    const size_t path_max = 512;
     char* home = NULL;
 
     // allows config redirection via env variable
     home = getenv("VOLK_CONFIGPATH");
     if (home != NULL) {
-        strncpy(path, home, 512);
-        strcat(path, suffix2);
+        snprintf(path, path_max, "%s%s", home, suffix2);
         if (!read || access(path, F_OK) != -1) {
             return;
         }
@@ -41,8 +41,7 @@ void volk_get_config_path(char* path, bool read)
     // check for user-local config file
     home = getenv("HOME");
     if (home != NULL) {
-        strncpy(path, home, 512);
-        strcat(path, suffix);
+        snprintf(path, path_max, "%s%s", home, suffix);
         if (!read || (access(path, F_OK) != -1)) {
             return;
         }
@@ -51,8 +50,7 @@ void volk_get_config_path(char* path, bool read)
     // check for config file in APPDATA (Windows)
     home = getenv("APPDATA");
     if (home != NULL) {
-        strncpy(path, home, 512);
-        strcat(path, suffix);
+        snprintf(path, path_max, "%s%s", home, suffix);
         if (!read || (access(path, F_OK) != -1)) {
             return;
         }
@@ -60,8 +58,7 @@ void volk_get_config_path(char* path, bool read)
 
     // check for system-wide config file
     if (access("/etc/volk/volk_config", F_OK) != -1) {
-        strncpy(path, "/etc", 512);
-        strcat(path, suffix2);
+        snprintf(path, path_max, "%s%s", "/etc", suffix2);
         if (!read || (access(path, F_OK) != -1)) {
             return;
         }
@@ -96,7 +93,7 @@ size_t volk_load_preferences(volk_arch_pref_t** prefs_res)
         }
         prefs = (volk_arch_pref_t*)new_prefs;
         volk_arch_pref_t* p = prefs + n_arch_prefs;
-        if (sscanf(line, "%s %s %s", p->name, p->impl_a, p->impl_u) == 3 &&
+        if (sscanf(line, "%127s %127s %127s", p->name, p->impl_a, p->impl_u) == 3 &&
             !strncmp(p->name, "volk_", 5)) {
             n_arch_prefs++;
         }
