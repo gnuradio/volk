@@ -27,7 +27,7 @@
 %endfor
 
 struct volk_machine volk_machine_${this_machine.name} = {
-<% make_arch_have_list = (' | '.join(['(1 << LV_%s)'%a.name.upper() for a in this_machine.archs])) %>    ${make_arch_have_list},
+<% make_arch_have_list = (' | '.join(['(UINT64_C(1) << LV_%s)'%a.name.upper() for a in this_machine.archs])) %>    ${make_arch_have_list},
 <% this_machine_name = "\""+this_machine.name+"\"" %>    ${this_machine_name},
     ${this_machine.alignment},
 ##//list all kernels
@@ -38,7 +38,7 @@ struct volk_machine volk_machine_${this_machine.name} = {
 ##//list of kernel implementations by name
 <% make_impl_name_list = "{"+', '.join(['"%s"'%i.name for i in impls])+"}" %>    ${make_impl_name_list},
 ##//list of arch dependencies per implementation
-<% make_impl_deps_list = "{"+', '.join([' | '.join(['(1 << LV_%s)'%d.upper() for d in i.deps]) for i in impls])+"}" %>    ${make_impl_deps_list},
+<% make_impl_deps_list = "{"+', '.join([' | '.join(['(UINT64_C(1) << LV_%s)'%d.upper() for d in i.deps]) for i in impls])+"}" %>    ${make_impl_deps_list},
 ##//alignment required? for each implementation
 <% make_impl_align_list = "{"+', '.join(['true' if i.is_aligned else 'false' for i in impls])+"}" %>    ${make_impl_align_list},
 ##//pointer to each implementation

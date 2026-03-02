@@ -23,7 +23,7 @@ struct VOLK_CPU {
 extern struct VOLK_CPU volk_cpu;
 
 void volk_cpu_init ();
-unsigned int volk_get_lvarch ();
+uint64_t volk_get_lvarch ();
 
 __VOLK_DECL_END
 

@@ -217,6 +217,7 @@ if(NOT CPU_IS_x86)
     overrule_arch(sse4_2 "Architecture is not x86 or x86_64")
     overrule_arch(avx "Architecture is not x86 or x86_64")
     overrule_arch(avx512f "Architecture is not x86 or x86_64")
+    overrule_arch(avx512bw "Architecture is not x86 or x86_64")
     overrule_arch(avx512cd "Architecture is not x86 or x86_64")
 endif(NOT CPU_IS_x86)
 

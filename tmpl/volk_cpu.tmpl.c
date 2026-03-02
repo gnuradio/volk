@@ -96,11 +96,11 @@ void volk_cpu_init() {
     set_float_rounding();
 }
 
-unsigned int volk_get_lvarch() {
-    unsigned int retval = 0;
+uint64_t volk_get_lvarch() {
+    uint64_t retval = 0;
     volk_cpu_init();
     %for arch in archs:
-    retval += volk_cpu.has_${arch.name}() << LV_${arch.name.upper()};
+    retval += (uint64_t)volk_cpu.has_${arch.name}() << LV_${arch.name.upper()};
     %endfor
     return retval;
 }

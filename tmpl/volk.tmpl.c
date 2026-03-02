@@ -29,7 +29,7 @@ struct volk_machine *get_machine(void)
   if(machine != NULL)
     return machine;
   else {
-    unsigned int max_score = 0;
+    uint64_t max_score = 0;
     unsigned int i;
     struct volk_machine *max_machine = NULL;
     for(i=0; i<n_volk_machines; i++) {
@@ -41,6 +41,10 @@ struct volk_machine *get_machine(void)
       }
     }
     machine = max_machine;
+    if (!machine) {
+      fprintf(stderr, "VOLK: no machine found matching CPU capabilities\n");
+      abort();
+    }
     //printf("Using Volk machine: %s\n", machine->name);
     __alignment = machine->alignment;
     __alignment_mask = (intptr_t)(__alignment-1);
@@ -71,7 +75,7 @@ const char* volk_get_machine(void)
   if(machine != NULL)
     return machine->name;
   else {
-    unsigned int max_score = 0;
+    uint64_t max_score = 0;
     unsigned int i;
     struct volk_machine *max_machine = NULL;
     for(i=0; i<n_volk_machines; i++) {
@@ -83,6 +87,10 @@ const char* volk_get_machine(void)
       }
     }
     machine = max_machine;
+    if (!machine) {
+      fprintf(stderr, "VOLK: no machine found matching CPU capabilities\n");
+      return "unknown";
+    }
     return machine->name;
   }
 }
@@ -95,6 +103,8 @@ size_t volk_get_alignment(void)
 
 bool volk_is_aligned(const void *ptr)
 {
+    if (__alignment_mask == 0)
+        return false;
     return ((intptr_t)(ptr) & __alignment_mask) == 0;
 }
 
@@ -133,7 +143,7 @@ static inline void __init_${kern.name}(void)
 {
     const char *name = get_machine()->${kern.name}_name;
     const char **impl_names = get_machine()->${kern.name}_impl_names;
-    const int *impl_deps = get_machine()->${kern.name}_impl_deps;
+    const uint64_t *impl_deps = get_machine()->${kern.name}_impl_deps;
     const bool *alignment = get_machine()->${kern.name}_impl_alignment;
     const size_t n_impls = get_machine()->${kern.name}_n_impls;
     const size_t index_a = volk_rank_archs(name, impl_names, impl_deps, alignment, n_impls, true/*aligned*/);
@@ -176,6 +186,10 @@ ${kern.pname} ${kern.name}_get_impl(const char* impl_name)
         get_machine()->${kern.name}_n_impls,
         impl_name
     );
+    if (index < 0) {
+        fprintf(stderr, "VOLK: no implementation found for ${kern.name}\n");
+        return NULL;
+    }
     return get_machine()->${kern.name}_impls[index];
 }
 
@@ -188,7 +202,7 @@ void ${kern.name}_manual(${kern.arglist_full}, const char* impl_name)
 
 volk_func_desc_t ${kern.name}_get_func_desc(void) {
     const char **impl_names = get_machine()->${kern.name}_impl_names;
-    const int *impl_deps = get_machine()->${kern.name}_impl_deps;
+    const uint64_t *impl_deps = get_machine()->${kern.name}_impl_deps;
     const bool *alignment = get_machine()->${kern.name}_impl_alignment;
     const size_t n_impls = get_machine()->${kern.name}_n_impls;
     volk_func_desc_t desc = {

@@ -25,7 +25,7 @@ __VOLK_DECL_BEGIN
 typedef struct volk_func_desc
 {
     const char **impl_names;
-    const int *impl_deps;
+    const uint64_t *impl_deps;
     const bool *impl_alignment;
     size_t n_impls;
 } volk_func_desc_t;
@@ -63,14 +63,7 @@ VOLK_API bool volk_is_aligned(const void *ptr);
 // Just drop the deprecated attribute in case we are on Windows. Clang and GCC support `__attribute__`.
 // We just assume the compiler and the system are tight together as far as Mako templates are concerned.
 <%
-deprecated_kernels = ('volk_16i_x5_add_quad_16i_x4', 'volk_16i_branch_4_state_8',
-                      'volk_16i_max_star_16i', 'volk_16i_max_star_horizontal_16i',
-                      'volk_16i_permute_and_scalar_add', 'volk_16i_x4_quad_max_star_16i',
-                      'volk_32fc_s32fc_multiply_32fc', 'volk_32fc_s32fc_x2_rotator_32fc',
-                      'volk_32fc_x2_s32fc_multiply_conjugate_add_32fc')
-from platform import system
-if system() == 'Windows':
-    deprecated_kernels = ()
+deprecated_kernels = ()
 %>
 %for kern in kernels:
 

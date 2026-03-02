@@ -19,13 +19,13 @@
 __VOLK_DECL_BEGIN
 
 struct volk_machine {
-    const unsigned int caps; //capabilities (i.e., archs compiled into this machine, in the volk_get_lvarch format)
+    const uint64_t caps; //capabilities (i.e., archs compiled into this machine, in the volk_get_lvarch format)
     const char *name;
     const size_t alignment; //the maximum byte alignment required for functions in this library
     %for kern in kernels:
     const char *${kern.name}_name;
     const char *${kern.name}_impl_names[<%len_archs=len(archs)%>${len_archs}];
-    const int ${kern.name}_impl_deps[${len_archs}];
+    const uint64_t ${kern.name}_impl_deps[${len_archs}];
     const bool ${kern.name}_impl_alignment[${len_archs}];
     const ${kern.pname} ${kern.name}_impls[${len_archs}];
     const size_t ${kern.name}_n_impls;

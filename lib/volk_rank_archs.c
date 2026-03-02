@@ -8,6 +8,7 @@
  */
 
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,26 +21,44 @@ int volk_get_index(const char* impl_names[], // list of implementations by name
                    const char* impl_name     // the implementation name to find
 )
 {
+    if (n_impls == 0) {
+        fprintf(stderr, "Volk error: no implementations available\n");
+        return -1;
+    }
     unsigned int i;
     for (i = 0; i < n_impls; i++) {
-        if (!strncmp(impl_names[i], impl_name, 20)) {
+        if (!strcmp(impl_names[i], impl_name)) {
             return i;
         }
     }
-    // TODO return -1;
-    // something terrible should happen here
-    fprintf(stderr, "Volk warning: no arch found, returning generic impl\n");
-    return volk_get_index(impl_names, n_impls, "generic"); // but we'll fake it for now
+    // requested impl not found — try falling back to "generic"
+    if (strcmp(impl_name, "generic") != 0) {
+        fprintf(stderr,
+                "Volk warning: arch '%s' not found, returning generic impl\n",
+                impl_name);
+        for (i = 0; i < n_impls; i++) {
+            if (!strcmp(impl_names[i], "generic")) {
+                return i;
+            }
+        }
+    }
+    // neither requested impl nor "generic" found — return first available
+    fprintf(stderr, "Volk warning: no generic impl found, returning index 0\n");
+    return 0;
 }
 
-int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
-                    const char* impl_names[], // list of implementations by name
-                    const int* impl_deps,     // requirement mask per implementation
-                    const bool* alignment,    // alignment status of each implementation
-                    size_t n_impls,           // number of implementations available
-                    const bool align          // if false, filter aligned implementations
+int volk_rank_archs(const char* kern_name,       // name of the kernel to rank
+                    const char* impl_names[],    // list of implementations by name
+                    const uint64_t* impl_deps,   // requirement mask per implementation
+                    const bool* alignment,       // alignment status of each implementation
+                    size_t n_impls,              // number of implementations available
+                    const bool align             // if false, filter aligned implementations
 )
 {
+    if (n_impls == 0) {
+        fprintf(stderr, "Volk error: %s has no implementations\n", kern_name);
+        return 0;
+    }
     size_t i;
     static volk_arch_pref_t* volk_arch_prefs;
     static size_t n_arch_prefs = 0;
@@ -78,10 +97,10 @@ int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
     // return the best index with the largest deps
     size_t best_index_a = 0;
     size_t best_index_u = 0;
-    int best_value_a = -1;
-    int best_value_u = -1;
+    int64_t best_value_a = -1;
+    int64_t best_value_u = -1;
     for (i = 0; i < n_impls; i++) {
-        const signed val = impl_deps[i];
+        const int64_t val = (int64_t)impl_deps[i];
         if (alignment[i] && val > best_value_a) {
             best_index_a = i;
             best_value_a = val;

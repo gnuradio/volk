@@ -162,6 +162,14 @@ at the top, as a last resort.
     <alignment>32</alignment>
 </arch>
 
+<arch name="f16c">
+    <check name="f16c"></check>
+    <flag compiler="gnu">-mf16c</flag>
+    <flag compiler="clang">-mf16c</flag>
+    <flag compiler="msvc">/arch:AVX</flag>
+    <alignment>32</alignment>
+</arch>
+
 <arch name="avx512f">
     <check name="avx512f"></check>
     <flag compiler="gnu">-mavx512f</flag>
@@ -178,11 +186,47 @@ at the top, as a last resort.
     <alignment>64</alignment>
 </arch>
 
+<arch name="avx512bw">
+    <check name="avx512bw"></check>
+    <flag compiler="gnu">-mavx512bw</flag>
+    <flag compiler="clang">-mavx512bw</flag>
+    <flag compiler="msvc">/arch:AVX512BW</flag>
+    <alignment>64</alignment>
+</arch>
+
 <arch name="avx512dq">
     <check name="avx512dq"></check>
     <flag compiler="gnu">-mavx512dq</flag>
     <flag compiler="clang">-mavx512dq</flag>
     <flag compiler="msvc">/arch:AVX512DQ</flag>
+    <alignment>64</alignment>
+</arch>
+
+<arch name="avx512vl">
+    <check name="avx512vl"></check>
+    <flag compiler="gnu">-mavx512vl</flag>
+    <flag compiler="clang">-mavx512vl</flag>
+    <alignment>64</alignment>
+</arch>
+
+<arch name="avx512vnni">
+    <check name="avx512vnni"></check>
+    <flag compiler="gnu">-mavx512vnni</flag>
+    <flag compiler="clang">-mavx512vnni</flag>
+    <alignment>64</alignment>
+</arch>
+
+<arch name="avx512vbmi">
+    <check name="avx512vbmi"></check>
+    <flag compiler="gnu">-mavx512vbmi</flag>
+    <flag compiler="clang">-mavx512vbmi</flag>
+    <alignment>64</alignment>
+</arch>
+
+<arch name="avx512vbmi2">
+    <check name="avx512vbmi2"></check>
+    <flag compiler="gnu">-mavx512vbmi2</flag>
+    <flag compiler="clang">-mavx512vbmi2</flag>
     <alignment>64</alignment>
 </arch>
 
