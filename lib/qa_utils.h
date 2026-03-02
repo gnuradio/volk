@@ -42,9 +42,14 @@ class volk_test_time_t
 {
 public:
     std::string name;
-    double time;
+    double time;          // median time (ms) if trials > 1, else total time
+    double time_stddev;   // standard deviation across trials (0 if trials == 1)
+    double time_min;      // minimum across trials (same as time if trials == 1)
+    std::vector<double> trial_times; // per-trial measurements (empty if trials == 1)
     std::string units;
     bool pass;
+
+    volk_test_time_t() : time(0), time_stddev(0), time_min(0), pass(true) {}
 };
 
 class volk_test_results_t
@@ -68,6 +73,7 @@ private:
     unsigned int _iter;
     bool _benchmark_mode;
     bool _absolute_mode;
+    unsigned int _trials;
     std::string _kernel_regex;
     std::vector<float> _float_edge_cases;
     std::vector<lv_32fc_t> _complex_edge_cases;
@@ -86,6 +92,7 @@ public:
           _iter(iter),
           _benchmark_mode(benchmark_mode),
           _absolute_mode(false),
+          _trials(0),
           _kernel_regex(kernel_regex){};
     // setters
     void set_tol(float tol) { _tol = tol; };
@@ -93,6 +100,7 @@ public:
     void set_vlen(unsigned int vlen) { _vlen = vlen; };
     void set_iter(unsigned int iter) { _iter = iter; };
     void set_benchmark(bool benchmark) { _benchmark_mode = benchmark; };
+    void set_trials(unsigned int trials) { _trials = trials; };
     void set_regex(std::string regex) { _kernel_regex = regex; };
     void add_float_edge_cases(const std::vector<float>& edge_cases)
     {
@@ -109,6 +117,7 @@ public:
     unsigned int iter() { return _iter; };
     bool benchmark_mode() { return _benchmark_mode; };
     bool absolute_mode() { return _absolute_mode; };
+    unsigned int trials() { return _trials; };
     std::string kernel_regex() { return _kernel_regex; };
     const std::vector<float>& float_edge_cases() const { return _float_edge_cases; };
     const std::vector<lv_32fc_t>& complex_edge_cases() const
@@ -202,6 +211,7 @@ bool run_volk_tests(
     std::string puppet_master_name = "NULL",
     bool absolute_mode = false,
     bool benchmark_mode = false,
+    unsigned int trials = 1,
     const std::vector<float>& float_edge_cases = std::vector<float>(),
     const std::vector<lv_32fc_t>& complex_edge_cases = std::vector<lv_32fc_t>());
 
@@ -225,6 +235,8 @@ typedef void (*volk_fn_1arg)(void*,
 typedef void (*volk_fn_2arg)(void*, void*, unsigned int, const char*);
 typedef void (*volk_fn_3arg)(void*, void*, void*, unsigned int, const char*);
 typedef void (*volk_fn_4arg)(void*, void*, void*, void*, unsigned int, const char*);
+typedef void (*volk_fn_5arg)(
+    void*, void*, void*, void*, void*, unsigned int, const char*);
 typedef void (*volk_fn_1arg_s32f)(
     void*, float, unsigned int, const char*); // one input vector, one scalar float input
 typedef void (*volk_fn_2arg_s32f)(void*, void*, float, unsigned int, const char*);

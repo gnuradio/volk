@@ -19,8 +19,9 @@
 #include <sys/time.h>  // for CLOCKS_PER_SEC
 #include <sys/types.h> // for int16_t, int32_t
 #include <chrono>
-#include <cmath>    // for sqrt, fabs, abs
-#include <cstring>  // for memcpy, memset
+#include <algorithm> // for sort, min_element
+#include <cmath>     // for sqrt, fabs, abs
+#include <cstring>   // for memcpy, memset
 #include <ctime>    // for clock
 #include <iostream> // for cerr
 #include <limits>   // for numeric_limits
@@ -371,6 +372,16 @@ inline void run_cast_test4(volk_fn_4arg func,
 {
     while (iter--)
         func(buffs[0], buffs[1], buffs[2], buffs[3], vlen, arch.c_str());
+}
+
+inline void run_cast_test5(volk_fn_5arg func,
+                           std::vector<void*>& buffs,
+                           unsigned int vlen,
+                           unsigned int iter,
+                           std::string arch)
+{
+    while (iter--)
+        func(buffs[0], buffs[1], buffs[2], buffs[3], buffs[4], vlen, arch.c_str());
 }
 
 inline void run_cast_test1_s32f(volk_fn_1arg_s32f func,
@@ -740,6 +751,10 @@ public:
     {
         size_t alignment = volk_get_alignment();
         void* ptr = volk_malloc(size, alignment);
+        if (!ptr) {
+            std::cerr << "volk_malloc failed for size " << size << std::endl;
+            abort();
+        }
         memset(ptr, 0x00, size);
         _mems.push_back(ptr);
         return ptr;
@@ -773,6 +788,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                           puppet_master_name,
                           test_params.absolute_mode(),
                           test_params.benchmark_mode(),
+                          test_params.trials(),
                           test_params.float_edge_cases(),
                           test_params.complex_edge_cases());
 }
@@ -788,16 +804,30 @@ bool run_volk_tests(volk_func_desc_t desc,
                     std::string puppet_master_name,
                     bool absolute_mode,
                     bool benchmark_mode,
+                    unsigned int trials,
                     const std::vector<float>& float_edge_cases,
                     const std::vector<lv_32fc_t>& complex_edge_cases)
 {
+    // Ensure at least 1 trial to avoid empty-vector crashes in statistics
+    if (trials == 0)
+        trials = 1;
+
     // Initialize this entry in results vector
     results->push_back(volk_test_results_t());
     results->back().name = name;
     results->back().vlen = vlen;
     results->back().iter = iter;
-    fmt::print(
-        "\nRUN_VOLK_TESTS: {}(vlen={}, iter={}, tol={:.0e})\n", name, vlen, iter, tol);
+    if (trials > 1) {
+        fmt::print("\nRUN_VOLK_TESTS: {}(vlen={}, iter={}, tol={:.0e}, trials={})\n",
+                   name,
+                   vlen,
+                   iter,
+                   tol,
+                   trials);
+    } else {
+        fmt::print(
+            "\nRUN_VOLK_TESTS: {}(vlen={}, iter={}, tol={:.0e})\n", name, vlen, iter, tol);
+    }
 
     // vlen_twiddle will increase vlen for malloc and data generation
     // but kernels will still be called with the user provided vlen.
@@ -983,6 +1013,10 @@ bool run_volk_tests(volk_func_desc_t desc,
             run_cast_test4(
                 (volk_fn_4arg)(manual_func), test_data[0], vlen, iter, "generic");
             break;
+        case 5:
+            run_cast_test5(
+                (volk_fn_5arg)(manual_func), test_data[0], vlen, iter, "generic");
+            break;
         default:
             break;
         }
@@ -1080,6 +1114,13 @@ bool run_volk_tests(volk_func_desc_t desc,
                                    warmup_iterations,
                                    "generic");
                     break;
+                case 5:
+                    run_cast_test5((volk_fn_5arg)(manual_func),
+                                   test_data[0],
+                                   vlen,
+                                   warmup_iterations,
+                                   "generic");
+                    break;
                 default:
                     break;
                 }
@@ -1103,9 +1144,8 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
 
-    for (size_t i = 0; i < arch_list.size(); i++) {
-        start = std::chrono::system_clock::now();
-
+    // Helper lambda: run one timing pass for architecture i
+    auto run_one_timing = [&](size_t i) {
         switch (both_sigs.size()) {
         case 1:
             if (inputsc.size() == 0) {
@@ -1180,23 +1220,90 @@ bool run_volk_tests(volk_func_desc_t desc,
             run_cast_test4(
                 (volk_fn_4arg)(manual_func), test_data[i], vlen, iter, arch_list[i]);
             break;
+        case 5:
+            run_cast_test5(
+                (volk_fn_5arg)(manual_func), test_data[i], vlen, iter, arch_list[i]);
+            break;
         default:
             throw "no function handler for this signature";
             break;
         }
+    };
 
-        end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        double arch_time = 1000.0 * elapsed_seconds.count();
+    // Per-arch vector of per-trial times
+    std::vector<std::vector<double>> all_trial_times(arch_list.size());
+
+    for (unsigned int trial = 0; trial < trials; trial++) {
+        for (size_t i = 0; i < arch_list.size(); i++) {
+            start = std::chrono::system_clock::now();
+            run_one_timing(i);
+            end = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsed_seconds = end - start;
+            double arch_time = 1000.0 * elapsed_seconds.count();
+            all_trial_times[i].push_back(arch_time);
+        }
+    }
+
+    // Compute statistics from trial data
+    auto compute_median = [](std::vector<double> v) -> double {
+        if (v.empty())
+            return 0.0;
+        std::sort(v.begin(), v.end());
+        size_t n = v.size();
+        if (n % 2 == 0)
+            return (v[n / 2 - 1] + v[n / 2]) / 2.0;
+        else
+            return v[n / 2];
+    };
+
+    auto compute_mad = [&compute_median](const std::vector<double>& v) -> double {
+        double med = compute_median(v);
+        std::vector<double> abs_devs;
+        abs_devs.reserve(v.size());
+        for (double x : v)
+            abs_devs.push_back(std::fabs(x - med));
+        return compute_median(abs_devs);
+    };
+
+    auto compute_stddev = [](const std::vector<double>& v, double mean) -> double {
+        if (v.size() < 2)
+            return 0.0;
+        double sum_sq = 0.0;
+        for (double x : v)
+            sum_sq += (x - mean) * (x - mean);
+        return std::sqrt(sum_sq / (v.size() - 1));
+    };
+
+    // Store per-arch MAD for uncertainty comparison later
+    std::vector<double> arch_mad(arch_list.size(), 0.0);
+
+    for (size_t i = 0; i < arch_list.size(); i++) {
+        const auto& tv = all_trial_times[i];
+        double median_time = compute_median(tv);
+        double min_time = *std::min_element(tv.begin(), tv.end());
+
+        double mean_time = 0.0;
+        for (double t : tv)
+            mean_time += t;
+        mean_time /= tv.size();
+
+        double stddev = compute_stddev(tv, mean_time);
+        double mad = compute_mad(tv);
+        arch_mad[i] = mad;
 
         volk_test_time_t result;
         result.name = arch_list[i];
-        result.time = arch_time;
+        result.time = (trials > 1) ? median_time : tv[0];
+        result.time_stddev = stddev;
+        result.time_min = min_time;
         result.units = "ms";
         result.pass = true;
+        if (trials > 1) {
+            result.trial_times = tv;
+        }
         results->back().results[result.name] = result;
 
-        profile_times.push_back(arch_time);
+        profile_times.push_back(result.time);
     }
 
     // and now compare each output to the generic output
@@ -1390,18 +1497,41 @@ bool run_volk_tests(volk_func_desc_t desc,
     double best_time_u = std::numeric_limits<double>::max();
     std::string best_arch_a = "generic";
     std::string best_arch_u = "generic";
+    size_t best_idx_a = 0;
+    size_t best_idx_u = 0;
+    double runner_up_time_a = std::numeric_limits<double>::max();
+    double runner_up_time_u = std::numeric_limits<double>::max();
+    size_t runner_up_idx_a = 0;
+    size_t runner_up_idx_u = 0;
+
     for (size_t i = 0; i < arch_list.size(); i++) {
         // Look up alignment using original index (before reordering)
         size_t orig_idx = arch_to_orig_idx[arch_list[i]];
         bool requires_alignment = desc.impl_alignment[orig_idx];
 
-        if ((profile_times[i] < best_time_u) && arch_results[i] && !requires_alignment) {
-            best_time_u = profile_times[i];
-            best_arch_u = arch_list[i];
+        if (!requires_alignment && arch_results[i]) {
+            if (profile_times[i] < best_time_u) {
+                runner_up_time_u = best_time_u;
+                runner_up_idx_u = best_idx_u;
+                best_time_u = profile_times[i];
+                best_arch_u = arch_list[i];
+                best_idx_u = i;
+            } else if (profile_times[i] < runner_up_time_u) {
+                runner_up_time_u = profile_times[i];
+                runner_up_idx_u = i;
+            }
         }
-        if ((profile_times[i] < best_time_a) && arch_results[i]) {
-            best_time_a = profile_times[i];
-            best_arch_a = arch_list[i];
+        if (arch_results[i]) {
+            if (profile_times[i] < best_time_a) {
+                runner_up_time_a = best_time_a;
+                runner_up_idx_a = best_idx_a;
+                best_time_a = profile_times[i];
+                best_arch_a = arch_list[i];
+                best_idx_a = i;
+            } else if (profile_times[i] < runner_up_time_a) {
+                runner_up_time_a = profile_times[i];
+                runner_up_idx_a = i;
+            }
         }
     }
 
@@ -1410,6 +1540,22 @@ bool run_volk_tests(volk_func_desc_t desc,
     if (best_time_u < best_time_a) {
         best_time_a = best_time_u;
         best_arch_a = best_arch_u;
+        best_idx_a = best_idx_u;
+    }
+
+    // Determine if best-arch rankings are uncertain (only meaningful with trials > 1)
+    // Uncertain when the difference between best and runner-up is within 1 MAD
+    bool uncertain_a = false;
+    bool uncertain_u = false;
+    if (trials > 1) {
+        if (runner_up_time_a < std::numeric_limits<double>::max()) {
+            double threshold = std::max(arch_mad[best_idx_a], arch_mad[runner_up_idx_a]);
+            uncertain_a = (runner_up_time_a - best_time_a) < threshold;
+        }
+        if (runner_up_time_u < std::numeric_limits<double>::max()) {
+            double threshold = std::max(arch_mad[best_idx_u], arch_mad[runner_up_idx_u]);
+            uncertain_u = (runner_up_time_u - best_time_u) < threshold;
+        }
     }
 
     // Calculate total data transferred (bytes read + written) for throughput display
@@ -1437,6 +1583,9 @@ bool run_volk_tests(volk_func_desc_t desc,
     constexpr int w_tput = 14;
     constexpr int w_speedup = 8;
     constexpr int w_err = 10;
+    constexpr int w_stddev = 12;
+    constexpr int w_cv = 6;
+    constexpr int w_min = 12;
 
     // Column header depends on error mode
     // Integer outputs always use absolute comparison, so show "max_abs" for them
@@ -1459,28 +1608,68 @@ bool run_volk_tests(volk_func_desc_t desc,
     };
 
     // Print table header
-    fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} |\n",
-               "arch",
-               w_arch,
-               "time",
-               w_time,
-               "throughput",
-               w_tput,
-               "speedup",
-               w_speedup,
-               err_col,
-               w_err);
-    fmt::print("{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+\n",
-               "",
-               w_arch,
-               "",
-               w_time,
-               "",
-               w_tput,
-               "",
-               w_speedup,
-               "",
-               w_err);
+    if (trials > 1) {
+        // Multi-trial header: time is median
+        fmt::print(
+            "{:<{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} |\n",
+            "arch",
+            w_arch,
+            "median",
+            w_time,
+            "stddev",
+            w_stddev,
+            "CV",
+            w_cv,
+            "min",
+            w_min,
+            "throughput",
+            w_tput,
+            "speedup",
+            w_speedup,
+            err_col,
+            w_err);
+        fmt::print(
+            "{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+\n",
+            "",
+            w_arch,
+            "",
+            w_time,
+            "",
+            w_stddev,
+            "",
+            w_cv,
+            "",
+            w_min,
+            "",
+            w_tput,
+            "",
+            w_speedup,
+            "",
+            w_err);
+    } else {
+        fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} |\n",
+                   "arch",
+                   w_arch,
+                   "time",
+                   w_time,
+                   "throughput",
+                   w_tput,
+                   "speedup",
+                   w_speedup,
+                   err_col,
+                   w_err);
+        fmt::print("{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+-{:-<{}}-+\n",
+                   "",
+                   w_arch,
+                   "",
+                   w_time,
+                   "",
+                   w_tput,
+                   "",
+                   w_speedup,
+                   "",
+                   w_err);
+    }
 
     // Print each architecture row
     for (size_t i = 0; i < arch_list.size(); i++) {
@@ -1498,34 +1687,79 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
         std::string err_str =
             (arch_list[i] == "generic") ? "-" : fmt::format("{:.1e}", arch_max_err[i]);
-        std::string win_str =
-            (arch_list[i] == best_arch_a || arch_list[i] == best_arch_u) ? " *" : "";
 
-        fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} |{}\n",
-                   arch_list[i],
-                   w_arch,
-                   time_str,
-                   w_time,
-                   tput_str,
-                   w_tput,
-                   speedup_str,
-                   w_speedup,
-                   err_str,
-                   w_err,
-                   win_str);
+        // Winner marker: * = confident, ~ = within noise of runner-up
+        std::string win_str;
+        if (arch_list[i] == best_arch_a || arch_list[i] == best_arch_u) {
+            if (trials > 1 &&
+                ((arch_list[i] == best_arch_a && uncertain_a) ||
+                 (arch_list[i] == best_arch_u && uncertain_u))) {
+                win_str = " ~";
+            } else {
+                win_str = " *";
+            }
+        }
+
+        if (trials > 1) {
+            const auto& result = results->back().results[arch_list[i]];
+            std::string stddev_str = fmt::format("{:.2f} ms", result.time_stddev);
+            double cv_pct =
+                (profile_times[i] > 0) ? 100.0 * result.time_stddev / profile_times[i] : 0;
+            std::string cv_str = fmt::format("{:.1f}%", cv_pct);
+            std::string min_str = fmt::format("{:.2f} ms", result.time_min);
+
+            fmt::print(
+                "{:<{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} |{}\n",
+                arch_list[i],
+                w_arch,
+                time_str,
+                w_time,
+                stddev_str,
+                w_stddev,
+                cv_str,
+                w_cv,
+                min_str,
+                w_min,
+                tput_str,
+                w_tput,
+                speedup_str,
+                w_speedup,
+                err_str,
+                w_err,
+                win_str);
+        } else {
+            fmt::print("{:<{}} | {:>{}} | {:>{}} | {:>{}} | {:>{}} |{}\n",
+                       arch_list[i],
+                       w_arch,
+                       time_str,
+                       w_time,
+                       tput_str,
+                       w_tput,
+                       speedup_str,
+                       w_speedup,
+                       err_str,
+                       w_err,
+                       win_str);
+        }
     }
 
     // Print best arch summary (left-aligned, ":" at arch column width)
-    auto print_best_line = [&](const char* label, const std::string& arch, double time) {
+    auto print_best_line = [&](const char* label,
+                               const std::string& arch,
+                               double time,
+                               bool uncertain) {
         std::string speedup_str;
         if (arch != "generic" && generic_time > 0) {
             speedup_str = fmt::format(" ({:.2f}x)", generic_time / time);
         }
-        fmt::print("{:<{}} {}{}\n", label, w_arch, arch, speedup_str);
+        std::string uncertain_str = (trials > 1 && uncertain) ? " [uncertain]" : "";
+        fmt::print("{:<{}} {}{}{}\n", label, w_arch, arch, speedup_str, uncertain_str);
     };
 
-    print_best_line("Best aligned arch          |", best_arch_a, best_time_a);
-    print_best_line("Best unaligned arch        |", best_arch_u, best_time_u);
+    print_best_line(
+        "Best aligned arch          |", best_arch_a, best_time_a, uncertain_a);
+    print_best_line(
+        "Best unaligned arch        |", best_arch_u, best_time_u, uncertain_u);
 
     // Print failure details after timing summary
     for (const auto& fi : failures) {

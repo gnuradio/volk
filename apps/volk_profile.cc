@@ -12,6 +12,7 @@
 #include <volk/volk_prefs.h> // for volk_get_config_path
 #include <filesystem>
 #include <fstream>  // IWYU pragma: keep
+#include <sstream>  // for istringstream
 #include <iomanip>  // for setprecision, fixed
 #include <iostream> // for operator<<, basic_ostream
 #include <map>      // for map, map<>::iterator
@@ -43,11 +44,12 @@ void set_json(std::string val) { json_filename = val; }
 std::string volk_config_path("");
 void set_volk_config(std::string val) { volk_config_path = val; }
 void set_warmup(int val) { volk_test_set_warmup_ms((double)val); }
+void set_trials(int val) { test_params.set_trials((unsigned int)val); }
 
 int main(int argc, char* argv[])
 {
-
     option_list profile_options("volk_profile");
+    
     profile_options.add(
         option_t("benchmark", "b", "Run all kernels (benchmark mode)", set_benchmark));
     profile_options.add(
@@ -73,10 +75,23 @@ int main(int argc, char* argv[])
         (option_t("path", "p", "Specify the volk_config path", set_volk_config)));
     profile_options.add(
         (option_t("warmup", "w", "Set warmup time in ms (default 2000)", set_warmup)));
+    profile_options.add(
+        (option_t("trials", "T", "Timing trials per arch (-T alone defaults to 10)", set_trials)));
     profile_options.parse(argc, argv);
 
     if (profile_options.present("help")) {
         return 0;
+    }
+
+    // Resolve trials default: 0 means the user didn't provide a value
+    if (test_params.trials() == 0) {
+        if (profile_options.present("trials")) {
+            // -T was given without a numeric argument; default to 10
+            test_params.set_trials(10);
+            std::cout << "Using default of 10 timing trials" << std::endl;
+        } else {
+            test_params.set_trials(1);
+        }
     }
 
     if (dry_run) {
@@ -225,40 +240,17 @@ void read_results(std::vector<volk_test_results_t>* results, std::string path)
     if (config_status) {
         // a config exists and we are reading results from it
         std::ifstream config(path.c_str());
-        char config_line[256];
-        while (config.getline(config_line, 255)) {
-            // tokenize the input line by kernel_name unaligned aligned
-            // then push back in the results vector with fields filled in
-
-            std::vector<std::string> single_kernel_result;
-            std::string config_str(config_line);
-            std::size_t str_size = config_str.size();
-            std::size_t found = config_str.find(' ');
-
-            // Split line by spaces
-            while (found && found < str_size) {
-                found = config_str.find(' ');
-                // kernel names MUST be less than 128 chars, which is
-                // a length restricted by volk/volk_prefs.c
-                // on the last token in the parsed string we won't find a space
-                // so make sure we copy at most 128 chars.
-                if (found > 127) {
-                    found = 127;
-                }
-                str_size = config_str.size();
-                char line_buffer[128] = { '\0' };
-                config_str.copy(line_buffer, found + 1, 0);
-                line_buffer[found] = '\0';
-                single_kernel_result.push_back(std::string(line_buffer));
-                config_str.erase(0, found + 1);
-            }
-
-            if (single_kernel_result.size() == 3) {
+        std::string line;
+        while (std::getline(config, line)) {
+            // tokenize the input line by kernel_name aligned unaligned
+            std::istringstream iss(line);
+            std::string name, arch_a, arch_u;
+            if ((iss >> name >> arch_a >> arch_u) && name.size() < 128) {
                 volk_test_results_t kernel_result;
-                kernel_result.name = std::string(single_kernel_result[0]);
-                kernel_result.config_name = std::string(single_kernel_result[0]);
-                kernel_result.best_arch_u = std::string(single_kernel_result[1]);
-                kernel_result.best_arch_a = std::string(single_kernel_result[2]);
+                kernel_result.name = name;
+                kernel_result.config_name = name;
+                kernel_result.best_arch_u = arch_a;
+                kernel_result.best_arch_a = arch_u;
                 results->push_back(kernel_result);
             }
         }
@@ -352,6 +344,18 @@ void write_json(std::ofstream& json_file, std::vector<volk_test_results_t> resul
             json_file << "    \"" << time.name << "\": {" << std::endl;
             json_file << "     \"name\": \"" << time.name << "\"," << std::endl;
             json_file << "     \"time\": " << time.time << "," << std::endl;
+            json_file << "     \"time_stddev\": " << time.time_stddev << ","
+                      << std::endl;
+            json_file << "     \"time_min\": " << time.time_min << "," << std::endl;
+            if (!time.trial_times.empty()) {
+                json_file << "     \"trial_times\": [";
+                for (size_t ti = 0; ti < time.trial_times.size(); ti++) {
+                    if (ti > 0)
+                        json_file << ", ";
+                    json_file << time.trial_times[ti];
+                }
+                json_file << "]," << std::endl;
+            }
             json_file << "     \"units\": \"" << time.units << "\"" << std::endl;
             json_file << "    }";
             if (ri + 1 != results_len) {

@@ -127,6 +127,23 @@ void option_list::parse(int argc, char** argv)
                     break;
                 case INT_CALLBACK:
                     try {
+                        if (arg_number + 1 >= argc) {
+                            std::cout << "Warning: option '" << argv[arg_number]
+                                      << "' expects a numeric value" << std::endl;
+                            break;
+                        }
+                        {
+                            char* next_arg = argv[arg_number + 1];
+                            bool is_number =
+                                (next_arg[0] >= '0' && next_arg[0] <= '9') ||
+                                (next_arg[0] == '-' && next_arg[1] >= '0' &&
+                                 next_arg[1] <= '9');
+                            if (!is_number) {
+                                std::cout << "Warning: option '" << argv[arg_number]
+                                          << "' expects a numeric value" << std::endl;
+                                break;
+                            }
+                        }
                         int_val = atoi(argv[++arg_number]);
                         ((void (*)(int))this_option->callback)(int_val);
                     } catch (std::exception& exc) {
@@ -137,6 +154,24 @@ void option_list::parse(int argc, char** argv)
                     break;
                 case FLOAT_CALLBACK:
                     try {
+                        if (arg_number + 1 >= argc) {
+                            std::cout << "Warning: option '" << argv[arg_number]
+                                      << "' expects a numeric value" << std::endl;
+                            break;
+                        }
+                        {
+                            char* next_arg = argv[arg_number + 1];
+                            bool is_number =
+                                (next_arg[0] >= '0' && next_arg[0] <= '9') ||
+                                (next_arg[0] == '-' && next_arg[1] >= '0' &&
+                                 next_arg[1] <= '9') ||
+                                (next_arg[0] == '.');
+                            if (!is_number) {
+                                std::cout << "Warning: option '" << argv[arg_number]
+                                          << "' expects a numeric value" << std::endl;
+                                break;
+                            }
+                        }
                         double double_val = atof(argv[++arg_number]);
                         ((void (*)(float))this_option->callback)(double_val);
                     } catch (std::exception& exc) {
@@ -146,43 +181,38 @@ void option_list::parse(int argc, char** argv)
                     };
                     break;
                 case BOOL_CALLBACK:
-                    try {
-                        if (arg_number == (argc - 1)) { // this is the last arg
+                    if (arg_number == (argc - 1)) { // this is the last arg
+                        int_val = 1;
+                    } else { // sneak a look at the next arg since it's present
+                        char* next_arg = argv[arg_number + 1];
+                        if (strncmp(next_arg, "-", 1) == 0) {
+                            // the next arg is actually a flag; the bool is just
+                            // present, set to true
                             int_val = 1;
-                        } else { // sneak a look at the next arg since it's present
-                            char* next_arg = argv[arg_number + 1];
-                            if ((strncmp(next_arg, "-", 1) == 0) ||
-                                (strncmp(next_arg, "--", 2) == 0)) {
-                                // the next arg is actually an arg, the bool is just
-                                // present, set to true
-                                int_val = 1;
-                            } else if (strncmp(next_arg, "true", 4) == 0) {
-                                int_val = 1;
-                            } else if (strncmp(next_arg, "false", 5) == 0) {
-                                int_val = 0;
-                            } else {
-                                // we got a number or a string.
-                                // convert it to a number and depend on the catch to
-                                // report an error condition
-                                int_val = (bool)atoi(argv[++arg_number]);
-                            }
+                        } else if (strcmp(next_arg, "true") == 0) {
+                            int_val = 1;
+                        } else if (strcmp(next_arg, "false") == 0) {
+                            int_val = 0;
+                        } else if (next_arg[0] >= '0' && next_arg[0] <= '9') {
+                            // consume an explicit numeric bool value (0 or 1)
+                            int_val = (bool)atoi(argv[++arg_number]);
+                        } else {
+                            // unrecognized token: treat flag as present=true,
+                            // do not consume the next argument
+                            int_val = 1;
                         }
-                    } catch (std::exception& e) {
-                        int_val = INT_MIN;
-                    };
-                    if (int_val == INT_MIN) {
-                        std::cout
-                            << "option: '" << argv[arg_number - 1]
-                            << "' -> received an unknown value. Boolean "
-                               "options should receive one of '0', '1', 'true', 'false'."
-                            << std::endl;
-                        throw std::exception();
-                    } else if (int_val) {
+                    }
+                    if (int_val) {
                         ((void (*)(bool))this_option->callback)(int_val);
                     }
                     break;
                 case STRING_CALLBACK:
                     try {
+                        if (arg_number + 1 >= argc) {
+                            std::cout << "Warning: option '" << argv[arg_number]
+                                      << "' expects a value" << std::endl;
+                            break;
+                        }
                         ((void (*)(std::string))this_option->callback)(
                             argv[++arg_number]);
                     } catch (std::exception& exc) {
