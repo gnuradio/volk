@@ -1383,7 +1383,8 @@ bool run_volk_tests(volk_func_desc_t desc,
                 }
             }
         }
-        arch_results.push_back(!fail);
+        volk_test_time_t* result = &results->back().results[arch_list[i]];
+        arch_results.push_back(result->pass);
     }
 
     double best_time_a = std::numeric_limits<double>::max();
