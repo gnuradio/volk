@@ -20,19 +20,20 @@
 #endif
 #include <volk/volk_prefs.h>
 
+static const size_t CONFIG_PATH_MAX = 4096;
+
 void volk_get_config_path(char* path, bool read)
 {
     if (!path)
         return;
     const char* suffix = "/.volk/volk_config";
     const char* suffix2 = "/volk/volk_config"; // non-hidden
-    const size_t path_max = 512;
     char* home = NULL;
 
     // allows config redirection via env variable
     home = getenv("VOLK_CONFIGPATH");
     if (home != NULL) {
-        snprintf(path, path_max, "%s%s", home, suffix2);
+        snprintf(path, CONFIG_PATH_MAX, "%s%s", home, suffix2);
         if (!read || access(path, F_OK) != -1) {
             return;
         }
@@ -41,7 +42,7 @@ void volk_get_config_path(char* path, bool read)
     // check for user-local config file
     home = getenv("HOME");
     if (home != NULL) {
-        snprintf(path, path_max, "%s%s", home, suffix);
+        snprintf(path, CONFIG_PATH_MAX, "%s%s", home, suffix);
         if (!read || (access(path, F_OK) != -1)) {
             return;
         }
@@ -50,7 +51,7 @@ void volk_get_config_path(char* path, bool read)
     // check for config file in APPDATA (Windows)
     home = getenv("APPDATA");
     if (home != NULL) {
-        snprintf(path, path_max, "%s%s", home, suffix);
+        snprintf(path, CONFIG_PATH_MAX, "%s%s", home, suffix);
         if (!read || (access(path, F_OK) != -1)) {
             return;
         }
@@ -58,7 +59,7 @@ void volk_get_config_path(char* path, bool read)
 
     // check for system-wide config file
     if (access("/etc/volk/volk_config", F_OK) != -1) {
-        snprintf(path, path_max, "%s%s", "/etc", suffix2);
+        snprintf(path, CONFIG_PATH_MAX, "%s%s", "/etc", suffix2);
         if (!read || (access(path, F_OK) != -1)) {
             return;
         }
@@ -72,7 +73,7 @@ void volk_get_config_path(char* path, bool read)
 size_t volk_load_preferences(volk_arch_pref_t** prefs_res)
 {
     FILE* config_file;
-    char path[512], line[512];
+    char path[CONFIG_PATH_MAX], line[CONFIG_PATH_MAX];
     size_t n_arch_prefs = 0;
     volk_arch_pref_t* prefs = NULL;
 
