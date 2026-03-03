@@ -288,7 +288,6 @@ static inline void volk_32fc_index_min_32u_a_sse3(uint32_t* target,
     target[0] = (holderf.f[2] < sq_dist) ? holderi.i[2] : target[0];
     sq_dist = (holderf.f[2] < sq_dist) ? holderf.f[2] : sq_dist;
     target[0] = (holderf.f[3] < sq_dist) ? holderi.i[3] : target[0];
-    sq_dist = (holderf.f[3] < sq_dist) ? holderf.f[3] : sq_dist;
 }
 
 #endif /*LV_HAVE_SSE3*/

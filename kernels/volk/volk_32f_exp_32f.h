@@ -122,7 +122,6 @@ volk_32f_exp_32f_a_sse2(float* bVector, const float* aVector, unsigned int num_p
 
     for (; number < quarterPoints; number++) {
         aVal = _mm_load_ps(aPtr);
-        tmp = _mm_setzero_ps();
 
         aVal = _mm_max_ps(_mm_min_ps(aVal, exp_hi), exp_lo);
 
@@ -207,7 +206,6 @@ volk_32f_exp_32f_u_sse2(float* bVector, const float* aVector, unsigned int num_p
 
     for (; number < quarterPoints; number++) {
         aVal = _mm_loadu_ps(aPtr);
-        tmp = _mm_setzero_ps();
 
         aVal = _mm_max_ps(_mm_min_ps(aVal, exp_hi), exp_lo);
 

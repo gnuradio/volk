@@ -67,7 +67,7 @@ static inline void volk_32f_accumulator_s32f_a_avx512f(float* result,
     const float* aPtr = inputBuffer;
 
     __m512 accumulator = _mm512_setzero_ps();
-    __m512 aVal = _mm512_setzero_ps();
+    __m512 aVal;
 
     for (; number < sixteenthPoints; number++) {
         aVal = _mm512_load_ps(aPtr);
@@ -102,7 +102,7 @@ static inline void volk_32f_accumulator_s32f_a_avx(float* result,
     __VOLK_ATTR_ALIGNED(32) float tempBuffer[8];
 
     __m256 accumulator = _mm256_setzero_ps();
-    __m256 aVal = _mm256_setzero_ps();
+    __m256 aVal;
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_load_ps(aPtr);
@@ -144,7 +144,7 @@ static inline void volk_32f_accumulator_s32f_u_avx512f(float* result,
     const float* aPtr = inputBuffer;
 
     __m512 accumulator = _mm512_setzero_ps();
-    __m512 aVal = _mm512_setzero_ps();
+    __m512 aVal;
 
     for (; number < sixteenthPoints; number++) {
         aVal = _mm512_loadu_ps(aPtr);
@@ -179,7 +179,7 @@ static inline void volk_32f_accumulator_s32f_u_avx(float* result,
     __VOLK_ATTR_ALIGNED(32) float tempBuffer[8];
 
     __m256 accumulator = _mm256_setzero_ps();
-    __m256 aVal = _mm256_setzero_ps();
+    __m256 aVal;
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_loadu_ps(aPtr);
@@ -222,7 +222,7 @@ static inline void volk_32f_accumulator_s32f_a_sse(float* result,
     __VOLK_ATTR_ALIGNED(16) float tempBuffer[4];
 
     __m128 accumulator = _mm_setzero_ps();
-    __m128 aVal = _mm_setzero_ps();
+    __m128 aVal;
 
     for (; number < quarterPoints; number++) {
         aVal = _mm_load_ps(aPtr);
@@ -261,7 +261,7 @@ static inline void volk_32f_accumulator_s32f_u_sse(float* result,
     __VOLK_ATTR_ALIGNED(16) float tempBuffer[4];
 
     __m128 accumulator = _mm_setzero_ps();
-    __m128 aVal = _mm_setzero_ps();
+    __m128 aVal;
 
     for (; number < quarterPoints; number++) {
         aVal = _mm_loadu_ps(aPtr);

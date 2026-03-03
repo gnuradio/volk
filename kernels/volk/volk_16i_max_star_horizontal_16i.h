@@ -133,7 +133,6 @@ static inline void volk_16i_max_star_horizontal_16i_a_ssse3(int16_t* target,
         xmm0 = _mm_load_si128(p_src0);
 
         xmm2 = _mm_xor_si128(xmm2, xmm2);
-        p_src0 += 1;
 
         xmm3 = _mm_hsub_epi16(xmm0, xmm1);
         xmm2 = _mm_cmpgt_epi16(xmm2, xmm3);
@@ -145,8 +144,6 @@ static inline void volk_16i_max_star_horizontal_16i_a_ssse3(int16_t* target,
         xmm0 = _mm_shuffle_epi8(xmm0, xmm3);
 
         _mm_storel_pd((double*)p_target, bit128_p(&xmm0)->double_vec);
-
-        p_target = (__m128i*)((int8_t*)p_target + 8);
     }
 
     for (i = (bound << 4) + (intermediate << 3);
