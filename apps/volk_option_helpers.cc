@@ -128,7 +128,7 @@ void option_list::parse(int argc, char** argv)
                 case INT_CALLBACK:
                     try {
                         if (arg_number + 1 >= argc) {
-                            std::cout << "Warning: option '" << argv[arg_number]
+                            std::cerr << "Warning: option '" << argv[arg_number]
                                       << "' expects a numeric value" << std::endl;
                             break;
                         }
@@ -139,7 +139,7 @@ void option_list::parse(int argc, char** argv)
                                 (next_arg[0] == '-' && next_arg[1] >= '0' &&
                                  next_arg[1] <= '9');
                             if (!is_number) {
-                                std::cout << "Warning: option '" << argv[arg_number]
+                                std::cerr << "Warning: option '" << argv[arg_number]
                                           << "' expects a numeric value" << std::endl;
                                 break;
                             }
@@ -147,7 +147,7 @@ void option_list::parse(int argc, char** argv)
                         int_val = atoi(argv[++arg_number]);
                         ((void (*)(int))this_option->callback)(int_val);
                     } catch (std::exception& exc) {
-                        std::cout << "An int option can only receive a number"
+                        std::cerr << "An int option can only receive a number"
                                   << std::endl;
                         throw std::exception();
                     };
@@ -155,7 +155,7 @@ void option_list::parse(int argc, char** argv)
                 case FLOAT_CALLBACK:
                     try {
                         if (arg_number + 1 >= argc) {
-                            std::cout << "Warning: option '" << argv[arg_number]
+                            std::cerr << "Warning: option '" << argv[arg_number]
                                       << "' expects a numeric value" << std::endl;
                             break;
                         }
@@ -167,7 +167,7 @@ void option_list::parse(int argc, char** argv)
                                  next_arg[1] <= '9') ||
                                 (next_arg[0] == '.');
                             if (!is_number) {
-                                std::cout << "Warning: option '" << argv[arg_number]
+                                std::cerr << "Warning: option '" << argv[arg_number]
                                           << "' expects a numeric value" << std::endl;
                                 break;
                             }
@@ -175,7 +175,7 @@ void option_list::parse(int argc, char** argv)
                         double double_val = atof(argv[++arg_number]);
                         ((void (*)(float))this_option->callback)(double_val);
                     } catch (std::exception& exc) {
-                        std::cout << "A float option can only receive a number"
+                        std::cerr << "A float option can only receive a number"
                                   << std::endl;
                         throw std::exception();
                     };
@@ -209,7 +209,7 @@ void option_list::parse(int argc, char** argv)
                 case STRING_CALLBACK:
                     try {
                         if (arg_number + 1 >= argc) {
-                            std::cout << "Warning: option '" << argv[arg_number]
+                            std::cerr << "Warning: option '" << argv[arg_number]
                                       << "' expects a value" << std::endl;
                             break;
                         }
