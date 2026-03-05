@@ -10,13 +10,13 @@ if(DOXYGEN_FOUND)
 
     message(STATUS "Doxygen found. Building docs ...")
 
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_BINARY_DIR}/Doxyfile
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile
                    @ONLY)
 
     add_custom_target(
         volk_doc
-        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         COMMENT "Generating documentation with Doxygen"
         VERBATIM)
 
