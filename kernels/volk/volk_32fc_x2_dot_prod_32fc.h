@@ -68,8 +68,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_generic(lv_32fc_t* result,
 {
 
     float* res = (float*)result;
-    float* in = (float*)input;
-    float* tp = (float*)taps;
+    const float* in = (const float*)input;
+    const float* tp = (const float*)taps;
     unsigned int n_2_ccomplex_blocks = num_points / 2;
 
     float sum0[2] = { 0, 0 };
@@ -124,8 +124,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_sse3(lv_32fc_t* result,
 
     for (; number < halfPoints; number++) {
 
-        x = _mm_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-        y = _mm_loadu_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+        x = _mm_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        y = _mm_loadu_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
 
         yl = _mm_moveldup_ps(y); // Load yl with cr,cr,dr,dr
         yh = _mm_movehdup_ps(y); // Load yh with ci,ci,di,di
@@ -188,8 +188,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_avx(lv_32fc_t* result,
     dotProdVal = _mm256_setzero_ps();
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_loadu_ps((float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
-        y = _mm256_loadu_ps((float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
+        x = _mm256_loadu_ps((const float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
+        y = _mm256_loadu_ps((const float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
 
         yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr,gr,gr,hr,hr
         yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di,gi,gi,hi,hi
@@ -253,8 +253,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_avx_fma(lv_32fc_t* result,
 
     for (; number < quarterPoints; number++) {
 
-        x = _mm256_loadu_ps((float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
-        y = _mm256_loadu_ps((float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
+        x = _mm256_loadu_ps((const float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
+        y = _mm256_loadu_ps((const float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
 
         yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr,gr,gr,hr,hr
         yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di,gi,gi,hi,hi
@@ -331,8 +331,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_sse3(lv_32fc_t* result,
 
     for (; number < halfPoints; number++) {
 
-        x = _mm_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-        y = _mm_load_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+        x = _mm_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        y = _mm_load_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
 
         yl = _mm_moveldup_ps(y); // Load yl with cr,cr,dr,dr
         yh = _mm_movehdup_ps(y); // Load yh with ci,ci,di,di
@@ -382,8 +382,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon(lv_32fc_t* result,
     unsigned int quarter_points = num_points / 4;
     unsigned int number;
 
-    lv_32fc_t* a_ptr = (lv_32fc_t*)taps;
-    lv_32fc_t* b_ptr = (lv_32fc_t*)input;
+    const lv_32fc_t* a_ptr = taps;
+    const lv_32fc_t* b_ptr = input;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     float32x4x2_t a_val, b_val, c_val, accumulator;
@@ -392,8 +392,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon(lv_32fc_t* result,
     accumulator.val[1] = vdupq_n_f32(0);
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld2q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld2q_f32((const float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld2q_f32((const float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -440,8 +440,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_opttests(lv_32fc_t* result,
     unsigned int quarter_points = num_points / 4;
     unsigned int number;
 
-    lv_32fc_t* a_ptr = (lv_32fc_t*)taps;
-    lv_32fc_t* b_ptr = (lv_32fc_t*)input;
+    const lv_32fc_t* a_ptr = taps;
+    const lv_32fc_t* b_ptr = input;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     float32x4x2_t a_val, b_val, accumulator;
@@ -450,8 +450,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_opttests(lv_32fc_t* result,
     accumulator.val[1] = vdupq_n_f32(0);
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld2q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld2q_f32((const float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld2q_f32((const float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -491,8 +491,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfma(lv_32fc_t* result,
     unsigned int quarter_points = num_points / 4;
     unsigned int number;
 
-    lv_32fc_t* a_ptr = (lv_32fc_t*)taps;
-    lv_32fc_t* b_ptr = (lv_32fc_t*)input;
+    const lv_32fc_t* a_ptr = taps;
+    const lv_32fc_t* b_ptr = input;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     float32x4x2_t a_val, b_val, accumulator1, accumulator2;
@@ -502,8 +502,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfma(lv_32fc_t* result,
     accumulator2.val[1] = vdupq_n_f32(0);
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld2q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld2q_f32((const float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld2q_f32((const float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -541,8 +541,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfmaunroll(lv_32fc_t* resul
     unsigned int quarter_points = num_points / 8;
     unsigned int number;
 
-    lv_32fc_t* a_ptr = (lv_32fc_t*)taps;
-    lv_32fc_t* b_ptr = (lv_32fc_t*)input;
+    const lv_32fc_t* a_ptr = taps;
+    const lv_32fc_t* b_ptr = input;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     float32x4x4_t a_val, b_val, accumulator1, accumulator2;
@@ -558,8 +558,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfmaunroll(lv_32fc_t* resul
 
     // 8 input regs, 8 accumulators -> 16/16 neon regs are used
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld4q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld4q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld4q_f32((const float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld4q_f32((const float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -715,8 +715,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_avx(lv_32fc_t* result,
 
     for (; number < quarterPoints; number++) {
 
-        x = _mm256_load_ps((float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
-        y = _mm256_load_ps((float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
+        x = _mm256_load_ps((const float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
+        y = _mm256_load_ps((const float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
 
         yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr,gr,gr,hr,hr
         yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di,gi,gi,hi,hi
@@ -780,8 +780,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_avx_fma(lv_32fc_t* result,
 
     for (; number < quarterPoints; number++) {
 
-        x = _mm256_load_ps((float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
-        y = _mm256_load_ps((float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
+        x = _mm256_load_ps((const float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
+        y = _mm256_load_ps((const float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
 
         yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr,gr,gr,hr,hr
         yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di,gi,gi,hi,hi

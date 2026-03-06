@@ -68,7 +68,7 @@ static inline void volk_32fc_magnitude_32f_generic(float* magnitudeVector,
                                                    const lv_32fc_t* complexVector,
                                                    unsigned int num_points)
 {
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
     unsigned int number = 0;
     for (number = 0; number < num_points; number++) {
@@ -89,7 +89,7 @@ static inline void volk_32fc_magnitude_32f_u_avx512f(float* magnitudeVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     __m512 cplxValue;
@@ -140,7 +140,7 @@ static inline void volk_32fc_magnitude_32f_u_avx(float* magnitudeVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     __m256 cplxValue1, cplxValue2, result;
@@ -175,7 +175,7 @@ static inline void volk_32fc_magnitude_32f_u_sse3(float* magnitudeVector,
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     __m128 cplxValue1, cplxValue2, result;
@@ -213,7 +213,7 @@ static inline void volk_32fc_magnitude_32f_u_sse(float* magnitudeVector,
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     __m128 cplxValue1, cplxValue2, result;
@@ -257,7 +257,7 @@ static inline void volk_32fc_magnitude_32f_a_avx512f(float* magnitudeVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     __m512 cplxValue;
@@ -306,7 +306,7 @@ static inline void volk_32fc_magnitude_32f_a_avx(float* magnitudeVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     __m256 cplxValue1, cplxValue2, result;
@@ -342,7 +342,7 @@ static inline void volk_32fc_magnitude_32f_a_sse3(float* magnitudeVector,
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     __m128 cplxValue1, cplxValue2, result;
@@ -378,7 +378,7 @@ static inline void volk_32fc_magnitude_32f_a_sse(float* magnitudeVector,
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     __m128 cplxValue1, cplxValue2, result;
@@ -413,7 +413,7 @@ static inline void volk_32fc_magnitude_32f_neon(float* magnitudeVector,
 {
     unsigned int number;
     unsigned int quarter_points = num_points / 4;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     float32x4x2_t complex_vec;
@@ -449,7 +449,7 @@ static inline void volk_32fc_magnitude_32f_neonv8(float* magnitudeVector,
 {
     unsigned int number;
     unsigned int quarter_points = num_points / 4;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     float32x4x2_t complex_vec;
@@ -500,7 +500,7 @@ static inline void volk_32fc_magnitude_32f_neon_fancy_sweet(
 {
     unsigned int number;
     unsigned int quarter_points = num_points / 4;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
     const float threshold = 0.4142135;
