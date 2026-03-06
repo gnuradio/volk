@@ -68,7 +68,7 @@ volk_8ic_s32f_deinterleave_32f_x2_a_sse4_1(float* iBuffer,
     const float iScalar = 1.0 / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
     __m128i complexVal, iIntVal, qIntVal, iComplexVal, qComplexVal;
-    int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
 
     __m128i iMoveMask = _mm_set_epi8(
         0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
@@ -76,7 +76,7 @@ volk_8ic_s32f_deinterleave_32f_x2_a_sse4_1(float* iBuffer,
         0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 13, 11, 9, 7, 5, 3, 1);
 
     for (; number < eighthPoints; number++) {
-        complexVal = _mm_load_si128((__m128i*)complexVectorPtr);
+        complexVal = _mm_load_si128((const __m128i*)complexVectorPtr);
         complexVectorPtr += 16;
         iComplexVal = _mm_shuffle_epi8(complexVal, iMoveMask);
         qComplexVal = _mm_shuffle_epi8(complexVal, qMoveMask);
@@ -137,7 +137,7 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_a_sse(float* iBuffer,
     __m128 cplxValue1, cplxValue2, iValue, qValue;
 
     __m128 invScalar = _mm_set_ps1(1.0 / scalar);
-    int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
 
     __VOLK_ATTR_ALIGNED(16) float floatBuffer[8];
 
@@ -172,7 +172,7 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_a_sse(float* iBuffer,
     }
 
     number = quarterPoints * 4;
-    complexVectorPtr = (int8_t*)&complexVector[number];
+    complexVectorPtr = (const int8_t*)&complexVector[number];
     for (; number < num_points; number++) {
         *iBufferPtr++ = (float)(*complexVectorPtr++) / scalar;
         *qBufferPtr++ = (float)(*complexVectorPtr++) / scalar;
@@ -200,7 +200,7 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_a_avx2(float* iBuffer,
     const float iScalar = 1.0 / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     __m256i complexVal, iIntVal, qIntVal, iComplexVal, qComplexVal;
-    int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
 
     __m256i iMoveMask = _mm256_set_epi8(0x80,
                                         0x80,
@@ -268,7 +268,7 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_a_avx2(float* iBuffer,
                                         1);
 
     for (; number < sixteenthPoints; number++) {
-        complexVal = _mm256_load_si256((__m256i*)complexVectorPtr);
+        complexVal = _mm256_load_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 32;
         iComplexVal = _mm256_shuffle_epi8(complexVal, iMoveMask);
         qComplexVal = _mm256_shuffle_epi8(complexVal, qMoveMask);
@@ -361,7 +361,7 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_u_avx2(float* iBuffer,
     __m256 invScalar = _mm256_set1_ps(iScalar);
     __m256i complexVal, iIntVal, qIntVal;
     __m128i iComplexVal, qComplexVal;
-    int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
 
     __m256i MoveMask = _mm256_set_epi8(15,
                                        13,
@@ -397,7 +397,7 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_u_avx2(float* iBuffer,
                                        0);
 
     for (; number < sixteenthPoints; number++) {
-        complexVal = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+        complexVal = _mm256_loadu_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 32;
         complexVal = _mm256_shuffle_epi8(complexVal, MoveMask);
         complexVal = _mm256_permute4x64_epi64(complexVal, 0xd8);

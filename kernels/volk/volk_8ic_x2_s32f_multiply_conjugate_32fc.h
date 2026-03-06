@@ -73,8 +73,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_avx2(lv_32fc_t* cVector,
 
     for (; number < oneEigthPoints; number++) {
         // Convert  8 bit values into 16 bit values
-        x = _mm256_cvtepi8_epi16(_mm_load_si128((__m128i*)a));
-        y = _mm256_cvtepi8_epi16(_mm_load_si128((__m128i*)b));
+        x = _mm256_cvtepi8_epi16(_mm_load_si128((const __m128i*)a));
+        y = _mm256_cvtepi8_epi16(_mm_load_si128((const __m128i*)b));
 
         // Calculate the ar*cr - ai*(-ci) portions
         realz = _mm256_madd_epi16(x, y);
@@ -115,8 +115,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_avx2(lv_32fc_t* cVector,
 
     number = oneEigthPoints * 8;
     float* cFloatPtr = (float*)&cVector[number];
-    int8_t* a8Ptr = (int8_t*)&aVector[number];
-    int8_t* b8Ptr = (int8_t*)&bVector[number];
+    const int8_t* a8Ptr = (const int8_t*)&aVector[number];
+    const int8_t* b8Ptr = (const int8_t*)&bVector[number];
     for (; number < num_points; number++) {
         float aReal = (float)*a8Ptr++;
         float aImag = (float)*a8Ptr++;
@@ -157,8 +157,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_sse4_1(lv_32fc_t* cVector,
 
     for (; number < quarterPoints; number++) {
         // Convert into 8 bit values into 16 bit values
-        x = _mm_cvtepi8_epi16(_mm_loadl_epi64((__m128i*)a));
-        y = _mm_cvtepi8_epi16(_mm_loadl_epi64((__m128i*)b));
+        x = _mm_cvtepi8_epi16(_mm_loadl_epi64((const __m128i*)a));
+        y = _mm_cvtepi8_epi16(_mm_loadl_epi64((const __m128i*)b));
 
         // Calculate the ar*cr - ai*(-ci) portions
         realz = _mm_madd_epi16(x, y);
@@ -199,8 +199,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_sse4_1(lv_32fc_t* cVector,
 
     number = quarterPoints * 4;
     float* cFloatPtr = (float*)&cVector[number];
-    int8_t* a8Ptr = (int8_t*)&aVector[number];
-    int8_t* b8Ptr = (int8_t*)&bVector[number];
+    const int8_t* a8Ptr = (const int8_t*)&aVector[number];
+    const int8_t* b8Ptr = (const int8_t*)&bVector[number];
     for (; number < num_points; number++) {
         float aReal = (float)*a8Ptr++;
         float aImag = (float)*a8Ptr++;
@@ -229,8 +229,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_generic(lv_32fc_t* cVector,
     unsigned int number = 0;
     float* cPtr = (float*)cVector;
     const float invScalar = 1.0 / scalar;
-    int8_t* a8Ptr = (int8_t*)aVector;
-    int8_t* b8Ptr = (int8_t*)bVector;
+    const int8_t* a8Ptr = (const int8_t*)aVector;
+    const int8_t* b8Ptr = (const int8_t*)bVector;
     for (number = 0; number < num_points; number++) {
         float aReal = (float)*a8Ptr++;
         float aImag = (float)*a8Ptr++;
@@ -327,8 +327,8 @@ static inline void volk_8ic_x2_s32f_multiply_conjugate_32fc_neon(lv_32fc_t* cVec
 
     number = eighthPoints * 8;
     float* cFloatPtr = (float*)&cVector[number];
-    int8_t* a8Ptr = (int8_t*)&aVector[number];
-    int8_t* b8Ptr = (int8_t*)&bVector[number];
+    const int8_t* a8Ptr = (const int8_t*)&aVector[number];
+    const int8_t* b8Ptr = (const int8_t*)&bVector[number];
     for (; number < num_points; number++) {
         float aReal_f = (float)*a8Ptr++;
         float aImag_f = (float)*a8Ptr++;
@@ -379,8 +379,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_u_avx2(lv_32fc_t* cVector,
 
     for (; number < oneEigthPoints; number++) {
         // Convert  8 bit values into 16 bit values
-        x = _mm256_cvtepi8_epi16(_mm_loadu_si128((__m128i*)a));
-        y = _mm256_cvtepi8_epi16(_mm_loadu_si128((__m128i*)b));
+        x = _mm256_cvtepi8_epi16(_mm_loadu_si128((const __m128i*)a));
+        y = _mm256_cvtepi8_epi16(_mm_loadu_si128((const __m128i*)b));
 
         // Calculate the ar*cr - ai*(-ci) portions
         realz = _mm256_madd_epi16(x, y);
@@ -421,8 +421,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_u_avx2(lv_32fc_t* cVector,
 
     number = oneEigthPoints * 8;
     float* cFloatPtr = (float*)&cVector[number];
-    int8_t* a8Ptr = (int8_t*)&aVector[number];
-    int8_t* b8Ptr = (int8_t*)&bVector[number];
+    const int8_t* a8Ptr = (const int8_t*)&aVector[number];
+    const int8_t* b8Ptr = (const int8_t*)&bVector[number];
     for (; number < num_points; number++) {
         float aReal = (float)*a8Ptr++;
         float aImag = (float)*a8Ptr++;
