@@ -94,7 +94,7 @@ static inline void volk_32f_s32f_32f_fm_detect_32f_a_avx(float* outputVector,
 
     for (; number < eighthPoints; number++) {
         // Load data
-        next3old1 = _mm256_loadu_ps((float*)(inPtr - 1));
+        next3old1 = _mm256_loadu_ps((const float*)(inPtr - 1));
         next4 = _mm256_load_ps(inPtr);
         inPtr += 8;
         // Subtract and store:
@@ -174,7 +174,7 @@ static inline void volk_32f_s32f_32f_fm_detect_32f_a_sse(float* outputVector,
 
     for (; number < quarterPoints; number++) {
         // Load data
-        next3old1 = _mm_loadu_ps((float*)(inPtr - 1));
+        next3old1 = _mm_loadu_ps((const float*)(inPtr - 1));
         next4 = _mm_load_ps(inPtr);
         inPtr += 4;
         // Subtract and store:
@@ -477,7 +477,7 @@ static inline void volk_32f_s32f_32f_fm_detect_32f_u_avx(float* outputVector,
 
     for (; number < eighthPoints; number++) {
         // Load data
-        next3old1 = _mm256_loadu_ps((float*)(inPtr - 1));
+        next3old1 = _mm256_loadu_ps((const float*)(inPtr - 1));
         next4 = _mm256_loadu_ps(inPtr);
         inPtr += 8;
         // Subtract and store:

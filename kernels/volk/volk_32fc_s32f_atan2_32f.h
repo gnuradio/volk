@@ -72,7 +72,7 @@ static inline void volk_32fc_s32f_atan2_32f_generic(float* outputVector,
                                                     unsigned int num_points)
 {
     float* outPtr = outputVector;
-    const float* inPtr = (float*)inputVector;
+    const float* inPtr = (const float*)inputVector;
     const float invNormalizeFactor = 1.f / normalizeFactor;
 
     for (unsigned int number = 0; number < num_points; number++) {
@@ -91,7 +91,7 @@ static inline void volk_32fc_s32f_atan2_32f_polynomial(float* outputVector,
                                                        unsigned int num_points)
 {
     float* outPtr = outputVector;
-    const float* inPtr = (float*)inputVector;
+    const float* inPtr = (const float*)inputVector;
     const float invNormalizeFactor = 1.f / normalizeFactor;
 
     for (unsigned int number = 0; number < num_points; number++) {
@@ -110,7 +110,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx512dq(float* outputVector,
                                                        const float normalizeFactor,
                                                        unsigned int num_points)
 {
-    const float* in = (float*)complexVector;
+    const float* in = (const float*)complexVector;
     float* out = (float*)outputVector;
 
     const float invNormalizeFactor = 1.f / normalizeFactor;
@@ -214,7 +214,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2_fma(float* outputVector,
                                                        const float normalizeFactor,
                                                        unsigned int num_points)
 {
-    const float* in = (float*)complexVector;
+    const float* in = (const float*)complexVector;
     float* out = (float*)outputVector;
 
     const float invNormalizeFactor = 1.f / normalizeFactor;
@@ -309,7 +309,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2_fma(float* outputVector,
 
     number = eighth_points * 8;
     volk_32fc_s32f_atan2_32f_polynomial(
-        out, (lv_32fc_t*)in, normalizeFactor, num_points - number);
+        out, (const lv_32fc_t*)in, normalizeFactor, num_points - number);
 }
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for aligned */
 
@@ -321,7 +321,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2(float* outputVector,
                                                    const float normalizeFactor,
                                                    unsigned int num_points)
 {
-    const float* in = (float*)complexVector;
+    const float* in = (const float*)complexVector;
     float* out = (float*)outputVector;
 
     const float invNormalizeFactor = 1.f / normalizeFactor;
@@ -416,7 +416,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2(float* outputVector,
 
     number = eighth_points * 8;
     volk_32fc_s32f_atan2_32f_polynomial(
-        out, (lv_32fc_t*)in, normalizeFactor, num_points - number);
+        out, (const lv_32fc_t*)in, normalizeFactor, num_points - number);
 }
 #endif /* LV_HAVE_AVX2 for aligned */
 
@@ -428,7 +428,7 @@ static inline void volk_32fc_s32f_atan2_32f_neon(float* outputVector,
                                                  const float normalizeFactor,
                                                  unsigned int num_points)
 {
-    const float* in = (float*)complexVector;
+    const float* in = (const float*)complexVector;
     float* out = outputVector;
 
     const float invNormalizeFactor = 1.f / normalizeFactor;
@@ -532,7 +532,7 @@ static inline void volk_32fc_s32f_atan2_32f_neonv8(float* outputVector,
                                                    const float normalizeFactor,
                                                    unsigned int num_points)
 {
-    const float* in = (float*)complexVector;
+    const float* in = (const float*)complexVector;
     float* out = outputVector;
 
     const float invNormalizeFactor = 1.f / normalizeFactor;
@@ -697,7 +697,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx512dq(float* outputVector,
                                                        const float normalizeFactor,
                                                        unsigned int num_points)
 {
-    const float* in = (float*)complexVector;
+    const float* in = (const float*)complexVector;
     float* out = (float*)outputVector;
 
     const float invNormalizeFactor = 1.f / normalizeFactor;
@@ -801,7 +801,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2_fma(float* outputVector,
                                                        const float normalizeFactor,
                                                        unsigned int num_points)
 {
-    const float* in = (float*)complexVector;
+    const float* in = (const float*)complexVector;
     float* out = (float*)outputVector;
 
     const float invNormalizeFactor = 1.f / normalizeFactor;
@@ -896,7 +896,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2_fma(float* outputVector,
 
     number = eighth_points * 8;
     volk_32fc_s32f_atan2_32f_polynomial(
-        out, (lv_32fc_t*)in, normalizeFactor, num_points - number);
+        out, (const lv_32fc_t*)in, normalizeFactor, num_points - number);
 }
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA for unaligned */
 
@@ -908,7 +908,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2(float* outputVector,
                                                    const float normalizeFactor,
                                                    unsigned int num_points)
 {
-    const float* in = (float*)complexVector;
+    const float* in = (const float*)complexVector;
     float* out = (float*)outputVector;
 
     const float invNormalizeFactor = 1.f / normalizeFactor;
@@ -1003,7 +1003,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2(float* outputVector,
 
     number = eighth_points * 8;
     volk_32fc_s32f_atan2_32f_polynomial(
-        out, (lv_32fc_t*)in, normalizeFactor, num_points - number);
+        out, (const lv_32fc_t*)in, normalizeFactor, num_points - number);
 }
 #endif /* LV_HAVE_AVX2 for unaligned */
 

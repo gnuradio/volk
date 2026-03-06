@@ -147,7 +147,7 @@ static inline void volk_32fc_deinterleave_real_32f_generic(float* iBuffer,
                                                            unsigned int num_points)
 {
     unsigned int number = 0;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     for (number = 0; number < num_points; number++) {
         *iBufferPtr++ = *complexVectorPtr++;
@@ -166,7 +166,7 @@ static inline void volk_32fc_deinterleave_real_32f_neon(float* iBuffer,
 {
     unsigned int number = 0;
     unsigned int quarter_points = num_points / 4;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     float32x4x2_t complexInput;
 
@@ -192,7 +192,7 @@ static inline void volk_32fc_deinterleave_real_32f_neonv8(float* iBuffer,
                                                           unsigned int num_points)
 {
     const unsigned int eighthPoints = num_points / 8;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
 
     for (unsigned int number = 0; number < eighthPoints; number++) {
