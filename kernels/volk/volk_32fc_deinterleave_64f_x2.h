@@ -73,7 +73,7 @@ static inline void volk_32fc_deinterleave_64f_x2_u_avx(double* iBuffer,
 {
     unsigned int number = 0;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
     double* qBufferPtr = qBuffer;
 
@@ -122,7 +122,7 @@ static inline void volk_32fc_deinterleave_64f_x2_u_sse2(double* iBuffer,
 {
     unsigned int number = 0;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
     double* qBufferPtr = qBuffer;
 
@@ -165,7 +165,7 @@ static inline void volk_32fc_deinterleave_64f_x2_generic(double* iBuffer,
                                                          unsigned int num_points)
 {
     unsigned int number = 0;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
     double* qBufferPtr = qBuffer;
 
@@ -193,7 +193,7 @@ static inline void volk_32fc_deinterleave_64f_x2_a_avx(double* iBuffer,
 {
     unsigned int number = 0;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
     double* qBufferPtr = qBuffer;
 
@@ -242,7 +242,7 @@ static inline void volk_32fc_deinterleave_64f_x2_a_sse2(double* iBuffer,
 {
     unsigned int number = 0;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
     double* qBufferPtr = qBuffer;
 
@@ -287,7 +287,7 @@ static inline void volk_32fc_deinterleave_64f_x2_neon(double* iBuffer,
 {
     unsigned int number = 0;
     unsigned int half_points = num_points / 2;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
     double* qBufferPtr = qBuffer;
     float32x2x2_t complexInput;

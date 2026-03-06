@@ -142,8 +142,8 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_u_avx(lv_32fc_t* cVector,
     s = _mm256_loadu_ps((float*)v_scalar);
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_loadu_ps((float*)b);
-        y = _mm256_loadu_ps((float*)a);
+        x = _mm256_loadu_ps((const float*)b);
+        y = _mm256_loadu_ps((const float*)a);
         z = _mm256_complexconjugatemul_ps(s, x);
         z = _mm256_add_ps(y, z);
         _mm256_storeu_ps((float*)c, z);
@@ -185,8 +185,8 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_u_sse3(lv_32fc_t* cVector,
     s = _mm_loadu_ps((float*)v_scalar);
 
     for (; number < halfPoints; number++) {
-        x = _mm_loadu_ps((float*)b);
-        y = _mm_loadu_ps((float*)a);
+        x = _mm_loadu_ps((const float*)b);
+        y = _mm_loadu_ps((const float*)a);
         z = _mm_complexconjugatemul_ps(s, x);
         z = _mm_add_ps(y, z);
         _mm_storeu_ps((float*)c, z);
@@ -230,8 +230,8 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_a_avx(lv_32fc_t* cVector,
     s = _mm256_loadu_ps((float*)v_scalar);
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_load_ps((float*)b);
-        y = _mm256_load_ps((float*)a);
+        x = _mm256_load_ps((const float*)b);
+        y = _mm256_load_ps((const float*)a);
         z = _mm256_complexconjugatemul_ps(s, x);
         z = _mm256_add_ps(y, z);
         _mm256_store_ps((float*)c, z);
@@ -273,8 +273,8 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_a_sse3(lv_32fc_t* cVector,
     s = _mm_loadu_ps((float*)v_scalar);
 
     for (; number < halfPoints; number++) {
-        x = _mm_load_ps((float*)b);
-        y = _mm_load_ps((float*)a);
+        x = _mm_load_ps((const float*)b);
+        y = _mm_load_ps((const float*)a);
         z = _mm_complexconjugatemul_ps(s, x);
         z = _mm_add_ps(y, z);
         _mm_store_ps((float*)c, z);
@@ -314,8 +314,8 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_neon(lv_32fc_t* cVector,
     scalar_val.val[1] = vld1q_dup_f32(((const float*)scalar) + 1);
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)aPtr);
-        b_val = vld2q_f32((float*)bPtr);
+        a_val = vld2q_f32((const float*)aPtr);
+        b_val = vld2q_f32((const float*)bPtr);
         b_val.val[1] = vnegq_f32(b_val.val[1]);
         __VOLK_PREFETCH(aPtr + 8);
         __VOLK_PREFETCH(bPtr + 8);
@@ -365,8 +365,8 @@ volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_neonv8(lv_32fc_t* cVector,
     float32x4_t scalar_imag = vdupq_n_f32(lv_cimag(*scalar));
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)aPtr);
-        b_val = vld2q_f32((float*)bPtr);
+        a_val = vld2q_f32((const float*)aPtr);
+        b_val = vld2q_f32((const float*)bPtr);
         __VOLK_PREFETCH(aPtr + 8);
         __VOLK_PREFETCH(bPtr + 8);
 

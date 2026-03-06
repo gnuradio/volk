@@ -66,10 +66,10 @@ static inline void volk_32fc_32f_multiply_32fc_a_avx(lv_32fc_t* cVector,
 
     for (; number < eighthPoints; number++) {
 
-        aVal1 = _mm256_load_ps((float*)aPtr);
+        aVal1 = _mm256_load_ps((const float*)aPtr);
         aPtr += 4;
 
-        aVal2 = _mm256_load_ps((float*)aPtr);
+        aVal2 = _mm256_load_ps((const float*)aPtr);
         aPtr += 4;
 
         bVal = _mm256_load_ps(bPtr); // b0|b1|b2|b3|b4|b5|b6|b7
@@ -188,7 +188,7 @@ static inline void volk_32fc_32f_multiply_32fc_neon(lv_32fc_t* cVector,
     float32x4x2_t inputVector, outputVector;
     float32x4_t tapsVector;
     for (number = 0; number < quarter_points; number++) {
-        inputVector = vld2q_f32((float*)aPtr);
+        inputVector = vld2q_f32((const float*)aPtr);
         tapsVector = vld1q_f32(bPtr);
 
         outputVector.val[0] = vmulq_f32(inputVector.val[0], tapsVector);

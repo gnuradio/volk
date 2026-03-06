@@ -147,7 +147,7 @@ static inline void volk_32fc_deinterleave_imag_32f_neon(float* qBuffer,
 {
     unsigned int number = 0;
     unsigned int quarter_points = num_points / 4;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* qBufferPtr = qBuffer;
     float32x4x2_t complexInput;
 
@@ -173,7 +173,7 @@ static inline void volk_32fc_deinterleave_imag_32f_neonv8(float* qBuffer,
                                                           unsigned int num_points)
 {
     const unsigned int eighthPoints = num_points / 8;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* qBufferPtr = qBuffer;
 
     for (unsigned int number = 0; number < eighthPoints; number++) {
@@ -202,7 +202,7 @@ static inline void volk_32fc_deinterleave_imag_32f_generic(float* qBuffer,
                                                            unsigned int num_points)
 {
     unsigned int number = 0;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* qBufferPtr = qBuffer;
     for (number = 0; number < num_points; number++) {
         complexVectorPtr++;
