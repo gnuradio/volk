@@ -84,9 +84,9 @@
 #include <xmmintrin.h>
 
 static inline void volk_32f_x3_sum_of_poly_32f_a_sse3(float* target,
-                                                      float* src0,
-                                                      float* center_point_array,
-                                                      float* cutoff,
+                                                      const float* src0,
+                                                      const float* center_point_array,
+                                                      const float* cutoff,
                                                       unsigned int num_points)
 {
     float result = 0.0f;
@@ -175,9 +175,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_a_sse3(float* target,
 #include <immintrin.h>
 
 static inline void volk_32f_x3_sum_of_poly_32f_a_avx2_fma(float* target,
-                                                          float* src0,
-                                                          float* center_point_array,
-                                                          float* cutoff,
+                                                          const float* src0,
+                                                          const float* center_point_array,
+                                                          const float* cutoff,
                                                           unsigned int num_points)
 {
     const unsigned int eighth_points = num_points / 8;
@@ -244,9 +244,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_a_avx2_fma(float* target,
 #include <immintrin.h>
 
 static inline void volk_32f_x3_sum_of_poly_32f_a_avx(float* target,
-                                                     float* src0,
-                                                     float* center_point_array,
-                                                     float* cutoff,
+                                                     const float* src0,
+                                                     const float* center_point_array,
+                                                     const float* cutoff,
                                                      unsigned int num_points)
 {
     const unsigned int eighth_points = num_points / 8;
@@ -315,9 +315,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_a_avx(float* target,
 #ifdef LV_HAVE_GENERIC
 
 static inline void volk_32f_x3_sum_of_poly_32f_generic(float* target,
-                                                       float* src0,
-                                                       float* center_point_array,
-                                                       float* cutoff,
+                                                       const float* src0,
+                                                       const float* center_point_array,
+                                                       const float* cutoff,
                                                        unsigned int num_points)
 {
     const unsigned int eighth_points = num_points / 8;
@@ -365,9 +365,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_generic(float* target,
 #include <arm_neon.h>
 
 static inline void volk_32f_x3_sum_of_poly_32f_neon(float* __restrict target,
-                                                    float* __restrict src0,
-                                                    float* __restrict center_point_array,
-                                                    float* __restrict cutoff,
+                                                    const float* __restrict src0,
+                                                    const float* __restrict center_point_array,
+                                                    const float* __restrict cutoff,
                                                     unsigned int num_points)
 {
     unsigned int i;
@@ -460,9 +460,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_neon(float* __restrict target,
 #include <immintrin.h>
 
 static inline void volk_32f_x3_sum_of_poly_32f_u_avx_fma(float* target,
-                                                         float* src0,
-                                                         float* center_point_array,
-                                                         float* cutoff,
+                                                         const float* src0,
+                                                         const float* center_point_array,
+                                                         const float* cutoff,
                                                          unsigned int num_points)
 {
     const unsigned int eighth_points = num_points / 8;
@@ -530,9 +530,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_u_avx_fma(float* target,
 #include <immintrin.h>
 
 static inline void volk_32f_x3_sum_of_poly_32f_u_avx(float* target,
-                                                     float* src0,
-                                                     float* center_point_array,
-                                                     float* cutoff,
+                                                     const float* src0,
+                                                     const float* center_point_array,
+                                                     const float* cutoff,
                                                      unsigned int num_points)
 {
     const unsigned int eighth_points = num_points / 8;
@@ -604,9 +604,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_u_avx(float* target,
 #include <volk/volk_rvv_intrinsics.h>
 
 static inline void volk_32f_x3_sum_of_poly_32f_rvv(float* target,
-                                                   float* src0,
-                                                   float* center_point_array,
-                                                   float* cutoff,
+                                                   const float* src0,
+                                                   const float* center_point_array,
+                                                   const float* cutoff,
                                                    unsigned int num_points)
 {
     size_t vlmax = __riscv_vsetvlmax_e32m4();

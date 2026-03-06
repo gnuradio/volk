@@ -62,7 +62,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_generic(lv_32fc_t* result,
 {
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* aPtr = (float*)input;
+    const float* aPtr = (const float*)input;
     const float* bPtr = taps;
     unsigned int number = 0;
 
@@ -90,7 +90,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_avx512f(lv_32fc_t* result,
     const unsigned int sixteenthPoints = num_points / 16;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* aPtr = (float*)input;
+    const float* aPtr = (const float*)input;
     const float* bPtr = taps;
 
     __m512 a0Val, a1Val;
@@ -158,7 +158,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_avx2_fma(lv_32fc_t* result,
     const unsigned int sixteenthPoints = num_points / 16;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* aPtr = (float*)input;
+    const float* aPtr = (const float*)input;
     const float* bPtr = taps;
 
     __m256 a0Val, a1Val, a2Val, a3Val;
@@ -238,7 +238,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_avx(lv_32fc_t* result,
     const unsigned int sixteenthPoints = num_points / 16;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* aPtr = (float*)input;
+    const float* aPtr = (const float*)input;
     const float* bPtr = taps;
 
     __m256 a0Val, a1Val, a2Val, a3Val;
@@ -325,7 +325,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_sse(lv_32fc_t* result,
     const unsigned int eighthPoints = num_points / 8;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* aPtr = (float*)input;
+    const float* aPtr = (const float*)input;
     const float* bPtr = taps;
 
     __m128 a0Val, a1Val, a2Val, a3Val;
@@ -405,7 +405,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_avx512f(lv_32fc_t* result,
     const unsigned int sixteenthPoints = num_points / 16;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* aPtr = (float*)input;
+    const float* aPtr = (const float*)input;
     const float* bPtr = taps;
 
     __m512 a0Val, a1Val;
@@ -473,7 +473,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_avx2_fma(lv_32fc_t* result,
     const unsigned int sixteenthPoints = num_points / 16;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* aPtr = (float*)input;
+    const float* aPtr = (const float*)input;
     const float* bPtr = taps;
 
     __m256 a0Val, a1Val, a2Val, a3Val;
@@ -554,7 +554,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_avx(lv_32fc_t* result,
     const unsigned int sixteenthPoints = num_points / 16;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* aPtr = (float*)input;
+    const float* aPtr = (const float*)input;
     const float* bPtr = taps;
 
     __m256 a0Val, a1Val, a2Val, a3Val;
@@ -640,7 +640,7 @@ volk_32fc_32f_dot_prod_32fc_neon_unroll(lv_32fc_t* __restrict result,
     const unsigned int quarterPoints = num_points / 8;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* inputPtr = (float*)input;
+    const float* inputPtr = (const float*)input;
     const float* tapsPtr = taps;
     float zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     float accVector_real[4];
@@ -721,7 +721,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_a_neon(lv_32fc_t* __restrict resu
     const unsigned int quarterPoints = num_points / 4;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* inputPtr = (float*)input;
+    const float* inputPtr = (const float*)input;
     const float* tapsPtr = taps;
     float zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     float accVector_real[4];
@@ -869,7 +869,7 @@ static inline void volk_32fc_32f_dot_prod_32fc_u_sse(lv_32fc_t* result,
     const unsigned int eighthPoints = num_points / 8;
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
-    const float* aPtr = (float*)input;
+    const float* aPtr = (const float*)input;
     const float* bPtr = taps;
 
     __m128 a0Val, a1Val, a2Val, a3Val;
