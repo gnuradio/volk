@@ -77,7 +77,7 @@ volk_32fc_s32f_deinterleave_real_16i_a_avx2(int16_t* iBuffer,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     int16_t* iBufferPtr = iBuffer;
 
     __m256 vScalar = _mm256_set1_ps(scalar);
@@ -132,7 +132,7 @@ volk_32fc_s32f_deinterleave_real_16i_a_sse(int16_t* iBuffer,
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     int16_t* iBufferPtr = iBuffer;
 
     __m128 vScalar = _mm_set_ps1(scalar);
@@ -179,7 +179,7 @@ volk_32fc_s32f_deinterleave_real_16i_generic(int16_t* iBuffer,
                                              const float scalar,
                                              unsigned int num_points)
 {
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     int16_t* iBufferPtr = iBuffer;
     unsigned int number = 0;
     for (number = 0; number < num_points; number++) {
@@ -211,7 +211,7 @@ volk_32fc_s32f_deinterleave_real_16i_u_avx2(int16_t* iBuffer,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     int16_t* iBufferPtr = iBuffer;
 
     __m256 vScalar = _mm256_set1_ps(scalar);
@@ -265,7 +265,7 @@ volk_32fc_s32f_deinterleave_real_16i_neon(int16_t* iBuffer,
     unsigned int number = 0;
     const unsigned int quarter_points = num_points / 4;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     int16_t* iBufferPtr = iBuffer;
     float32x4_t vScalar = vdupq_n_f32(scalar);
 
@@ -308,7 +308,7 @@ volk_32fc_s32f_deinterleave_real_16i_neonv8(int16_t* iBuffer,
     unsigned int number = 0;
     const unsigned int eighth_points = num_points / 8;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     int16_t* iBufferPtr = iBuffer;
     float32x4_t vScalar = vdupq_n_f32(scalar);
 
