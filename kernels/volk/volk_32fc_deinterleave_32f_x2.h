@@ -70,7 +70,7 @@ static inline void volk_32fc_deinterleave_32f_x2_generic(float* iBuffer,
                                                          const lv_32fc_t* complexVector,
                                                          unsigned int num_points)
 {
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
     unsigned int number;
@@ -89,7 +89,7 @@ static inline void volk_32fc_deinterleave_32f_x2_a_avx512f(float* iBuffer,
                                                            const lv_32fc_t* complexVector,
                                                            unsigned int num_points)
 {
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
 
@@ -136,7 +136,7 @@ static inline void volk_32fc_deinterleave_32f_x2_a_avx(float* iBuffer,
                                                        const lv_32fc_t* complexVector,
                                                        unsigned int num_points)
 {
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
 
@@ -182,7 +182,7 @@ static inline void volk_32fc_deinterleave_32f_x2_a_sse(float* iBuffer,
                                                        const lv_32fc_t* complexVector,
                                                        unsigned int num_points)
 {
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
 
@@ -227,7 +227,7 @@ static inline void volk_32fc_deinterleave_32f_x2_neon(float* iBuffer,
 {
     unsigned int number = 0;
     unsigned int quarter_points = num_points / 4;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
     float32x4x2_t complexInput;
@@ -257,7 +257,7 @@ static inline void volk_32fc_deinterleave_32f_x2_neonv8(float* iBuffer,
                                                         unsigned int num_points)
 {
     const unsigned int eighthPoints = num_points / 8;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
 
@@ -300,7 +300,7 @@ static inline void volk_32fc_deinterleave_32f_x2_u_avx512f(float* iBuffer,
                                                            const lv_32fc_t* complexVector,
                                                            unsigned int num_points)
 {
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
 
@@ -347,7 +347,7 @@ static inline void volk_32fc_deinterleave_32f_x2_u_avx(float* iBuffer,
                                                        const lv_32fc_t* complexVector,
                                                        unsigned int num_points)
 {
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
 

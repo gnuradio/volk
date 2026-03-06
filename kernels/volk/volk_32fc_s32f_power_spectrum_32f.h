@@ -115,7 +115,7 @@ volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput,
 
     for (number = 0; number < quarter_points; number++) {
         // Load
-        fft_vec = vld2q_f32((float*)complexFFTInputPtr);
+        fft_vec = vld2q_f32((const float*)complexFFTInputPtr);
         // Prefetch next 4
         __VOLK_PREFETCH(complexFFTInputPtr + 4);
         // Normalize

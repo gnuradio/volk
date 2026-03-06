@@ -105,7 +105,7 @@ static inline void volk_64u_popcnt_neon(uint64_t* ret, const uint64_t value)
     uint32x2_t count32x2_val;
     uint64x1_t count64x1_val;
 
-    input_val = vld1_u8((unsigned char*)&value);
+    input_val = vld1_u8((const unsigned char*)&value);
     count8x8_val = vcnt_u8(input_val);
     count16x4_val = vpaddl_u8(count8x8_val);
     count32x2_val = vpaddl_u16(count16x4_val);
