@@ -81,8 +81,8 @@ static inline void volk_32fc_index_max_32u_a_avx2_variant_0(uint32_t* target,
     __m256i max_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_load_ps((float*)src0);
-        __m256 in1 = _mm256_load_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_load_ps((const float*)src0);
+        __m256 in1 = _mm256_load_ps((const float*)(src0 + 4));
         vector_32fc_index_max_variant0(
             in0, in1, &max_values, &max_indices, &current_indices, indices_increment);
         src0 += 8;
@@ -139,8 +139,8 @@ static inline void volk_32fc_index_max_32u_a_avx2_variant_1(uint32_t* target,
     __m256i max_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_load_ps((float*)src0);
-        __m256 in1 = _mm256_load_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_load_ps((const float*)src0);
+        __m256 in1 = _mm256_load_ps((const float*)(src0 + 4));
         vector_32fc_index_max_variant1(
             in0, in1, &max_values, &max_indices, &current_indices, indices_increment);
         src0 += 8;
@@ -209,8 +209,8 @@ static inline void volk_32fc_index_max_32u_a_sse3(uint32_t* target,
     xmm3 = _mm_setzero_ps();
 
     for (; i < bound; ++i) {
-        xmm1 = _mm_load_ps((float*)src0);
-        xmm2 = _mm_load_ps((float*)&src0[2]);
+        xmm1 = _mm_load_ps((const float*)src0);
+        xmm2 = _mm_load_ps((const float*)&src0[2]);
 
         src0 += 4;
 
@@ -233,7 +233,7 @@ static inline void volk_32fc_index_max_32u_a_sse3(uint32_t* target,
     }
 
     if (num_bytes >> 4 & 1) {
-        xmm2 = _mm_load_ps((float*)src0);
+        xmm2 = _mm_load_ps((const float*)src0);
 
         xmm1 = _mm_movelh_ps(bit128_p(&xmm8)->float_vec, bit128_p(&xmm8)->float_vec);
         xmm8 = bit128_p(&xmm1)->int_vec;
@@ -432,8 +432,8 @@ static inline void volk_32fc_index_max_32u_u_avx2_variant_0(uint32_t* target,
     __m256i max_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_loadu_ps((float*)src0);
-        __m256 in1 = _mm256_loadu_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_loadu_ps((const float*)src0);
+        __m256 in1 = _mm256_loadu_ps((const float*)(src0 + 4));
         vector_32fc_index_max_variant0(
             in0, in1, &max_values, &max_indices, &current_indices, indices_increment);
         src0 += 8;
@@ -490,8 +490,8 @@ static inline void volk_32fc_index_max_32u_u_avx2_variant_1(uint32_t* target,
     __m256i max_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_loadu_ps((float*)src0);
-        __m256 in1 = _mm256_loadu_ps((float*)(src0 + 4));
+        __m256 in0 = _mm256_loadu_ps((const float*)src0);
+        __m256 in1 = _mm256_loadu_ps((const float*)(src0 + 4));
         vector_32fc_index_max_variant1(
             in0, in1, &max_values, &max_indices, &current_indices, indices_increment);
         src0 += 8;
@@ -553,7 +553,7 @@ volk_32fc_index_max_32u_neon(uint32_t* target, const lv_32fc_t* src0, uint32_t n
         for (; number < quarter_points; number++) {
             // Load complex and compute magnitude squared
             const float32x4_t vec_mag2 =
-                _vmagnitudesquaredq_f32(vld2q_f32((float*)src0Ptr));
+                _vmagnitudesquaredq_f32(vld2q_f32((const float*)src0Ptr));
             __VOLK_PREFETCH(src0Ptr += 4);
             // a > b?
             const uint32x4_t gt_mask = vcgtq_f32(vec_mag2, vec_max);

@@ -155,7 +155,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_neon(lv_32fc_t* outVector,
     lv_32fc_t phasePtr[4];
 
     const lv_32fc_t incrPtr[4] = { incr, incr, incr, incr };
-    const float32x4x2_t incr_vec = vld2q_f32((float*)incrPtr);
+    const float32x4x2_t incr_vec = vld2q_f32((const float*)incrPtr);
     float32x4x2_t phase_vec;
 
 // Helper macro for angle reduction
@@ -182,7 +182,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_neon(lv_32fc_t* outVector,
     for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
         // Inner loop: use fast SIMD multiply
         for (j = 0; j < ROTATOR_RELOAD_4; j++) {
-            input_vec = vld2q_f32((float*)inputVectorPtr);
+            input_vec = vld2q_f32((const float*)inputVectorPtr);
             __VOLK_PREFETCH(inputVectorPtr + 4);
 
             // Rotate
@@ -215,7 +215,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_neon(lv_32fc_t* outVector,
 
     // Handle remainder
     for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; i++) {
-        input_vec = vld2q_f32((float*)inputVectorPtr);
+        input_vec = vld2q_f32((const float*)inputVectorPtr);
         __VOLK_PREFETCH(inputVectorPtr + 4);
 
         output_vec = _vmultiply_complexq_f32(input_vec, phase_vec);
@@ -337,7 +337,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx(lv_32fc_t* outVector,
     for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
         // Inner loop: use fast SIMD multiply
         for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
-            aVal = _mm256_loadu_ps((float*)aPtr);
+            aVal = _mm256_loadu_ps((const float*)aPtr);
 
             z = _mm256_complexmul_ps(aVal, phase_Val);
             phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
@@ -367,7 +367,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx(lv_32fc_t* outVector,
 
     // Handle remainder
     for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
-        aVal = _mm256_loadu_ps((float*)aPtr);
+        aVal = _mm256_loadu_ps((const float*)aPtr);
 
         z = _mm256_complexmul_ps(aVal, phase_Val);
         phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
@@ -482,7 +482,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx(lv_32fc_t* outVector,
     // Main loop with periodic resync
     for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
         for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
-            aVal = _mm256_loadu_ps((float*)aPtr);
+            aVal = _mm256_loadu_ps((const float*)aPtr);
             z = _mm256_complexmul_ps(aVal, phase_Val);
             phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
             _mm256_storeu_ps((float*)cPtr, z);
@@ -509,7 +509,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx(lv_32fc_t* outVector,
 
     // Handle remainder
     for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
-        aVal = _mm256_loadu_ps((float*)aPtr);
+        aVal = _mm256_loadu_ps((const float*)aPtr);
         z = _mm256_complexmul_ps(aVal, phase_Val);
         phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
         _mm256_storeu_ps((float*)cPtr, z);
@@ -630,7 +630,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx512f(lv_32fc_t* outVect
     // Main loop with periodic resync
     for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
         for (j = 0; j < ROTATOR_RELOAD_8; ++j) {
-            aVal = _mm512_load_ps((float*)aPtr);
+            aVal = _mm512_load_ps((const float*)aPtr);
             z = _mm512_complexmul_ps(aVal, phase_Val);
             phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
             _mm512_store_ps((float*)cPtr, z);
@@ -657,7 +657,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx512f(lv_32fc_t* outVect
 
     // Handle remainder
     for (i = 0; i < (num_points % ROTATOR_RELOAD) / 8; ++i) {
-        aVal = _mm512_load_ps((float*)aPtr);
+        aVal = _mm512_load_ps((const float*)aPtr);
         z = _mm512_complexmul_ps(aVal, phase_Val);
         phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
         _mm512_store_ps((float*)cPtr, z);
@@ -769,7 +769,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx512f(lv_32fc_t* outVect
 
     for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
         for (j = 0; j < ROTATOR_RELOAD_8; ++j) {
-            aVal = _mm512_loadu_ps((float*)aPtr);
+            aVal = _mm512_loadu_ps((const float*)aPtr);
             z = _mm512_complexmul_ps(aVal, phase_Val);
             phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
             _mm512_storeu_ps((float*)cPtr, z);
@@ -793,7 +793,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx512f(lv_32fc_t* outVect
     }
 
     for (i = 0; i < (num_points % ROTATOR_RELOAD) / 8; ++i) {
-        aVal = _mm512_loadu_ps((float*)aPtr);
+        aVal = _mm512_loadu_ps((const float*)aPtr);
         z = _mm512_complexmul_ps(aVal, phase_Val);
         phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
         _mm512_storeu_ps((float*)cPtr, z);
