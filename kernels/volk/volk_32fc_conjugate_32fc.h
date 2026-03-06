@@ -78,7 +78,7 @@ static inline void volk_32fc_conjugate_32fc_u_avx(lv_32fc_t* cVector,
 
     for (; number < quarterPoints; number++) {
 
-        x = _mm256_loadu_ps((float*)a); // Load the complex data as ar,ai,br,bi
+        x = _mm256_loadu_ps((const float*)a); // Load the complex data as ar,ai,br,bi
 
         x = _mm256_xor_ps(x, conjugator); // conjugate register
 
@@ -114,7 +114,7 @@ static inline void volk_32fc_conjugate_32fc_u_sse3(lv_32fc_t* cVector,
 
     for (; number < halfPoints; number++) {
 
-        x = _mm_loadu_ps((float*)a); // Load the complex data as ar,ai,br,bi
+        x = _mm_loadu_ps((const float*)a); // Load the complex data as ar,ai,br,bi
 
         x = _mm_xor_ps(x, conjugator); // conjugate register
 
@@ -174,7 +174,7 @@ static inline void volk_32fc_conjugate_32fc_a_avx(lv_32fc_t* cVector,
 
     for (; number < quarterPoints; number++) {
 
-        x = _mm256_load_ps((float*)a); // Load the complex data as ar,ai,br,bi
+        x = _mm256_load_ps((const float*)a); // Load the complex data as ar,ai,br,bi
 
         x = _mm256_xor_ps(x, conjugator); // conjugate register
 
@@ -210,7 +210,7 @@ static inline void volk_32fc_conjugate_32fc_a_sse3(lv_32fc_t* cVector,
 
     for (; number < halfPoints; number++) {
 
-        x = _mm_load_ps((float*)a); // Load the complex data as ar,ai,br,bi
+        x = _mm_load_ps((const float*)a); // Load the complex data as ar,ai,br,bi
 
         x = _mm_xor_ps(x, conjugator); // conjugate register
 
@@ -242,7 +242,7 @@ static inline void volk_32fc_conjugate_32fc_a_neon(lv_32fc_t* cVector,
 
     for (number = 0; number < quarterPoints; number++) {
         __VOLK_PREFETCH(a + 4);
-        x = vld2q_f32((float*)a); // Load the complex data as ar,br,cr,dr; ai,bi,ci,di
+        x = vld2q_f32((const float*)a); // Load the complex data as ar,br,cr,dr; ai,bi,ci,di
 
         // xor the imaginary lane
         x.val[1] = vnegq_f32(x.val[1]);

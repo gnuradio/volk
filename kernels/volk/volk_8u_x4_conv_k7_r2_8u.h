@@ -77,11 +77,11 @@ static inline void renormalize(unsigned char* X)
 // helper BFLY for GENERIC version
 static inline void BFLY(int i,
                         int s,
-                        unsigned char* syms,
+                        const unsigned char* syms,
                         unsigned char* Y,
-                        unsigned char* X,
+                        const unsigned char* X,
                         decision_t* d,
-                        unsigned char* Branchtab)
+                        const unsigned char* Branchtab)
 {
     int j;
     unsigned int decision0, decision1;
@@ -125,11 +125,11 @@ static inline void BFLY(int i,
 
 static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
                                                  unsigned char* X,
-                                                 unsigned char* syms,
+                                                 const unsigned char* syms,
                                                  unsigned char* dec,
                                                  unsigned int framebits,
                                                  unsigned int excess,
-                                                 unsigned char* Branchtab)
+                                                 const unsigned char* Branchtab)
 {
     unsigned int i;
     for (i = 0; i < framebits + excess; i++) {
@@ -142,10 +142,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         s18 = ((__m256i*)X)[0];
         s19 = ((__m256i*)X)[1];
         a76 = _mm256_set1_epi8(syms[2 * i]);
-        a78 = ((__m256i*)Branchtab)[0];
+        a78 = ((const __m256i*)Branchtab)[0];
         a79 = _mm256_xor_si256(a76, a78);
         a82 = _mm256_set1_epi8(syms[2 * i + 1]);
-        a84 = ((__m256i*)Branchtab)[1];
+        a84 = ((const __m256i*)Branchtab)[1];
         a85 = _mm256_xor_si256(a82, a84);
         a86 = _mm256_avg_epu8(a79, a85);
         a88 = _mm256_srli_epi16(a86, 2);
@@ -211,11 +211,11 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
 
 static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
                                                    unsigned char* X,
-                                                   unsigned char* syms,
+                                                   const unsigned char* syms,
                                                    unsigned char* dec,
                                                    unsigned int framebits,
                                                    unsigned int excess,
-                                                   unsigned char* Branchtab)
+                                                   const unsigned char* Branchtab)
 {
     unsigned int i;
     for (i = 0; i < framebits + excess; i++) {
@@ -229,10 +229,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         s18 = ((__m128i*)X)[0];
         s19 = ((__m128i*)X)[2];
         a76 = _mm_set1_epi8(syms[2 * i]);
-        a78 = ((__m128i*)Branchtab)[0];
+        a78 = ((const __m128i*)Branchtab)[0];
         a79 = _mm_xor_si128(a76, a78);
         a82 = _mm_set1_epi8(syms[2 * i + 1]);
-        a84 = ((__m128i*)Branchtab)[2];
+        a84 = ((const __m128i*)Branchtab)[2];
         a85 = _mm_xor_si128(a82, a84);
         a86 = _mm_avg_epu8(a79, a85);
         a88 = _mm_srli_epi16(a86, 2);
@@ -254,9 +254,9 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         // Second half of butterfly
         s24 = ((__m128i*)X)[1];
         s25 = ((__m128i*)X)[3];
-        a100 = ((__m128i*)Branchtab)[1];
+        a100 = ((const __m128i*)Branchtab)[1];
         a101 = _mm_xor_si128(a76, a100);
-        a103 = ((__m128i*)Branchtab)[3];
+        a103 = ((const __m128i*)Branchtab)[3];
         a104 = _mm_xor_si128(a82, a103);
         a105 = _mm_avg_epu8(a101, a104);
         a107 = _mm_srli_epi16(a105, 2);
@@ -309,11 +309,11 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
 
 static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
                                                        unsigned char* X,
-                                                       unsigned char* syms,
+                                                       const unsigned char* syms,
                                                        unsigned char* dec,
                                                        unsigned int framebits,
                                                        unsigned int excess,
-                                                       unsigned char* Branchtab)
+                                                       const unsigned char* Branchtab)
 {
     unsigned int i;
     for (i = 0; i < framebits + excess; i++) {
@@ -332,10 +332,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         s18 = ((uint8x16_t*)X)[0];
         s19 = ((uint8x16_t*)X)[2];
         a76 = vdupq_n_u8(syms[2 * i]);
-        a78 = ((uint8x16_t*)Branchtab)[0];
+        a78 = ((const uint8x16_t*)Branchtab)[0];
         a79 = veorq_u8(a76, a78);
         a82 = vdupq_n_u8(syms[2 * i + 1]);
-        a84 = ((uint8x16_t*)Branchtab)[2];
+        a84 = ((const uint8x16_t*)Branchtab)[2];
         a85 = veorq_u8(a82, a84);
         a86 = vrhaddq_u8(a79, a85);
         t14 = vshrq_n_u8(a86, 2);
@@ -374,9 +374,9 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         // Second half of butterfly
         s24 = ((uint8x16_t*)X)[1];
         s25 = ((uint8x16_t*)X)[3];
-        a100 = ((uint8x16_t*)Branchtab)[1];
+        a100 = ((const uint8x16_t*)Branchtab)[1];
         a101 = veorq_u8(a76, a100);
-        a103 = ((uint8x16_t*)Branchtab)[3];
+        a103 = ((const uint8x16_t*)Branchtab)[3];
         a104 = veorq_u8(a82, a103);
         a105 = vrhaddq_u8(a101, a104);
         t17 = vshrq_n_u8(a105, 2);
@@ -442,11 +442,11 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
 
 static inline void volk_8u_x4_conv_k7_r2_8u_generic(unsigned char* Y,
                                                     unsigned char* X,
-                                                    unsigned char* syms,
+                                                    const unsigned char* syms,
                                                     unsigned char* dec,
                                                     unsigned int framebits,
                                                     unsigned int excess,
-                                                    unsigned char* Branchtab)
+                                                    const unsigned char* Branchtab)
 {
     int nbits = framebits + excess;
     int NUMSTATES = 64;
@@ -474,11 +474,11 @@ static inline void volk_8u_x4_conv_k7_r2_8u_generic(unsigned char* Y,
 
 static inline void volk_8u_x4_conv_k7_r2_8u_rvv(unsigned char* Y,
                                                 unsigned char* X,
-                                                unsigned char* syms,
+                                                const unsigned char* syms,
                                                 unsigned char* dec,
                                                 unsigned int framebits,
                                                 unsigned int excess,
-                                                unsigned char* Branchtab)
+                                                const unsigned char* Branchtab)
 {
     size_t vl = 256 / 8;
 

@@ -46,7 +46,7 @@ static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector,
 {
     const unsigned int avx_iters = num_points / 8;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -61,9 +61,9 @@ static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector,
     unsigned int i;
 
     for (i = 0; i < avx_iters; i++) {
-        inputVal1 = _mm256_load_ps((float*)inputVectorPtr);
+        inputVal1 = _mm256_load_ps(inputVectorPtr);
         inputVectorPtr += 8;
-        inputVal2 = _mm256_load_ps((float*)inputVectorPtr);
+        inputVal2 = _mm256_load_ps(inputVectorPtr);
         inputVectorPtr += 8;
         __VOLK_PREFETCH(inputVectorPtr + 16);
 
@@ -101,7 +101,7 @@ static inline void volk_32fc_convert_16ic_a_avx512(lv_16sc_t* outputVector,
 {
     const unsigned int avx512_iters = num_points / 8;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -116,7 +116,7 @@ static inline void volk_32fc_convert_16ic_a_avx512(lv_16sc_t* outputVector,
     unsigned int i;
 
     for (i = 0; i < avx512_iters; i++) {
-        inputVal1 = _mm512_load_ps((float*)inputVectorPtr);
+        inputVal1 = _mm512_load_ps(inputVectorPtr);
         inputVectorPtr += 16;
         __VOLK_PREFETCH(inputVectorPtr + 16);
 
@@ -150,7 +150,7 @@ static inline void volk_32fc_convert_16ic_a_sse2(lv_16sc_t* outputVector,
 {
     const unsigned int sse_iters = num_points / 4;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -165,9 +165,9 @@ static inline void volk_32fc_convert_16ic_a_sse2(lv_16sc_t* outputVector,
     unsigned int i;
 
     for (i = 0; i < sse_iters; i++) {
-        inputVal1 = _mm_load_ps((float*)inputVectorPtr);
+        inputVal1 = _mm_load_ps(inputVectorPtr);
         inputVectorPtr += 4;
-        inputVal2 = _mm_load_ps((float*)inputVectorPtr);
+        inputVal2 = _mm_load_ps(inputVectorPtr);
         inputVectorPtr += 4;
         __VOLK_PREFETCH(inputVectorPtr + 8);
 
@@ -206,7 +206,7 @@ static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector,
 
     const unsigned int neon_iters = num_points / 4;
 
-    float32_t* inputVectorPtr = (float32_t*)inputVector;
+    const float32_t* inputVectorPtr = (const float32_t*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
 
     const float min_val_f = (float)SHRT_MIN;
@@ -273,7 +273,7 @@ static inline void volk_32fc_convert_16ic_neonv8(lv_16sc_t* outputVector,
 {
     const unsigned int neon_iters = num_points / 4;
 
-    float32_t* inputVectorPtr = (float32_t*)inputVector;
+    const float32_t* inputVectorPtr = (const float32_t*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
 
     const float min_val_f = (float)SHRT_MIN;
@@ -329,7 +329,7 @@ static inline void volk_32fc_convert_16ic_generic(lv_16sc_t* outputVector,
                                                   const lv_32fc_t* inputVector,
                                                   unsigned int num_points)
 {
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     const float min_val = (float)SHRT_MIN;
     const float max_val = (float)SHRT_MAX;
@@ -365,7 +365,7 @@ static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector,
 {
     const unsigned int avx_iters = num_points / 8;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -380,9 +380,9 @@ static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector,
     unsigned int i;
 
     for (i = 0; i < avx_iters; i++) {
-        inputVal1 = _mm256_loadu_ps((float*)inputVectorPtr);
+        inputVal1 = _mm256_loadu_ps(inputVectorPtr);
         inputVectorPtr += 8;
-        inputVal2 = _mm256_loadu_ps((float*)inputVectorPtr);
+        inputVal2 = _mm256_loadu_ps(inputVectorPtr);
         inputVectorPtr += 8;
         __VOLK_PREFETCH(inputVectorPtr + 16);
 
@@ -420,7 +420,7 @@ static inline void volk_32fc_convert_16ic_u_avx512(lv_16sc_t* outputVector,
 {
     const unsigned int avx512_iters = num_points / 8;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -435,7 +435,7 @@ static inline void volk_32fc_convert_16ic_u_avx512(lv_16sc_t* outputVector,
     unsigned int i;
 
     for (i = 0; i < avx512_iters; i++) {
-        inputVal1 = _mm512_loadu_ps((float*)inputVectorPtr);
+        inputVal1 = _mm512_loadu_ps(inputVectorPtr);
         inputVectorPtr += 16;
         __VOLK_PREFETCH(inputVectorPtr + 16);
 
@@ -470,7 +470,7 @@ static inline void volk_32fc_convert_16ic_u_sse2(lv_16sc_t* outputVector,
 {
     const unsigned int sse_iters = num_points / 4;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -485,9 +485,9 @@ static inline void volk_32fc_convert_16ic_u_sse2(lv_16sc_t* outputVector,
 
     unsigned int i;
     for (i = 0; i < sse_iters; i++) {
-        inputVal1 = _mm_loadu_ps((float*)inputVectorPtr);
+        inputVal1 = _mm_loadu_ps(inputVectorPtr);
         inputVectorPtr += 4;
-        inputVal2 = _mm_loadu_ps((float*)inputVectorPtr);
+        inputVal2 = _mm_loadu_ps(inputVectorPtr);
         inputVectorPtr += 4;
         __VOLK_PREFETCH(inputVectorPtr + 8);
 
@@ -523,7 +523,7 @@ static inline void volk_32fc_convert_16ic_rvv(lv_16sc_t* outputVector,
                                               unsigned int num_points)
 {
     int16_t* out = (int16_t*)outputVector;
-    float* in = (float*)inputVector;
+    const float* in = (const float*)inputVector;
     size_t n = num_points * 2;
     for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
         vl = __riscv_vsetvl_e32m8(n);
