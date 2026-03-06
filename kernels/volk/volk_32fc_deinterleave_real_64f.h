@@ -70,7 +70,7 @@ static inline void volk_32fc_deinterleave_real_64f_a_avx2(double* iBuffer,
 {
     unsigned int number = 0;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
 
     const unsigned int quarterPoints = num_points / 4;
@@ -109,7 +109,7 @@ static inline void volk_32fc_deinterleave_real_64f_a_sse2(double* iBuffer,
 {
     unsigned int number = 0;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
 
     const unsigned int halfPoints = num_points / 2;
@@ -143,7 +143,7 @@ static inline void volk_32fc_deinterleave_real_64f_generic(double* iBuffer,
                                                            unsigned int num_points)
 {
     unsigned int number = 0;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
     for (number = 0; number < num_points; number++) {
         *iBufferPtr++ = (double)*complexVectorPtr++;
@@ -161,7 +161,7 @@ static inline void volk_32fc_deinterleave_real_64f_neon(double* iBuffer,
 {
     unsigned int number = 0;
     unsigned int quarter_points = num_points / 4;
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
     float32x2x4_t complexInput;
     float64x2_t iVal1;
@@ -210,7 +210,7 @@ static inline void volk_32fc_deinterleave_real_64f_u_avx2(double* iBuffer,
 {
     unsigned int number = 0;
 
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     double* iBufferPtr = iBuffer;
 
     const unsigned int quarterPoints = num_points / 4;

@@ -51,7 +51,7 @@ static inline void volk_8ic_deinterleave_real_8i_a_avx2(int8_t* iBuffer,
                                                         unsigned int num_points)
 {
     unsigned int number = 0;
-    const int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
     __m256i moveMask1 = _mm256_set_epi8(0x80,
                                         0x80,
@@ -123,9 +123,9 @@ static inline void volk_8ic_deinterleave_real_8i_a_avx2(int8_t* iBuffer,
 
     for (number = 0; number < thirtysecondPoints; number++) {
 
-        complexVal1 = _mm256_load_si256((__m256i*)complexVectorPtr);
+        complexVal1 = _mm256_load_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 32;
-        complexVal2 = _mm256_load_si256((__m256i*)complexVectorPtr);
+        complexVal2 = _mm256_load_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 32;
 
         complexVal1 = _mm256_shuffle_epi8(complexVal1, moveMask1);
@@ -154,7 +154,7 @@ static inline void volk_8ic_deinterleave_real_8i_a_ssse3(int8_t* iBuffer,
                                                          unsigned int num_points)
 {
     unsigned int number = 0;
-    const int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
     __m128i moveMask1 = _mm_set_epi8(
         0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
@@ -165,9 +165,9 @@ static inline void volk_8ic_deinterleave_real_8i_a_ssse3(int8_t* iBuffer,
     unsigned int sixteenthPoints = num_points / 16;
 
     for (number = 0; number < sixteenthPoints; number++) {
-        complexVal1 = _mm_load_si128((__m128i*)complexVectorPtr);
+        complexVal1 = _mm_load_si128((const __m128i*)complexVectorPtr);
         complexVectorPtr += 16;
-        complexVal2 = _mm_load_si128((__m128i*)complexVectorPtr);
+        complexVal2 = _mm_load_si128((const __m128i*)complexVectorPtr);
         complexVectorPtr += 16;
 
         complexVal1 = _mm_shuffle_epi8(complexVal1, moveMask1);
@@ -196,7 +196,7 @@ static inline void volk_8ic_deinterleave_real_8i_a_avx(int8_t* iBuffer,
                                                        unsigned int num_points)
 {
     unsigned int number = 0;
-    const int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
     __m128i moveMaskL = _mm_set_epi8(
         0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
@@ -210,9 +210,9 @@ static inline void volk_8ic_deinterleave_real_8i_a_avx(int8_t* iBuffer,
 
     for (number = 0; number < thirtysecondPoints; number++) {
 
-        complexVal1 = _mm256_load_si256((__m256i*)complexVectorPtr);
+        complexVal1 = _mm256_load_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 32;
-        complexVal2 = _mm256_load_si256((__m256i*)complexVectorPtr);
+        complexVal2 = _mm256_load_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 32;
 
         complexVal1H = _mm256_extractf128_si256(complexVal1, 1);
@@ -254,7 +254,7 @@ static inline void volk_8ic_deinterleave_real_8i_generic(int8_t* iBuffer,
                                                          unsigned int num_points)
 {
     unsigned int number = 0;
-    const int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
     for (number = 0; number < num_points; number++) {
         *iBufferPtr++ = *complexVectorPtr++;
@@ -276,13 +276,13 @@ static inline void volk_8ic_deinterleave_real_8i_neon(int8_t* iBuffer,
 
     int8x16x2_t input_vector;
     for (number = 0; number < sixteenth_points; ++number) {
-        input_vector = vld2q_s8((int8_t*)complexVector);
+        input_vector = vld2q_s8((const int8_t*)complexVector);
         vst1q_s8(iBuffer, input_vector.val[0]);
         iBuffer += 16;
         complexVector += 16;
     }
 
-    const int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
     for (number = sixteenth_points * 16; number < num_points; number++) {
         *iBufferPtr++ = *complexVectorPtr++;
@@ -337,7 +337,7 @@ static inline void volk_8ic_deinterleave_real_8i_u_avx2(int8_t* iBuffer,
                                                         unsigned int num_points)
 {
     unsigned int number = 0;
-    const int8_t* complexVectorPtr = (int8_t*)complexVector;
+    const int8_t* complexVectorPtr = (const int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
     __m256i moveMask1 = _mm256_set_epi8(0x80,
                                         0x80,
@@ -409,9 +409,9 @@ static inline void volk_8ic_deinterleave_real_8i_u_avx2(int8_t* iBuffer,
 
     for (number = 0; number < thirtysecondPoints; number++) {
 
-        complexVal1 = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+        complexVal1 = _mm256_loadu_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 32;
-        complexVal2 = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+        complexVal2 = _mm256_loadu_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 32;
 
         complexVal1 = _mm256_shuffle_epi8(complexVal1, moveMask1);

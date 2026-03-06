@@ -82,9 +82,9 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_u_avx(lv_32fc_t* cVector
 
     for (; number < quarterPoints; number++) {
         x = _mm256_loadu_ps(
-            (float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
+            (const float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
         y = _mm256_loadu_ps(
-            (float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
+            (const float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
         z = _mm256_complexconjugatemul_ps(x, y);
         _mm256_storeu_ps((float*)c, z); // Store the results back into the C container
 
@@ -120,8 +120,8 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_u_sse3(lv_32fc_t* cVecto
     const lv_32fc_t* b = bVector;
 
     for (; number < halfPoints; number++) {
-        x = _mm_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-        y = _mm_loadu_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+        x = _mm_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        y = _mm_loadu_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
         z = _mm_complexconjugatemul_ps(x, y);
         _mm_storeu_ps((float*)c, z); // Store the results back into the C container
 
@@ -183,8 +183,8 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_a_avx(lv_32fc_t* cVector
     const lv_32fc_t* b = bVector;
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_load_ps((float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
-        y = _mm256_load_ps((float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
+        x = _mm256_load_ps((const float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
+        y = _mm256_load_ps((const float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
         z = _mm256_complexconjugatemul_ps(x, y);
         _mm256_store_ps((float*)c, z); // Store the results back into the C container
 
@@ -220,8 +220,8 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_a_sse3(lv_32fc_t* cVecto
     const lv_32fc_t* b = bVector;
 
     for (; number < halfPoints; number++) {
-        x = _mm_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-        y = _mm_load_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+        x = _mm_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        y = _mm_load_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
         z = _mm_complexconjugatemul_ps(x, y);
         _mm_store_ps((float*)c, z); // Store the results back into the C container
 
@@ -245,16 +245,16 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_neon(lv_32fc_t* cVector,
                                                              const lv_32fc_t* bVector,
                                                              unsigned int num_points)
 {
-    lv_32fc_t* a_ptr = (lv_32fc_t*)aVector;
-    lv_32fc_t* b_ptr = (lv_32fc_t*)bVector;
+    const lv_32fc_t* a_ptr = aVector;
+    const lv_32fc_t* b_ptr = bVector;
     unsigned int quarter_points = num_points / 4;
     float32x4x2_t a_val, b_val, c_val;
     float32x4x2_t tmp_real, tmp_imag;
     unsigned int number = 0;
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld2q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld2q_f32((const float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld2q_f32((const float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         b_val.val[1] = vnegq_f32(b_val.val[1]);
         __VOLK_PREFETCH(a_ptr + 4);
         __VOLK_PREFETCH(b_ptr + 4);
@@ -302,8 +302,8 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_neonv8(lv_32fc_t* cVecto
     unsigned int number = 0;
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)a_ptr);
-        b_val = vld2q_f32((float*)b_ptr);
+        a_val = vld2q_f32((const float*)a_ptr);
+        b_val = vld2q_f32((const float*)b_ptr);
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 

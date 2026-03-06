@@ -89,7 +89,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_u_avx_fma(lv_32fc_t* cVector,
     yh = _mm256_set1_ps(lv_cimag(*scalar));
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        x = _mm256_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
 
         tmp1 = x;
 
@@ -133,7 +133,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_u_avx(lv_32fc_t* cVector,
     yh = _mm256_set1_ps(lv_cimag(*scalar));
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        x = _mm256_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
 
         tmp1 = _mm256_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
 
@@ -177,7 +177,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_u_sse3(lv_32fc_t* cVector,
 
     for (; number < halfPoints; number++) {
 
-        x = _mm_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        x = _mm_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
 
         tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
 
@@ -261,7 +261,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_a_avx_fma(lv_32fc_t* cVector,
     yh = _mm256_set1_ps(lv_cimag(*scalar));
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        x = _mm256_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
 
         tmp1 = x;
 
@@ -306,7 +306,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_a_avx(lv_32fc_t* cVector,
     yh = _mm256_set1_ps(lv_cimag(*scalar));
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        x = _mm256_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
 
         tmp1 = _mm256_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
 
@@ -350,7 +350,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_a_sse3(lv_32fc_t* cVector,
 
     for (; number < halfPoints; number++) {
 
-        x = _mm_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        x = _mm_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
 
         tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
 
@@ -392,7 +392,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_neon(lv_32fc_t* cVector,
     scalar_val.val[0] = vld1q_dup_f32((const float*)scalar);
     scalar_val.val[1] = vld1q_dup_f32(((const float*)scalar) + 1);
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)aPtr);
+        a_val = vld2q_f32((const float*)aPtr);
         tmp_imag.val[1] = vmulq_f32(a_val.val[1], scalar_val.val[0]);
         tmp_imag.val[0] = vmulq_f32(a_val.val[0], scalar_val.val[0]);
 
