@@ -72,7 +72,7 @@ static inline void volk_32fc_accumulator_s32fc_a_avx512f(lv_32fc_t* result,
     __m512 aVal = _mm512_setzero_ps();
 
     for (; number < eighthPoints; number++) {
-        aVal = _mm512_load_ps((float*)aPtr);
+        aVal = _mm512_load_ps((const float*)aPtr);
         accumulator = _mm512_add_ps(accumulator, aVal);
         aPtr += 8;
     }
@@ -116,7 +116,7 @@ static inline void volk_32fc_accumulator_s32fc_u_avx512f(lv_32fc_t* result,
     __m512 aVal = _mm512_setzero_ps();
 
     for (; number < eighthPoints; number++) {
-        aVal = _mm512_loadu_ps((float*)aPtr);
+        aVal = _mm512_loadu_ps((const float*)aPtr);
         accumulator = _mm512_add_ps(accumulator, aVal);
         aPtr += 8;
     }
@@ -176,7 +176,7 @@ static inline void volk_32fc_accumulator_s32fc_u_avx(lv_32fc_t* result,
     __m256 aVal = _mm256_setzero_ps();
 
     for (; number < quarterPoints; number++) {
-        aVal = _mm256_loadu_ps((float*)aPtr);
+        aVal = _mm256_loadu_ps((const float*)aPtr);
         accumulator = _mm256_add_ps(accumulator, aVal);
         aPtr += 4;
     }
@@ -214,7 +214,7 @@ static inline void volk_32fc_accumulator_s32fc_u_sse(lv_32fc_t* result,
     __m128 aVal = _mm_setzero_ps();
 
     for (; number < halfPoints; number++) {
-        aVal = _mm_loadu_ps((float*)aPtr);
+        aVal = _mm_loadu_ps((const float*)aPtr);
         accumulator = _mm_add_ps(accumulator, aVal);
         aPtr += 2;
     }
@@ -250,7 +250,7 @@ static inline void volk_32fc_accumulator_s32fc_a_avx(lv_32fc_t* result,
     __m256 aVal = _mm256_setzero_ps();
 
     for (; number < quarterPoints; number++) {
-        aVal = _mm256_load_ps((float*)aPtr);
+        aVal = _mm256_load_ps((const float*)aPtr);
         accumulator = _mm256_add_ps(accumulator, aVal);
         aPtr += 4;
     }
@@ -288,7 +288,7 @@ static inline void volk_32fc_accumulator_s32fc_a_sse(lv_32fc_t* result,
     __m128 aVal = _mm_setzero_ps();
 
     for (; number < halfPoints; number++) {
-        aVal = _mm_load_ps((float*)aPtr);
+        aVal = _mm_load_ps((const float*)aPtr);
         accumulator = _mm_add_ps(accumulator, aVal);
         aPtr += 2;
     }
@@ -324,19 +324,19 @@ static inline void volk_32fc_accumulator_s32fc_neon(lv_32fc_t* result,
     __VOLK_ATTR_ALIGNED(32) float tempBuffer[4];
 
     for (; number < eighthPoints; number++) {
-        in_vec = vld1q_f32((float*)aPtr);
+        in_vec = vld1q_f32((const float*)aPtr);
         out_vec0 = vaddq_f32(in_vec, out_vec0);
         aPtr += 2;
 
-        in_vec = vld1q_f32((float*)aPtr);
+        in_vec = vld1q_f32((const float*)aPtr);
         out_vec1 = vaddq_f32(in_vec, out_vec1);
         aPtr += 2;
 
-        in_vec = vld1q_f32((float*)aPtr);
+        in_vec = vld1q_f32((const float*)aPtr);
         out_vec2 = vaddq_f32(in_vec, out_vec2);
         aPtr += 2;
 
-        in_vec = vld1q_f32((float*)aPtr);
+        in_vec = vld1q_f32((const float*)aPtr);
         out_vec3 = vaddq_f32(in_vec, out_vec3);
         aPtr += 2;
     }
@@ -383,19 +383,19 @@ static inline void volk_32fc_accumulator_s32fc_neonv8(lv_32fc_t* result,
     float32x4_t out_vec3 = vdupq_n_f32(0.f);
 
     for (; number < eighthPoints; number++) {
-        in_vec = vld1q_f32((float*)aPtr);
+        in_vec = vld1q_f32((const float*)aPtr);
         out_vec0 = vaddq_f32(in_vec, out_vec0);
         aPtr += 2;
 
-        in_vec = vld1q_f32((float*)aPtr);
+        in_vec = vld1q_f32((const float*)aPtr);
         out_vec1 = vaddq_f32(in_vec, out_vec1);
         aPtr += 2;
 
-        in_vec = vld1q_f32((float*)aPtr);
+        in_vec = vld1q_f32((const float*)aPtr);
         out_vec2 = vaddq_f32(in_vec, out_vec2);
         aPtr += 2;
 
-        in_vec = vld1q_f32((float*)aPtr);
+        in_vec = vld1q_f32((const float*)aPtr);
         out_vec3 = vaddq_f32(in_vec, out_vec3);
         aPtr += 2;
     }

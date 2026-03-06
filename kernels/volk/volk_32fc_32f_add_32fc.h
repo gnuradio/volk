@@ -102,8 +102,8 @@ static inline void volk_32fc_32f_add_32fc_u_avx(lv_32fc_t* cVector,
     __m256 tmp1, tmp2;
     for (; number < eighthPoints; number++) {
 
-        aVal1 = _mm256_loadu_ps((float*)aPtr);
-        aVal2 = _mm256_loadu_ps((float*)(aPtr + 4));
+        aVal1 = _mm256_loadu_ps((const float*)aPtr);
+        aVal2 = _mm256_loadu_ps((const float*)(aPtr + 4));
         bVal = _mm256_loadu_ps(bPtr);
         cpx_b1 = _mm256_unpacklo_ps(bVal, zero); // b0, 0, b1, 0, b4, 0, b5, 0
         cpx_b2 = _mm256_unpackhi_ps(bVal, zero); // b2, 0, b3, 0, b6, 0, b7, 0
@@ -153,8 +153,8 @@ static inline void volk_32fc_32f_add_32fc_a_avx(lv_32fc_t* cVector,
     __m256 tmp1, tmp2;
     for (; number < eighthPoints; number++) {
 
-        aVal1 = _mm256_load_ps((float*)aPtr);
-        aVal2 = _mm256_load_ps((float*)(aPtr + 4));
+        aVal1 = _mm256_load_ps((const float*)aPtr);
+        aVal2 = _mm256_load_ps((const float*)(aPtr + 4));
         bVal = _mm256_load_ps(bPtr);
         cpx_b1 = _mm256_unpacklo_ps(bVal, zero); // b0, 0, b1, 0, b4, 0, b5, 0
         cpx_b2 = _mm256_unpackhi_ps(bVal, zero); // b2, 0, b3, 0, b6, 0, b7, 0
