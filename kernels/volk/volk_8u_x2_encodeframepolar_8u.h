@@ -86,7 +86,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
 
     unsigned int stage = po2;
     unsigned char* frame_ptr = frame;
-    unsigned char* temp_ptr = temp;
+    const unsigned char* temp_ptr = temp;
 
     unsigned int frame_half = frame_size >> 1;
     unsigned int num_branches = 1;
@@ -126,9 +126,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
             // for stage = 5 a branch has 32 elements. So upper stages are even bigger.
             for (branch = 0; branch < num_branches; ++branch) {
                 for (bit = 0; bit < frame_half; bit += 16) {
-                    r_temp0 = _mm_loadu_si128((__m128i*)temp_ptr);
+                    r_temp0 = _mm_loadu_si128((const __m128i*)temp_ptr);
                     temp_ptr += 16;
-                    r_temp1 = _mm_loadu_si128((__m128i*)temp_ptr);
+                    r_temp1 = _mm_loadu_si128((const __m128i*)temp_ptr);
                     temp_ptr += 16;
 
                     shifted = _mm_srli_si128(r_temp0, 1);
@@ -221,7 +221,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
                                              0xFF);
 
     for (branch = 0; branch < num_branches; ++branch) {
-        r_temp0 = _mm_loadu_si128((__m128i*)temp_ptr);
+        r_temp0 = _mm_loadu_si128((const __m128i*)temp_ptr);
 
         // prefetch next chunk
         temp_ptr += 16;
@@ -270,7 +270,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
 
     unsigned int stage = po2;
     unsigned char* frame_ptr = frame;
-    unsigned char* temp_ptr = temp;
+    const unsigned char* temp_ptr = temp;
 
     unsigned int frame_half = frame_size >> 1;
     unsigned int num_branches = 1;
@@ -378,9 +378,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
                     if ((frame_half - bit) <
                         32) // if only 16 bits remaining in frame, not 32
                     {
-                        r_temp2 = _mm_loadu_si128((__m128i*)temp_ptr);
+                        r_temp2 = _mm_loadu_si128((const __m128i*)temp_ptr);
                         temp_ptr += 16;
-                        r_temp3 = _mm_loadu_si128((__m128i*)temp_ptr);
+                        r_temp3 = _mm_loadu_si128((const __m128i*)temp_ptr);
                         temp_ptr += 16;
 
                         shifted2 = _mm_srli_si128(r_temp2, 1);
@@ -401,9 +401,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
                         frame_ptr += 16;
                         break;
                     }
-                    r_temp0 = _mm256_loadu_si256((__m256i*)temp_ptr);
+                    r_temp0 = _mm256_loadu_si256((const __m256i*)temp_ptr);
                     temp_ptr += 32;
-                    r_temp1 = _mm256_loadu_si256((__m256i*)temp_ptr);
+                    r_temp1 = _mm256_loadu_si256((const __m256i*)temp_ptr);
                     temp_ptr += 32;
 
                     shifted = _mm256_srli_si256(r_temp0, 1); // operate on 128 bit lanes
@@ -577,7 +577,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
                                                 0xFF);
 
     for (branch = 0; branch < num_branches / 2; ++branch) {
-        r_temp0 = _mm256_loadu_si256((__m256i*)temp_ptr);
+        r_temp0 = _mm256_loadu_si256((const __m256i*)temp_ptr);
 
         // prefetch next chunk
         temp_ptr += 32;
@@ -631,7 +631,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
 
     unsigned int stage = po2;
     unsigned char* frame_ptr = frame;
-    unsigned char* temp_ptr = temp;
+    const unsigned char* temp_ptr = temp;
 
     unsigned int frame_half = frame_size >> 1;
     unsigned int num_branches = 1;
@@ -671,9 +671,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
             // for stage = 5 a branch has 32 elements. So upper stages are even bigger.
             for (branch = 0; branch < num_branches; ++branch) {
                 for (bit = 0; bit < frame_half; bit += 16) {
-                    r_temp0 = _mm_load_si128((__m128i*)temp_ptr);
+                    r_temp0 = _mm_load_si128((const __m128i*)temp_ptr);
                     temp_ptr += 16;
-                    r_temp1 = _mm_load_si128((__m128i*)temp_ptr);
+                    r_temp1 = _mm_load_si128((const __m128i*)temp_ptr);
                     temp_ptr += 16;
 
                     shifted = _mm_srli_si128(r_temp0, 1);
@@ -766,7 +766,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
                                              0xFF);
 
     for (branch = 0; branch < num_branches; ++branch) {
-        r_temp0 = _mm_load_si128((__m128i*)temp_ptr);
+        r_temp0 = _mm_load_si128((const __m128i*)temp_ptr);
 
         // prefetch next chunk
         temp_ptr += 16;
@@ -814,7 +814,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
 
     unsigned int stage = po2;
     unsigned char* frame_ptr = frame;
-    unsigned char* temp_ptr = temp;
+    const unsigned char* temp_ptr = temp;
 
     unsigned int frame_half = frame_size >> 1;
     unsigned int num_branches = 1;
@@ -922,9 +922,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
                     if ((frame_half - bit) <
                         32) // if only 16 bits remaining in frame, not 32
                     {
-                        r_temp2 = _mm_load_si128((__m128i*)temp_ptr);
+                        r_temp2 = _mm_load_si128((const __m128i*)temp_ptr);
                         temp_ptr += 16;
-                        r_temp3 = _mm_load_si128((__m128i*)temp_ptr);
+                        r_temp3 = _mm_load_si128((const __m128i*)temp_ptr);
                         temp_ptr += 16;
 
                         shifted2 = _mm_srli_si128(r_temp2, 1);
@@ -945,9 +945,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
                         frame_ptr += 16;
                         break;
                     }
-                    r_temp0 = _mm256_load_si256((__m256i*)temp_ptr);
+                    r_temp0 = _mm256_load_si256((const __m256i*)temp_ptr);
                     temp_ptr += 32;
-                    r_temp1 = _mm256_load_si256((__m256i*)temp_ptr);
+                    r_temp1 = _mm256_load_si256((const __m256i*)temp_ptr);
                     temp_ptr += 32;
 
                     shifted = _mm256_srli_si256(r_temp0, 1); // operate on 128 bit lanes
@@ -1121,7 +1121,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
                                                 0xFF);
 
     for (branch = 0; branch < num_branches / 2; ++branch) {
-        r_temp0 = _mm256_load_si256((__m256i*)temp_ptr);
+        r_temp0 = _mm256_load_si256((const __m256i*)temp_ptr);
 
         // prefetch next chunk
         temp_ptr += 32;
@@ -1169,12 +1169,13 @@ static inline void volk_8u_x2_encodeframepolar_8u_rvv(unsigned char* frame,
         if (frame_half < 8) {
             encodepolar_single_stage(frame, temp, num_branches, frame_half);
         } else {
-            unsigned char *in = temp, *out = frame;
+            const unsigned char* in = temp;
+            unsigned char* out = frame;
             for (size_t branch = 0; branch < num_branches; ++branch) {
                 size_t n = frame_half;
                 for (size_t vl; n > 0; n -= vl, in += vl * 2, out += vl) {
                     vl = __riscv_vsetvl_e8m1(n);
-                    vuint16m2_t vc = __riscv_vle16_v_u16m2((uint16_t*)in, vl);
+                    vuint16m2_t vc = __riscv_vle16_v_u16m2((const uint16_t*)in, vl);
                     vuint8m1_t v1 = __riscv_vnsrl(vc, 0, vl);
                     vuint8m1_t v2 = __riscv_vnsrl(vc, 8, vl);
                     __riscv_vse8(out, __riscv_vxor(v1, v2, vl), vl);
@@ -1209,7 +1210,8 @@ static inline void volk_8u_x2_encodeframepolar_8u_rvvseg(unsigned char* frame,
         if (frame_half < 8) {
             encodepolar_single_stage(frame, temp, num_branches, frame_half);
         } else {
-            unsigned char *in = temp, *out = frame;
+            const unsigned char* in = temp;
+            unsigned char* out = frame;
             for (size_t branch = 0; branch < num_branches; ++branch) {
                 size_t n = frame_half;
                 for (size_t vl; n > 0; n -= vl, in += vl * 2, out += vl) {
