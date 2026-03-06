@@ -83,8 +83,8 @@ static inline void volk_32i_x2_or_32i_a_avx512f(int32_t* cVector,
     const unsigned int sixteenthPoints = num_points / 16;
 
     int32_t* cPtr = (int32_t*)cVector;
-    const int32_t* aPtr = (int32_t*)aVector;
-    const int32_t* bPtr = (int32_t*)bVector;
+    const int32_t* aPtr = aVector;
+    const int32_t* bPtr = bVector;
 
     __m512i aVal, bVal, cVal;
     for (; number < sixteenthPoints; number++) {
@@ -126,8 +126,8 @@ static inline void volk_32i_x2_or_32i_a_avx2(int32_t* cVector,
     __m256i aVal, bVal, cVal;
     for (; number < oneEightPoints; number++) {
 
-        aVal = _mm256_load_si256((__m256i*)aPtr);
-        bVal = _mm256_load_si256((__m256i*)bPtr);
+        aVal = _mm256_load_si256((const __m256i*)aPtr);
+        bVal = _mm256_load_si256((const __m256i*)bPtr);
 
         cVal = _mm256_or_si256(aVal, bVal);
 
@@ -159,8 +159,8 @@ static inline void volk_32i_x2_or_32i_a_sse(int32_t* cVector,
     const unsigned int quarterPoints = num_points / 4;
 
     float* cPtr = (float*)cVector;
-    const float* aPtr = (float*)aVector;
-    const float* bPtr = (float*)bVector;
+    const float* aPtr = (const float*)aVector;
+    const float* bPtr = (const float*)bVector;
 
     __m128 aVal, bVal, cVal;
     for (; number < quarterPoints; number++) {
@@ -309,8 +309,8 @@ static inline void volk_32i_x2_or_32i_u_avx512f(int32_t* cVector,
     const unsigned int sixteenthPoints = num_points / 16;
 
     int32_t* cPtr = (int32_t*)cVector;
-    const int32_t* aPtr = (int32_t*)aVector;
-    const int32_t* bPtr = (int32_t*)bVector;
+    const int32_t* aPtr = aVector;
+    const int32_t* bPtr = bVector;
 
     __m512i aVal, bVal, cVal;
     for (; number < sixteenthPoints; number++) {
@@ -352,8 +352,8 @@ static inline void volk_32i_x2_or_32i_u_avx2(int32_t* cVector,
     __m256i aVal, bVal, cVal;
     for (; number < oneEightPoints; number++) {
 
-        aVal = _mm256_loadu_si256((__m256i*)aPtr);
-        bVal = _mm256_loadu_si256((__m256i*)bPtr);
+        aVal = _mm256_loadu_si256((const __m256i*)aPtr);
+        bVal = _mm256_loadu_si256((const __m256i*)bPtr);
 
         cVal = _mm256_or_si256(aVal, bVal);
 
