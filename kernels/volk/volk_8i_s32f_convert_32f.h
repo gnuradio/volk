@@ -64,7 +64,7 @@ static inline void volk_8i_s32f_convert_32f_u_avx2(float* outputVector,
     __m256i interimVal;
 
     for (; number < sixteenthPoints; number++) {
-        inputVal128 = _mm_loadu_si128((__m128i*)inputVectorPtr);
+        inputVal128 = _mm_loadu_si128((const __m128i*)inputVectorPtr);
 
         interimVal = _mm256_cvtepi8_epi32(inputVal128);
         ret = _mm256_cvtepi32_ps(interimVal);
@@ -109,7 +109,7 @@ static inline void volk_8i_s32f_convert_32f_u_avx512(float* outputVector,
     __m512i interimVal;
 
     for (; number < sixteenthPoints; number++) {
-        inputVal128 = _mm_loadu_si128((__m128i*)inputVectorPtr);
+        inputVal128 = _mm_loadu_si128((const __m128i*)inputVectorPtr);
 
         interimVal = _mm512_cvtepi8_epi32(inputVal128);
         ret = _mm512_cvtepi32_ps(interimVal);
@@ -148,7 +148,7 @@ static inline void volk_8i_s32f_convert_32f_u_sse4_1(float* outputVector,
     __m128i interimVal;
 
     for (; number < sixteenthPoints; number++) {
-        inputVal = _mm_loadu_si128((__m128i*)inputVectorPtr);
+        inputVal = _mm_loadu_si128((const __m128i*)inputVectorPtr);
 
         interimVal = _mm_cvtepi8_epi32(inputVal);
         ret = _mm_cvtepi32_ps(interimVal);
@@ -234,7 +234,7 @@ static inline void volk_8i_s32f_convert_32f_a_avx2(float* outputVector,
     __m256i interimVal;
 
     for (; number < sixteenthPoints; number++) {
-        inputVal128 = _mm_load_si128((__m128i*)inputVectorPtr);
+        inputVal128 = _mm_load_si128((const __m128i*)inputVectorPtr);
 
         interimVal = _mm256_cvtepi8_epi32(inputVal128);
         ret = _mm256_cvtepi32_ps(interimVal);
@@ -279,7 +279,7 @@ static inline void volk_8i_s32f_convert_32f_a_avx512(float* outputVector,
     __m512i interimVal;
 
     for (; number < sixteenthPoints; number++) {
-        inputVal128 = _mm_load_si128((__m128i*)inputVectorPtr);
+        inputVal128 = _mm_load_si128((const __m128i*)inputVectorPtr);
 
         interimVal = _mm512_cvtepi8_epi32(inputVal128);
         ret = _mm512_cvtepi32_ps(interimVal);
@@ -317,7 +317,7 @@ static inline void volk_8i_s32f_convert_32f_a_sse4_1(float* outputVector,
     __m128i interimVal;
 
     for (; number < sixteenthPoints; number++) {
-        inputVal = _mm_load_si128((__m128i*)inputVectorPtr);
+        inputVal = _mm_load_si128((const __m128i*)inputVectorPtr);
 
         interimVal = _mm_cvtepi8_epi32(inputVal);
         ret = _mm_cvtepi32_ps(interimVal);

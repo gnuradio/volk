@@ -72,7 +72,7 @@ static inline void volk_32fc_s32f_magnitude_16i_generic(int16_t* magnitudeVector
                                                         const float scalar,
                                                         unsigned int num_points)
 {
-    const float* complexVectorPtr = (float*)complexVector;
+    const float* complexVectorPtr = (const float*)complexVector;
     int16_t* magnitudeVectorPtr = magnitudeVector;
     unsigned int number = 0;
     for (number = 0; number < num_points; number++) {
