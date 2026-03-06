@@ -79,8 +79,8 @@ static inline void volk_32fc_x2_add_32fc_u_avx(lv_32fc_t* cVector,
     __m256 aVal, bVal, cVal;
     for (; number < quarterPoints; number++) {
 
-        aVal = _mm256_loadu_ps((float*)aPtr);
-        bVal = _mm256_loadu_ps((float*)bPtr);
+        aVal = _mm256_loadu_ps((const float*)aPtr);
+        bVal = _mm256_loadu_ps((const float*)bPtr);
 
         cVal = _mm256_add_ps(aVal, bVal);
 
@@ -118,8 +118,8 @@ static inline void volk_32fc_x2_add_32fc_a_avx(lv_32fc_t* cVector,
     __m256 aVal, bVal, cVal;
     for (; number < quarterPoints; number++) {
 
-        aVal = _mm256_load_ps((float*)aPtr);
-        bVal = _mm256_load_ps((float*)bPtr);
+        aVal = _mm256_load_ps((const float*)aPtr);
+        bVal = _mm256_load_ps((const float*)bPtr);
 
         cVal = _mm256_add_ps(aVal, bVal);
 
@@ -157,8 +157,8 @@ static inline void volk_32fc_x2_add_32fc_u_sse(lv_32fc_t* cVector,
     __m128 aVal, bVal, cVal;
     for (; number < halfPoints; number++) {
 
-        aVal = _mm_loadu_ps((float*)aPtr);
-        bVal = _mm_loadu_ps((float*)bPtr);
+        aVal = _mm_loadu_ps((const float*)aPtr);
+        bVal = _mm_loadu_ps((const float*)bPtr);
 
         cVal = _mm_add_ps(aVal, bVal);
 
@@ -213,8 +213,8 @@ static inline void volk_32fc_x2_add_32fc_a_sse(lv_32fc_t* cVector,
 
     __m128 aVal, bVal, cVal;
     for (; number < halfPoints; number++) {
-        aVal = _mm_load_ps((float*)aPtr);
-        bVal = _mm_load_ps((float*)bPtr);
+        aVal = _mm_load_ps((const float*)aPtr);
+        bVal = _mm_load_ps((const float*)bPtr);
 
         cVal = _mm_add_ps(aVal, bVal);
 

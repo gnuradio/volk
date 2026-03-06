@@ -118,8 +118,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target,
     const __m256i idx = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
 
     for (unsigned int i = 0; i < bound; ++i) {
-        xmm_points0 = _mm256_load_ps((float*)points);
-        xmm_points1 = _mm256_load_ps((float*)(points + 4));
+        xmm_points0 = _mm256_load_ps((const float*)points);
+        xmm_points1 = _mm256_load_ps((const float*)(points + 4));
         points += 8;
         __VOLK_PREFETCH(points);
 
@@ -131,7 +131,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target,
     }
 
     if (num_bytes >> 5 & 1) {
-        xmm_points0 = _mm256_load_ps((float*)points);
+        xmm_points0 = _mm256_load_ps((const float*)points);
 
         xmm4 = _mm256_sub_ps(xmm_symbol, xmm_points0);
 
@@ -150,7 +150,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx2(float* target,
     }
 
     if (num_bytes >> 4 & 1) {
-        xmm9 = _mm_load_ps((float*)points);
+        xmm9 = _mm_load_ps((const float*)points);
 
         xmm10 = _mm_sub_ps(xmm128_symbol, xmm9);
 
@@ -195,8 +195,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(float* target,
     const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
 
     for (int i = 0; i < eightsPoints; ++i) {
-        xmm_points0 = _mm256_load_ps((float*)points);
-        xmm_points1 = _mm256_load_ps((float*)(points + 4));
+        xmm_points0 = _mm256_load_ps((const float*)points);
+        xmm_points1 = _mm256_load_ps((const float*)(points + 4));
         points += 8;
 
         xmm_result = _mm256_scaled_norm_dist_ps(
@@ -243,8 +243,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target,
     const __m128 xmm_scalar = _mm_load1_ps(&scalar);
 
     for (int i = 0; i < quarterPoints; ++i) {
-        xmm_points0 = _mm_load_ps((float*)points);
-        xmm_points1 = _mm_load_ps((float*)(points + 2));
+        xmm_points0 = _mm_load_ps((const float*)points);
+        xmm_points1 = _mm_load_ps((const float*)(points + 2));
         points += 4;
         __VOLK_PREFETCH(points);
         // calculate distances
@@ -256,7 +256,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target,
     }
 
     for (int i = 0; i < leftovers0; ++i) {
-        xmm_points0 = _mm_load_ps((float*)points);
+        xmm_points0 = _mm_load_ps((const float*)points);
         points += 2;
 
         xmm_points0 = _mm_sub_ps(xmm_symbol, xmm_points0);
@@ -287,8 +287,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse(float* target,
     const __m128 xmm_symbol = _mm_castpd_ps(_mm_load1_pd((const double*)src0));
 
     for (unsigned i = 0; i < num_points / 4; ++i) {
-        __m128 xmm_points0 = _mm_load_ps((float*)points);
-        __m128 xmm_points1 = _mm_load_ps((float*)(points + 2));
+        __m128 xmm_points0 = _mm_load_ps((const float*)points);
+        __m128 xmm_points1 = _mm_load_ps((const float*)(points + 2));
         points += 4;
         __m128 xmm_result = _mm_scaled_norm_dist_ps_sse(
             xmm_symbol, xmm_symbol, xmm_points0, xmm_points1, xmm_scalar);
@@ -449,8 +449,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target,
     const __m256i idx = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
 
     for (unsigned int i = 0; i < bound; ++i) {
-        xmm_points0 = _mm256_loadu_ps((float*)points);
-        xmm_points1 = _mm256_loadu_ps((float*)(points + 4));
+        xmm_points0 = _mm256_loadu_ps((const float*)points);
+        xmm_points1 = _mm256_loadu_ps((const float*)(points + 4));
         points += 8;
         __VOLK_PREFETCH(points);
 
@@ -462,7 +462,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target,
     }
 
     if (num_bytes >> 5 & 1) {
-        xmm_points0 = _mm256_loadu_ps((float*)points);
+        xmm_points0 = _mm256_loadu_ps((const float*)points);
 
         xmm4 = _mm256_sub_ps(xmm_symbol, xmm_points0);
 
@@ -481,7 +481,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx2(float* target,
     }
 
     if (num_bytes >> 4 & 1) {
-        xmm9 = _mm_loadu_ps((float*)points);
+        xmm9 = _mm_loadu_ps((const float*)points);
 
         xmm10 = _mm_sub_ps(xmm128_symbol, xmm9);
 
@@ -526,8 +526,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx(float* target,
     const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
 
     for (int i = 0; i < eightsPoints; ++i) {
-        xmm_points0 = _mm256_loadu_ps((float*)points);
-        xmm_points1 = _mm256_loadu_ps((float*)(points + 4));
+        xmm_points0 = _mm256_loadu_ps((const float*)points);
+        xmm_points1 = _mm256_loadu_ps((const float*)(points + 4));
         points += 8;
 
         xmm_result = _mm256_scaled_norm_dist_ps(
@@ -574,8 +574,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse3(float* target,
     const __m128 xmm_scalar = _mm_load1_ps(&scalar);
 
     for (int i = 0; i < quarterPoints; ++i) {
-        xmm_points0 = _mm_loadu_ps((float*)points);
-        xmm_points1 = _mm_loadu_ps((float*)(points + 2));
+        xmm_points0 = _mm_loadu_ps((const float*)points);
+        xmm_points1 = _mm_loadu_ps((const float*)(points + 2));
         points += 4;
         __VOLK_PREFETCH(points);
         // calculate distances
@@ -587,7 +587,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse3(float* target,
     }
 
     for (int i = 0; i < leftovers0; ++i) {
-        xmm_points0 = _mm_loadu_ps((float*)points);
+        xmm_points0 = _mm_loadu_ps((const float*)points);
         points += 2;
 
         xmm_points0 = _mm_sub_ps(xmm_symbol, xmm_points0);
@@ -618,8 +618,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse(float* target,
     const __m128 xmm_symbol = _mm_castpd_ps(_mm_load1_pd((const double*)src0));
 
     for (unsigned i = 0; i < num_points / 4; ++i) {
-        __m128 xmm_points0 = _mm_loadu_ps((float*)points);
-        __m128 xmm_points1 = _mm_loadu_ps((float*)(points + 2));
+        __m128 xmm_points0 = _mm_loadu_ps((const float*)points);
+        __m128 xmm_points1 = _mm_loadu_ps((const float*)(points + 2));
         points += 4;
         __m128 xmm_result = _mm_scaled_norm_dist_ps_sse(
             xmm_symbol, xmm_symbol, xmm_points0, xmm_points1, xmm_scalar);
