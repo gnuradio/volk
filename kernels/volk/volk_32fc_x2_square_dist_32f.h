@@ -91,14 +91,14 @@ static inline void volk_32fc_x2_square_dist_32f_a_avx2(float* target,
 
     __m256i idx = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
     xmm1 = _mm256_setzero_ps();
-    xmm0 = _mm_load_ps((float*)src0);
+    xmm0 = _mm_load_ps((const float*)src0);
     xmm0 = _mm_permute_ps(xmm0, 0b01000100);
     xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
     xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 1);
 
     for (; i < bound; ++i) {
-        xmm2 = _mm256_load_ps((float*)&points[0]);
-        xmm3 = _mm256_load_ps((float*)&points[4]);
+        xmm2 = _mm256_load_ps((const float*)&points[0]);
+        xmm3 = _mm256_load_ps((const float*)&points[4]);
         points += 8;
 
         xmm4 = _mm256_sub_ps(xmm1, xmm2);
@@ -116,7 +116,7 @@ static inline void volk_32fc_x2_square_dist_32f_a_avx2(float* target,
 
     for (i = 0; i < leftovers0; ++i) {
 
-        xmm2 = _mm256_load_ps((float*)&points[0]);
+        xmm2 = _mm256_load_ps((const float*)&points[0]);
 
         xmm4 = _mm256_sub_ps(xmm1, xmm2);
 
@@ -134,7 +134,7 @@ static inline void volk_32fc_x2_square_dist_32f_a_avx2(float* target,
     }
 
     for (i = 0; i < leftovers1; ++i) {
-        xmm9 = _mm_load_ps((float*)&points[0]);
+        xmm9 = _mm_load_ps((const float*)&points[0]);
 
         xmm10 = _mm_sub_ps(xmm0, xmm9);
 
@@ -180,13 +180,13 @@ static inline void volk_32fc_x2_square_dist_32f_a_sse3(float* target,
     int i = 0;
 
     xmm1 = _mm_setzero_ps();
-    xmm1 = _mm_loadl_pi(xmm1, (__m64*)src0);
+    xmm1 = _mm_loadl_pi(xmm1, (const __m64*)src0);
     xmm1 = _mm_movelh_ps(xmm1, xmm1);
 
     for (; i < bound; ++i) {
-        xmm2 = _mm_load_ps((float*)&points[0]);
+        xmm2 = _mm_load_ps((const float*)&points[0]);
         xmm4 = _mm_sub_ps(xmm1, xmm2);
-        xmm3 = _mm_load_ps((float*)&points[2]);
+        xmm3 = _mm_load_ps((const float*)&points[2]);
         xmm5 = _mm_sub_ps(xmm1, xmm3);
 
         xmm6 = _mm_mul_ps(xmm4, xmm4);
@@ -202,7 +202,7 @@ static inline void volk_32fc_x2_square_dist_32f_a_sse3(float* target,
 
     if (num_bytes >> 4 & 1) {
 
-        xmm2 = _mm_load_ps((float*)&points[0]);
+        xmm2 = _mm_load_ps((const float*)&points[0]);
 
         xmm4 = _mm_sub_ps(xmm1, xmm2);
 
@@ -246,7 +246,7 @@ static inline void volk_32fc_x2_square_dist_32f_neon(float* target,
     a_vec.val[0] = vdupq_n_f32(lv_creal(src0[0]));
     a_vec.val[1] = vdupq_n_f32(lv_cimag(src0[0]));
     for (number = 0; number < quarter_points; ++number) {
-        b_vec = vld2q_f32((float*)points);
+        b_vec = vld2q_f32((const float*)points);
         diff_vec.val[0] = vsubq_f32(a_vec.val[0], b_vec.val[0]);
         diff_vec.val[1] = vsubq_f32(a_vec.val[1], b_vec.val[1]);
         tmp = vmulq_f32(diff_vec.val[0], diff_vec.val[0]);
@@ -281,7 +281,7 @@ static inline void volk_32fc_x2_square_dist_32f_neonv8(float* target,
     float32x4_t a_imag = vdupq_n_f32(lv_cimag(src0[0]));
 
     for (number = 0; number < quarter_points; ++number) {
-        b_vec = vld2q_f32((float*)points);
+        b_vec = vld2q_f32((const float*)points);
         __VOLK_PREFETCH(points + 8);
 
         diff_real = vsubq_f32(a_real, b_vec.val[0]);
@@ -356,14 +356,14 @@ static inline void volk_32fc_x2_square_dist_32f_u_avx2(float* target,
 
     __m256i idx = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
     xmm1 = _mm256_setzero_ps();
-    xmm0 = _mm_loadu_ps((float*)src0);
+    xmm0 = _mm_loadu_ps((const float*)src0);
     xmm0 = _mm_permute_ps(xmm0, 0b01000100);
     xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 0);
     xmm1 = _mm256_insertf128_ps(xmm1, xmm0, 1);
 
     for (; i < bound; ++i) {
-        xmm2 = _mm256_loadu_ps((float*)&points[0]);
-        xmm3 = _mm256_loadu_ps((float*)&points[4]);
+        xmm2 = _mm256_loadu_ps((const float*)&points[0]);
+        xmm3 = _mm256_loadu_ps((const float*)&points[4]);
         points += 8;
 
         xmm4 = _mm256_sub_ps(xmm1, xmm2);
@@ -381,7 +381,7 @@ static inline void volk_32fc_x2_square_dist_32f_u_avx2(float* target,
 
     if (num_bytes >> 5 & 1) {
 
-        xmm2 = _mm256_loadu_ps((float*)&points[0]);
+        xmm2 = _mm256_loadu_ps((const float*)&points[0]);
 
         xmm4 = _mm256_sub_ps(xmm1, xmm2);
 
