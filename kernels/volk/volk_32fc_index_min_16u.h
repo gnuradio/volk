@@ -91,8 +91,8 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_0(uint16_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_load_ps((float*)source);
-        __m256 in1 = _mm256_load_ps((float*)(source + 4));
+        __m256 in0 = _mm256_load_ps((const float*)source);
+        __m256 in1 = _mm256_load_ps((const float*)(source + 4));
         vector_32fc_index_min_variant0(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
         source += 8;
@@ -151,8 +151,8 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_1(uint16_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_load_ps((float*)source);
-        __m256 in1 = _mm256_load_ps((float*)(source + 4));
+        __m256 in0 = _mm256_load_ps((const float*)source);
+        __m256 in1 = _mm256_load_ps((const float*)(source + 4));
         vector_32fc_index_min_variant1(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
         source += 8;
@@ -220,8 +220,8 @@ static inline void volk_32fc_index_min_16u_a_sse3(uint16_t* target,
     int bound = num_points >> 2;
 
     for (int i = 0; i < bound; ++i) {
-        xmm1 = _mm_load_ps((float*)source);
-        xmm2 = _mm_load_ps((float*)&source[2]);
+        xmm1 = _mm_load_ps((const float*)source);
+        xmm2 = _mm_load_ps((const float*)&source[2]);
 
         source += 4;
 
@@ -244,7 +244,7 @@ static inline void volk_32fc_index_min_16u_a_sse3(uint16_t* target,
     }
 
     if (num_points >> 1 & 1) {
-        xmm2 = _mm_load_ps((float*)source);
+        xmm2 = _mm_load_ps((const float*)source);
 
         xmm1 = _mm_movelh_ps(bit128_p(&xmm8)->float_vec, bit128_p(&xmm8)->float_vec);
         xmm8 = bit128_p(&xmm1)->int_vec;
@@ -594,8 +594,8 @@ static inline void volk_32fc_index_min_16u_u_avx2_variant_0(uint16_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_loadu_ps((float*)source);
-        __m256 in1 = _mm256_loadu_ps((float*)(source + 4));
+        __m256 in0 = _mm256_loadu_ps((const float*)source);
+        __m256 in1 = _mm256_loadu_ps((const float*)(source + 4));
         vector_32fc_index_min_variant0(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
         source += 8;
@@ -654,8 +654,8 @@ static inline void volk_32fc_index_min_16u_u_avx2_variant_1(uint16_t* target,
     __m256i min_indices = _mm256_setzero_si256();
 
     for (unsigned i = 0; i < num_points / 8u; ++i) {
-        __m256 in0 = _mm256_loadu_ps((float*)source);
-        __m256 in1 = _mm256_loadu_ps((float*)(source + 4));
+        __m256 in0 = _mm256_loadu_ps((const float*)source);
+        __m256 in1 = _mm256_loadu_ps((const float*)(source + 4));
         vector_32fc_index_min_variant1(
             in0, in1, &min_values, &min_indices, &current_indices, indices_increment);
         source += 8;

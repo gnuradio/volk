@@ -68,13 +68,13 @@ static inline void volk_32i_s32f_convert_32f_u_avx512f(float* outputVector,
     float* outputVectorPtr = outputVector;
     const float iScalar = 1.0 / scalar;
     __m512 invScalar = _mm512_set1_ps(iScalar);
-    int32_t* inputPtr = (int32_t*)inputVector;
+    const int32_t* inputPtr = (const int32_t*)inputVector;
     __m512i inputVal;
     __m512 ret;
 
     for (; number < onesixteenthPoints; number++) {
         // Load the values
-        inputVal = _mm512_loadu_si512((__m512i*)inputPtr);
+        inputVal = _mm512_loadu_si512((const __m512i*)inputPtr);
 
         ret = _mm512_cvtepi32_ps(inputVal);
         ret = _mm512_mul_ps(ret, invScalar);
@@ -107,13 +107,13 @@ static inline void volk_32i_s32f_convert_32f_u_avx2(float* outputVector,
     float* outputVectorPtr = outputVector;
     const float iScalar = 1.0 / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
-    int32_t* inputPtr = (int32_t*)inputVector;
+    const int32_t* inputPtr = (const int32_t*)inputVector;
     __m256i inputVal;
     __m256 ret;
 
     for (; number < oneEightPoints; number++) {
         // Load the 4 values
-        inputVal = _mm256_loadu_si256((__m256i*)inputPtr);
+        inputVal = _mm256_loadu_si256((const __m256i*)inputPtr);
 
         ret = _mm256_cvtepi32_ps(inputVal);
         ret = _mm256_mul_ps(ret, invScalar);
@@ -146,13 +146,13 @@ static inline void volk_32i_s32f_convert_32f_u_sse2(float* outputVector,
     float* outputVectorPtr = outputVector;
     const float iScalar = 1.0 / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
-    int32_t* inputPtr = (int32_t*)inputVector;
+    const int32_t* inputPtr = (const int32_t*)inputVector;
     __m128i inputVal;
     __m128 ret;
 
     for (; number < quarterPoints; number++) {
         // Load the 4 values
-        inputVal = _mm_loadu_si128((__m128i*)inputPtr);
+        inputVal = _mm_loadu_si128((const __m128i*)inputPtr);
 
         ret = _mm_cvtepi32_ps(inputVal);
         ret = _mm_mul_ps(ret, invScalar);
@@ -212,13 +212,13 @@ static inline void volk_32i_s32f_convert_32f_a_avx512f(float* outputVector,
     float* outputVectorPtr = outputVector;
     const float iScalar = 1.0 / scalar;
     __m512 invScalar = _mm512_set1_ps(iScalar);
-    int32_t* inputPtr = (int32_t*)inputVector;
+    const int32_t* inputPtr = (const int32_t*)inputVector;
     __m512i inputVal;
     __m512 ret;
 
     for (; number < onesixteenthPoints; number++) {
         // Load the values
-        inputVal = _mm512_load_si512((__m512i*)inputPtr);
+        inputVal = _mm512_load_si512((const __m512i*)inputPtr);
 
         ret = _mm512_cvtepi32_ps(inputVal);
         ret = _mm512_mul_ps(ret, invScalar);
@@ -250,13 +250,13 @@ static inline void volk_32i_s32f_convert_32f_a_avx2(float* outputVector,
     float* outputVectorPtr = outputVector;
     const float iScalar = 1.0 / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
-    int32_t* inputPtr = (int32_t*)inputVector;
+    const int32_t* inputPtr = (const int32_t*)inputVector;
     __m256i inputVal;
     __m256 ret;
 
     for (; number < oneEightPoints; number++) {
         // Load the 4 values
-        inputVal = _mm256_load_si256((__m256i*)inputPtr);
+        inputVal = _mm256_load_si256((const __m256i*)inputPtr);
 
         ret = _mm256_cvtepi32_ps(inputVal);
         ret = _mm256_mul_ps(ret, invScalar);
@@ -289,13 +289,13 @@ static inline void volk_32i_s32f_convert_32f_a_sse2(float* outputVector,
     float* outputVectorPtr = outputVector;
     const float iScalar = 1.0 / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
-    int32_t* inputPtr = (int32_t*)inputVector;
+    const int32_t* inputPtr = (const int32_t*)inputVector;
     __m128i inputVal;
     __m128 ret;
 
     for (; number < quarterPoints; number++) {
         // Load the 4 values
-        inputVal = _mm_load_si128((__m128i*)inputPtr);
+        inputVal = _mm_load_si128((const __m128i*)inputPtr);
 
         ret = _mm_cvtepi32_ps(inputVal);
         ret = _mm_mul_ps(ret, invScalar);

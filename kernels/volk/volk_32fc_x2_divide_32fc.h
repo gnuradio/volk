@@ -145,14 +145,14 @@ static inline void volk_32fc_x2_divide_32fc_u_sse3(lv_32fc_t* cVector,
     const lv_32fc_t* b = denumeratorVector;
 
     for (; number < quarterPoints; number++) {
-        num01 = _mm_loadu_ps((float*)a);                  // first pair
-        den01 = _mm_loadu_ps((float*)b);                  // first pair
+        num01 = _mm_loadu_ps((const float*)a);                  // first pair
+        den01 = _mm_loadu_ps((const float*)b);                  // first pair
         num01 = _mm_complexconjugatemul_ps(num01, den01); // a conj(b)
         a += 2;
         b += 2;
 
-        num23 = _mm_loadu_ps((float*)a);                  // second pair
-        den23 = _mm_loadu_ps((float*)b);                  // second pair
+        num23 = _mm_loadu_ps((const float*)a);                  // second pair
+        den23 = _mm_loadu_ps((const float*)b);                  // second pair
         num23 = _mm_complexconjugatemul_ps(num23, den23); // a conj(b)
         a += 2;
         b += 2;
@@ -205,9 +205,9 @@ static inline void volk_32fc_x2_divide_32fc_u_avx(lv_32fc_t* cVector,
 
     for (; number < quarterPoints; number++) {
         num = _mm256_loadu_ps(
-            (float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
+            (const float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
         denum = _mm256_loadu_ps(
-            (float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
+            (const float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
         mul_conj = _mm256_complexconjugatemul_ps(num, denum);
         sq = _mm256_mul_ps(denum, denum); // Square the values
         mag_sq_un = _mm256_hadd_ps(
@@ -251,14 +251,14 @@ static inline void volk_32fc_x2_divide_32fc_u_avx2_fma(lv_32fc_t* cVector,
     __m256 num01, num23, denum01, denum23, complex_result, result0, result1;
 
     for (unsigned int number = 0; number < eighthPoints; number++) {
-        num01 = _mm256_loadu_ps((float*)a);
-        denum01 = _mm256_loadu_ps((float*)b);
+        num01 = _mm256_loadu_ps((const float*)a);
+        denum01 = _mm256_loadu_ps((const float*)b);
         num01 = _mm256_complexconjugatemul_ps(num01, denum01);
         a += 4;
         b += 4;
 
-        num23 = _mm256_loadu_ps((float*)a);
-        denum23 = _mm256_loadu_ps((float*)b);
+        num23 = _mm256_loadu_ps((const float*)a);
+        denum23 = _mm256_loadu_ps((const float*)b);
         num23 = _mm256_complexconjugatemul_ps(num23, denum23);
         a += 4;
         b += 4;
@@ -303,14 +303,14 @@ static inline void volk_32fc_x2_divide_32fc_u_avx512(lv_32fc_t* cVector,
     __m512 result0, result1;
 
     for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        num01 = _mm512_loadu_ps((float*)a);
-        denum01 = _mm512_loadu_ps((float*)b);
+        num01 = _mm512_loadu_ps((const float*)a);
+        denum01 = _mm512_loadu_ps((const float*)b);
         num01 = _mm512_complexconjugatemul_ps(num01, denum01);
         a += 8;
         b += 8;
 
-        num23 = _mm512_loadu_ps((float*)a);
-        denum23 = _mm512_loadu_ps((float*)b);
+        num23 = _mm512_loadu_ps((const float*)a);
+        denum23 = _mm512_loadu_ps((const float*)b);
         num23 = _mm512_complexconjugatemul_ps(num23, denum23);
         a += 8;
         b += 8;
@@ -373,14 +373,14 @@ static inline void volk_32fc_x2_divide_32fc_a_sse3(lv_32fc_t* cVector,
     const lv_32fc_t* b = denumeratorVector;
 
     for (; number < quarterPoints; number++) {
-        num01 = _mm_load_ps((float*)a);                   // first pair
-        den01 = _mm_load_ps((float*)b);                   // first pair
+        num01 = _mm_load_ps((const float*)a);                   // first pair
+        den01 = _mm_load_ps((const float*)b);                   // first pair
         num01 = _mm_complexconjugatemul_ps(num01, den01); // a conj(b)
         a += 2;
         b += 2;
 
-        num23 = _mm_load_ps((float*)a);                   // second pair
-        den23 = _mm_load_ps((float*)b);                   // second pair
+        num23 = _mm_load_ps((const float*)a);                   // second pair
+        den23 = _mm_load_ps((const float*)b);                   // second pair
         num23 = _mm_complexconjugatemul_ps(num23, den23); // a conj(b)
         a += 2;
         b += 2;
@@ -437,15 +437,15 @@ static inline void volk_32fc_x2_divide_32fc_a_avx(lv_32fc_t* cVector,
 
     for (unsigned int number = 0; number < eigthPoints; number++) {
         // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
-        num01 = _mm256_load_ps((float*)a);
-        denum01 = _mm256_load_ps((float*)b);
+        num01 = _mm256_load_ps((const float*)a);
+        denum01 = _mm256_load_ps((const float*)b);
 
         num01 = _mm256_complexconjugatemul_ps(num01, denum01);
         a += 4;
         b += 4;
 
-        num23 = _mm256_load_ps((float*)a);
-        denum23 = _mm256_load_ps((float*)b);
+        num23 = _mm256_load_ps((const float*)a);
+        denum23 = _mm256_load_ps((const float*)b);
         num23 = _mm256_complexconjugatemul_ps(num23, denum23);
         a += 4;
         b += 4;
@@ -488,14 +488,14 @@ static inline void volk_32fc_x2_divide_32fc_a_avx2_fma(lv_32fc_t* cVector,
     __m256 num01, num23, denum01, denum23, complex_result, result0, result1;
 
     for (unsigned int number = 0; number < eighthPoints; number++) {
-        num01 = _mm256_load_ps((float*)a);
-        denum01 = _mm256_load_ps((float*)b);
+        num01 = _mm256_load_ps((const float*)a);
+        denum01 = _mm256_load_ps((const float*)b);
         num01 = _mm256_complexconjugatemul_ps(num01, denum01);
         a += 4;
         b += 4;
 
-        num23 = _mm256_load_ps((float*)a);
-        denum23 = _mm256_load_ps((float*)b);
+        num23 = _mm256_load_ps((const float*)a);
+        denum23 = _mm256_load_ps((const float*)b);
         num23 = _mm256_complexconjugatemul_ps(num23, denum23);
         a += 4;
         b += 4;
@@ -540,14 +540,14 @@ static inline void volk_32fc_x2_divide_32fc_a_avx512(lv_32fc_t* cVector,
     __m512 result0, result1;
 
     for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        num01 = _mm512_load_ps((float*)a);
-        denum01 = _mm512_load_ps((float*)b);
+        num01 = _mm512_load_ps((const float*)a);
+        denum01 = _mm512_load_ps((const float*)b);
         num01 = _mm512_complexconjugatemul_ps(num01, denum01);
         a += 8;
         b += 8;
 
-        num23 = _mm512_load_ps((float*)a);
-        denum23 = _mm512_load_ps((float*)b);
+        num23 = _mm512_load_ps((const float*)a);
+        denum23 = _mm512_load_ps((const float*)b);
         num23 = _mm512_complexconjugatemul_ps(num23, denum23);
         a += 8;
         b += 8;
