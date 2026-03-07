@@ -59,194 +59,24 @@
 #define C 60801.0f
 
 
-#ifndef INCLUDED_volk_32f_expfast_32f_a_H
-#define INCLUDED_volk_32f_expfast_32f_a_H
-
-#if LV_HAVE_AVX && LV_HAVE_FMA
-
-#include <immintrin.h>
-
-static inline void volk_32f_expfast_32f_a_avx_fma(float* bVector,
-                                                  const float* aVector,
-                                                  unsigned int num_points)
-{
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
-
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
-
-    __m256 aVal, bVal, a, b;
-    __m256i exp;
-    a = _mm256_set1_ps(A / Mln2);
-    b = _mm256_set1_ps(B - C);
-
-    for (; number < eighthPoints; number++) {
-        aVal = _mm256_load_ps(aPtr);
-        exp = _mm256_cvtps_epi32(_mm256_fmadd_ps(a, aVal, b));
-        bVal = _mm256_castsi256_ps(exp);
-
-        _mm256_store_ps(bPtr, bVal);
-        aPtr += 8;
-        bPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *bPtr++ = expf(*aPtr++);
-    }
-}
-
-#endif /* LV_HAVE_AVX && LV_HAVE_FMA for aligned */
-
-#ifdef LV_HAVE_AVX
-
-#include <immintrin.h>
-
-static inline void
-volk_32f_expfast_32f_a_avx(float* bVector, const float* aVector, unsigned int num_points)
-{
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
-
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
-
-    __m256 aVal, bVal, a, b;
-    __m256i exp;
-    a = _mm256_set1_ps(A / Mln2);
-    b = _mm256_set1_ps(B - C);
-
-    for (; number < eighthPoints; number++) {
-        aVal = _mm256_load_ps(aPtr);
-        exp = _mm256_cvtps_epi32(_mm256_add_ps(_mm256_mul_ps(a, aVal), b));
-        bVal = _mm256_castsi256_ps(exp);
-
-        _mm256_store_ps(bPtr, bVal);
-        aPtr += 8;
-        bPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *bPtr++ = expf(*aPtr++);
-    }
-}
-
-#endif /* LV_HAVE_AVX for aligned */
-
-#ifdef LV_HAVE_SSE4_1
-#include <smmintrin.h>
-
-static inline void volk_32f_expfast_32f_a_sse4_1(float* bVector,
-                                                 const float* aVector,
-                                                 unsigned int num_points)
-{
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
-
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
-
-    __m128 aVal, bVal, a, b;
-    __m128i exp;
-    a = _mm_set1_ps(A / Mln2);
-    b = _mm_set1_ps(B - C);
-
-    for (; number < quarterPoints; number++) {
-        aVal = _mm_load_ps(aPtr);
-        exp = _mm_cvtps_epi32(_mm_add_ps(_mm_mul_ps(a, aVal), b));
-        bVal = _mm_castsi128_ps(exp);
-
-        _mm_store_ps(bPtr, bVal);
-        aPtr += 4;
-        bPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        *bPtr++ = expf(*aPtr++);
-    }
-}
-
-#endif /* LV_HAVE_SSE4_1 for aligned */
-
-#endif /* INCLUDED_volk_32f_expfast_32f_a_H */
-
 #ifndef INCLUDED_volk_32f_expfast_32f_u_H
 #define INCLUDED_volk_32f_expfast_32f_u_H
 
-#if LV_HAVE_AVX && LV_HAVE_FMA
-#include <immintrin.h>
+#ifdef LV_HAVE_GENERIC
 
-static inline void volk_32f_expfast_32f_u_avx_fma(float* bVector,
-                                                  const float* aVector,
-                                                  unsigned int num_points)
+static inline void volk_32f_expfast_32f_generic(float* bVector,
+                                                const float* aVector,
+                                                unsigned int num_points)
 {
     float* bPtr = bVector;
     const float* aPtr = aVector;
-
     unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
 
-    __m256 aVal, bVal, a, b;
-    __m256i exp;
-    a = _mm256_set1_ps(A / Mln2);
-    b = _mm256_set1_ps(B - C);
-
-    for (; number < eighthPoints; number++) {
-        aVal = _mm256_loadu_ps(aPtr);
-        exp = _mm256_cvtps_epi32(_mm256_fmadd_ps(a, aVal, b));
-        bVal = _mm256_castsi256_ps(exp);
-
-        _mm256_storeu_ps(bPtr, bVal);
-        aPtr += 8;
-        bPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
+    for (number = 0; number < num_points; number++) {
         *bPtr++ = expf(*aPtr++);
     }
 }
-
-#endif /* LV_HAVE_AVX && LV_HAVE_FMA for unaligned */
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void
-volk_32f_expfast_32f_u_avx(float* bVector, const float* aVector, unsigned int num_points)
-{
-    float* bPtr = bVector;
-    const float* aPtr = aVector;
-
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
-
-    __m256 aVal, bVal, a, b;
-    __m256i exp;
-    a = _mm256_set1_ps(A / Mln2);
-    b = _mm256_set1_ps(B - C);
-
-    for (; number < eighthPoints; number++) {
-        aVal = _mm256_loadu_ps(aPtr);
-        exp = _mm256_cvtps_epi32(_mm256_add_ps(_mm256_mul_ps(a, aVal), b));
-        bVal = _mm256_castsi256_ps(exp);
-
-        _mm256_storeu_ps(bPtr, bVal);
-        aPtr += 8;
-        bPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *bPtr++ = expf(*aPtr++);
-    }
-}
-
-#endif /* LV_HAVE_AVX for unaligned */
-
+#endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
@@ -282,24 +112,78 @@ static inline void volk_32f_expfast_32f_u_sse4_1(float* bVector,
     }
 }
 
-#endif /* LV_HAVE_SSE4_1 for unaligned */
+#endif /* LV_HAVE_SSE4_1 */
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_expfast_32f_generic(float* bVector,
-                                                const float* aVector,
-                                                unsigned int num_points)
+static inline void
+volk_32f_expfast_32f_u_avx(float* bVector, const float* aVector, unsigned int num_points)
 {
     float* bPtr = bVector;
     const float* aPtr = aVector;
-    unsigned int number = 0;
 
-    for (number = 0; number < num_points; number++) {
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    __m256 aVal, bVal, a, b;
+    __m256i exp;
+    a = _mm256_set1_ps(A / Mln2);
+    b = _mm256_set1_ps(B - C);
+
+    for (; number < eighthPoints; number++) {
+        aVal = _mm256_loadu_ps(aPtr);
+        exp = _mm256_cvtps_epi32(_mm256_add_ps(_mm256_mul_ps(a, aVal), b));
+        bVal = _mm256_castsi256_ps(exp);
+
+        _mm256_storeu_ps(bPtr, bVal);
+        aPtr += 8;
+        bPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
         *bPtr++ = expf(*aPtr++);
     }
 }
-#endif /* LV_HAVE_GENERIC */
+
+#endif /* LV_HAVE_AVX */
+
+#if LV_HAVE_AVX && LV_HAVE_FMA
+#include <immintrin.h>
+
+static inline void volk_32f_expfast_32f_u_avx_fma(float* bVector,
+                                                  const float* aVector,
+                                                  unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    __m256 aVal, bVal, a, b;
+    __m256i exp;
+    a = _mm256_set1_ps(A / Mln2);
+    b = _mm256_set1_ps(B - C);
+
+    for (; number < eighthPoints; number++) {
+        aVal = _mm256_loadu_ps(aPtr);
+        exp = _mm256_cvtps_epi32(_mm256_fmadd_ps(a, aVal, b));
+        bVal = _mm256_castsi256_ps(exp);
+
+        _mm256_storeu_ps(bPtr, bVal);
+        aPtr += 8;
+        bPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *bPtr++ = expf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_AVX && LV_HAVE_FMA */
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
@@ -395,6 +279,118 @@ volk_32f_expfast_32f_rvv(float* bVector, const float* aVector, unsigned int num_
         __riscv_vse32(bVector, v, vl);
     }
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
 
 #endif /* INCLUDED_volk_32f_expfast_32f_u_H */
+
+#ifndef INCLUDED_volk_32f_expfast_32f_a_H
+#define INCLUDED_volk_32f_expfast_32f_a_H
+
+#ifdef LV_HAVE_SSE4_1
+#include <smmintrin.h>
+
+static inline void volk_32f_expfast_32f_a_sse4_1(float* bVector,
+                                                 const float* aVector,
+                                                 unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    __m128 aVal, bVal, a, b;
+    __m128i exp;
+    a = _mm_set1_ps(A / Mln2);
+    b = _mm_set1_ps(B - C);
+
+    for (; number < quarterPoints; number++) {
+        aVal = _mm_load_ps(aPtr);
+        exp = _mm_cvtps_epi32(_mm_add_ps(_mm_mul_ps(a, aVal), b));
+        bVal = _mm_castsi128_ps(exp);
+
+        _mm_store_ps(bPtr, bVal);
+        aPtr += 4;
+        bPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *bPtr++ = expf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_SSE4_1 */
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void
+volk_32f_expfast_32f_a_avx(float* bVector, const float* aVector, unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    __m256 aVal, bVal, a, b;
+    __m256i exp;
+    a = _mm256_set1_ps(A / Mln2);
+    b = _mm256_set1_ps(B - C);
+
+    for (; number < eighthPoints; number++) {
+        aVal = _mm256_load_ps(aPtr);
+        exp = _mm256_cvtps_epi32(_mm256_add_ps(_mm256_mul_ps(a, aVal), b));
+        bVal = _mm256_castsi256_ps(exp);
+
+        _mm256_store_ps(bPtr, bVal);
+        aPtr += 8;
+        bPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *bPtr++ = expf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_AVX */
+
+#if LV_HAVE_AVX && LV_HAVE_FMA
+#include <immintrin.h>
+
+static inline void volk_32f_expfast_32f_a_avx_fma(float* bVector,
+                                                  const float* aVector,
+                                                  unsigned int num_points)
+{
+    float* bPtr = bVector;
+    const float* aPtr = aVector;
+
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    __m256 aVal, bVal, a, b;
+    __m256i exp;
+    a = _mm256_set1_ps(A / Mln2);
+    b = _mm256_set1_ps(B - C);
+
+    for (; number < eighthPoints; number++) {
+        aVal = _mm256_load_ps(aPtr);
+        exp = _mm256_cvtps_epi32(_mm256_fmadd_ps(a, aVal, b));
+        bVal = _mm256_castsi256_ps(exp);
+
+        _mm256_store_ps(bPtr, bVal);
+        aPtr += 8;
+        bPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *bPtr++ = expf(*aPtr++);
+    }
+}
+
+#endif /* LV_HAVE_AVX && LV_HAVE_FMA */
+
+#endif /* INCLUDED_volk_32f_expfast_32f_a_H */
