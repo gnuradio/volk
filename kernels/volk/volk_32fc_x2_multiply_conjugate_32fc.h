@@ -63,6 +63,60 @@
 #include <stdio.h>
 #include <volk/volk_complex.h>
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_32fc_x2_multiply_conjugate_32fc_generic(lv_32fc_t* cVector,
+                                                                const lv_32fc_t* aVector,
+                                                                const lv_32fc_t* bVector,
+                                                                unsigned int num_points)
+{
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const lv_32fc_t* bPtr = bVector;
+    unsigned int number = 0;
+
+    for (number = 0; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) * lv_conj(*bPtr++);
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
+
+#ifdef LV_HAVE_SSE3
+#include <pmmintrin.h>
+#include <volk/volk_sse3_intrinsics.h>
+
+static inline void volk_32fc_x2_multiply_conjugate_32fc_u_sse3(lv_32fc_t* cVector,
+                                                               const lv_32fc_t* aVector,
+                                                               const lv_32fc_t* bVector,
+                                                               unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int halfPoints = num_points / 2;
+
+    __m128 x, y, z;
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = aVector;
+    const lv_32fc_t* b = bVector;
+
+    for (; number < halfPoints; number++) {
+        x = _mm_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        y = _mm_loadu_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+        z = _mm_complexconjugatemul_ps(x, y);
+        _mm_storeu_ps((float*)c, z); // Store the results back into the C container
+
+        a += 2;
+        b += 2;
+        c += 2;
+    }
+
+    if ((num_points % 2) != 0) {
+        *c = (*a) * lv_conj(*b);
+    }
+}
+#endif /* LV_HAVE_SSE3 */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
@@ -100,141 +154,6 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_u_avx(lv_32fc_t* cVector
     }
 }
 #endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_SSE3
-#include <pmmintrin.h>
-#include <volk/volk_sse3_intrinsics.h>
-
-static inline void volk_32fc_x2_multiply_conjugate_32fc_u_sse3(lv_32fc_t* cVector,
-                                                               const lv_32fc_t* aVector,
-                                                               const lv_32fc_t* bVector,
-                                                               unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_points / 2;
-
-    __m128 x, y, z;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-    const lv_32fc_t* b = bVector;
-
-    for (; number < halfPoints; number++) {
-        x = _mm_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-        y = _mm_loadu_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
-        z = _mm_complexconjugatemul_ps(x, y);
-        _mm_storeu_ps((float*)c, z); // Store the results back into the C container
-
-        a += 2;
-        b += 2;
-        c += 2;
-    }
-
-    if ((num_points % 2) != 0) {
-        *c = (*a) * lv_conj(*b);
-    }
-}
-#endif /* LV_HAVE_SSE */
-
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_x2_multiply_conjugate_32fc_generic(lv_32fc_t* cVector,
-                                                                const lv_32fc_t* aVector,
-                                                                const lv_32fc_t* bVector,
-                                                                unsigned int num_points)
-{
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    const lv_32fc_t* bPtr = bVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) * lv_conj(*bPtr++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
-#endif /* INCLUDED_volk_32fc_x2_multiply_conjugate_32fc_u_H */
-#ifndef INCLUDED_volk_32fc_x2_multiply_conjugate_32fc_a_H
-#define INCLUDED_volk_32fc_x2_multiply_conjugate_32fc_a_H
-
-#include <float.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <volk/volk_complex.h>
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-#include <volk/volk_avx_intrinsics.h>
-
-static inline void volk_32fc_x2_multiply_conjugate_32fc_a_avx(lv_32fc_t* cVector,
-                                                              const lv_32fc_t* aVector,
-                                                              const lv_32fc_t* bVector,
-                                                              unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
-
-    __m256 x, y, z;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-    const lv_32fc_t* b = bVector;
-
-    for (; number < quarterPoints; number++) {
-        x = _mm256_load_ps((const float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
-        y = _mm256_load_ps((const float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
-        z = _mm256_complexconjugatemul_ps(x, y);
-        _mm256_store_ps((float*)c, z); // Store the results back into the C container
-
-        a += 4;
-        b += 4;
-        c += 4;
-    }
-
-    number = quarterPoints * 4;
-
-    for (; number < num_points; number++) {
-        *c++ = (*a++) * lv_conj(*b++);
-    }
-}
-#endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_SSE3
-#include <pmmintrin.h>
-#include <volk/volk_sse3_intrinsics.h>
-
-static inline void volk_32fc_x2_multiply_conjugate_32fc_a_sse3(lv_32fc_t* cVector,
-                                                               const lv_32fc_t* aVector,
-                                                               const lv_32fc_t* bVector,
-                                                               unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_points / 2;
-
-    __m128 x, y, z;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-    const lv_32fc_t* b = bVector;
-
-    for (; number < halfPoints; number++) {
-        x = _mm_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-        y = _mm_load_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
-        z = _mm_complexconjugatemul_ps(x, y);
-        _mm_store_ps((float*)c, z); // Store the results back into the C container
-
-        a += 2;
-        b += 2;
-        c += 2;
-    }
-
-    if ((num_points % 2) != 0) {
-        *c = (*a) * lv_conj(*b);
-    }
-}
-#endif /* LV_HAVE_SSE */
 
 
 #ifdef LV_HAVE_NEON
@@ -355,7 +274,7 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_rvv(lv_32fc_t* cVector,
         __riscv_vse64((uint64_t*)cVector, v, vl);
     }
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
 
 #ifdef LV_HAVE_RVVSEG
 #include <riscv_vector.h>
@@ -379,6 +298,87 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_rvvseg(lv_32fc_t* cVecto
     }
 }
 
-#endif /*LV_HAVE_RVVSEG*/
+#endif /* LV_HAVE_RVVSEG */
+
+#endif /* INCLUDED_volk_32fc_x2_multiply_conjugate_32fc_u_H */
+
+#ifndef INCLUDED_volk_32fc_x2_multiply_conjugate_32fc_a_H
+#define INCLUDED_volk_32fc_x2_multiply_conjugate_32fc_a_H
+
+#include <float.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <volk/volk_complex.h>
+
+#ifdef LV_HAVE_SSE3
+#include <pmmintrin.h>
+#include <volk/volk_sse3_intrinsics.h>
+
+static inline void volk_32fc_x2_multiply_conjugate_32fc_a_sse3(lv_32fc_t* cVector,
+                                                               const lv_32fc_t* aVector,
+                                                               const lv_32fc_t* bVector,
+                                                               unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int halfPoints = num_points / 2;
+
+    __m128 x, y, z;
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = aVector;
+    const lv_32fc_t* b = bVector;
+
+    for (; number < halfPoints; number++) {
+        x = _mm_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        y = _mm_load_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+        z = _mm_complexconjugatemul_ps(x, y);
+        _mm_store_ps((float*)c, z); // Store the results back into the C container
+
+        a += 2;
+        b += 2;
+        c += 2;
+    }
+
+    if ((num_points % 2) != 0) {
+        *c = (*a) * lv_conj(*b);
+    }
+}
+#endif /* LV_HAVE_SSE3 */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
+
+static inline void volk_32fc_x2_multiply_conjugate_32fc_a_avx(lv_32fc_t* cVector,
+                                                              const lv_32fc_t* aVector,
+                                                              const lv_32fc_t* bVector,
+                                                              unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    __m256 x, y, z;
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = aVector;
+    const lv_32fc_t* b = bVector;
+
+    for (; number < quarterPoints; number++) {
+        x = _mm256_load_ps((const float*)a); // Load the ar + ai, br + bi ... as ar,ai,br,bi ...
+        y = _mm256_load_ps((const float*)b); // Load the cr + ci, dr + di ... as cr,ci,dr,di ...
+        z = _mm256_complexconjugatemul_ps(x, y);
+        _mm256_store_ps((float*)c, z); // Store the results back into the C container
+
+        a += 4;
+        b += 4;
+        c += 4;
+    }
+
+    number = quarterPoints * 4;
+
+    for (; number < num_points; number++) {
+        *c++ = (*a++) * lv_conj(*b++);
+    }
+}
+#endif /* LV_HAVE_AVX */
 
 #endif /* INCLUDED_volk_32fc_x2_multiply_conjugate_32fc_a_H */
