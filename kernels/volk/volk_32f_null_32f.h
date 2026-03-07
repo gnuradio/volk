@@ -11,8 +11,8 @@
 #include <math.h>
 #include <stdio.h>
 
-#ifndef INCLUDED_volk_32f_null_32f_a_H
-#define INCLUDED_volk_32f_null_32f_a_H
+#ifndef INCLUDED_volk_32f_null_32f_u_H
+#define INCLUDED_volk_32f_null_32f_u_H
 
 #ifdef LV_HAVE_GENERIC
 
@@ -30,3 +30,8 @@ volk_32f_null_32f_generic(float* bVector, const float* aVector, unsigned int num
 #endif /* LV_HAVE_GENERIC */
 
 #endif /* INCLUDED_volk_32f_null_32f_u_H */
+
+#ifndef INCLUDED_volk_32f_null_32f_a_H
+#define INCLUDED_volk_32f_null_32f_a_H
+
+#endif /* INCLUDED_volk_32f_null_32f_a_H */
