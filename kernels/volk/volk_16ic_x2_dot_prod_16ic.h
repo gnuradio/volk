@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef INCLUDED_volk_16ic_x2_dot_prod_16ic_H
-#define INCLUDED_volk_16ic_x2_dot_prod_16ic_H
+#ifndef INCLUDED_volk_16ic_x2_dot_prod_16ic_u_H
+#define INCLUDED_volk_16ic_x2_dot_prod_16ic_u_H
 
 #include <volk/saturation_arithmetic.h>
 #include <volk/volk_common.h>
@@ -56,92 +56,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_generic(lv_16sc_t* result,
     }
 }
 
-#endif /*LV_HAVE_GENERIC*/
-
-
-#ifdef LV_HAVE_SSE2
-#include <emmintrin.h>
-
-static inline void volk_16ic_x2_dot_prod_16ic_a_sse2(lv_16sc_t* out,
-                                                     const lv_16sc_t* in_a,
-                                                     const lv_16sc_t* in_b,
-                                                     unsigned int num_points)
-{
-    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
-
-    const unsigned int sse_iters = num_points / 4;
-    unsigned int number;
-
-    const lv_16sc_t* _in_a = in_a;
-    const lv_16sc_t* _in_b = in_b;
-    lv_16sc_t* _out = out;
-
-    if (sse_iters > 0) {
-        __m128i a, b, c, c_sr, mask_imag, mask_real, real, imag, imag1, imag2, b_sl, a_sl,
-            realcacc, imagcacc;
-        __VOLK_ATTR_ALIGNED(16) lv_16sc_t dotProductVector[4];
-
-        realcacc = _mm_setzero_si128();
-        imagcacc = _mm_setzero_si128();
-
-        mask_imag = _mm_set_epi8(
-            0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0);
-        mask_real = _mm_set_epi8(
-            0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF);
-
-        for (number = 0; number < sse_iters; number++) {
-            // a[127:0]=[a3.i,a3.r,a2.i,a2.r,a1.i,a1.r,a0.i,a0.r]
-            a = _mm_load_si128(
-                (__m128i*)_in_a); // load (2 byte imag, 2 byte real) x 4 into 128 bits reg
-            __VOLK_PREFETCH(_in_a + 8);
-            b = _mm_load_si128((__m128i*)_in_b);
-            __VOLK_PREFETCH(_in_b + 8);
-            c = _mm_mullo_epi16(a, b); // a3.i*b3.i, a3.r*b3.r, ....
-
-            c_sr = _mm_srli_si128(c, 2); // Shift a right by imm8 bytes while shifting in
-                                         // zeros, and store the results in dst.
-            real = _mm_subs_epi16(c, c_sr);
-
-            b_sl = _mm_slli_si128(b, 2); // b3.r, b2.i ....
-            a_sl = _mm_slli_si128(a, 2); // a3.r, a2.i ....
-
-            imag1 = _mm_mullo_epi16(a, b_sl); // a3.i*b3.r, ....
-            imag2 = _mm_mullo_epi16(b, a_sl); // b3.i*a3.r, ....
-
-            imag = _mm_adds_epi16(imag1, imag2); // with saturation arithmetic!
-
-            realcacc = _mm_adds_epi16(realcacc, real);
-            imagcacc = _mm_adds_epi16(imagcacc, imag);
-
-            _in_a += 4;
-            _in_b += 4;
-        }
-
-        realcacc = _mm_and_si128(realcacc, mask_real);
-        imagcacc = _mm_and_si128(imagcacc, mask_imag);
-
-        a = _mm_or_si128(realcacc, imagcacc);
-
-        _mm_store_si128((__m128i*)dotProductVector,
-                        a); // Store the results back into the dot product vector
-
-        for (number = 0; number < 4; ++number) {
-            dotProduct = lv_cmake(
-                sat_adds16i(lv_creal(dotProduct), lv_creal(dotProductVector[number])),
-                sat_adds16i(lv_cimag(dotProduct), lv_cimag(dotProductVector[number])));
-        }
-    }
-
-    for (number = 0; number < (num_points % 4); ++number) {
-        lv_16sc_t tmp = (*_in_a++) * (*_in_b++);
-        dotProduct = lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
-                              sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
-    }
-
-    *_out = dotProduct;
-}
-
-#endif /* LV_HAVE_SSE2 */
+#endif /* LV_HAVE_GENERIC */
 
 
 #ifdef LV_HAVE_SSE2
@@ -351,148 +266,6 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_avx2(lv_16sc_t* out,
 
         _mm256_storeu_si256((__m256i*)dotProductVector,
                             result); // Store the results back into the dot product vector
-
-        for (number = 0; number < 8; ++number) {
-            dotProduct = lv_cmake(
-                sat_adds16i(lv_creal(dotProduct), lv_creal(dotProductVector[number])),
-                sat_adds16i(lv_cimag(dotProduct), lv_cimag(dotProductVector[number])));
-        }
-    }
-
-    for (number = 0; number < (num_points % 8); ++number) {
-        lv_16sc_t tmp = (*_in_a++) * (*_in_b++);
-        dotProduct = lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
-                              sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
-    }
-
-    *_out = dotProduct;
-}
-#endif /* LV_HAVE_AVX2 */
-
-
-#ifdef LV_HAVE_AVX2
-#include <immintrin.h>
-
-static inline void volk_16ic_x2_dot_prod_16ic_a_avx2(lv_16sc_t* out,
-                                                     const lv_16sc_t* in_a,
-                                                     const lv_16sc_t* in_b,
-                                                     unsigned int num_points)
-{
-    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
-
-    const unsigned int avx_iters = num_points / 8;
-
-    const lv_16sc_t* _in_a = in_a;
-    const lv_16sc_t* _in_b = in_b;
-    lv_16sc_t* _out = out;
-    unsigned int number;
-
-    if (avx_iters > 0) {
-        __m256i a, b, c, c_sr, mask_imag, mask_real, real, imag, imag1, imag2, b_sl, a_sl,
-            realcacc, imagcacc, result;
-        __VOLK_ATTR_ALIGNED(32) lv_16sc_t dotProductVector[8];
-
-        realcacc = _mm256_setzero_si256();
-        imagcacc = _mm256_setzero_si256();
-
-        mask_imag = _mm256_set_epi8(0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0);
-        mask_real = _mm256_set_epi8(0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF,
-                                    0,
-                                    0,
-                                    0xFF,
-                                    0xFF);
-
-        for (number = 0; number < avx_iters; number++) {
-            a = _mm256_load_si256((__m256i*)_in_a);
-            __VOLK_PREFETCH(_in_a + 16);
-            b = _mm256_load_si256((__m256i*)_in_b);
-            __VOLK_PREFETCH(_in_b + 16);
-            c = _mm256_mullo_epi16(a, b);
-
-            c_sr = _mm256_srli_si256(c, 2); // Shift a right by imm8 bytes while shifting
-                                            // in zeros, and store the results in dst.
-            real = _mm256_subs_epi16(c, c_sr);
-
-            b_sl = _mm256_slli_si256(b, 2);
-            a_sl = _mm256_slli_si256(a, 2);
-
-            imag1 = _mm256_mullo_epi16(a, b_sl);
-            imag2 = _mm256_mullo_epi16(b, a_sl);
-
-            imag = _mm256_adds_epi16(imag1, imag2); // with saturation arithmetic!
-
-            realcacc = _mm256_adds_epi16(realcacc, real);
-            imagcacc = _mm256_adds_epi16(imagcacc, imag);
-
-            _in_a += 8;
-            _in_b += 8;
-        }
-
-        realcacc = _mm256_and_si256(realcacc, mask_real);
-        imagcacc = _mm256_and_si256(imagcacc, mask_imag);
-
-        result = _mm256_or_si256(realcacc, imagcacc);
-
-        _mm256_store_si256((__m256i*)dotProductVector,
-                           result); // Store the results back into the dot product vector
 
         for (number = 0; number < 8; ++number) {
             dotProduct = lv_cmake(
@@ -780,7 +553,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result,
     *result = lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
                        __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
+
 
 #ifdef LV_HAVE_RVVSEG
 #include "volk_32fc_x2_dot_prod_32fc.h"
@@ -812,6 +586,241 @@ static inline void volk_16ic_x2_dot_prod_16ic_rvvseg(lv_16sc_t* result,
     *result = lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
                        __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
 }
-#endif /*LV_HAVE_RVVSEG*/
+#endif /* LV_HAVE_RVVSEG */
 
-#endif /*INCLUDED_volk_16ic_x2_dot_prod_16ic_H*/
+
+#endif /* INCLUDED_volk_16ic_x2_dot_prod_16ic_u_H */
+
+
+#ifndef INCLUDED_volk_16ic_x2_dot_prod_16ic_a_H
+#define INCLUDED_volk_16ic_x2_dot_prod_16ic_a_H
+
+
+#ifdef LV_HAVE_SSE2
+#include <emmintrin.h>
+
+static inline void volk_16ic_x2_dot_prod_16ic_a_sse2(lv_16sc_t* out,
+                                                     const lv_16sc_t* in_a,
+                                                     const lv_16sc_t* in_b,
+                                                     unsigned int num_points)
+{
+    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
+
+    const unsigned int sse_iters = num_points / 4;
+    unsigned int number;
+
+    const lv_16sc_t* _in_a = in_a;
+    const lv_16sc_t* _in_b = in_b;
+    lv_16sc_t* _out = out;
+
+    if (sse_iters > 0) {
+        __m128i a, b, c, c_sr, mask_imag, mask_real, real, imag, imag1, imag2, b_sl, a_sl,
+            realcacc, imagcacc;
+        __VOLK_ATTR_ALIGNED(16) lv_16sc_t dotProductVector[4];
+
+        realcacc = _mm_setzero_si128();
+        imagcacc = _mm_setzero_si128();
+
+        mask_imag = _mm_set_epi8(
+            0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0);
+        mask_real = _mm_set_epi8(
+            0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF);
+
+        for (number = 0; number < sse_iters; number++) {
+            // a[127:0]=[a3.i,a3.r,a2.i,a2.r,a1.i,a1.r,a0.i,a0.r]
+            a = _mm_load_si128(
+                (__m128i*)_in_a); // load (2 byte imag, 2 byte real) x 4 into 128 bits reg
+            __VOLK_PREFETCH(_in_a + 8);
+            b = _mm_load_si128((__m128i*)_in_b);
+            __VOLK_PREFETCH(_in_b + 8);
+            c = _mm_mullo_epi16(a, b); // a3.i*b3.i, a3.r*b3.r, ....
+
+            c_sr = _mm_srli_si128(c, 2); // Shift a right by imm8 bytes while shifting in
+                                         // zeros, and store the results in dst.
+            real = _mm_subs_epi16(c, c_sr);
+
+            b_sl = _mm_slli_si128(b, 2); // b3.r, b2.i ....
+            a_sl = _mm_slli_si128(a, 2); // a3.r, a2.i ....
+
+            imag1 = _mm_mullo_epi16(a, b_sl); // a3.i*b3.r, ....
+            imag2 = _mm_mullo_epi16(b, a_sl); // b3.i*a3.r, ....
+
+            imag = _mm_adds_epi16(imag1, imag2); // with saturation arithmetic!
+
+            realcacc = _mm_adds_epi16(realcacc, real);
+            imagcacc = _mm_adds_epi16(imagcacc, imag);
+
+            _in_a += 4;
+            _in_b += 4;
+        }
+
+        realcacc = _mm_and_si128(realcacc, mask_real);
+        imagcacc = _mm_and_si128(imagcacc, mask_imag);
+
+        a = _mm_or_si128(realcacc, imagcacc);
+
+        _mm_store_si128((__m128i*)dotProductVector,
+                        a); // Store the results back into the dot product vector
+
+        for (number = 0; number < 4; ++number) {
+            dotProduct = lv_cmake(
+                sat_adds16i(lv_creal(dotProduct), lv_creal(dotProductVector[number])),
+                sat_adds16i(lv_cimag(dotProduct), lv_cimag(dotProductVector[number])));
+        }
+    }
+
+    for (number = 0; number < (num_points % 4); ++number) {
+        lv_16sc_t tmp = (*_in_a++) * (*_in_b++);
+        dotProduct = lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
+                              sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
+    }
+
+    *_out = dotProduct;
+}
+
+#endif /* LV_HAVE_SSE2 */
+
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+
+static inline void volk_16ic_x2_dot_prod_16ic_a_avx2(lv_16sc_t* out,
+                                                     const lv_16sc_t* in_a,
+                                                     const lv_16sc_t* in_b,
+                                                     unsigned int num_points)
+{
+    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
+
+    const unsigned int avx_iters = num_points / 8;
+
+    const lv_16sc_t* _in_a = in_a;
+    const lv_16sc_t* _in_b = in_b;
+    lv_16sc_t* _out = out;
+    unsigned int number;
+
+    if (avx_iters > 0) {
+        __m256i a, b, c, c_sr, mask_imag, mask_real, real, imag, imag1, imag2, b_sl, a_sl,
+            realcacc, imagcacc, result;
+        __VOLK_ATTR_ALIGNED(32) lv_16sc_t dotProductVector[8];
+
+        realcacc = _mm256_setzero_si256();
+        imagcacc = _mm256_setzero_si256();
+
+        mask_imag = _mm256_set_epi8(0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0);
+        mask_real = _mm256_set_epi8(0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF,
+                                    0,
+                                    0,
+                                    0xFF,
+                                    0xFF);
+
+        for (number = 0; number < avx_iters; number++) {
+            a = _mm256_load_si256((__m256i*)_in_a);
+            __VOLK_PREFETCH(_in_a + 16);
+            b = _mm256_load_si256((__m256i*)_in_b);
+            __VOLK_PREFETCH(_in_b + 16);
+            c = _mm256_mullo_epi16(a, b);
+
+            c_sr = _mm256_srli_si256(c, 2); // Shift a right by imm8 bytes while shifting
+                                            // in zeros, and store the results in dst.
+            real = _mm256_subs_epi16(c, c_sr);
+
+            b_sl = _mm256_slli_si256(b, 2);
+            a_sl = _mm256_slli_si256(a, 2);
+
+            imag1 = _mm256_mullo_epi16(a, b_sl);
+            imag2 = _mm256_mullo_epi16(b, a_sl);
+
+            imag = _mm256_adds_epi16(imag1, imag2); // with saturation arithmetic!
+
+            realcacc = _mm256_adds_epi16(realcacc, real);
+            imagcacc = _mm256_adds_epi16(imagcacc, imag);
+
+            _in_a += 8;
+            _in_b += 8;
+        }
+
+        realcacc = _mm256_and_si256(realcacc, mask_real);
+        imagcacc = _mm256_and_si256(imagcacc, mask_imag);
+
+        result = _mm256_or_si256(realcacc, imagcacc);
+
+        _mm256_store_si256((__m256i*)dotProductVector,
+                           result); // Store the results back into the dot product vector
+
+        for (number = 0; number < 8; ++number) {
+            dotProduct = lv_cmake(
+                sat_adds16i(lv_creal(dotProduct), lv_creal(dotProductVector[number])),
+                sat_adds16i(lv_cimag(dotProduct), lv_cimag(dotProductVector[number])));
+        }
+    }
+
+    for (number = 0; number < (num_points % 8); ++number) {
+        lv_16sc_t tmp = (*_in_a++) * (*_in_b++);
+        dotProduct = lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
+                              sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
+    }
+
+    *_out = dotProduct;
+}
+#endif /* LV_HAVE_AVX2 */
+
+
+#endif /* INCLUDED_volk_16ic_x2_dot_prod_16ic_a_H */

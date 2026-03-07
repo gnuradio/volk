@@ -71,8 +71,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_32fc_s32fc_rotator_32fc_a_H
-#define INCLUDED_volk_32fc_s32fc_rotator_32fc_a_H
+#ifndef INCLUDED_volk_32fc_s32fc_rotator_32fc_u_H
+#define INCLUDED_volk_32fc_s32fc_rotator_32fc_u_H
 
 
 #include <math.h>
@@ -97,6 +97,21 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_generic(lv_32fc_t* outVector,
 #endif /* LV_HAVE_GENERIC */
 
 
+#ifdef LV_HAVE_AVX
+
+static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx(lv_32fc_t* outVector,
+                                                         const lv_32fc_t* inVector,
+                                                         const lv_32fc_t phase_inc,
+                                                         lv_32fc_t* phase,
+                                                         unsigned int num_points)
+{
+    volk_32fc_s32fc_x2_rotator2_32fc_u_avx(
+        outVector, inVector, &phase_inc, phase, num_points);
+}
+
+#endif /* LV_HAVE_AVX */
+
+
 #ifdef LV_HAVE_NEON
 
 static inline void volk_32fc_s32fc_x2_rotator_32fc_neon(lv_32fc_t* outVector,
@@ -113,6 +128,12 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_neon(lv_32fc_t* outVector,
 #endif /* LV_HAVE_NEON */
 
 
+#endif /* INCLUDED_volk_32fc_s32fc_rotator_32fc_u_H */
+
+#ifndef INCLUDED_volk_32fc_s32fc_rotator_32fc_a_H
+#define INCLUDED_volk_32fc_s32fc_rotator_32fc_a_H
+
+
 #ifdef LV_HAVE_AVX
 
 static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx(lv_32fc_t* outVector,
@@ -125,21 +146,7 @@ static inline void volk_32fc_s32fc_x2_rotator_32fc_a_avx(lv_32fc_t* outVector,
         outVector, inVector, &phase_inc, phase, num_points);
 }
 
-#endif /* LV_HAVE_AVX for aligned */
-
-
-#ifdef LV_HAVE_AVX
-
-static inline void volk_32fc_s32fc_x2_rotator_32fc_u_avx(lv_32fc_t* outVector,
-                                                         const lv_32fc_t* inVector,
-                                                         const lv_32fc_t phase_inc,
-                                                         lv_32fc_t* phase,
-                                                         unsigned int num_points)
-{
-    volk_32fc_s32fc_x2_rotator2_32fc_u_avx(
-        outVector, inVector, &phase_inc, phase, num_points);
-}
-
 #endif /* LV_HAVE_AVX */
+
 
 #endif /* INCLUDED_volk_32fc_s32fc_rotator_32fc_a_H */
