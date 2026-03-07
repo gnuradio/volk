@@ -37,8 +37,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
-#define INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
+#ifndef INCLUDED_volk_32fc_s32f_power_spectrum_32f_u_H
+#define INCLUDED_volk_32fc_s32f_power_spectrum_32f_u_H
 
 #include <volk/volk_mathematical_functions.h>
 
@@ -226,7 +226,7 @@ static inline void volk_32fc_s32f_power_spectrum_32f_rvv(float* logPowerOutput,
         __riscv_vse32(logPowerOutput, v, vl);
     }
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
 
 
 #ifdef LV_HAVE_RVVSEG
@@ -313,6 +313,13 @@ volk_32fc_s32f_power_spectrum_32f_rvvseg(float* logPowerOutput,
     }
 }
 
-#endif /*LV_HAVE_RVVSEG*/
+#endif /* LV_HAVE_RVVSEG */
+
+#endif /* INCLUDED_volk_32fc_s32f_power_spectrum_32f_u_H */
+
+#ifndef INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
+#define INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H
+
+/* No aligned-only implementations — all archs are in the unaligned section. */
 
 #endif /* INCLUDED_volk_32fc_s32f_power_spectrum_32f_a_H */
