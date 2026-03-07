@@ -68,49 +68,79 @@
 #include <stdio.h>
 #include <volk/volk_complex.h>
 
-#if LV_HAVE_AVX && LV_HAVE_FMA
-#include <immintrin.h>
+#ifdef LV_HAVE_GENERIC
 
-static inline void volk_32fc_s32fc_multiply2_32fc_u_avx_fma(lv_32fc_t* cVector,
-                                                            const lv_32fc_t* aVector,
-                                                            const lv_32fc_t* scalar,
-                                                            unsigned int num_points)
+static inline void volk_32fc_s32fc_multiply2_32fc_generic(lv_32fc_t* cVector,
+                                                          const lv_32fc_t* aVector,
+                                                          const lv_32fc_t* scalar,
+                                                          unsigned int num_points)
+{
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    unsigned int number = num_points;
+
+    // unwrap loop
+    while (number >= 8) {
+        *cPtr++ = (*aPtr++) * (*scalar);
+        *cPtr++ = (*aPtr++) * (*scalar);
+        *cPtr++ = (*aPtr++) * (*scalar);
+        *cPtr++ = (*aPtr++) * (*scalar);
+        *cPtr++ = (*aPtr++) * (*scalar);
+        *cPtr++ = (*aPtr++) * (*scalar);
+        *cPtr++ = (*aPtr++) * (*scalar);
+        *cPtr++ = (*aPtr++) * (*scalar);
+        number -= 8;
+    }
+
+    // clean up any remaining
+    while (number-- > 0)
+        *cPtr++ = *aPtr++ * (*scalar);
+}
+#endif /* LV_HAVE_GENERIC */
+
+#ifdef LV_HAVE_SSE3
+#include <pmmintrin.h>
+
+static inline void volk_32fc_s32fc_multiply2_32fc_u_sse3(lv_32fc_t* cVector,
+                                                         const lv_32fc_t* aVector,
+                                                         const lv_32fc_t* scalar,
+                                                         unsigned int num_points)
 {
     unsigned int number = 0;
-    unsigned int i = 0;
-    const unsigned int quarterPoints = num_points / 4;
-    unsigned int isodd = num_points & 3;
-    __m256 x, yl, yh, z, tmp1, tmp2;
+    const unsigned int halfPoints = num_points / 2;
+
+    __m128 x, yl, yh, z, tmp1, tmp2;
     lv_32fc_t* c = cVector;
     const lv_32fc_t* a = aVector;
 
     // Set up constant scalar vector
-    yl = _mm256_set1_ps(lv_creal(*scalar));
-    yh = _mm256_set1_ps(lv_cimag(*scalar));
+    yl = _mm_set_ps1(lv_creal(*scalar));
+    yh = _mm_set_ps1(lv_cimag(*scalar));
 
-    for (; number < quarterPoints; number++) {
-        x = _mm256_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+    for (; number < halfPoints; number++) {
 
-        tmp1 = x;
+        x = _mm_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
 
-        x = _mm256_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
+        tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
 
-        tmp2 = _mm256_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
+        x = _mm_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
 
-        z = _mm256_fmaddsub_ps(
-            tmp1, yl, tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
+        tmp2 = _mm_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
 
-        _mm256_storeu_ps((float*)c, z); // Store the results back into the C container
+        z = _mm_addsub_ps(tmp1,
+                          tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
 
-        a += 4;
-        c += 4;
+        _mm_storeu_ps((float*)c, z); // Store the results back into the C container
+
+        a += 2;
+        c += 2;
     }
 
-    for (i = num_points - isodd; i < num_points; i++) {
-        *c++ = (*a++) * (*scalar);
+    if ((num_points % 2) != 0) {
+        *c = (*a) * (*scalar);
     }
 }
-#endif /* LV_HAVE_AVX && LV_HAVE_FMA */
+#endif /* LV_HAVE_SSE3 */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -156,94 +186,10 @@ static inline void volk_32fc_s32fc_multiply2_32fc_u_avx(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_AVX */
 
-#ifdef LV_HAVE_SSE3
-#include <pmmintrin.h>
-
-static inline void volk_32fc_s32fc_multiply2_32fc_u_sse3(lv_32fc_t* cVector,
-                                                         const lv_32fc_t* aVector,
-                                                         const lv_32fc_t* scalar,
-                                                         unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_points / 2;
-
-    __m128 x, yl, yh, z, tmp1, tmp2;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-
-    // Set up constant scalar vector
-    yl = _mm_set_ps1(lv_creal(*scalar));
-    yh = _mm_set_ps1(lv_cimag(*scalar));
-
-    for (; number < halfPoints; number++) {
-
-        x = _mm_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-
-        tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-        x = _mm_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm_addsub_ps(tmp1,
-                          tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        _mm_storeu_ps((float*)c, z); // Store the results back into the C container
-
-        a += 2;
-        c += 2;
-    }
-
-    if ((num_points % 2) != 0) {
-        *c = (*a) * (*scalar);
-    }
-}
-#endif /* LV_HAVE_SSE */
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_s32fc_multiply2_32fc_generic(lv_32fc_t* cVector,
-                                                          const lv_32fc_t* aVector,
-                                                          const lv_32fc_t* scalar,
-                                                          unsigned int num_points)
-{
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    unsigned int number = num_points;
-
-    // unwrap loop
-    while (number >= 8) {
-        *cPtr++ = (*aPtr++) * (*scalar);
-        *cPtr++ = (*aPtr++) * (*scalar);
-        *cPtr++ = (*aPtr++) * (*scalar);
-        *cPtr++ = (*aPtr++) * (*scalar);
-        *cPtr++ = (*aPtr++) * (*scalar);
-        *cPtr++ = (*aPtr++) * (*scalar);
-        *cPtr++ = (*aPtr++) * (*scalar);
-        *cPtr++ = (*aPtr++) * (*scalar);
-        number -= 8;
-    }
-
-    // clean up any remaining
-    while (number-- > 0)
-        *cPtr++ = *aPtr++ * (*scalar);
-}
-#endif /* LV_HAVE_GENERIC */
-
-
-#endif /* INCLUDED_volk_32fc_x2_multiply2_32fc_u_H */
-#ifndef INCLUDED_volk_32fc_s32fc_multiply2_32fc_a_H
-#define INCLUDED_volk_32fc_s32fc_multiply2_32fc_a_H
-
-#include <float.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <volk/volk_complex.h>
-
 #if LV_HAVE_AVX && LV_HAVE_FMA
 #include <immintrin.h>
 
-static inline void volk_32fc_s32fc_multiply2_32fc_a_avx_fma(lv_32fc_t* cVector,
+static inline void volk_32fc_s32fc_multiply2_32fc_u_avx_fma(lv_32fc_t* cVector,
                                                             const lv_32fc_t* aVector,
                                                             const lv_32fc_t* scalar,
                                                             unsigned int num_points)
@@ -261,7 +207,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_a_avx_fma(lv_32fc_t* cVector,
     yh = _mm256_set1_ps(lv_cimag(*scalar));
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        x = _mm256_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
 
         tmp1 = x;
 
@@ -272,7 +218,7 @@ static inline void volk_32fc_s32fc_multiply2_32fc_a_avx_fma(lv_32fc_t* cVector,
         z = _mm256_fmaddsub_ps(
             tmp1, yl, tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
 
-        _mm256_store_ps((float*)c, z); // Store the results back into the C container
+        _mm256_storeu_ps((float*)c, z); // Store the results back into the C container
 
         a += 4;
         c += 4;
@@ -283,95 +229,6 @@ static inline void volk_32fc_s32fc_multiply2_32fc_a_avx_fma(lv_32fc_t* cVector,
     }
 }
 #endif /* LV_HAVE_AVX && LV_HAVE_FMA */
-
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void volk_32fc_s32fc_multiply2_32fc_a_avx(lv_32fc_t* cVector,
-                                                        const lv_32fc_t* aVector,
-                                                        const lv_32fc_t* scalar,
-                                                        unsigned int num_points)
-{
-    unsigned int number = 0;
-    unsigned int i = 0;
-    const unsigned int quarterPoints = num_points / 4;
-    unsigned int isodd = num_points & 3;
-    __m256 x, yl, yh, z, tmp1, tmp2;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-
-    // Set up constant scalar vector
-    yl = _mm256_set1_ps(lv_creal(*scalar));
-    yh = _mm256_set1_ps(lv_cimag(*scalar));
-
-    for (; number < quarterPoints; number++) {
-        x = _mm256_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-
-        tmp1 = _mm256_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-        x = _mm256_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm256_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm256_addsub_ps(tmp1,
-                             tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        _mm256_store_ps((float*)c, z); // Store the results back into the C container
-
-        a += 4;
-        c += 4;
-    }
-
-    for (i = num_points - isodd; i < num_points; i++) {
-        *c++ = (*a++) * (*scalar);
-    }
-}
-#endif /* LV_HAVE_AVX */
-
-#ifdef LV_HAVE_SSE3
-#include <pmmintrin.h>
-
-static inline void volk_32fc_s32fc_multiply2_32fc_a_sse3(lv_32fc_t* cVector,
-                                                         const lv_32fc_t* aVector,
-                                                         const lv_32fc_t* scalar,
-                                                         unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_points / 2;
-
-    __m128 x, yl, yh, z, tmp1, tmp2;
-    lv_32fc_t* c = cVector;
-    const lv_32fc_t* a = aVector;
-
-    // Set up constant scalar vector
-    yl = _mm_set_ps1(lv_creal(*scalar));
-    yh = _mm_set_ps1(lv_cimag(*scalar));
-
-    for (; number < halfPoints; number++) {
-
-        x = _mm_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-
-        tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-        x = _mm_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm_addsub_ps(tmp1,
-                          tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        _mm_store_ps((float*)c, z); // Store the results back into the C container
-
-        a += 2;
-        c += 2;
-    }
-
-    if ((num_points % 2) != 0) {
-        *c = (*a) * (*scalar);
-    }
-}
-#endif /* LV_HAVE_SSE */
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
@@ -472,4 +329,145 @@ static inline void volk_32fc_s32fc_multiply2_32fc_neonv8(lv_32fc_t* cVector,
 
 #endif /* LV_HAVE_NEONV8 */
 
-#endif /* INCLUDED_volk_32fc_x2_multiply2_32fc_a_H */
+#endif /* INCLUDED_volk_32fc_s32fc_multiply2_32fc_u_H */
+#ifndef INCLUDED_volk_32fc_s32fc_multiply2_32fc_a_H
+#define INCLUDED_volk_32fc_s32fc_multiply2_32fc_a_H
+
+#include <float.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <volk/volk_complex.h>
+
+#ifdef LV_HAVE_SSE3
+#include <pmmintrin.h>
+
+static inline void volk_32fc_s32fc_multiply2_32fc_a_sse3(lv_32fc_t* cVector,
+                                                         const lv_32fc_t* aVector,
+                                                         const lv_32fc_t* scalar,
+                                                         unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int halfPoints = num_points / 2;
+
+    __m128 x, yl, yh, z, tmp1, tmp2;
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = aVector;
+
+    // Set up constant scalar vector
+    yl = _mm_set_ps1(lv_creal(*scalar));
+    yh = _mm_set_ps1(lv_cimag(*scalar));
+
+    for (; number < halfPoints; number++) {
+
+        x = _mm_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+
+        tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
+
+        x = _mm_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
+
+        tmp2 = _mm_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
+
+        z = _mm_addsub_ps(tmp1,
+                          tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
+
+        _mm_store_ps((float*)c, z); // Store the results back into the C container
+
+        a += 2;
+        c += 2;
+    }
+
+    if ((num_points % 2) != 0) {
+        *c = (*a) * (*scalar);
+    }
+}
+#endif /* LV_HAVE_SSE3 */
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_32fc_s32fc_multiply2_32fc_a_avx(lv_32fc_t* cVector,
+                                                        const lv_32fc_t* aVector,
+                                                        const lv_32fc_t* scalar,
+                                                        unsigned int num_points)
+{
+    unsigned int number = 0;
+    unsigned int i = 0;
+    const unsigned int quarterPoints = num_points / 4;
+    unsigned int isodd = num_points & 3;
+    __m256 x, yl, yh, z, tmp1, tmp2;
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = aVector;
+
+    // Set up constant scalar vector
+    yl = _mm256_set1_ps(lv_creal(*scalar));
+    yh = _mm256_set1_ps(lv_cimag(*scalar));
+
+    for (; number < quarterPoints; number++) {
+        x = _mm256_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+
+        tmp1 = _mm256_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
+
+        x = _mm256_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
+
+        tmp2 = _mm256_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
+
+        z = _mm256_addsub_ps(tmp1,
+                             tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
+
+        _mm256_store_ps((float*)c, z); // Store the results back into the C container
+
+        a += 4;
+        c += 4;
+    }
+
+    for (i = num_points - isodd; i < num_points; i++) {
+        *c++ = (*a++) * (*scalar);
+    }
+}
+#endif /* LV_HAVE_AVX */
+
+#if LV_HAVE_AVX && LV_HAVE_FMA
+#include <immintrin.h>
+
+static inline void volk_32fc_s32fc_multiply2_32fc_a_avx_fma(lv_32fc_t* cVector,
+                                                            const lv_32fc_t* aVector,
+                                                            const lv_32fc_t* scalar,
+                                                            unsigned int num_points)
+{
+    unsigned int number = 0;
+    unsigned int i = 0;
+    const unsigned int quarterPoints = num_points / 4;
+    unsigned int isodd = num_points & 3;
+    __m256 x, yl, yh, z, tmp1, tmp2;
+    lv_32fc_t* c = cVector;
+    const lv_32fc_t* a = aVector;
+
+    // Set up constant scalar vector
+    yl = _mm256_set1_ps(lv_creal(*scalar));
+    yh = _mm256_set1_ps(lv_cimag(*scalar));
+
+    for (; number < quarterPoints; number++) {
+        x = _mm256_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+
+        tmp1 = x;
+
+        x = _mm256_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
+
+        tmp2 = _mm256_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
+
+        z = _mm256_fmaddsub_ps(
+            tmp1, yl, tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
+
+        _mm256_store_ps((float*)c, z); // Store the results back into the C container
+
+        a += 4;
+        c += 4;
+    }
+
+    for (i = num_points - isodd; i < num_points; i++) {
+        *c++ = (*a++) * (*scalar);
+    }
+}
+#endif /* LV_HAVE_AVX && LV_HAVE_FMA */
+
+#endif /* INCLUDED_volk_32fc_s32fc_multiply2_32fc_a_H */
