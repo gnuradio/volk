@@ -39,8 +39,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_a_H
-#define INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_a_H
+#ifndef INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_u_H
+#define INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_u_H
 
 #include <inttypes.h>
 #include <math.h>
@@ -64,5 +64,10 @@ volk_32fc_s32f_x2_power_spectral_density_32f_generic(float* logPowerOutput,
 }
 
 #endif /* LV_HAVE_GENERIC */
+
+#endif /* INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_u_H */
+
+#ifndef INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_a_H
+#define INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_a_H
 
 #endif /* INCLUDED_volk_32fc_s32f_x2_power_spectral_density_32f_a_H */
