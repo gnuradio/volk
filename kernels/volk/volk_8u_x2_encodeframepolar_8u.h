@@ -86,7 +86,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
 
     unsigned int stage = po2;
     unsigned char* frame_ptr = frame;
-    unsigned char* temp_ptr = temp;
+    const unsigned char* temp_ptr = temp;
 
     unsigned int frame_half = frame_size >> 1;
     unsigned int num_branches = 1;
@@ -126,9 +126,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
             // for stage = 5 a branch has 32 elements. So upper stages are even bigger.
             for (branch = 0; branch < num_branches; ++branch) {
                 for (bit = 0; bit < frame_half; bit += 16) {
-                    r_temp0 = _mm_loadu_si128((__m128i*)temp_ptr);
+                    r_temp0 = _mm_loadu_si128((const __m128i*)temp_ptr);
                     temp_ptr += 16;
-                    r_temp1 = _mm_loadu_si128((__m128i*)temp_ptr);
+                    r_temp1 = _mm_loadu_si128((const __m128i*)temp_ptr);
                     temp_ptr += 16;
 
                     shifted = _mm_srli_si128(r_temp0, 1);
@@ -221,7 +221,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
                                              0xFF);
 
     for (branch = 0; branch < num_branches; ++branch) {
-        r_temp0 = _mm_loadu_si128((__m128i*)temp_ptr);
+        r_temp0 = _mm_loadu_si128((const __m128i*)temp_ptr);
 
         // prefetch next chunk
         temp_ptr += 16;
@@ -270,7 +270,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
 
     unsigned int stage = po2;
     unsigned char* frame_ptr = frame;
-    unsigned char* temp_ptr = temp;
+    const unsigned char* temp_ptr = temp;
 
     unsigned int frame_half = frame_size >> 1;
     unsigned int num_branches = 1;
@@ -378,9 +378,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
                     if ((frame_half - bit) <
                         32) // if only 16 bits remaining in frame, not 32
                     {
-                        r_temp2 = _mm_loadu_si128((__m128i*)temp_ptr);
+                        r_temp2 = _mm_loadu_si128((const __m128i*)temp_ptr);
                         temp_ptr += 16;
-                        r_temp3 = _mm_loadu_si128((__m128i*)temp_ptr);
+                        r_temp3 = _mm_loadu_si128((const __m128i*)temp_ptr);
                         temp_ptr += 16;
 
                         shifted2 = _mm_srli_si128(r_temp2, 1);
@@ -401,9 +401,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
                         frame_ptr += 16;
                         break;
                     }
-                    r_temp0 = _mm256_loadu_si256((__m256i*)temp_ptr);
+                    r_temp0 = _mm256_loadu_si256((const __m256i*)temp_ptr);
                     temp_ptr += 32;
-                    r_temp1 = _mm256_loadu_si256((__m256i*)temp_ptr);
+                    r_temp1 = _mm256_loadu_si256((const __m256i*)temp_ptr);
                     temp_ptr += 32;
 
                     shifted = _mm256_srli_si256(r_temp0, 1); // operate on 128 bit lanes
@@ -577,7 +577,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
                                                 0xFF);
 
     for (branch = 0; branch < num_branches / 2; ++branch) {
-        r_temp0 = _mm256_loadu_si256((__m256i*)temp_ptr);
+        r_temp0 = _mm256_loadu_si256((const __m256i*)temp_ptr);
 
         // prefetch next chunk
         temp_ptr += 32;
@@ -610,6 +610,88 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
 }
 #endif /* LV_HAVE_AVX2 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_8u_x2_encodeframepolar_8u_rvv(unsigned char* frame,
+                                                      unsigned char* temp,
+                                                      unsigned int frame_size)
+{
+    unsigned int stage = log2_of_power_of_2(frame_size);
+    unsigned int frame_half = frame_size >> 1;
+    unsigned int num_branches = 1;
+
+    while (stage) {
+        // encode stage
+        if (frame_half < 8) {
+            encodepolar_single_stage(frame, temp, num_branches, frame_half);
+        } else {
+            const unsigned char* in = temp;
+            unsigned char* out = frame;
+            for (size_t branch = 0; branch < num_branches; ++branch) {
+                size_t n = frame_half;
+                for (size_t vl; n > 0; n -= vl, in += vl * 2, out += vl) {
+                    vl = __riscv_vsetvl_e8m1(n);
+                    vuint16m2_t vc = __riscv_vle16_v_u16m2((const uint16_t*)in, vl);
+                    vuint8m1_t v1 = __riscv_vnsrl(vc, 0, vl);
+                    vuint8m1_t v2 = __riscv_vnsrl(vc, 8, vl);
+                    __riscv_vse8(out, __riscv_vxor(v1, v2, vl), vl);
+                    __riscv_vse8(out + frame_half, v2, vl);
+                }
+                out += frame_half;
+            }
+        }
+        memcpy(temp, frame, sizeof(unsigned char) * frame_size);
+
+        // update all the parameters.
+        num_branches = num_branches << 1;
+        frame_half = frame_half >> 1;
+        --stage;
+    }
+}
+#endif /* LV_HAVE_RVV */
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_8u_x2_encodeframepolar_8u_rvvseg(unsigned char* frame,
+                                                         unsigned char* temp,
+                                                         unsigned int frame_size)
+{
+    unsigned int stage = log2_of_power_of_2(frame_size);
+    unsigned int frame_half = frame_size >> 1;
+    unsigned int num_branches = 1;
+
+    while (stage) {
+        // encode stage
+        if (frame_half < 8) {
+            encodepolar_single_stage(frame, temp, num_branches, frame_half);
+        } else {
+            const unsigned char* in = temp;
+            unsigned char* out = frame;
+            for (size_t branch = 0; branch < num_branches; ++branch) {
+                size_t n = frame_half;
+                for (size_t vl; n > 0; n -= vl, in += vl * 2, out += vl) {
+                    vl = __riscv_vsetvl_e8m1(n);
+                    vuint8m1x2_t vc = __riscv_vlseg2e8_v_u8m1x2(in, vl);
+                    vuint8m1_t v1 = __riscv_vget_u8m1(vc, 0);
+                    vuint8m1_t v2 = __riscv_vget_u8m1(vc, 1);
+                    __riscv_vse8(out, __riscv_vxor(v1, v2, vl), vl);
+                    __riscv_vse8(out + frame_half, v2, vl);
+                }
+                out += frame_half;
+            }
+        }
+        memcpy(temp, frame, sizeof(unsigned char) * frame_size);
+
+        // update all the parameters.
+        num_branches = num_branches << 1;
+        frame_half = frame_half >> 1;
+        --stage;
+    }
+}
+#endif /* LV_HAVE_RVVSEG */
+
 #endif /* VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_ */
 
 #ifndef VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_A_H_
@@ -631,7 +713,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
 
     unsigned int stage = po2;
     unsigned char* frame_ptr = frame;
-    unsigned char* temp_ptr = temp;
+    const unsigned char* temp_ptr = temp;
 
     unsigned int frame_half = frame_size >> 1;
     unsigned int num_branches = 1;
@@ -671,9 +753,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
             // for stage = 5 a branch has 32 elements. So upper stages are even bigger.
             for (branch = 0; branch < num_branches; ++branch) {
                 for (bit = 0; bit < frame_half; bit += 16) {
-                    r_temp0 = _mm_load_si128((__m128i*)temp_ptr);
+                    r_temp0 = _mm_load_si128((const __m128i*)temp_ptr);
                     temp_ptr += 16;
-                    r_temp1 = _mm_load_si128((__m128i*)temp_ptr);
+                    r_temp1 = _mm_load_si128((const __m128i*)temp_ptr);
                     temp_ptr += 16;
 
                     shifted = _mm_srli_si128(r_temp0, 1);
@@ -766,7 +848,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
                                              0xFF);
 
     for (branch = 0; branch < num_branches; ++branch) {
-        r_temp0 = _mm_load_si128((__m128i*)temp_ptr);
+        r_temp0 = _mm_load_si128((const __m128i*)temp_ptr);
 
         // prefetch next chunk
         temp_ptr += 16;
@@ -814,7 +896,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
 
     unsigned int stage = po2;
     unsigned char* frame_ptr = frame;
-    unsigned char* temp_ptr = temp;
+    const unsigned char* temp_ptr = temp;
 
     unsigned int frame_half = frame_size >> 1;
     unsigned int num_branches = 1;
@@ -922,9 +1004,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
                     if ((frame_half - bit) <
                         32) // if only 16 bits remaining in frame, not 32
                     {
-                        r_temp2 = _mm_load_si128((__m128i*)temp_ptr);
+                        r_temp2 = _mm_load_si128((const __m128i*)temp_ptr);
                         temp_ptr += 16;
-                        r_temp3 = _mm_load_si128((__m128i*)temp_ptr);
+                        r_temp3 = _mm_load_si128((const __m128i*)temp_ptr);
                         temp_ptr += 16;
 
                         shifted2 = _mm_srli_si128(r_temp2, 1);
@@ -945,9 +1027,9 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
                         frame_ptr += 16;
                         break;
                     }
-                    r_temp0 = _mm256_load_si256((__m256i*)temp_ptr);
+                    r_temp0 = _mm256_load_si256((const __m256i*)temp_ptr);
                     temp_ptr += 32;
-                    r_temp1 = _mm256_load_si256((__m256i*)temp_ptr);
+                    r_temp1 = _mm256_load_si256((const __m256i*)temp_ptr);
                     temp_ptr += 32;
 
                     shifted = _mm256_srli_si256(r_temp0, 1); // operate on 128 bit lanes
@@ -1121,7 +1203,7 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
                                                 0xFF);
 
     for (branch = 0; branch < num_branches / 2; ++branch) {
-        r_temp0 = _mm256_load_si256((__m256i*)temp_ptr);
+        r_temp0 = _mm256_load_si256((const __m256i*)temp_ptr);
 
         // prefetch next chunk
         temp_ptr += 32;
@@ -1152,85 +1234,5 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
     }
 }
 #endif /* LV_HAVE_AVX2 */
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-
-static inline void volk_8u_x2_encodeframepolar_8u_rvv(unsigned char* frame,
-                                                      unsigned char* temp,
-                                                      unsigned int frame_size)
-{
-    unsigned int stage = log2_of_power_of_2(frame_size);
-    unsigned int frame_half = frame_size >> 1;
-    unsigned int num_branches = 1;
-
-    while (stage) {
-        // encode stage
-        if (frame_half < 8) {
-            encodepolar_single_stage(frame, temp, num_branches, frame_half);
-        } else {
-            unsigned char *in = temp, *out = frame;
-            for (size_t branch = 0; branch < num_branches; ++branch) {
-                size_t n = frame_half;
-                for (size_t vl; n > 0; n -= vl, in += vl * 2, out += vl) {
-                    vl = __riscv_vsetvl_e8m1(n);
-                    vuint16m2_t vc = __riscv_vle16_v_u16m2((uint16_t*)in, vl);
-                    vuint8m1_t v1 = __riscv_vnsrl(vc, 0, vl);
-                    vuint8m1_t v2 = __riscv_vnsrl(vc, 8, vl);
-                    __riscv_vse8(out, __riscv_vxor(v1, v2, vl), vl);
-                    __riscv_vse8(out + frame_half, v2, vl);
-                }
-                out += frame_half;
-            }
-        }
-        memcpy(temp, frame, sizeof(unsigned char) * frame_size);
-
-        // update all the parameters.
-        num_branches = num_branches << 1;
-        frame_half = frame_half >> 1;
-        --stage;
-    }
-}
-#endif /*LV_HAVE_RVV*/
-
-#ifdef LV_HAVE_RVVSEG
-#include <riscv_vector.h>
-
-static inline void volk_8u_x2_encodeframepolar_8u_rvvseg(unsigned char* frame,
-                                                         unsigned char* temp,
-                                                         unsigned int frame_size)
-{
-    unsigned int stage = log2_of_power_of_2(frame_size);
-    unsigned int frame_half = frame_size >> 1;
-    unsigned int num_branches = 1;
-
-    while (stage) {
-        // encode stage
-        if (frame_half < 8) {
-            encodepolar_single_stage(frame, temp, num_branches, frame_half);
-        } else {
-            unsigned char *in = temp, *out = frame;
-            for (size_t branch = 0; branch < num_branches; ++branch) {
-                size_t n = frame_half;
-                for (size_t vl; n > 0; n -= vl, in += vl * 2, out += vl) {
-                    vl = __riscv_vsetvl_e8m1(n);
-                    vuint8m1x2_t vc = __riscv_vlseg2e8_v_u8m1x2(in, vl);
-                    vuint8m1_t v1 = __riscv_vget_u8m1(vc, 0);
-                    vuint8m1_t v2 = __riscv_vget_u8m1(vc, 1);
-                    __riscv_vse8(out, __riscv_vxor(v1, v2, vl), vl);
-                    __riscv_vse8(out + frame_half, v2, vl);
-                }
-                out += frame_half;
-            }
-        }
-        memcpy(temp, frame, sizeof(unsigned char) * frame_size);
-
-        // update all the parameters.
-        num_branches = num_branches << 1;
-        frame_half = frame_half >> 1;
-        --stage;
-    }
-}
-#endif /*LV_HAVE_RVVSEG*/
 
 #endif /* VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_A_H_ */
