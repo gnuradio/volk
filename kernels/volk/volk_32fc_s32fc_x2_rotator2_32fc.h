@@ -65,9 +65,7 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_32fc_s32fc_rotator2_32fc_a_H
-#define INCLUDED_volk_32fc_s32fc_rotator2_32fc_a_H
-
+/* TODO: volk_32fc_s32fc_x2_rotator2_32fc_a_avx uses unaligned loads/stores but is named _a_ */
 
 #include <math.h>
 #include <stdio.h>
@@ -77,6 +75,10 @@
 #define ROTATOR_RELOAD_2 (ROTATOR_RELOAD / 2)
 #define ROTATOR_RELOAD_4 (ROTATOR_RELOAD / 4)
 #define ROTATOR_RELOAD_8 (ROTATOR_RELOAD / 8)
+
+
+#ifndef INCLUDED_volk_32fc_s32fc_x2_rotator2_32fc_u_H
+#define INCLUDED_volk_32fc_s32fc_x2_rotator2_32fc_u_H
 
 
 #ifdef LV_HAVE_GENERIC
@@ -110,157 +112,6 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_generic(lv_32fc_t* outVector
 #endif /* LV_HAVE_GENERIC */
 
 
-#ifdef LV_HAVE_NEON
-#include <arm_neon.h>
-#include <volk/volk_neon_intrinsics.h>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-/*!
- * \brief NEON implementation with angle-based resync for numerical stability.
- *
- * Uses Kahan summation for angle accumulation and periodic sincos resync
- * to eliminate accumulated phase error. Suitable for billion-sample stability.
- */
-static inline void volk_32fc_s32fc_x2_rotator2_32fc_neon(lv_32fc_t* outVector,
-                                                         const lv_32fc_t* inVector,
-                                                         const lv_32fc_t* phase_inc,
-                                                         lv_32fc_t* phase,
-                                                         unsigned int num_points)
-{
-    lv_32fc_t* outputVectorPtr = outVector;
-    const lv_32fc_t* inputVectorPtr = inVector;
-
-    // Extract angles using double precision
-    const double initial_angle =
-        atan2((double)lv_cimag(*phase), (double)lv_creal(*phase));
-    const double delta_angle =
-        atan2((double)lv_cimag(*phase_inc), (double)lv_creal(*phase_inc));
-
-    // Kahan summation state for angle accumulation
-    double angle_sum = initial_angle;
-    double angle_c = 0.0; // Compensation for lost low-order bits
-
-    // Precompute block increment
-    const double block_delta = (double)ROTATOR_RELOAD * delta_angle;
-
-    // Compute incr = phase_inc^4 from exact angle (more accurate than multiplication)
-    const double delta4 = 4.0 * delta_angle;
-    lv_32fc_t incr = lv_cmake((float)cos(delta4), (float)sin(delta4));
-
-    float32x4x2_t input_vec;
-    float32x4x2_t output_vec;
-    lv_32fc_t phasePtr[4];
-
-    const lv_32fc_t incrPtr[4] = { incr, incr, incr, incr };
-    const float32x4x2_t incr_vec = vld2q_f32((float*)incrPtr);
-    float32x4x2_t phase_vec;
-
-// Helper macro for angle reduction
-#define REDUCE_ANGLE(a)              \
-    do {                             \
-        (a) = fmod((a), 2.0 * M_PI); \
-        if ((a) > M_PI)              \
-            (a) -= 2.0 * M_PI;       \
-        else if ((a) < -M_PI)        \
-            (a) += 2.0 * M_PI;       \
-    } while (0)
-
-    // Initialize phase vector from exact angles
-    for (unsigned int k = 0; k < 4; ++k) {
-        double a = angle_sum + (double)k * delta_angle;
-        REDUCE_ANGLE(a);
-        phasePtr[k] = lv_cmake((float)cos(a), (float)sin(a));
-    }
-    phase_vec = vld2q_f32((float*)phasePtr);
-
-    unsigned int i, j;
-
-    // Main loop with periodic resync
-    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
-        // Inner loop: use fast SIMD multiply
-        for (j = 0; j < ROTATOR_RELOAD_4; j++) {
-            input_vec = vld2q_f32((float*)inputVectorPtr);
-            __VOLK_PREFETCH(inputVectorPtr + 4);
-
-            // Rotate
-            output_vec = _vmultiply_complexq_f32(input_vec, phase_vec);
-            // Increase phase
-            phase_vec = _vmultiply_complexq_f32(phase_vec, incr_vec);
-            // Store output
-            vst2q_f32((float*)outputVectorPtr, output_vec);
-
-            outputVectorPtr += 4;
-            inputVectorPtr += 4;
-        }
-
-        // Advance angle using Kahan summation (compensated for rounding error)
-        {
-            double y = block_delta - angle_c;
-            double t = angle_sum + y;
-            angle_c = (t - angle_sum) - y;
-            angle_sum = t;
-        }
-
-        // Resync: recompute phase from accumulated angle (eliminates drift)
-        for (unsigned int k = 0; k < 4; ++k) {
-            double a = angle_sum + (double)k * delta_angle;
-            REDUCE_ANGLE(a);
-            phasePtr[k] = lv_cmake((float)cos(a), (float)sin(a));
-        }
-        phase_vec = vld2q_f32((float*)phasePtr);
-    }
-
-    // Handle remainder
-    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; i++) {
-        input_vec = vld2q_f32((float*)inputVectorPtr);
-        __VOLK_PREFETCH(inputVectorPtr + 4);
-
-        output_vec = _vmultiply_complexq_f32(input_vec, phase_vec);
-        phase_vec = _vmultiply_complexq_f32(phase_vec, incr_vec);
-        vst2q_f32((float*)outputVectorPtr, output_vec);
-
-        outputVectorPtr += 4;
-        inputVectorPtr += 4;
-
-        // Update angle for remainder
-        {
-            double y = (4.0 * delta_angle) - angle_c;
-            double t = angle_sum + y;
-            angle_c = (t - angle_sum) - y;
-            angle_sum = t;
-        }
-    }
-
-    // Final phase output from exact angle
-    {
-        double a = angle_sum;
-        REDUCE_ANGLE(a);
-        *phase = lv_cmake((float)cos(a), (float)sin(a));
-    }
-
-    // Scalar remainder
-    for (i = 0; i < num_points % 4; i++) {
-        *outputVectorPtr++ = *inputVectorPtr++ * (*phase);
-        {
-            double y = delta_angle - angle_c;
-            double t = angle_sum + y;
-            angle_c = (t - angle_sum) - y;
-            angle_sum = t;
-        }
-        double a = angle_sum;
-        REDUCE_ANGLE(a);
-        *phase = lv_cmake((float)cos(a), (float)sin(a));
-    }
-
-#undef REDUCE_ANGLE
-}
-
-#endif /* LV_HAVE_NEON */
-
-
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 #include <volk/volk_avx_intrinsics.h>
@@ -268,153 +119,6 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_neon(lv_32fc_t* outVector,
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-
-/*!
- * \brief AVX implementation with angle-based resync for numerical stability.
- *
- * Uses Kahan summation for angle accumulation and periodic sincos resync
- * to eliminate accumulated phase error. Suitable for billion-sample stability.
- */
-static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx(lv_32fc_t* outVector,
-                                                          const lv_32fc_t* inVector,
-                                                          const lv_32fc_t* phase_inc,
-                                                          lv_32fc_t* phase,
-                                                          unsigned int num_points)
-{
-    lv_32fc_t* cPtr = outVector;
-    const lv_32fc_t* aPtr = inVector;
-
-    // Extract angles using double precision
-    const double initial_angle =
-        atan2((double)lv_cimag(*phase), (double)lv_creal(*phase));
-    const double delta_angle =
-        atan2((double)lv_cimag(*phase_inc), (double)lv_creal(*phase_inc));
-
-    // Kahan summation state for angle accumulation
-    double angle_sum = initial_angle;
-    double angle_c = 0.0; // Compensation for lost low-order bits
-
-    // Precompute block increment
-    const double block_delta = (double)ROTATOR_RELOAD * delta_angle;
-
-    // Compute incr = phase_inc^4 from exact angle (more accurate than multiplication)
-    const double delta4 = 4.0 * delta_angle;
-    lv_32fc_t incr = lv_cmake((float)cos(delta4), (float)sin(delta4));
-
-    __m256 aVal, phase_Val, z;
-    lv_32fc_t phase_Ptr[4];
-
-    const __m256 inc_Val = _mm256_set_ps(lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr));
-
-// Helper macro for angle reduction
-#define REDUCE_ANGLE(a)              \
-    do {                             \
-        (a) = fmod((a), 2.0 * M_PI); \
-        if ((a) > M_PI)              \
-            (a) -= 2.0 * M_PI;       \
-        else if ((a) < -M_PI)        \
-            (a) += 2.0 * M_PI;       \
-    } while (0)
-
-    // Initialize phase vector from exact angles
-    for (unsigned int k = 0; k < 4; ++k) {
-        double a = angle_sum + (double)k * delta_angle;
-        REDUCE_ANGLE(a);
-        phase_Ptr[k] = lv_cmake((float)cos(a), (float)sin(a));
-    }
-    phase_Val = _mm256_loadu_ps((float*)phase_Ptr);
-
-    unsigned int i, j;
-
-    // Main loop with periodic resync
-    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
-        // Inner loop: use fast SIMD multiply
-        for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
-            aVal = _mm256_loadu_ps((float*)aPtr);
-
-            z = _mm256_complexmul_ps(aVal, phase_Val);
-            phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
-
-            _mm256_storeu_ps((float*)cPtr, z);
-
-            aPtr += 4;
-            cPtr += 4;
-        }
-
-        // Advance angle using Kahan summation (compensated for rounding error)
-        {
-            double y = block_delta - angle_c;
-            double t = angle_sum + y;
-            angle_c = (t - angle_sum) - y;
-            angle_sum = t;
-        }
-
-        // Resync: recompute phase from accumulated angle (eliminates drift)
-        for (unsigned int k = 0; k < 4; ++k) {
-            double a = angle_sum + (double)k * delta_angle;
-            REDUCE_ANGLE(a);
-            phase_Ptr[k] = lv_cmake((float)cos(a), (float)sin(a));
-        }
-        phase_Val = _mm256_loadu_ps((float*)phase_Ptr);
-    }
-
-    // Handle remainder
-    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
-        aVal = _mm256_loadu_ps((float*)aPtr);
-
-        z = _mm256_complexmul_ps(aVal, phase_Val);
-        phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
-
-        _mm256_storeu_ps((float*)cPtr, z);
-
-        aPtr += 4;
-        cPtr += 4;
-
-        // Update angle for remainder
-        {
-            double y = (4.0 * delta_angle) - angle_c;
-            double t = angle_sum + y;
-            angle_c = (t - angle_sum) - y;
-            angle_sum = t;
-        }
-    }
-
-    // Final phase output from exact angle
-    {
-        double a = angle_sum;
-        REDUCE_ANGLE(a);
-        *phase = lv_cmake((float)cos(a), (float)sin(a));
-    }
-
-    // Scalar remainder
-    for (i = 0; i < num_points % 4; ++i) {
-        *cPtr++ = *aPtr++ * (*phase);
-        {
-            double y = delta_angle - angle_c;
-            double t = angle_sum + y;
-            angle_c = (t - angle_sum) - y;
-            angle_sum = t;
-        }
-        double a = angle_sum;
-        REDUCE_ANGLE(a);
-        *phase = lv_cmake((float)cos(a), (float)sin(a));
-    }
-
-#undef REDUCE_ANGLE
-}
-
-#endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
 
 /*!
  * \brief Unaligned AVX implementation with angle-based resync for numerical stability.
@@ -482,7 +186,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx(lv_32fc_t* outVector,
     // Main loop with periodic resync
     for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
         for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
-            aVal = _mm256_loadu_ps((float*)aPtr);
+            aVal = _mm256_loadu_ps((const float*)aPtr);
             z = _mm256_complexmul_ps(aVal, phase_Val);
             phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
             _mm256_storeu_ps((float*)cPtr, z);
@@ -509,7 +213,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx(lv_32fc_t* outVector,
 
     // Handle remainder
     for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
-        aVal = _mm256_loadu_ps((float*)aPtr);
+        aVal = _mm256_loadu_ps((const float*)aPtr);
         z = _mm256_complexmul_ps(aVal, phase_Val);
         phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
         _mm256_storeu_ps((float*)cPtr, z);
@@ -555,153 +259,9 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx(lv_32fc_t* outVector,
 #include <immintrin.h>
 #include <volk/volk_avx512_intrinsics.h>
 
-/*!
- * \brief Aligned AVX512F implementation with angle-based resync for numerical stability.
- *
- * Uses Kahan summation for angle accumulation and periodic sincos resync
- * to eliminate accumulated phase error. Suitable for billion-sample stability.
- */
-static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx512f(lv_32fc_t* outVector,
-                                                              const lv_32fc_t* inVector,
-                                                              const lv_32fc_t* phase_inc,
-                                                              lv_32fc_t* phase,
-                                                              unsigned int num_points)
-{
-    lv_32fc_t* cPtr = outVector;
-    const lv_32fc_t* aPtr = inVector;
-
-    // Extract angles using double precision
-    const double initial_angle =
-        atan2((double)lv_cimag(*phase), (double)lv_creal(*phase));
-    const double delta_angle =
-        atan2((double)lv_cimag(*phase_inc), (double)lv_creal(*phase_inc));
-
-    // Kahan summation state for angle accumulation
-    double angle_sum = initial_angle;
-    double angle_c = 0.0;
-
-    // Precompute block increment
-    const double block_delta = (double)ROTATOR_RELOAD * delta_angle;
-
-    // Compute incr = phase_inc^8 from exact angle
-    const double delta8 = 8.0 * delta_angle;
-    lv_32fc_t incr = lv_cmake((float)cos(delta8), (float)sin(delta8));
-
-    __m512 aVal, phase_Val, z;
-    __VOLK_ATTR_ALIGNED(64)
-    lv_32fc_t phase_Ptr[8];
-
-    const __m512 inc_Val = _mm512_set_ps(lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr),
-                                         lv_cimag(incr),
-                                         lv_creal(incr));
-
-#define REDUCE_ANGLE(a)              \
-    do {                             \
-        (a) = fmod((a), 2.0 * M_PI); \
-        if ((a) > M_PI)              \
-            (a) -= 2.0 * M_PI;       \
-        else if ((a) < -M_PI)        \
-            (a) += 2.0 * M_PI;       \
-    } while (0)
-
-    // Initialize phase vector from exact angles
-    for (unsigned int k = 0; k < 8; ++k) {
-        double a = angle_sum + (double)k * delta_angle;
-        REDUCE_ANGLE(a);
-        phase_Ptr[k] = lv_cmake((float)cos(a), (float)sin(a));
-    }
-    phase_Val = _mm512_load_ps((float*)phase_Ptr);
-
-    unsigned int i, j;
-
-    // Main loop with periodic resync
-    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
-        for (j = 0; j < ROTATOR_RELOAD_8; ++j) {
-            aVal = _mm512_load_ps((float*)aPtr);
-            z = _mm512_complexmul_ps(aVal, phase_Val);
-            phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
-            _mm512_store_ps((float*)cPtr, z);
-            aPtr += 8;
-            cPtr += 8;
-        }
-
-        // Advance angle using Kahan summation
-        {
-            double y = block_delta - angle_c;
-            double t = angle_sum + y;
-            angle_c = (t - angle_sum) - y;
-            angle_sum = t;
-        }
-
-        // Resync: recompute phase from accumulated angle
-        for (unsigned int k = 0; k < 8; ++k) {
-            double a = angle_sum + (double)k * delta_angle;
-            REDUCE_ANGLE(a);
-            phase_Ptr[k] = lv_cmake((float)cos(a), (float)sin(a));
-        }
-        phase_Val = _mm512_load_ps((float*)phase_Ptr);
-    }
-
-    // Handle remainder
-    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 8; ++i) {
-        aVal = _mm512_load_ps((float*)aPtr);
-        z = _mm512_complexmul_ps(aVal, phase_Val);
-        phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
-        _mm512_store_ps((float*)cPtr, z);
-        aPtr += 8;
-        cPtr += 8;
-
-        {
-            double y = (8.0 * delta_angle) - angle_c;
-            double t = angle_sum + y;
-            angle_c = (t - angle_sum) - y;
-            angle_sum = t;
-        }
-    }
-
-    // Final phase output
-    {
-        double a = angle_sum;
-        REDUCE_ANGLE(a);
-        *phase = lv_cmake((float)cos(a), (float)sin(a));
-    }
-
-    // Scalar remainder
-    for (i = 0; i < num_points % 8; ++i) {
-        *cPtr++ = *aPtr++ * (*phase);
-        {
-            double y = delta_angle - angle_c;
-            double t = angle_sum + y;
-            angle_c = (t - angle_sum) - y;
-            angle_sum = t;
-        }
-        double a = angle_sum;
-        REDUCE_ANGLE(a);
-        *phase = lv_cmake((float)cos(a), (float)sin(a));
-    }
-
-#undef REDUCE_ANGLE
-}
-
-#endif /* LV_HAVE_AVX512F */
-
-
-#ifdef LV_HAVE_AVX512F
-#include <immintrin.h>
-#include <volk/volk_avx512_intrinsics.h>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 /*!
  * \brief Unaligned AVX512F implementation with angle-based resync for numerical
@@ -769,7 +329,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx512f(lv_32fc_t* outVect
 
     for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
         for (j = 0; j < ROTATOR_RELOAD_8; ++j) {
-            aVal = _mm512_loadu_ps((float*)aPtr);
+            aVal = _mm512_loadu_ps((const float*)aPtr);
             z = _mm512_complexmul_ps(aVal, phase_Val);
             phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
             _mm512_storeu_ps((float*)cPtr, z);
@@ -793,7 +353,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx512f(lv_32fc_t* outVect
     }
 
     for (i = 0; i < (num_points % ROTATOR_RELOAD) / 8; ++i) {
-        aVal = _mm512_loadu_ps((float*)aPtr);
+        aVal = _mm512_loadu_ps((const float*)aPtr);
         z = _mm512_complexmul_ps(aVal, phase_Val);
         phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
         _mm512_storeu_ps((float*)cPtr, z);
@@ -831,6 +391,157 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_u_avx512f(lv_32fc_t* outVect
 }
 
 #endif /* LV_HAVE_AVX512F */
+
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+#include <volk/volk_neon_intrinsics.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+/*!
+ * \brief NEON implementation with angle-based resync for numerical stability.
+ *
+ * Uses Kahan summation for angle accumulation and periodic sincos resync
+ * to eliminate accumulated phase error. Suitable for billion-sample stability.
+ */
+static inline void volk_32fc_s32fc_x2_rotator2_32fc_neon(lv_32fc_t* outVector,
+                                                         const lv_32fc_t* inVector,
+                                                         const lv_32fc_t* phase_inc,
+                                                         lv_32fc_t* phase,
+                                                         unsigned int num_points)
+{
+    lv_32fc_t* outputVectorPtr = outVector;
+    const lv_32fc_t* inputVectorPtr = inVector;
+
+    // Extract angles using double precision
+    const double initial_angle =
+        atan2((double)lv_cimag(*phase), (double)lv_creal(*phase));
+    const double delta_angle =
+        atan2((double)lv_cimag(*phase_inc), (double)lv_creal(*phase_inc));
+
+    // Kahan summation state for angle accumulation
+    double angle_sum = initial_angle;
+    double angle_c = 0.0; // Compensation for lost low-order bits
+
+    // Precompute block increment
+    const double block_delta = (double)ROTATOR_RELOAD * delta_angle;
+
+    // Compute incr = phase_inc^4 from exact angle (more accurate than multiplication)
+    const double delta4 = 4.0 * delta_angle;
+    lv_32fc_t incr = lv_cmake((float)cos(delta4), (float)sin(delta4));
+
+    float32x4x2_t input_vec;
+    float32x4x2_t output_vec;
+    lv_32fc_t phasePtr[4];
+
+    const lv_32fc_t incrPtr[4] = { incr, incr, incr, incr };
+    const float32x4x2_t incr_vec = vld2q_f32((const float*)incrPtr);
+    float32x4x2_t phase_vec;
+
+// Helper macro for angle reduction
+#define REDUCE_ANGLE(a)              \
+    do {                             \
+        (a) = fmod((a), 2.0 * M_PI); \
+        if ((a) > M_PI)              \
+            (a) -= 2.0 * M_PI;       \
+        else if ((a) < -M_PI)        \
+            (a) += 2.0 * M_PI;       \
+    } while (0)
+
+    // Initialize phase vector from exact angles
+    for (unsigned int k = 0; k < 4; ++k) {
+        double a = angle_sum + (double)k * delta_angle;
+        REDUCE_ANGLE(a);
+        phasePtr[k] = lv_cmake((float)cos(a), (float)sin(a));
+    }
+    phase_vec = vld2q_f32((float*)phasePtr);
+
+    unsigned int i, j;
+
+    // Main loop with periodic resync
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); i++) {
+        // Inner loop: use fast SIMD multiply
+        for (j = 0; j < ROTATOR_RELOAD_4; j++) {
+            input_vec = vld2q_f32((const float*)inputVectorPtr);
+            __VOLK_PREFETCH(inputVectorPtr + 4);
+
+            // Rotate
+            output_vec = _vmultiply_complexq_f32(input_vec, phase_vec);
+            // Increase phase
+            phase_vec = _vmultiply_complexq_f32(phase_vec, incr_vec);
+            // Store output
+            vst2q_f32((float*)outputVectorPtr, output_vec);
+
+            outputVectorPtr += 4;
+            inputVectorPtr += 4;
+        }
+
+        // Advance angle using Kahan summation (compensated for rounding error)
+        {
+            double y = block_delta - angle_c;
+            double t = angle_sum + y;
+            angle_c = (t - angle_sum) - y;
+            angle_sum = t;
+        }
+
+        // Resync: recompute phase from accumulated angle (eliminates drift)
+        for (unsigned int k = 0; k < 4; ++k) {
+            double a = angle_sum + (double)k * delta_angle;
+            REDUCE_ANGLE(a);
+            phasePtr[k] = lv_cmake((float)cos(a), (float)sin(a));
+        }
+        phase_vec = vld2q_f32((float*)phasePtr);
+    }
+
+    // Handle remainder
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; i++) {
+        input_vec = vld2q_f32((const float*)inputVectorPtr);
+        __VOLK_PREFETCH(inputVectorPtr + 4);
+
+        output_vec = _vmultiply_complexq_f32(input_vec, phase_vec);
+        phase_vec = _vmultiply_complexq_f32(phase_vec, incr_vec);
+        vst2q_f32((float*)outputVectorPtr, output_vec);
+
+        outputVectorPtr += 4;
+        inputVectorPtr += 4;
+
+        // Update angle for remainder
+        {
+            double y = (4.0 * delta_angle) - angle_c;
+            double t = angle_sum + y;
+            angle_c = (t - angle_sum) - y;
+            angle_sum = t;
+        }
+    }
+
+    // Final phase output from exact angle
+    {
+        double a = angle_sum;
+        REDUCE_ANGLE(a);
+        *phase = lv_cmake((float)cos(a), (float)sin(a));
+    }
+
+    // Scalar remainder
+    for (i = 0; i < num_points % 4; i++) {
+        *outputVectorPtr++ = *inputVectorPtr++ * (*phase);
+        {
+            double y = delta_angle - angle_c;
+            double t = angle_sum + y;
+            angle_c = (t - angle_sum) - y;
+            angle_sum = t;
+        }
+        double a = angle_sum;
+        REDUCE_ANGLE(a);
+        *phase = lv_cmake((float)cos(a), (float)sin(a));
+    }
+
+#undef REDUCE_ANGLE
+}
+
+#endif /* LV_HAVE_NEON */
 
 
 /* Note on the RVV implementation:
@@ -912,7 +623,7 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_rvv(lv_32fc_t* outVector,
     }
     *phase = ph * 1.0f / hypotf(lv_creal(ph), lv_cimag(ph));
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
 
 #ifdef LV_HAVE_RVVSEG
 #include <riscv_vector.h>
@@ -985,6 +696,317 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_rvvseg(lv_32fc_t* outVector,
     }
     *phase = ph * 1.0f / hypotf(lv_creal(ph), lv_cimag(ph));
 }
-#endif /*LV_HAVE_RVVSEG*/
+#endif /* LV_HAVE_RVVSEG */
 
-#endif /* INCLUDED_volk_32fc_s32fc_rotator2_32fc_a_H */
+#endif /* INCLUDED_volk_32fc_s32fc_x2_rotator2_32fc_u_H */
+
+
+#ifndef INCLUDED_volk_32fc_s32fc_x2_rotator2_32fc_a_H
+#define INCLUDED_volk_32fc_s32fc_x2_rotator2_32fc_a_H
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+/*!
+ * \brief AVX implementation with angle-based resync for numerical stability.
+ *
+ * Uses Kahan summation for angle accumulation and periodic sincos resync
+ * to eliminate accumulated phase error. Suitable for billion-sample stability.
+ */
+static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx(lv_32fc_t* outVector,
+                                                          const lv_32fc_t* inVector,
+                                                          const lv_32fc_t* phase_inc,
+                                                          lv_32fc_t* phase,
+                                                          unsigned int num_points)
+{
+    lv_32fc_t* cPtr = outVector;
+    const lv_32fc_t* aPtr = inVector;
+
+    // Extract angles using double precision
+    const double initial_angle =
+        atan2((double)lv_cimag(*phase), (double)lv_creal(*phase));
+    const double delta_angle =
+        atan2((double)lv_cimag(*phase_inc), (double)lv_creal(*phase_inc));
+
+    // Kahan summation state for angle accumulation
+    double angle_sum = initial_angle;
+    double angle_c = 0.0; // Compensation for lost low-order bits
+
+    // Precompute block increment
+    const double block_delta = (double)ROTATOR_RELOAD * delta_angle;
+
+    // Compute incr = phase_inc^4 from exact angle (more accurate than multiplication)
+    const double delta4 = 4.0 * delta_angle;
+    lv_32fc_t incr = lv_cmake((float)cos(delta4), (float)sin(delta4));
+
+    __m256 aVal, phase_Val, z;
+    lv_32fc_t phase_Ptr[4];
+
+    const __m256 inc_Val = _mm256_set_ps(lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr));
+
+// Helper macro for angle reduction
+#define REDUCE_ANGLE(a)              \
+    do {                             \
+        (a) = fmod((a), 2.0 * M_PI); \
+        if ((a) > M_PI)              \
+            (a) -= 2.0 * M_PI;       \
+        else if ((a) < -M_PI)        \
+            (a) += 2.0 * M_PI;       \
+    } while (0)
+
+    // Initialize phase vector from exact angles
+    for (unsigned int k = 0; k < 4; ++k) {
+        double a = angle_sum + (double)k * delta_angle;
+        REDUCE_ANGLE(a);
+        phase_Ptr[k] = lv_cmake((float)cos(a), (float)sin(a));
+    }
+    phase_Val = _mm256_loadu_ps((float*)phase_Ptr);
+
+    unsigned int i, j;
+
+    // Main loop with periodic resync
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
+        // Inner loop: use fast SIMD multiply
+        for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
+            aVal = _mm256_loadu_ps((const float*)aPtr);
+
+            z = _mm256_complexmul_ps(aVal, phase_Val);
+            phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
+
+            _mm256_storeu_ps((float*)cPtr, z);
+
+            aPtr += 4;
+            cPtr += 4;
+        }
+
+        // Advance angle using Kahan summation (compensated for rounding error)
+        {
+            double y = block_delta - angle_c;
+            double t = angle_sum + y;
+            angle_c = (t - angle_sum) - y;
+            angle_sum = t;
+        }
+
+        // Resync: recompute phase from accumulated angle (eliminates drift)
+        for (unsigned int k = 0; k < 4; ++k) {
+            double a = angle_sum + (double)k * delta_angle;
+            REDUCE_ANGLE(a);
+            phase_Ptr[k] = lv_cmake((float)cos(a), (float)sin(a));
+        }
+        phase_Val = _mm256_loadu_ps((float*)phase_Ptr);
+    }
+
+    // Handle remainder
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
+        aVal = _mm256_loadu_ps((const float*)aPtr);
+
+        z = _mm256_complexmul_ps(aVal, phase_Val);
+        phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
+
+        _mm256_storeu_ps((float*)cPtr, z);
+
+        aPtr += 4;
+        cPtr += 4;
+
+        // Update angle for remainder
+        {
+            double y = (4.0 * delta_angle) - angle_c;
+            double t = angle_sum + y;
+            angle_c = (t - angle_sum) - y;
+            angle_sum = t;
+        }
+    }
+
+    // Final phase output from exact angle
+    {
+        double a = angle_sum;
+        REDUCE_ANGLE(a);
+        *phase = lv_cmake((float)cos(a), (float)sin(a));
+    }
+
+    // Scalar remainder
+    for (i = 0; i < num_points % 4; ++i) {
+        *cPtr++ = *aPtr++ * (*phase);
+        {
+            double y = delta_angle - angle_c;
+            double t = angle_sum + y;
+            angle_c = (t - angle_sum) - y;
+            angle_sum = t;
+        }
+        double a = angle_sum;
+        REDUCE_ANGLE(a);
+        *phase = lv_cmake((float)cos(a), (float)sin(a));
+    }
+
+#undef REDUCE_ANGLE
+}
+
+#endif /* LV_HAVE_AVX */
+
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+/*!
+ * \brief Aligned AVX512F implementation with angle-based resync for numerical stability.
+ *
+ * Uses Kahan summation for angle accumulation and periodic sincos resync
+ * to eliminate accumulated phase error. Suitable for billion-sample stability.
+ */
+static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx512f(lv_32fc_t* outVector,
+                                                              const lv_32fc_t* inVector,
+                                                              const lv_32fc_t* phase_inc,
+                                                              lv_32fc_t* phase,
+                                                              unsigned int num_points)
+{
+    lv_32fc_t* cPtr = outVector;
+    const lv_32fc_t* aPtr = inVector;
+
+    // Extract angles using double precision
+    const double initial_angle =
+        atan2((double)lv_cimag(*phase), (double)lv_creal(*phase));
+    const double delta_angle =
+        atan2((double)lv_cimag(*phase_inc), (double)lv_creal(*phase_inc));
+
+    // Kahan summation state for angle accumulation
+    double angle_sum = initial_angle;
+    double angle_c = 0.0;
+
+    // Precompute block increment
+    const double block_delta = (double)ROTATOR_RELOAD * delta_angle;
+
+    // Compute incr = phase_inc^8 from exact angle
+    const double delta8 = 8.0 * delta_angle;
+    lv_32fc_t incr = lv_cmake((float)cos(delta8), (float)sin(delta8));
+
+    __m512 aVal, phase_Val, z;
+    __VOLK_ATTR_ALIGNED(64)
+    lv_32fc_t phase_Ptr[8];
+
+    const __m512 inc_Val = _mm512_set_ps(lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr),
+                                         lv_cimag(incr),
+                                         lv_creal(incr));
+
+#define REDUCE_ANGLE(a)              \
+    do {                             \
+        (a) = fmod((a), 2.0 * M_PI); \
+        if ((a) > M_PI)              \
+            (a) -= 2.0 * M_PI;       \
+        else if ((a) < -M_PI)        \
+            (a) += 2.0 * M_PI;       \
+    } while (0)
+
+    // Initialize phase vector from exact angles
+    for (unsigned int k = 0; k < 8; ++k) {
+        double a = angle_sum + (double)k * delta_angle;
+        REDUCE_ANGLE(a);
+        phase_Ptr[k] = lv_cmake((float)cos(a), (float)sin(a));
+    }
+    phase_Val = _mm512_load_ps((float*)phase_Ptr);
+
+    unsigned int i, j;
+
+    // Main loop with periodic resync
+    for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
+        for (j = 0; j < ROTATOR_RELOAD_8; ++j) {
+            aVal = _mm512_load_ps((const float*)aPtr);
+            z = _mm512_complexmul_ps(aVal, phase_Val);
+            phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
+            _mm512_store_ps((float*)cPtr, z);
+            aPtr += 8;
+            cPtr += 8;
+        }
+
+        // Advance angle using Kahan summation
+        {
+            double y = block_delta - angle_c;
+            double t = angle_sum + y;
+            angle_c = (t - angle_sum) - y;
+            angle_sum = t;
+        }
+
+        // Resync: recompute phase from accumulated angle
+        for (unsigned int k = 0; k < 8; ++k) {
+            double a = angle_sum + (double)k * delta_angle;
+            REDUCE_ANGLE(a);
+            phase_Ptr[k] = lv_cmake((float)cos(a), (float)sin(a));
+        }
+        phase_Val = _mm512_load_ps((float*)phase_Ptr);
+    }
+
+    // Handle remainder
+    for (i = 0; i < (num_points % ROTATOR_RELOAD) / 8; ++i) {
+        aVal = _mm512_load_ps((const float*)aPtr);
+        z = _mm512_complexmul_ps(aVal, phase_Val);
+        phase_Val = _mm512_complexmul_ps(phase_Val, inc_Val);
+        _mm512_store_ps((float*)cPtr, z);
+        aPtr += 8;
+        cPtr += 8;
+
+        {
+            double y = (8.0 * delta_angle) - angle_c;
+            double t = angle_sum + y;
+            angle_c = (t - angle_sum) - y;
+            angle_sum = t;
+        }
+    }
+
+    // Final phase output
+    {
+        double a = angle_sum;
+        REDUCE_ANGLE(a);
+        *phase = lv_cmake((float)cos(a), (float)sin(a));
+    }
+
+    // Scalar remainder
+    for (i = 0; i < num_points % 8; ++i) {
+        *cPtr++ = *aPtr++ * (*phase);
+        {
+            double y = delta_angle - angle_c;
+            double t = angle_sum + y;
+            angle_c = (t - angle_sum) - y;
+            angle_sum = t;
+        }
+        double a = angle_sum;
+        REDUCE_ANGLE(a);
+        *phase = lv_cmake((float)cos(a), (float)sin(a));
+    }
+
+#undef REDUCE_ANGLE
+}
+
+#endif /* LV_HAVE_AVX512F */
+
+
+#endif /* INCLUDED_volk_32fc_s32fc_x2_rotator2_32fc_a_H */
