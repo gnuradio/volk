@@ -61,105 +61,32 @@
 #include <limits.h>
 #include <stdio.h>
 
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
+#ifdef LV_HAVE_GENERIC
 
-static inline void volk_32f_s32f_convert_32i_u_avx(int32_t* outputVector,
-                                                   const float* inputVector,
-                                                   const float scalar,
-                                                   unsigned int num_points)
+static inline void volk_32f_s32f_convert_32i_generic(int32_t* outputVector,
+                                                     const float* inputVector,
+                                                     const float scalar,
+                                                     unsigned int num_points)
 {
-    unsigned int number = 0;
-
-    const unsigned int eighthPoints = num_points / 8;
-
-    const float* inputVectorPtr = (const float*)inputVector;
     int32_t* outputVectorPtr = outputVector;
+    const float* inputVectorPtr = inputVector;
+    const float min_val = (float)INT_MIN;
+    const float max_val = (float)((uint32_t)INT_MAX + 1);
 
-    float min_val = INT_MIN;
-    float max_val = (uint32_t)INT_MAX + 1;
-    float r;
-
-    __m256 vScalar = _mm256_set1_ps(scalar);
-    __m256 inputVal1;
-    __m256i intInputVal1;
-    __m256 vmin_val = _mm256_set1_ps(min_val);
-    __m256 vmax_val = _mm256_set1_ps(max_val);
-
-    for (; number < eighthPoints; number++) {
-        inputVal1 = _mm256_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-
-        inputVal1 = _mm256_max_ps(
-            _mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
-        intInputVal1 = _mm256_cvtps_epi32(inputVal1);
-
-        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal1);
-        outputVectorPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        r = inputVector[number] * scalar;
-        if (r > max_val)
-            r = max_val;
+    for (unsigned int number = 0; number < num_points; number++) {
+        const float r = *inputVectorPtr++ * scalar;
+        int s;
+        if (r >= max_val)
+            s = INT_MAX;
         else if (r < min_val)
-            r = min_val;
-        outputVector[number] = (int32_t)rintf(r);
+            s = INT_MIN;
+        else
+            s = (int32_t)rintf(r);
+        *outputVectorPtr++ = s;
     }
 }
 
-#endif /* LV_HAVE_AVX */
-
-#ifdef LV_HAVE_SSE2
-#include <emmintrin.h>
-
-static inline void volk_32f_s32f_convert_32i_u_sse2(int32_t* outputVector,
-                                                    const float* inputVector,
-                                                    const float scalar,
-                                                    unsigned int num_points)
-{
-    unsigned int number = 0;
-
-    const unsigned int quarterPoints = num_points / 4;
-
-    const float* inputVectorPtr = (const float*)inputVector;
-    int32_t* outputVectorPtr = outputVector;
-
-    float min_val = INT_MIN;
-    float max_val = (uint32_t)INT_MAX + 1;
-    float r;
-
-    __m128 vScalar = _mm_set_ps1(scalar);
-    __m128 inputVal1;
-    __m128i intInputVal1;
-    __m128 vmin_val = _mm_set_ps1(min_val);
-    __m128 vmax_val = _mm_set_ps1(max_val);
-
-    for (; number < quarterPoints; number++) {
-        inputVal1 = _mm_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 4;
-
-        inputVal1 =
-            _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
-        intInputVal1 = _mm_cvtps_epi32(inputVal1);
-
-        _mm_storeu_si128((__m128i*)outputVectorPtr, intInputVal1);
-        outputVectorPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        r = inputVector[number] * scalar;
-        if (r > max_val)
-            r = max_val;
-        else if (r < min_val)
-            r = min_val;
-        outputVector[number] = (int32_t)rintf(r);
-    }
-}
-
-#endif /* LV_HAVE_SSE2 */
+#endif /* LV_HAVE_GENERIC */
 
 
 #ifdef LV_HAVE_SSE
@@ -215,97 +142,10 @@ static inline void volk_32f_s32f_convert_32i_u_sse(int32_t* outputVector,
 #endif /* LV_HAVE_SSE */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_s32f_convert_32i_generic(int32_t* outputVector,
-                                                     const float* inputVector,
-                                                     const float scalar,
-                                                     unsigned int num_points)
-{
-    int32_t* outputVectorPtr = outputVector;
-    const float* inputVectorPtr = inputVector;
-    const float min_val = (float)INT_MIN;
-    const float max_val = (float)((uint32_t)INT_MAX + 1);
-
-    for (unsigned int number = 0; number < num_points; number++) {
-        const float r = *inputVectorPtr++ * scalar;
-        int s;
-        if (r >= max_val)
-            s = INT_MAX;
-        else if (r < min_val)
-            s = INT_MIN;
-        else
-            s = (int32_t)rintf(r);
-        *outputVectorPtr++ = s;
-    }
-}
-
-#endif /* LV_HAVE_GENERIC */
-
-
-#endif /* INCLUDED_volk_32f_s32f_convert_32i_u_H */
-#ifndef INCLUDED_volk_32f_s32f_convert_32i_a_H
-#define INCLUDED_volk_32f_s32f_convert_32i_a_H
-
-#include <inttypes.h>
-#include <stdio.h>
-#include <volk/volk_common.h>
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void volk_32f_s32f_convert_32i_a_avx(int32_t* outputVector,
-                                                   const float* inputVector,
-                                                   const float scalar,
-                                                   unsigned int num_points)
-{
-    unsigned int number = 0;
-
-    const unsigned int eighthPoints = num_points / 8;
-
-    const float* inputVectorPtr = (const float*)inputVector;
-    int32_t* outputVectorPtr = outputVector;
-
-    float min_val = INT_MIN;
-    float max_val = (uint32_t)INT_MAX + 1;
-    float r;
-
-    __m256 vScalar = _mm256_set1_ps(scalar);
-    __m256 inputVal1;
-    __m256i intInputVal1;
-    __m256 vmin_val = _mm256_set1_ps(min_val);
-    __m256 vmax_val = _mm256_set1_ps(max_val);
-
-    for (; number < eighthPoints; number++) {
-        inputVal1 = _mm256_load_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-
-        inputVal1 = _mm256_max_ps(
-            _mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
-        intInputVal1 = _mm256_cvtps_epi32(inputVal1);
-
-        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal1);
-        outputVectorPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        r = inputVector[number] * scalar;
-        if (r > max_val)
-            r = max_val;
-        else if (r < min_val)
-            r = min_val;
-        outputVector[number] = (int32_t)rintf(r);
-    }
-}
-
-#endif /* LV_HAVE_AVX */
-
-
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
-static inline void volk_32f_s32f_convert_32i_a_sse2(int32_t* outputVector,
+static inline void volk_32f_s32f_convert_32i_u_sse2(int32_t* outputVector,
                                                     const float* inputVector,
                                                     const float scalar,
                                                     unsigned int num_points)
@@ -328,14 +168,14 @@ static inline void volk_32f_s32f_convert_32i_a_sse2(int32_t* outputVector,
     __m128 vmax_val = _mm_set_ps1(max_val);
 
     for (; number < quarterPoints; number++) {
-        inputVal1 = _mm_load_ps(inputVectorPtr);
+        inputVal1 = _mm_loadu_ps(inputVectorPtr);
         inputVectorPtr += 4;
 
         inputVal1 =
             _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
         intInputVal1 = _mm_cvtps_epi32(inputVal1);
 
-        _mm_store_si128((__m128i*)outputVectorPtr, intInputVal1);
+        _mm_storeu_si128((__m128i*)outputVectorPtr, intInputVal1);
         outputVectorPtr += 4;
     }
 
@@ -353,17 +193,17 @@ static inline void volk_32f_s32f_convert_32i_a_sse2(int32_t* outputVector,
 #endif /* LV_HAVE_SSE2 */
 
 
-#ifdef LV_HAVE_SSE
-#include <xmmintrin.h>
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
 
-static inline void volk_32f_s32f_convert_32i_a_sse(int32_t* outputVector,
+static inline void volk_32f_s32f_convert_32i_u_avx(int32_t* outputVector,
                                                    const float* inputVector,
                                                    const float scalar,
                                                    unsigned int num_points)
 {
     unsigned int number = 0;
 
-    const unsigned int quarterPoints = num_points / 4;
+    const unsigned int eighthPoints = num_points / 8;
 
     const float* inputVectorPtr = (const float*)inputVector;
     int32_t* outputVectorPtr = outputVector;
@@ -372,27 +212,25 @@ static inline void volk_32f_s32f_convert_32i_a_sse(int32_t* outputVector,
     float max_val = (uint32_t)INT_MAX + 1;
     float r;
 
-    __m128 vScalar = _mm_set_ps1(scalar);
-    __m128 ret;
-    __m128 vmin_val = _mm_set_ps1(min_val);
-    __m128 vmax_val = _mm_set_ps1(max_val);
+    __m256 vScalar = _mm256_set1_ps(scalar);
+    __m256 inputVal1;
+    __m256i intInputVal1;
+    __m256 vmin_val = _mm256_set1_ps(min_val);
+    __m256 vmax_val = _mm256_set1_ps(max_val);
 
-    __VOLK_ATTR_ALIGNED(16) float outputFloatBuffer[4];
+    for (; number < eighthPoints; number++) {
+        inputVal1 = _mm256_loadu_ps(inputVectorPtr);
+        inputVectorPtr += 8;
 
-    for (; number < quarterPoints; number++) {
-        ret = _mm_load_ps(inputVectorPtr);
-        inputVectorPtr += 4;
+        inputVal1 = _mm256_max_ps(
+            _mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
+        intInputVal1 = _mm256_cvtps_epi32(inputVal1);
 
-        ret = _mm_max_ps(_mm_min_ps(_mm_mul_ps(ret, vScalar), vmax_val), vmin_val);
-
-        _mm_store_ps(outputFloatBuffer, ret);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[0]);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[1]);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[2]);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[3]);
+        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal1);
+        outputVectorPtr += 8;
     }
 
-    number = quarterPoints * 4;
+    number = eighthPoints * 8;
     for (; number < num_points; number++) {
         r = inputVector[number] * scalar;
         if (r > max_val)
@@ -403,7 +241,7 @@ static inline void volk_32f_s32f_convert_32i_a_sse(int32_t* outputVector,
     }
 }
 
-#endif /* LV_HAVE_SSE */
+#endif /* LV_HAVE_AVX */
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
@@ -524,6 +362,168 @@ static inline void volk_32f_s32f_convert_32i_rvv(int32_t* outputVector,
         __riscv_vse32(outputVector, __riscv_vfcvt_x(v, vl), vl);
     }
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
+
+#endif /* INCLUDED_volk_32f_s32f_convert_32i_u_H */
+#ifndef INCLUDED_volk_32f_s32f_convert_32i_a_H
+#define INCLUDED_volk_32f_s32f_convert_32i_a_H
+
+#include <inttypes.h>
+#include <stdio.h>
+#include <volk/volk_common.h>
+
+#ifdef LV_HAVE_SSE
+#include <xmmintrin.h>
+
+static inline void volk_32f_s32f_convert_32i_a_sse(int32_t* outputVector,
+                                                   const float* inputVector,
+                                                   const float scalar,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+
+    const unsigned int quarterPoints = num_points / 4;
+
+    const float* inputVectorPtr = (const float*)inputVector;
+    int32_t* outputVectorPtr = outputVector;
+
+    float min_val = INT_MIN;
+    float max_val = (uint32_t)INT_MAX + 1;
+    float r;
+
+    __m128 vScalar = _mm_set_ps1(scalar);
+    __m128 ret;
+    __m128 vmin_val = _mm_set_ps1(min_val);
+    __m128 vmax_val = _mm_set_ps1(max_val);
+
+    __VOLK_ATTR_ALIGNED(16) float outputFloatBuffer[4];
+
+    for (; number < quarterPoints; number++) {
+        ret = _mm_load_ps(inputVectorPtr);
+        inputVectorPtr += 4;
+
+        ret = _mm_max_ps(_mm_min_ps(_mm_mul_ps(ret, vScalar), vmax_val), vmin_val);
+
+        _mm_store_ps(outputFloatBuffer, ret);
+        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[0]);
+        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[1]);
+        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[2]);
+        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[3]);
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        r = inputVector[number] * scalar;
+        if (r > max_val)
+            r = max_val;
+        else if (r < min_val)
+            r = min_val;
+        outputVector[number] = (int32_t)rintf(r);
+    }
+}
+
+#endif /* LV_HAVE_SSE */
+
+
+#ifdef LV_HAVE_SSE2
+#include <emmintrin.h>
+
+static inline void volk_32f_s32f_convert_32i_a_sse2(int32_t* outputVector,
+                                                    const float* inputVector,
+                                                    const float scalar,
+                                                    unsigned int num_points)
+{
+    unsigned int number = 0;
+
+    const unsigned int quarterPoints = num_points / 4;
+
+    const float* inputVectorPtr = (const float*)inputVector;
+    int32_t* outputVectorPtr = outputVector;
+
+    float min_val = INT_MIN;
+    float max_val = (uint32_t)INT_MAX + 1;
+    float r;
+
+    __m128 vScalar = _mm_set_ps1(scalar);
+    __m128 inputVal1;
+    __m128i intInputVal1;
+    __m128 vmin_val = _mm_set_ps1(min_val);
+    __m128 vmax_val = _mm_set_ps1(max_val);
+
+    for (; number < quarterPoints; number++) {
+        inputVal1 = _mm_load_ps(inputVectorPtr);
+        inputVectorPtr += 4;
+
+        inputVal1 =
+            _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
+        intInputVal1 = _mm_cvtps_epi32(inputVal1);
+
+        _mm_store_si128((__m128i*)outputVectorPtr, intInputVal1);
+        outputVectorPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        r = inputVector[number] * scalar;
+        if (r > max_val)
+            r = max_val;
+        else if (r < min_val)
+            r = min_val;
+        outputVector[number] = (int32_t)rintf(r);
+    }
+}
+
+#endif /* LV_HAVE_SSE2 */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_32f_s32f_convert_32i_a_avx(int32_t* outputVector,
+                                                   const float* inputVector,
+                                                   const float scalar,
+                                                   unsigned int num_points)
+{
+    unsigned int number = 0;
+
+    const unsigned int eighthPoints = num_points / 8;
+
+    const float* inputVectorPtr = (const float*)inputVector;
+    int32_t* outputVectorPtr = outputVector;
+
+    float min_val = INT_MIN;
+    float max_val = (uint32_t)INT_MAX + 1;
+    float r;
+
+    __m256 vScalar = _mm256_set1_ps(scalar);
+    __m256 inputVal1;
+    __m256i intInputVal1;
+    __m256 vmin_val = _mm256_set1_ps(min_val);
+    __m256 vmax_val = _mm256_set1_ps(max_val);
+
+    for (; number < eighthPoints; number++) {
+        inputVal1 = _mm256_load_ps(inputVectorPtr);
+        inputVectorPtr += 8;
+
+        inputVal1 = _mm256_max_ps(
+            _mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
+        intInputVal1 = _mm256_cvtps_epi32(inputVal1);
+
+        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal1);
+        outputVectorPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        r = inputVector[number] * scalar;
+        if (r > max_val)
+            r = max_val;
+        else if (r < min_val)
+            r = min_val;
+        outputVector[number] = (int32_t)rintf(r);
+    }
+}
+
+#endif /* LV_HAVE_AVX */
 
 #endif /* INCLUDED_volk_32f_s32f_convert_32i_a_H */
