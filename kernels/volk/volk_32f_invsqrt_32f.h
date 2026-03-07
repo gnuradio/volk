@@ -50,8 +50,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_32f_invsqrt_32f_a_H
-#define INCLUDED_volk_32f_invsqrt_32f_a_H
+#ifndef INCLUDED_volk_32f_invsqrt_32f_u_H
+#define INCLUDED_volk_32f_invsqrt_32f_u_H
 
 #include <math.h>
 #include <volk/volk_common.h>
@@ -123,117 +123,6 @@ static inline void volk_32f_invsqrt_32f_Q_rsqrt(float* cVector,
 #include <xmmintrin.h>
 
 static inline void
-volk_32f_invsqrt_32f_a_sse(float* cVector, const float* aVector, unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
-
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    for (; number < quarterPoints; number++) {
-        __m128 aVal = _mm_load_ps(aPtr);
-        __m128 cVal = _mm_rsqrt_nr_ps(aVal);
-        _mm_store_ps(cPtr, cVal);
-        aPtr += 4;
-        cPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        *cPtr++ = 1.0f / sqrtf(*aPtr++);
-    }
-}
-#endif /* LV_HAVE_SSE */
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-#include <volk/volk_avx_intrinsics.h>
-
-static inline void
-volk_32f_invsqrt_32f_a_avx(float* cVector, const float* aVector, unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
-
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    for (; number < eighthPoints; number++) {
-        __m256 aVal = _mm256_load_ps(aPtr);
-        __m256 cVal = _mm256_rsqrt_nr_ps(aVal);
-        _mm256_store_ps(cPtr, cVal);
-        aPtr += 8;
-        cPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *cPtr++ = 1.0f / sqrtf(*aPtr++);
-    }
-}
-#endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_AVX2
-#include <immintrin.h>
-#include <volk/volk_avx2_intrinsics.h>
-
-static inline void
-volk_32f_invsqrt_32f_a_avx2(float* cVector, const float* aVector, unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
-
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    for (; number < eighthPoints; number++) {
-        __m256 aVal = _mm256_load_ps(aPtr);
-        __m256 cVal = _mm256_rsqrt_nr_avx2(aVal);
-        _mm256_store_ps(cPtr, cVal);
-        aPtr += 8;
-        cPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *cPtr++ = 1.0f / sqrtf(*aPtr++);
-    }
-}
-#endif /* LV_HAVE_AVX2 */
-
-
-#ifdef LV_HAVE_AVX512F
-#include <immintrin.h>
-#include <volk/volk_avx512_intrinsics.h>
-
-static inline void volk_32f_invsqrt_32f_a_avx512f(float* cVector,
-                                                  const float* aVector,
-                                                  unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int sixteenthPoints = num_points / 16;
-
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    for (; number < sixteenthPoints; number++) {
-        __m512 aVal = _mm512_load_ps(aPtr);
-        __m512 cVal = _mm512_rsqrt_nr_ps(aVal);
-        _mm512_store_ps(cPtr, cVal);
-        aPtr += 16;
-        cPtr += 16;
-    }
-
-    number = sixteenthPoints * 16;
-    for (; number < num_points; number++) {
-        *cPtr++ = 1.0f / sqrtf(*aPtr++);
-    }
-}
-#endif /* LV_HAVE_AVX512F */
-
-#ifdef LV_HAVE_SSE
-#include <volk/volk_sse_intrinsics.h>
-#include <xmmintrin.h>
-
-static inline void
 volk_32f_invsqrt_32f_u_sse(float* cVector, const float* aVector, unsigned int num_points)
 {
     unsigned int number = 0;
@@ -255,7 +144,6 @@ volk_32f_invsqrt_32f_u_sse(float* cVector, const float* aVector, unsigned int nu
     }
 }
 #endif /* LV_HAVE_SSE */
-
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -438,6 +326,122 @@ volk_32f_invsqrt_32f_rvv(float* cVector, const float* aVector, unsigned int num_
         __riscv_vse32(cVector, result, vl);
     }
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
+
+#endif /* INCLUDED_volk_32f_invsqrt_32f_u_H */
+
+#ifndef INCLUDED_volk_32f_invsqrt_32f_a_H
+#define INCLUDED_volk_32f_invsqrt_32f_a_H
+
+#ifdef LV_HAVE_SSE
+#include <volk/volk_sse_intrinsics.h>
+#include <xmmintrin.h>
+
+static inline void
+volk_32f_invsqrt_32f_a_sse(float* cVector, const float* aVector, unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    for (; number < quarterPoints; number++) {
+        __m128 aVal = _mm_load_ps(aPtr);
+        __m128 cVal = _mm_rsqrt_nr_ps(aVal);
+        _mm_store_ps(cPtr, cVal);
+        aPtr += 4;
+        cPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *cPtr++ = 1.0f / sqrtf(*aPtr++);
+    }
+}
+#endif /* LV_HAVE_SSE */
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
+
+static inline void
+volk_32f_invsqrt_32f_a_avx(float* cVector, const float* aVector, unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    for (; number < eighthPoints; number++) {
+        __m256 aVal = _mm256_load_ps(aPtr);
+        __m256 cVal = _mm256_rsqrt_nr_ps(aVal);
+        _mm256_store_ps(cPtr, cVal);
+        aPtr += 8;
+        cPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *cPtr++ = 1.0f / sqrtf(*aPtr++);
+    }
+}
+#endif /* LV_HAVE_AVX */
+
+
+#ifdef LV_HAVE_AVX2
+#include <immintrin.h>
+#include <volk/volk_avx2_intrinsics.h>
+
+static inline void
+volk_32f_invsqrt_32f_a_avx2(float* cVector, const float* aVector, unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    for (; number < eighthPoints; number++) {
+        __m256 aVal = _mm256_load_ps(aPtr);
+        __m256 cVal = _mm256_rsqrt_nr_avx2(aVal);
+        _mm256_store_ps(cPtr, cVal);
+        aPtr += 8;
+        cPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *cPtr++ = 1.0f / sqrtf(*aPtr++);
+    }
+}
+#endif /* LV_HAVE_AVX2 */
+
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+#include <volk/volk_avx512_intrinsics.h>
+
+static inline void volk_32f_invsqrt_32f_a_avx512f(float* cVector,
+                                                  const float* aVector,
+                                                  unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    for (; number < sixteenthPoints; number++) {
+        __m512 aVal = _mm512_load_ps(aPtr);
+        __m512 cVal = _mm512_rsqrt_nr_ps(aVal);
+        _mm512_store_ps(cPtr, cVal);
+        aPtr += 16;
+        cPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        *cPtr++ = 1.0f / sqrtf(*aPtr++);
+    }
+}
+#endif /* LV_HAVE_AVX512F */
 
 #endif /* INCLUDED_volk_32f_invsqrt_32f_a_H */
