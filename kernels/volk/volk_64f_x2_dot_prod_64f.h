@@ -222,6 +222,75 @@ static inline void volk_64f_x2_dot_prod_64f_u_avx512f(double* result,
 #endif /* LV_HAVE_AVX512F */
 
 
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_64f_x2_dot_prod_64f_neonv8(double* result,
+                                                   const double* input,
+                                                   const double* taps,
+                                                   unsigned int num_points)
+{
+    const unsigned int eighthPoints = num_points / 8;
+    unsigned int number = 0;
+
+    float64x2_t acc0 = vdupq_n_f64(0.0);
+    float64x2_t acc1 = vdupq_n_f64(0.0);
+    float64x2_t acc2 = vdupq_n_f64(0.0);
+    float64x2_t acc3 = vdupq_n_f64(0.0);
+
+    for (; number < eighthPoints; number++) {
+        __VOLK_PREFETCH(input + 16);
+        __VOLK_PREFETCH(taps + 16);
+
+        acc0 = vfmaq_f64(acc0, vld1q_f64(input), vld1q_f64(taps));
+        acc1 = vfmaq_f64(acc1, vld1q_f64(input + 2), vld1q_f64(taps + 2));
+        acc2 = vfmaq_f64(acc2, vld1q_f64(input + 4), vld1q_f64(taps + 4));
+        acc3 = vfmaq_f64(acc3, vld1q_f64(input + 6), vld1q_f64(taps + 6));
+        input += 8;
+        taps += 8;
+    }
+
+    acc0 = vaddq_f64(acc0, acc1);
+    acc2 = vaddq_f64(acc2, acc3);
+    acc0 = vaddq_f64(acc0, acc2);
+
+    double dot = vaddvq_f64(acc0);
+
+    for (number = eighthPoints * 8; number < num_points; number++) {
+        dot += (*input++) * (*taps++);
+    }
+    *result = dot;
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_64f_x2_dot_prod_64f_rvv(double* result,
+                                                const double* input,
+                                                const double* taps,
+                                                unsigned int num_points)
+{
+    vfloat64m8_t vsum = __riscv_vfmv_v_f_f64m8(0, __riscv_vsetvlmax_e64m8());
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
+        vl = __riscv_vsetvl_e64m8(n);
+        vfloat64m8_t v0 = __riscv_vle64_v_f64m8(input, vl);
+        vfloat64m8_t v1 = __riscv_vle64_v_f64m8(taps, vl);
+        vsum = __riscv_vfmacc_tu(vsum, v0, v1, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e64m1();
+    vfloat64m1_t v = RISCV_SHRINK8(vfadd, f, 64, vsum);
+    v = __riscv_vfredusum(v, __riscv_vfmv_s_f_f64m1(0, vl), vl);
+    *result = __riscv_vfmv_f(v);
+}
+
+#endif /* LV_HAVE_RVV */
+
+
 #endif /* INCLUDED_volk_64f_x2_dot_prod_64f_u_H */
 
 
@@ -377,75 +446,6 @@ static inline void volk_64f_x2_dot_prod_64f_a_avx512f(double* result,
 }
 
 #endif /* LV_HAVE_AVX512F */
-
-
-#ifdef LV_HAVE_NEONV8
-#include <arm_neon.h>
-
-static inline void volk_64f_x2_dot_prod_64f_neonv8(double* result,
-                                                   const double* input,
-                                                   const double* taps,
-                                                   unsigned int num_points)
-{
-    const unsigned int eighthPoints = num_points / 8;
-    unsigned int number = 0;
-
-    float64x2_t acc0 = vdupq_n_f64(0.0);
-    float64x2_t acc1 = vdupq_n_f64(0.0);
-    float64x2_t acc2 = vdupq_n_f64(0.0);
-    float64x2_t acc3 = vdupq_n_f64(0.0);
-
-    for (; number < eighthPoints; number++) {
-        __VOLK_PREFETCH(input + 16);
-        __VOLK_PREFETCH(taps + 16);
-
-        acc0 = vfmaq_f64(acc0, vld1q_f64(input), vld1q_f64(taps));
-        acc1 = vfmaq_f64(acc1, vld1q_f64(input + 2), vld1q_f64(taps + 2));
-        acc2 = vfmaq_f64(acc2, vld1q_f64(input + 4), vld1q_f64(taps + 4));
-        acc3 = vfmaq_f64(acc3, vld1q_f64(input + 6), vld1q_f64(taps + 6));
-        input += 8;
-        taps += 8;
-    }
-
-    acc0 = vaddq_f64(acc0, acc1);
-    acc2 = vaddq_f64(acc2, acc3);
-    acc0 = vaddq_f64(acc0, acc2);
-
-    double dot = vaddvq_f64(acc0);
-
-    for (number = eighthPoints * 8; number < num_points; number++) {
-        dot += (*input++) * (*taps++);
-    }
-    *result = dot;
-}
-
-#endif /* LV_HAVE_NEONV8 */
-
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-#include <volk/volk_rvv_intrinsics.h>
-
-static inline void volk_64f_x2_dot_prod_64f_rvv(double* result,
-                                                const double* input,
-                                                const double* taps,
-                                                unsigned int num_points)
-{
-    vfloat64m8_t vsum = __riscv_vfmv_v_f_f64m8(0, __riscv_vsetvlmax_e64m8());
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
-        vl = __riscv_vsetvl_e64m8(n);
-        vfloat64m8_t v0 = __riscv_vle64_v_f64m8(input, vl);
-        vfloat64m8_t v1 = __riscv_vle64_v_f64m8(taps, vl);
-        vsum = __riscv_vfmacc_tu(vsum, v0, v1, vl);
-    }
-    size_t vl = __riscv_vsetvlmax_e64m1();
-    vfloat64m1_t v = RISCV_SHRINK8(vfadd, f, 64, vsum);
-    v = __riscv_vfredusum(v, __riscv_vfmv_s_f_f64m1(0, vl), vl);
-    *result = __riscv_vfmv_f(v);
-}
-
-#endif /* LV_HAVE_RVV */
 
 
 #endif /* INCLUDED_volk_64f_x2_dot_prod_64f_a_H */
