@@ -53,23 +53,23 @@
 
 #ifdef LV_HAVE_RISCV64
 extern void volk_32fc_x2_dot_prod_32fc_sifive_u74(lv_32fc_t* result,
-                                                  const lv_32fc_t* input,
-                                                  const lv_32fc_t* taps,
-                                                  unsigned int num_points);
+                                                   const lv_32fc_t* input,
+                                                   const lv_32fc_t* taps,
+                                                   unsigned int num_points);
 #endif
 
 #ifdef LV_HAVE_GENERIC
 
 
 static inline void volk_32fc_x2_dot_prod_32fc_generic(lv_32fc_t* result,
-                                                      const lv_32fc_t* input,
-                                                      const lv_32fc_t* taps,
-                                                      unsigned int num_points)
+                                                       const lv_32fc_t* input,
+                                                       const lv_32fc_t* taps,
+                                                       unsigned int num_points)
 {
 
     float* res = (float*)result;
-    float* in = (float*)input;
-    float* tp = (float*)taps;
+    const float* in = (const float*)input;
+    const float* tp = (const float*)taps;
     unsigned int n_2_ccomplex_blocks = num_points / 2;
 
     float sum0[2] = { 0, 0 };
@@ -103,9 +103,9 @@ static inline void volk_32fc_x2_dot_prod_32fc_generic(lv_32fc_t* result,
 #include <pmmintrin.h>
 
 static inline void volk_32fc_x2_dot_prod_32fc_u_sse3(lv_32fc_t* result,
-                                                     const lv_32fc_t* input,
-                                                     const lv_32fc_t* taps,
-                                                     unsigned int num_points)
+                                                      const lv_32fc_t* input,
+                                                      const lv_32fc_t* taps,
+                                                      unsigned int num_points)
 {
 
     lv_32fc_t dotProduct;
@@ -124,8 +124,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_sse3(lv_32fc_t* result,
 
     for (; number < halfPoints; number++) {
 
-        x = _mm_loadu_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-        y = _mm_loadu_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+        x = _mm_loadu_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        y = _mm_loadu_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
 
         yl = _mm_moveldup_ps(y); // Load yl with cr,cr,dr,dr
         yh = _mm_movehdup_ps(y); // Load yh with ci,ci,di,di
@@ -167,9 +167,9 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_sse3(lv_32fc_t* result,
 #include <immintrin.h>
 
 static inline void volk_32fc_x2_dot_prod_32fc_u_avx(lv_32fc_t* result,
-                                                    const lv_32fc_t* input,
-                                                    const lv_32fc_t* taps,
-                                                    unsigned int num_points)
+                                                     const lv_32fc_t* input,
+                                                     const lv_32fc_t* taps,
+                                                     unsigned int num_points)
 {
 
     unsigned int isodd = num_points & 3;
@@ -188,8 +188,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_avx(lv_32fc_t* result,
     dotProdVal = _mm256_setzero_ps();
 
     for (; number < quarterPoints; number++) {
-        x = _mm256_loadu_ps((float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
-        y = _mm256_loadu_ps((float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
+        x = _mm256_loadu_ps((const float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
+        y = _mm256_loadu_ps((const float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
 
         yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr,gr,gr,hr,hr
         yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di,gi,gi,hi,hi
@@ -231,9 +231,9 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_avx(lv_32fc_t* result,
 #include <immintrin.h>
 
 static inline void volk_32fc_x2_dot_prod_32fc_u_avx_fma(lv_32fc_t* result,
-                                                        const lv_32fc_t* input,
-                                                        const lv_32fc_t* taps,
-                                                        unsigned int num_points)
+                                                         const lv_32fc_t* input,
+                                                         const lv_32fc_t* taps,
+                                                         unsigned int num_points)
 {
 
     unsigned int isodd = num_points & 3;
@@ -253,8 +253,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_avx_fma(lv_32fc_t* result,
 
     for (; number < quarterPoints; number++) {
 
-        x = _mm256_loadu_ps((float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
-        y = _mm256_loadu_ps((float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
+        x = _mm256_loadu_ps((const float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
+        y = _mm256_loadu_ps((const float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
 
         yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr,gr,gr,hr,hr
         yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di,gi,gi,hi,hi
@@ -292,98 +292,20 @@ static inline void volk_32fc_x2_dot_prod_32fc_u_avx_fma(lv_32fc_t* result,
 
 #endif /*LV_HAVE_AVX && LV_HAVE_FMA*/
 
-#endif /*INCLUDED_volk_32fc_x2_dot_prod_32fc_u_H*/
-
-#ifndef INCLUDED_volk_32fc_x2_dot_prod_32fc_a_H
-#define INCLUDED_volk_32fc_x2_dot_prod_32fc_a_H
-
-#include <stdio.h>
-#include <string.h>
-#include <volk/volk_common.h>
-#include <volk/volk_complex.h>
-
-
-#ifdef LV_HAVE_SSE3
-
-#include <pmmintrin.h>
-
-static inline void volk_32fc_x2_dot_prod_32fc_a_sse3(lv_32fc_t* result,
-                                                     const lv_32fc_t* input,
-                                                     const lv_32fc_t* taps,
-                                                     unsigned int num_points)
-{
-
-    const unsigned int num_bytes = num_points * 8;
-    unsigned int isodd = num_points & 1;
-
-    lv_32fc_t dotProduct;
-    memset(&dotProduct, 0x0, 2 * sizeof(float));
-
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_bytes >> 4;
-
-    __m128 x, y, yl, yh, z, tmp1, tmp2, dotProdVal;
-
-    const lv_32fc_t* a = input;
-    const lv_32fc_t* b = taps;
-
-    dotProdVal = _mm_setzero_ps();
-
-    for (; number < halfPoints; number++) {
-
-        x = _mm_load_ps((float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
-        y = _mm_load_ps((float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
-
-        yl = _mm_moveldup_ps(y); // Load yl with cr,cr,dr,dr
-        yh = _mm_movehdup_ps(y); // Load yh with ci,ci,di,di
-
-        tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
-
-        x = _mm_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
-
-        tmp2 = _mm_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
-
-        z = _mm_addsub_ps(tmp1,
-                          tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
-
-        dotProdVal =
-            _mm_add_ps(dotProdVal, z); // Add the complex multiplication results together
-
-        a += 2;
-        b += 2;
-    }
-
-    __VOLK_ATTR_ALIGNED(16) lv_32fc_t dotProductVector[2];
-
-    _mm_store_ps((float*)dotProductVector,
-                 dotProdVal); // Store the results back into the dot product vector
-
-    dotProduct += (dotProductVector[0] + dotProductVector[1]);
-
-    if (isodd) {
-        dotProduct += input[num_points - 1] * taps[num_points - 1];
-    }
-
-    *result = dotProduct;
-}
-
-#endif /*LV_HAVE_SSE3*/
-
-
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
 static inline void volk_32fc_x2_dot_prod_32fc_neon(lv_32fc_t* result,
-                                                   const lv_32fc_t* input,
-                                                   const lv_32fc_t* taps,
-                                                   unsigned int num_points)
+                                                    const lv_32fc_t* input,
+                                                    const lv_32fc_t* taps,
+                                                    unsigned int num_points)
 {
 
     unsigned int quarter_points = num_points / 4;
     unsigned int number;
 
-    lv_32fc_t* a_ptr = (lv_32fc_t*)taps;
-    lv_32fc_t* b_ptr = (lv_32fc_t*)input;
+    const lv_32fc_t* a_ptr = taps;
+    const lv_32fc_t* b_ptr = input;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     float32x4x2_t a_val, b_val, c_val, accumulator;
@@ -392,8 +314,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon(lv_32fc_t* result,
     accumulator.val[1] = vdupq_n_f32(0);
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld2q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld2q_f32((const float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld2q_f32((const float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -432,16 +354,16 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon(lv_32fc_t* result,
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 static inline void volk_32fc_x2_dot_prod_32fc_neon_opttests(lv_32fc_t* result,
-                                                            const lv_32fc_t* input,
-                                                            const lv_32fc_t* taps,
-                                                            unsigned int num_points)
+                                                             const lv_32fc_t* input,
+                                                             const lv_32fc_t* taps,
+                                                             unsigned int num_points)
 {
 
     unsigned int quarter_points = num_points / 4;
     unsigned int number;
 
-    lv_32fc_t* a_ptr = (lv_32fc_t*)taps;
-    lv_32fc_t* b_ptr = (lv_32fc_t*)input;
+    const lv_32fc_t* a_ptr = taps;
+    const lv_32fc_t* b_ptr = input;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     float32x4x2_t a_val, b_val, accumulator;
@@ -450,8 +372,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_opttests(lv_32fc_t* result,
     accumulator.val[1] = vdupq_n_f32(0);
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld2q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld2q_f32((const float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld2q_f32((const float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -483,16 +405,16 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_opttests(lv_32fc_t* result,
 
 #ifdef LV_HAVE_NEON
 static inline void volk_32fc_x2_dot_prod_32fc_neon_optfma(lv_32fc_t* result,
-                                                          const lv_32fc_t* input,
-                                                          const lv_32fc_t* taps,
-                                                          unsigned int num_points)
+                                                           const lv_32fc_t* input,
+                                                           const lv_32fc_t* taps,
+                                                           unsigned int num_points)
 {
 
     unsigned int quarter_points = num_points / 4;
     unsigned int number;
 
-    lv_32fc_t* a_ptr = (lv_32fc_t*)taps;
-    lv_32fc_t* b_ptr = (lv_32fc_t*)input;
+    const lv_32fc_t* a_ptr = taps;
+    const lv_32fc_t* b_ptr = input;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     float32x4x2_t a_val, b_val, accumulator1, accumulator2;
@@ -502,8 +424,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfma(lv_32fc_t* result,
     accumulator2.val[1] = vdupq_n_f32(0);
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld2q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld2q_f32((const float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld2q_f32((const float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -531,9 +453,9 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfma(lv_32fc_t* result,
 
 #ifdef LV_HAVE_NEON
 static inline void volk_32fc_x2_dot_prod_32fc_neon_optfmaunroll(lv_32fc_t* result,
-                                                                const lv_32fc_t* input,
-                                                                const lv_32fc_t* taps,
-                                                                unsigned int num_points)
+                                                                 const lv_32fc_t* input,
+                                                                 const lv_32fc_t* taps,
+                                                                 unsigned int num_points)
 {
     // NOTE: GCC does a poor job with this kernel, but the equivalent ASM code is very
     // fast
@@ -541,8 +463,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfmaunroll(lv_32fc_t* resul
     unsigned int quarter_points = num_points / 8;
     unsigned int number;
 
-    lv_32fc_t* a_ptr = (lv_32fc_t*)taps;
-    lv_32fc_t* b_ptr = (lv_32fc_t*)input;
+    const lv_32fc_t* a_ptr = taps;
+    const lv_32fc_t* b_ptr = input;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     float32x4x4_t a_val, b_val, accumulator1, accumulator2;
@@ -558,8 +480,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfmaunroll(lv_32fc_t* resul
 
     // 8 input regs, 8 accumulators -> 16/16 neon regs are used
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld4q_f32((float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld4q_f32((float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld4q_f32((const float*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld4q_f32((const float*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -603,9 +525,9 @@ static inline void volk_32fc_x2_dot_prod_32fc_neon_optfmaunroll(lv_32fc_t* resul
 #include <arm_neon.h>
 
 static inline void volk_32fc_x2_dot_prod_32fc_neonv8(lv_32fc_t* result,
-                                                     const lv_32fc_t* input,
-                                                     const lv_32fc_t* taps,
-                                                     unsigned int num_points)
+                                                      const lv_32fc_t* input,
+                                                      const lv_32fc_t* taps,
+                                                      unsigned int num_points)
 {
     unsigned int n = num_points;
     const lv_32fc_t* a = input;
@@ -687,15 +609,158 @@ static inline void volk_32fc_x2_dot_prod_32fc_neonv8(lv_32fc_t* result,
 
 #endif /* LV_HAVE_NEONV8 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32fc_x2_dot_prod_32fc_rvv(lv_32fc_t* result,
+                                                   const lv_32fc_t* input,
+                                                   const lv_32fc_t* taps,
+                                                   unsigned int num_points)
+{
+    vfloat32m2_t vsumr = __riscv_vfmv_v_f_f32m2(0, __riscv_vsetvlmax_e32m2());
+    vfloat32m2_t vsumi = vsumr;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
+        vl = __riscv_vsetvl_e32m2(n);
+        vuint64m4_t va = __riscv_vle64_v_u64m4((const uint64_t*)input, vl);
+        vuint64m4_t vb = __riscv_vle64_v_u64m4((const uint64_t*)taps, vl);
+        vfloat32m2_t var = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 0, vl));
+        vfloat32m2_t vbr = __riscv_vreinterpret_f32m2(__riscv_vnsrl(vb, 0, vl));
+        vfloat32m2_t vai = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 32, vl));
+        vfloat32m2_t vbi = __riscv_vreinterpret_f32m2(__riscv_vnsrl(vb, 32, vl));
+        vfloat32m2_t vr = __riscv_vfnmsac(__riscv_vfmul(var, vbr, vl), vai, vbi, vl);
+        vfloat32m2_t vi = __riscv_vfmacc(__riscv_vfmul(var, vbi, vl), vai, vbr, vl);
+        vsumr = __riscv_vfadd_tu(vsumr, vsumr, vr, vl);
+        vsumi = __riscv_vfadd_tu(vsumi, vsumi, vi, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t vr = RISCV_SHRINK2(vfadd, f, 32, vsumr);
+    vfloat32m1_t vi = RISCV_SHRINK2(vfadd, f, 32, vsumi);
+    vfloat32m1_t z = __riscv_vfmv_s_f_f32m1(0, vl);
+    *result = lv_cmake(__riscv_vfmv_f(__riscv_vfredusum(vr, z, vl)),
+                       __riscv_vfmv_f(__riscv_vfredusum(vi, z, vl)));
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32fc_x2_dot_prod_32fc_rvvseg(lv_32fc_t* result,
+                                                      const lv_32fc_t* input,
+                                                      const lv_32fc_t* taps,
+                                                      unsigned int num_points)
+{
+    vfloat32m4_t vsumr = __riscv_vfmv_v_f_f32m4(0, __riscv_vsetvlmax_e32m4());
+    vfloat32m4_t vsumi = vsumr;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m4x2_t va = __riscv_vlseg2e32_v_f32m4x2((const float*)input, vl);
+        vfloat32m4x2_t vb = __riscv_vlseg2e32_v_f32m4x2((const float*)taps, vl);
+        vfloat32m4_t var = __riscv_vget_f32m4(va, 0), vai = __riscv_vget_f32m4(va, 1);
+        vfloat32m4_t vbr = __riscv_vget_f32m4(vb, 0), vbi = __riscv_vget_f32m4(vb, 1);
+        vfloat32m4_t vr = __riscv_vfnmsac(__riscv_vfmul(var, vbr, vl), vai, vbi, vl);
+        vfloat32m4_t vi = __riscv_vfmacc(__riscv_vfmul(var, vbi, vl), vai, vbr, vl);
+        vsumr = __riscv_vfadd_tu(vsumr, vsumr, vr, vl);
+        vsumi = __riscv_vfadd_tu(vsumi, vsumi, vi, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t vr = RISCV_SHRINK4(vfadd, f, 32, vsumr);
+    vfloat32m1_t vi = RISCV_SHRINK4(vfadd, f, 32, vsumi);
+    vfloat32m1_t z = __riscv_vfmv_s_f_f32m1(0, vl);
+    *result = lv_cmake(__riscv_vfmv_f(__riscv_vfredusum(vr, z, vl)),
+                       __riscv_vfmv_f(__riscv_vfredusum(vi, z, vl)));
+}
+#endif /*LV_HAVE_RVVSEG*/
+
+#endif /*INCLUDED_volk_32fc_x2_dot_prod_32fc_u_H*/
+
+#ifndef INCLUDED_volk_32fc_x2_dot_prod_32fc_a_H
+#define INCLUDED_volk_32fc_x2_dot_prod_32fc_a_H
+
+#include <stdio.h>
+#include <string.h>
+#include <volk/volk_common.h>
+#include <volk/volk_complex.h>
+
+
+#ifdef LV_HAVE_SSE3
+
+#include <pmmintrin.h>
+
+static inline void volk_32fc_x2_dot_prod_32fc_a_sse3(lv_32fc_t* result,
+                                                      const lv_32fc_t* input,
+                                                      const lv_32fc_t* taps,
+                                                      unsigned int num_points)
+{
+
+    const unsigned int num_bytes = num_points * 8;
+    unsigned int isodd = num_points & 1;
+
+    lv_32fc_t dotProduct;
+    memset(&dotProduct, 0x0, 2 * sizeof(float));
+
+    unsigned int number = 0;
+    const unsigned int halfPoints = num_bytes >> 4;
+
+    __m128 x, y, yl, yh, z, tmp1, tmp2, dotProdVal;
+
+    const lv_32fc_t* a = input;
+    const lv_32fc_t* b = taps;
+
+    dotProdVal = _mm_setzero_ps();
+
+    for (; number < halfPoints; number++) {
+
+        x = _mm_load_ps((const float*)a); // Load the ar + ai, br + bi as ar,ai,br,bi
+        y = _mm_load_ps((const float*)b); // Load the cr + ci, dr + di as cr,ci,dr,di
+
+        yl = _mm_moveldup_ps(y); // Load yl with cr,cr,dr,dr
+        yh = _mm_movehdup_ps(y); // Load yh with ci,ci,di,di
+
+        tmp1 = _mm_mul_ps(x, yl); // tmp1 = ar*cr,ai*cr,br*dr,bi*dr
+
+        x = _mm_shuffle_ps(x, x, 0xB1); // Re-arrange x to be ai,ar,bi,br
+
+        tmp2 = _mm_mul_ps(x, yh); // tmp2 = ai*ci,ar*ci,bi*di,br*di
+
+        z = _mm_addsub_ps(tmp1,
+                          tmp2); // ar*cr-ai*ci, ai*cr+ar*ci, br*dr-bi*di, bi*dr+br*di
+
+        dotProdVal =
+            _mm_add_ps(dotProdVal, z); // Add the complex multiplication results together
+
+        a += 2;
+        b += 2;
+    }
+
+    __VOLK_ATTR_ALIGNED(16) lv_32fc_t dotProductVector[2];
+
+    _mm_store_ps((float*)dotProductVector,
+                 dotProdVal); // Store the results back into the dot product vector
+
+    dotProduct += (dotProductVector[0] + dotProductVector[1]);
+
+    if (isodd) {
+        dotProduct += input[num_points - 1] * taps[num_points - 1];
+    }
+
+    *result = dotProduct;
+}
+
+#endif /*LV_HAVE_SSE3*/
+
 
 #ifdef LV_HAVE_AVX
 
 #include <immintrin.h>
 
 static inline void volk_32fc_x2_dot_prod_32fc_a_avx(lv_32fc_t* result,
-                                                    const lv_32fc_t* input,
-                                                    const lv_32fc_t* taps,
-                                                    unsigned int num_points)
+                                                     const lv_32fc_t* input,
+                                                     const lv_32fc_t* taps,
+                                                     unsigned int num_points)
 {
 
     unsigned int isodd = num_points & 3;
@@ -715,8 +780,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_avx(lv_32fc_t* result,
 
     for (; number < quarterPoints; number++) {
 
-        x = _mm256_load_ps((float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
-        y = _mm256_load_ps((float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
+        x = _mm256_load_ps((const float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
+        y = _mm256_load_ps((const float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
 
         yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr,gr,gr,hr,hr
         yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di,gi,gi,hi,hi
@@ -758,9 +823,9 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_avx(lv_32fc_t* result,
 #include <immintrin.h>
 
 static inline void volk_32fc_x2_dot_prod_32fc_a_avx_fma(lv_32fc_t* result,
-                                                        const lv_32fc_t* input,
-                                                        const lv_32fc_t* taps,
-                                                        unsigned int num_points)
+                                                         const lv_32fc_t* input,
+                                                         const lv_32fc_t* taps,
+                                                         unsigned int num_points)
 {
 
     unsigned int isodd = num_points & 3;
@@ -780,8 +845,8 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_avx_fma(lv_32fc_t* result,
 
     for (; number < quarterPoints; number++) {
 
-        x = _mm256_load_ps((float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
-        y = _mm256_load_ps((float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
+        x = _mm256_load_ps((const float*)a); // Load a,b,e,f as ar,ai,br,bi,er,ei,fr,fi
+        y = _mm256_load_ps((const float*)b); // Load c,d,g,h as cr,ci,dr,di,gr,gi,hr,hi
 
         yl = _mm256_moveldup_ps(y); // Load yl with cr,cr,dr,dr,gr,gr,hr,hr
         yh = _mm256_movehdup_ps(y); // Load yh with ci,ci,di,di,gi,gi,hi,hi
@@ -818,71 +883,5 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_avx_fma(lv_32fc_t* result,
 }
 
 #endif /*LV_HAVE_AVX && LV_HAVE_FMA*/
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-#include <volk/volk_rvv_intrinsics.h>
-
-static inline void volk_32fc_x2_dot_prod_32fc_rvv(lv_32fc_t* result,
-                                                  const lv_32fc_t* input,
-                                                  const lv_32fc_t* taps,
-                                                  unsigned int num_points)
-{
-    vfloat32m2_t vsumr = __riscv_vfmv_v_f_f32m2(0, __riscv_vsetvlmax_e32m2());
-    vfloat32m2_t vsumi = vsumr;
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
-        vl = __riscv_vsetvl_e32m2(n);
-        vuint64m4_t va = __riscv_vle64_v_u64m4((const uint64_t*)input, vl);
-        vuint64m4_t vb = __riscv_vle64_v_u64m4((const uint64_t*)taps, vl);
-        vfloat32m2_t var = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 0, vl));
-        vfloat32m2_t vbr = __riscv_vreinterpret_f32m2(__riscv_vnsrl(vb, 0, vl));
-        vfloat32m2_t vai = __riscv_vreinterpret_f32m2(__riscv_vnsrl(va, 32, vl));
-        vfloat32m2_t vbi = __riscv_vreinterpret_f32m2(__riscv_vnsrl(vb, 32, vl));
-        vfloat32m2_t vr = __riscv_vfnmsac(__riscv_vfmul(var, vbr, vl), vai, vbi, vl);
-        vfloat32m2_t vi = __riscv_vfmacc(__riscv_vfmul(var, vbi, vl), vai, vbr, vl);
-        vsumr = __riscv_vfadd_tu(vsumr, vsumr, vr, vl);
-        vsumi = __riscv_vfadd_tu(vsumi, vsumi, vi, vl);
-    }
-    size_t vl = __riscv_vsetvlmax_e32m1();
-    vfloat32m1_t vr = RISCV_SHRINK2(vfadd, f, 32, vsumr);
-    vfloat32m1_t vi = RISCV_SHRINK2(vfadd, f, 32, vsumi);
-    vfloat32m1_t z = __riscv_vfmv_s_f_f32m1(0, vl);
-    *result = lv_cmake(__riscv_vfmv_f(__riscv_vfredusum(vr, z, vl)),
-                       __riscv_vfmv_f(__riscv_vfredusum(vi, z, vl)));
-}
-#endif /*LV_HAVE_RVV*/
-
-#ifdef LV_HAVE_RVVSEG
-#include <riscv_vector.h>
-#include <volk/volk_rvv_intrinsics.h>
-
-static inline void volk_32fc_x2_dot_prod_32fc_rvvseg(lv_32fc_t* result,
-                                                     const lv_32fc_t* input,
-                                                     const lv_32fc_t* taps,
-                                                     unsigned int num_points)
-{
-    vfloat32m4_t vsumr = __riscv_vfmv_v_f_f32m4(0, __riscv_vsetvlmax_e32m4());
-    vfloat32m4_t vsumi = vsumr;
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
-        vl = __riscv_vsetvl_e32m4(n);
-        vfloat32m4x2_t va = __riscv_vlseg2e32_v_f32m4x2((const float*)input, vl);
-        vfloat32m4x2_t vb = __riscv_vlseg2e32_v_f32m4x2((const float*)taps, vl);
-        vfloat32m4_t var = __riscv_vget_f32m4(va, 0), vai = __riscv_vget_f32m4(va, 1);
-        vfloat32m4_t vbr = __riscv_vget_f32m4(vb, 0), vbi = __riscv_vget_f32m4(vb, 1);
-        vfloat32m4_t vr = __riscv_vfnmsac(__riscv_vfmul(var, vbr, vl), vai, vbi, vl);
-        vfloat32m4_t vi = __riscv_vfmacc(__riscv_vfmul(var, vbi, vl), vai, vbr, vl);
-        vsumr = __riscv_vfadd_tu(vsumr, vsumr, vr, vl);
-        vsumi = __riscv_vfadd_tu(vsumi, vsumi, vi, vl);
-    }
-    size_t vl = __riscv_vsetvlmax_e32m1();
-    vfloat32m1_t vr = RISCV_SHRINK4(vfadd, f, 32, vsumr);
-    vfloat32m1_t vi = RISCV_SHRINK4(vfadd, f, 32, vsumi);
-    vfloat32m1_t z = __riscv_vfmv_s_f_f32m1(0, vl);
-    *result = lv_cmake(__riscv_vfmv_f(__riscv_vfredusum(vr, z, vl)),
-                       __riscv_vfmv_f(__riscv_vfredusum(vi, z, vl)));
-}
-#endif /*LV_HAVE_RVVSEG*/
 
 #endif /*INCLUDED_volk_32fc_x2_dot_prod_32fc_a_H*/
