@@ -62,77 +62,22 @@
 #include <math.h>
 #include <stdio.h>
 
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-#include <volk/volk_avx_intrinsics.h>
+#ifdef LV_HAVE_GENERIC
 
-static inline void volk_32fc_magnitude_squared_32f_u_avx(float* magnitudeVector,
-                                                         const lv_32fc_t* complexVector,
-                                                         unsigned int num_points)
+static inline void volk_32fc_magnitude_squared_32f_generic(float* magnitudeVector,
+                                                           const lv_32fc_t* complexVector,
+                                                           unsigned int num_points)
 {
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
-
     const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
-
-    __m256 cplxValue1, cplxValue2, result;
-
-    for (; number < eighthPoints; number++) {
-        cplxValue1 = _mm256_loadu_ps(complexVectorPtr);
-        cplxValue2 = _mm256_loadu_ps(complexVectorPtr + 8);
-        result = _mm256_magnitudesquared_ps(cplxValue1, cplxValue2);
-        _mm256_storeu_ps(magnitudeVectorPtr, result);
-
-        complexVectorPtr += 16;
-        magnitudeVectorPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        float val1Real = *complexVectorPtr++;
-        float val1Imag = *complexVectorPtr++;
-        *magnitudeVectorPtr++ = (val1Real * val1Real) + (val1Imag * val1Imag);
-    }
-}
-#endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_SSE3
-#include <pmmintrin.h>
-#include <volk/volk_sse3_intrinsics.h>
-
-static inline void volk_32fc_magnitude_squared_32f_u_sse3(float* magnitudeVector,
-                                                          const lv_32fc_t* complexVector,
-                                                          unsigned int num_points)
-{
     unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
-
-    const float* complexVectorPtr = (const float*)complexVector;
-    float* magnitudeVectorPtr = magnitudeVector;
-
-    __m128 cplxValue1, cplxValue2, result;
-    for (; number < quarterPoints; number++) {
-        cplxValue1 = _mm_loadu_ps(complexVectorPtr);
-        complexVectorPtr += 4;
-
-        cplxValue2 = _mm_loadu_ps(complexVectorPtr);
-        complexVectorPtr += 4;
-
-        result = _mm_magnitudesquared_ps_sse3(cplxValue1, cplxValue2);
-        _mm_storeu_ps(magnitudeVectorPtr, result);
-        magnitudeVectorPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        float val1Real = *complexVectorPtr++;
-        float val1Imag = *complexVectorPtr++;
-        *magnitudeVectorPtr++ = (val1Real * val1Real) + (val1Imag * val1Imag);
+    for (number = 0; number < num_points; number++) {
+        const float real = *complexVectorPtr++;
+        const float imag = *complexVectorPtr++;
+        *magnitudeVectorPtr++ = (real * real) + (imag * imag);
     }
 }
-#endif /* LV_HAVE_SSE3 */
+#endif /* LV_HAVE_GENERIC */
 
 
 #ifdef LV_HAVE_SSE
@@ -173,74 +118,11 @@ static inline void volk_32fc_magnitude_squared_32f_u_sse(float* magnitudeVector,
 #endif /* LV_HAVE_SSE */
 
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_magnitude_squared_32f_generic(float* magnitudeVector,
-                                                           const lv_32fc_t* complexVector,
-                                                           unsigned int num_points)
-{
-    const float* complexVectorPtr = (const float*)complexVector;
-    float* magnitudeVectorPtr = magnitudeVector;
-    unsigned int number = 0;
-    for (number = 0; number < num_points; number++) {
-        const float real = *complexVectorPtr++;
-        const float imag = *complexVectorPtr++;
-        *magnitudeVectorPtr++ = (real * real) + (imag * imag);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
-#endif /* INCLUDED_volk_32fc_magnitude_32f_u_H */
-#ifndef INCLUDED_volk_32fc_magnitude_squared_32f_a_H
-#define INCLUDED_volk_32fc_magnitude_squared_32f_a_H
-
-#include <inttypes.h>
-#include <math.h>
-#include <stdio.h>
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-#include <volk/volk_avx_intrinsics.h>
-
-static inline void volk_32fc_magnitude_squared_32f_a_avx(float* magnitudeVector,
-                                                         const lv_32fc_t* complexVector,
-                                                         unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
-
-    const float* complexVectorPtr = (const float*)complexVector;
-    float* magnitudeVectorPtr = magnitudeVector;
-
-    __m256 cplxValue1, cplxValue2, result;
-    for (; number < eighthPoints; number++) {
-        cplxValue1 = _mm256_load_ps(complexVectorPtr);
-        complexVectorPtr += 8;
-
-        cplxValue2 = _mm256_load_ps(complexVectorPtr);
-        complexVectorPtr += 8;
-
-        result = _mm256_magnitudesquared_ps(cplxValue1, cplxValue2);
-        _mm256_store_ps(magnitudeVectorPtr, result);
-        magnitudeVectorPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        float val1Real = *complexVectorPtr++;
-        float val1Imag = *complexVectorPtr++;
-        *magnitudeVectorPtr++ = (val1Real * val1Real) + (val1Imag * val1Imag);
-    }
-}
-#endif /* LV_HAVE_AVX */
-
-
 #ifdef LV_HAVE_SSE3
 #include <pmmintrin.h>
 #include <volk/volk_sse3_intrinsics.h>
 
-static inline void volk_32fc_magnitude_squared_32f_a_sse3(float* magnitudeVector,
+static inline void volk_32fc_magnitude_squared_32f_u_sse3(float* magnitudeVector,
                                                           const lv_32fc_t* complexVector,
                                                           unsigned int num_points)
 {
@@ -252,14 +134,14 @@ static inline void volk_32fc_magnitude_squared_32f_a_sse3(float* magnitudeVector
 
     __m128 cplxValue1, cplxValue2, result;
     for (; number < quarterPoints; number++) {
-        cplxValue1 = _mm_load_ps(complexVectorPtr);
+        cplxValue1 = _mm_loadu_ps(complexVectorPtr);
         complexVectorPtr += 4;
 
-        cplxValue2 = _mm_load_ps(complexVectorPtr);
+        cplxValue2 = _mm_loadu_ps(complexVectorPtr);
         complexVectorPtr += 4;
 
         result = _mm_magnitudesquared_ps_sse3(cplxValue1, cplxValue2);
-        _mm_store_ps(magnitudeVectorPtr, result);
+        _mm_storeu_ps(magnitudeVectorPtr, result);
         magnitudeVectorPtr += 4;
     }
 
@@ -273,41 +155,40 @@ static inline void volk_32fc_magnitude_squared_32f_a_sse3(float* magnitudeVector
 #endif /* LV_HAVE_SSE3 */
 
 
-#ifdef LV_HAVE_SSE
-#include <volk/volk_sse_intrinsics.h>
-#include <xmmintrin.h>
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
 
-static inline void volk_32fc_magnitude_squared_32f_a_sse(float* magnitudeVector,
+static inline void volk_32fc_magnitude_squared_32f_u_avx(float* magnitudeVector,
                                                          const lv_32fc_t* complexVector,
                                                          unsigned int num_points)
 {
     unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
+    const unsigned int eighthPoints = num_points / 8;
 
     const float* complexVectorPtr = (const float*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
-    __m128 cplxValue1, cplxValue2, result;
-    for (; number < quarterPoints; number++) {
-        cplxValue1 = _mm_load_ps(complexVectorPtr);
-        complexVectorPtr += 4;
+    __m256 cplxValue1, cplxValue2, result;
 
-        cplxValue2 = _mm_load_ps(complexVectorPtr);
-        complexVectorPtr += 4;
+    for (; number < eighthPoints; number++) {
+        cplxValue1 = _mm256_loadu_ps(complexVectorPtr);
+        cplxValue2 = _mm256_loadu_ps(complexVectorPtr + 8);
+        result = _mm256_magnitudesquared_ps(cplxValue1, cplxValue2);
+        _mm256_storeu_ps(magnitudeVectorPtr, result);
 
-        result = _mm_magnitudesquared_ps(cplxValue1, cplxValue2);
-        _mm_store_ps(magnitudeVectorPtr, result);
-        magnitudeVectorPtr += 4;
+        complexVectorPtr += 16;
+        magnitudeVectorPtr += 8;
     }
 
-    number = quarterPoints * 4;
+    number = eighthPoints * 8;
     for (; number < num_points; number++) {
         float val1Real = *complexVectorPtr++;
         float val1Imag = *complexVectorPtr++;
         *magnitudeVectorPtr++ = (val1Real * val1Real) + (val1Imag * val1Imag);
     }
 }
-#endif /* LV_HAVE_SSE */
+#endif /* LV_HAVE_AVX */
 
 
 #ifdef LV_HAVE_NEON
@@ -425,7 +306,7 @@ static inline void volk_32fc_magnitude_squared_32f_rvv(float* magnitudeVector,
         __riscv_vse32(magnitudeVector, v, vl);
     }
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
 
 #ifdef LV_HAVE_RVVSEG
 #include <riscv_vector.h>
@@ -444,6 +325,126 @@ static inline void volk_32fc_magnitude_squared_32f_rvvseg(float* magnitudeVector
         __riscv_vse32(magnitudeVector, v, vl);
     }
 }
-#endif /*LV_HAVE_RVVSEG*/
+#endif /* LV_HAVE_RVVSEG */
 
-#endif /* INCLUDED_volk_32fc_magnitude_32f_a_H */
+#endif /* INCLUDED_volk_32fc_magnitude_squared_32f_u_H */
+
+#ifndef INCLUDED_volk_32fc_magnitude_squared_32f_a_H
+#define INCLUDED_volk_32fc_magnitude_squared_32f_a_H
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_SSE
+#include <volk/volk_sse_intrinsics.h>
+#include <xmmintrin.h>
+
+static inline void volk_32fc_magnitude_squared_32f_a_sse(float* magnitudeVector,
+                                                         const lv_32fc_t* complexVector,
+                                                         unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    const float* complexVectorPtr = (const float*)complexVector;
+    float* magnitudeVectorPtr = magnitudeVector;
+
+    __m128 cplxValue1, cplxValue2, result;
+    for (; number < quarterPoints; number++) {
+        cplxValue1 = _mm_load_ps(complexVectorPtr);
+        complexVectorPtr += 4;
+
+        cplxValue2 = _mm_load_ps(complexVectorPtr);
+        complexVectorPtr += 4;
+
+        result = _mm_magnitudesquared_ps(cplxValue1, cplxValue2);
+        _mm_store_ps(magnitudeVectorPtr, result);
+        magnitudeVectorPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        float val1Real = *complexVectorPtr++;
+        float val1Imag = *complexVectorPtr++;
+        *magnitudeVectorPtr++ = (val1Real * val1Real) + (val1Imag * val1Imag);
+    }
+}
+#endif /* LV_HAVE_SSE */
+
+
+#ifdef LV_HAVE_SSE3
+#include <pmmintrin.h>
+#include <volk/volk_sse3_intrinsics.h>
+
+static inline void volk_32fc_magnitude_squared_32f_a_sse3(float* magnitudeVector,
+                                                          const lv_32fc_t* complexVector,
+                                                          unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    const float* complexVectorPtr = (const float*)complexVector;
+    float* magnitudeVectorPtr = magnitudeVector;
+
+    __m128 cplxValue1, cplxValue2, result;
+    for (; number < quarterPoints; number++) {
+        cplxValue1 = _mm_load_ps(complexVectorPtr);
+        complexVectorPtr += 4;
+
+        cplxValue2 = _mm_load_ps(complexVectorPtr);
+        complexVectorPtr += 4;
+
+        result = _mm_magnitudesquared_ps_sse3(cplxValue1, cplxValue2);
+        _mm_store_ps(magnitudeVectorPtr, result);
+        magnitudeVectorPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        float val1Real = *complexVectorPtr++;
+        float val1Imag = *complexVectorPtr++;
+        *magnitudeVectorPtr++ = (val1Real * val1Real) + (val1Imag * val1Imag);
+    }
+}
+#endif /* LV_HAVE_SSE3 */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+#include <volk/volk_avx_intrinsics.h>
+
+static inline void volk_32fc_magnitude_squared_32f_a_avx(float* magnitudeVector,
+                                                         const lv_32fc_t* complexVector,
+                                                         unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    const float* complexVectorPtr = (const float*)complexVector;
+    float* magnitudeVectorPtr = magnitudeVector;
+
+    __m256 cplxValue1, cplxValue2, result;
+    for (; number < eighthPoints; number++) {
+        cplxValue1 = _mm256_load_ps(complexVectorPtr);
+        complexVectorPtr += 8;
+
+        cplxValue2 = _mm256_load_ps(complexVectorPtr);
+        complexVectorPtr += 8;
+
+        result = _mm256_magnitudesquared_ps(cplxValue1, cplxValue2);
+        _mm256_store_ps(magnitudeVectorPtr, result);
+        magnitudeVectorPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        float val1Real = *complexVectorPtr++;
+        float val1Imag = *complexVectorPtr++;
+        *magnitudeVectorPtr++ = (val1Real * val1Real) + (val1Imag * val1Imag);
+    }
+}
+#endif /* LV_HAVE_AVX */
+
+
+#endif /* INCLUDED_volk_32fc_magnitude_squared_32f_a_H */
