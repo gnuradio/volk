@@ -337,6 +337,170 @@ static inline void volk_32fc_x2_divide_32fc_u_avx512(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_AVX512F */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32fc_x2_divide_32fc_neon(lv_32fc_t* cVector,
+                                                 const lv_32fc_t* aVector,
+                                                 const lv_32fc_t* bVector,
+                                                 unsigned int num_points)
+{
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const lv_32fc_t* bPtr = bVector;
+
+    float32x4x2_t aVal, bVal, cVal;
+    float32x4_t bAbs, bAbsInv;
+
+    const unsigned int quarterPoints = num_points / 4;
+    unsigned int number = 0;
+    for (; number < quarterPoints; number++) {
+        aVal = vld2q_f32((const float*)(aPtr));
+        bVal = vld2q_f32((const float*)(bPtr));
+        aPtr += 4;
+        bPtr += 4;
+        __VOLK_PREFETCH(aPtr + 4);
+        __VOLK_PREFETCH(bPtr + 4);
+
+        bAbs = vmulq_f32(bVal.val[0], bVal.val[0]);
+        bAbs = vmlaq_f32(bAbs, bVal.val[1], bVal.val[1]);
+
+        bAbsInv = vrecpeq_f32(bAbs);
+        bAbsInv = vmulq_f32(bAbsInv, vrecpsq_f32(bAbsInv, bAbs));
+        bAbsInv = vmulq_f32(bAbsInv, vrecpsq_f32(bAbsInv, bAbs));
+
+        cVal.val[0] = vmulq_f32(aVal.val[0], bVal.val[0]);
+        cVal.val[0] = vmlaq_f32(cVal.val[0], aVal.val[1], bVal.val[1]);
+        cVal.val[0] = vmulq_f32(cVal.val[0], bAbsInv);
+
+        cVal.val[1] = vmulq_f32(aVal.val[1], bVal.val[0]);
+        cVal.val[1] = vmlsq_f32(cVal.val[1], aVal.val[0], bVal.val[1]);
+        cVal.val[1] = vmulq_f32(cVal.val[1], bAbsInv);
+
+        vst2q_f32((float*)(cPtr), cVal);
+        cPtr += 4;
+    }
+
+    for (number = quarterPoints * 4; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) / (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32fc_x2_divide_32fc_neonv8(lv_32fc_t* cVector,
+                                                   const lv_32fc_t* aVector,
+                                                   const lv_32fc_t* bVector,
+                                                   unsigned int num_points)
+{
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const lv_32fc_t* bPtr = bVector;
+
+    float32x4x2_t aVal, bVal, cVal;
+    float32x4_t bMagSq;
+
+    const unsigned int quarterPoints = num_points / 4;
+    unsigned int number = 0;
+
+    for (; number < quarterPoints; number++) {
+        aVal = vld2q_f32((const float*)(aPtr));
+        bVal = vld2q_f32((const float*)(bPtr));
+        aPtr += 4;
+        bPtr += 4;
+        __VOLK_PREFETCH(aPtr + 4);
+        __VOLK_PREFETCH(bPtr + 4);
+
+        /* Compute |b|^2 = br^2 + bi^2 using FMA */
+        bMagSq = vfmaq_f32(vmulq_f32(bVal.val[0], bVal.val[0]), bVal.val[1], bVal.val[1]);
+
+        /* Use ARMv8 native division for 1/|b|^2 */
+        float32x4_t bMagSqInv = vdivq_f32(vdupq_n_f32(1.0f), bMagSq);
+
+        /* real = (ar*br + ai*bi) / |b|^2 */
+        cVal.val[0] =
+            vfmaq_f32(vmulq_f32(aVal.val[0], bVal.val[0]), aVal.val[1], bVal.val[1]);
+        cVal.val[0] = vmulq_f32(cVal.val[0], bMagSqInv);
+
+        /* imag = (ai*br - ar*bi) / |b|^2 */
+        cVal.val[1] =
+            vfmsq_f32(vmulq_f32(aVal.val[1], bVal.val[0]), aVal.val[0], bVal.val[1]);
+        cVal.val[1] = vmulq_f32(cVal.val[1], bMagSqInv);
+
+        vst2q_f32((float*)(cPtr), cVal);
+        cPtr += 4;
+    }
+
+    for (number = quarterPoints * 4; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) / (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+
+static inline void volk_32fc_x2_divide_32fc_rvv(lv_32fc_t* cVector,
+                                                const lv_32fc_t* aVector,
+                                                const lv_32fc_t* bVector,
+                                                unsigned int num_points)
+{
+    uint64_t* out = (uint64_t*)cVector;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, out += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vuint64m8_t va = __riscv_vle64_v_u64m8((const uint64_t*)aVector, vl);
+        vuint64m8_t vb = __riscv_vle64_v_u64m8((const uint64_t*)bVector, vl);
+        vfloat32m4_t var = __riscv_vreinterpret_f32m4(__riscv_vnsrl(va, 0, vl));
+        vfloat32m4_t vbr = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vb, 0, vl));
+        vfloat32m4_t vai = __riscv_vreinterpret_f32m4(__riscv_vnsrl(va, 32, vl));
+        vfloat32m4_t vbi = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vb, 32, vl));
+        vfloat32m4_t mul = __riscv_vfrdiv(
+            __riscv_vfmacc(__riscv_vfmul(vbi, vbi, vl), vbr, vbr, vl), 1.0f, vl);
+        vfloat32m4_t vr = __riscv_vfmul(
+            __riscv_vfmacc(__riscv_vfmul(var, vbr, vl), vai, vbi, vl), mul, vl);
+        vfloat32m4_t vi = __riscv_vfmul(
+            __riscv_vfnmsac(__riscv_vfmul(vai, vbr, vl), var, vbi, vl), mul, vl);
+        vuint32m4_t vru = __riscv_vreinterpret_u32m4(vr);
+        vuint32m4_t viu = __riscv_vreinterpret_u32m4(vi);
+        vuint64m8_t v =
+            __riscv_vwmaccu(__riscv_vwaddu_vv(vru, viu, vl), 0xFFFFFFFF, viu, vl);
+        __riscv_vse64(out, v, vl);
+    }
+}
+#endif /*LV_HAVE_RVV*/
+
+#ifdef LV_HAVE_RVVSEG
+#include <riscv_vector.h>
+
+static inline void volk_32fc_x2_divide_32fc_rvvseg(lv_32fc_t* cVector,
+                                                   const lv_32fc_t* aVector,
+                                                   const lv_32fc_t* bVector,
+                                                   unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m4(n);
+        vfloat32m4x2_t va = __riscv_vlseg2e32_v_f32m4x2((const float*)aVector, vl);
+        vfloat32m4x2_t vb = __riscv_vlseg2e32_v_f32m4x2((const float*)bVector, vl);
+        vfloat32m4_t var = __riscv_vget_f32m4(va, 0), vai = __riscv_vget_f32m4(va, 1);
+        vfloat32m4_t vbr = __riscv_vget_f32m4(vb, 0), vbi = __riscv_vget_f32m4(vb, 1);
+        vfloat32m4_t mul = __riscv_vfrdiv(
+            __riscv_vfmacc(__riscv_vfmul(vbi, vbi, vl), vbr, vbr, vl), 1.0f, vl);
+        vfloat32m4_t vr = __riscv_vfmul(
+            __riscv_vfmacc(__riscv_vfmul(var, vbr, vl), vai, vbi, vl), mul, vl);
+        vfloat32m4_t vi = __riscv_vfmul(
+            __riscv_vfnmsac(__riscv_vfmul(vai, vbr, vl), var, vbi, vl), mul, vl);
+        __riscv_vsseg2e32_v_f32m4x2(
+            (float*)cVector, __riscv_vcreate_v_f32m4x2(vr, vi), vl);
+    }
+}
+
+#endif /*LV_HAVE_RVVSEG*/
+
 
 #endif /* INCLUDED_volk_32fc_x2_divide_32fc_u_H */
 
@@ -406,7 +570,7 @@ static inline void volk_32fc_x2_divide_32fc_a_sse3(lv_32fc_t* cVector,
         c++;
     }
 }
-#endif /* LV_HAVE_SSE */
+#endif /* LV_HAVE_SSE3 */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -574,169 +738,5 @@ static inline void volk_32fc_x2_divide_32fc_a_avx512(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_AVX512F */
 
-
-#ifdef LV_HAVE_NEON
-#include <arm_neon.h>
-
-static inline void volk_32fc_x2_divide_32fc_neon(lv_32fc_t* cVector,
-                                                 const lv_32fc_t* aVector,
-                                                 const lv_32fc_t* bVector,
-                                                 unsigned int num_points)
-{
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    const lv_32fc_t* bPtr = bVector;
-
-    float32x4x2_t aVal, bVal, cVal;
-    float32x4_t bAbs, bAbsInv;
-
-    const unsigned int quarterPoints = num_points / 4;
-    unsigned int number = 0;
-    for (; number < quarterPoints; number++) {
-        aVal = vld2q_f32((const float*)(aPtr));
-        bVal = vld2q_f32((const float*)(bPtr));
-        aPtr += 4;
-        bPtr += 4;
-        __VOLK_PREFETCH(aPtr + 4);
-        __VOLK_PREFETCH(bPtr + 4);
-
-        bAbs = vmulq_f32(bVal.val[0], bVal.val[0]);
-        bAbs = vmlaq_f32(bAbs, bVal.val[1], bVal.val[1]);
-
-        bAbsInv = vrecpeq_f32(bAbs);
-        bAbsInv = vmulq_f32(bAbsInv, vrecpsq_f32(bAbsInv, bAbs));
-        bAbsInv = vmulq_f32(bAbsInv, vrecpsq_f32(bAbsInv, bAbs));
-
-        cVal.val[0] = vmulq_f32(aVal.val[0], bVal.val[0]);
-        cVal.val[0] = vmlaq_f32(cVal.val[0], aVal.val[1], bVal.val[1]);
-        cVal.val[0] = vmulq_f32(cVal.val[0], bAbsInv);
-
-        cVal.val[1] = vmulq_f32(aVal.val[1], bVal.val[0]);
-        cVal.val[1] = vmlsq_f32(cVal.val[1], aVal.val[0], bVal.val[1]);
-        cVal.val[1] = vmulq_f32(cVal.val[1], bAbsInv);
-
-        vst2q_f32((float*)(cPtr), cVal);
-        cPtr += 4;
-    }
-
-    for (number = quarterPoints * 4; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) / (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_NEON */
-
-#ifdef LV_HAVE_NEONV8
-#include <arm_neon.h>
-
-static inline void volk_32fc_x2_divide_32fc_neonv8(lv_32fc_t* cVector,
-                                                   const lv_32fc_t* aVector,
-                                                   const lv_32fc_t* bVector,
-                                                   unsigned int num_points)
-{
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    const lv_32fc_t* bPtr = bVector;
-
-    float32x4x2_t aVal, bVal, cVal;
-    float32x4_t bMagSq;
-
-    const unsigned int quarterPoints = num_points / 4;
-    unsigned int number = 0;
-
-    for (; number < quarterPoints; number++) {
-        aVal = vld2q_f32((const float*)(aPtr));
-        bVal = vld2q_f32((const float*)(bPtr));
-        aPtr += 4;
-        bPtr += 4;
-        __VOLK_PREFETCH(aPtr + 4);
-        __VOLK_PREFETCH(bPtr + 4);
-
-        /* Compute |b|^2 = br^2 + bi^2 using FMA */
-        bMagSq = vfmaq_f32(vmulq_f32(bVal.val[0], bVal.val[0]), bVal.val[1], bVal.val[1]);
-
-        /* Use ARMv8 native division for 1/|b|^2 */
-        float32x4_t bMagSqInv = vdivq_f32(vdupq_n_f32(1.0f), bMagSq);
-
-        /* real = (ar*br + ai*bi) / |b|^2 */
-        cVal.val[0] =
-            vfmaq_f32(vmulq_f32(aVal.val[0], bVal.val[0]), aVal.val[1], bVal.val[1]);
-        cVal.val[0] = vmulq_f32(cVal.val[0], bMagSqInv);
-
-        /* imag = (ai*br - ar*bi) / |b|^2 */
-        cVal.val[1] =
-            vfmsq_f32(vmulq_f32(aVal.val[1], bVal.val[0]), aVal.val[0], bVal.val[1]);
-        cVal.val[1] = vmulq_f32(cVal.val[1], bMagSqInv);
-
-        vst2q_f32((float*)(cPtr), cVal);
-        cPtr += 4;
-    }
-
-    for (number = quarterPoints * 4; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) / (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_NEONV8 */
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-
-
-static inline void volk_32fc_x2_divide_32fc_rvv(lv_32fc_t* cVector,
-                                                const lv_32fc_t* aVector,
-                                                const lv_32fc_t* bVector,
-                                                unsigned int num_points)
-{
-    uint64_t* out = (uint64_t*)cVector;
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, out += vl) {
-        vl = __riscv_vsetvl_e32m4(n);
-        vuint64m8_t va = __riscv_vle64_v_u64m8((const uint64_t*)aVector, vl);
-        vuint64m8_t vb = __riscv_vle64_v_u64m8((const uint64_t*)bVector, vl);
-        vfloat32m4_t var = __riscv_vreinterpret_f32m4(__riscv_vnsrl(va, 0, vl));
-        vfloat32m4_t vbr = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vb, 0, vl));
-        vfloat32m4_t vai = __riscv_vreinterpret_f32m4(__riscv_vnsrl(va, 32, vl));
-        vfloat32m4_t vbi = __riscv_vreinterpret_f32m4(__riscv_vnsrl(vb, 32, vl));
-        vfloat32m4_t mul = __riscv_vfrdiv(
-            __riscv_vfmacc(__riscv_vfmul(vbi, vbi, vl), vbr, vbr, vl), 1.0f, vl);
-        vfloat32m4_t vr = __riscv_vfmul(
-            __riscv_vfmacc(__riscv_vfmul(var, vbr, vl), vai, vbi, vl), mul, vl);
-        vfloat32m4_t vi = __riscv_vfmul(
-            __riscv_vfnmsac(__riscv_vfmul(vai, vbr, vl), var, vbi, vl), mul, vl);
-        vuint32m4_t vru = __riscv_vreinterpret_u32m4(vr);
-        vuint32m4_t viu = __riscv_vreinterpret_u32m4(vi);
-        vuint64m8_t v =
-            __riscv_vwmaccu(__riscv_vwaddu_vv(vru, viu, vl), 0xFFFFFFFF, viu, vl);
-        __riscv_vse64(out, v, vl);
-    }
-}
-#endif /*LV_HAVE_RVV*/
-
-#ifdef LV_HAVE_RVVSEG
-#include <riscv_vector.h>
-
-static inline void volk_32fc_x2_divide_32fc_rvvseg(lv_32fc_t* cVector,
-                                                   const lv_32fc_t* aVector,
-                                                   const lv_32fc_t* bVector,
-                                                   unsigned int num_points)
-{
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl, cVector += vl) {
-        vl = __riscv_vsetvl_e32m4(n);
-        vfloat32m4x2_t va = __riscv_vlseg2e32_v_f32m4x2((const float*)aVector, vl);
-        vfloat32m4x2_t vb = __riscv_vlseg2e32_v_f32m4x2((const float*)bVector, vl);
-        vfloat32m4_t var = __riscv_vget_f32m4(va, 0), vai = __riscv_vget_f32m4(va, 1);
-        vfloat32m4_t vbr = __riscv_vget_f32m4(vb, 0), vbi = __riscv_vget_f32m4(vb, 1);
-        vfloat32m4_t mul = __riscv_vfrdiv(
-            __riscv_vfmacc(__riscv_vfmul(vbi, vbi, vl), vbr, vbr, vl), 1.0f, vl);
-        vfloat32m4_t vr = __riscv_vfmul(
-            __riscv_vfmacc(__riscv_vfmul(var, vbr, vl), vai, vbi, vl), mul, vl);
-        vfloat32m4_t vi = __riscv_vfmul(
-            __riscv_vfnmsac(__riscv_vfmul(vai, vbr, vl), var, vbi, vl), mul, vl);
-        __riscv_vsseg2e32_v_f32m4x2(
-            (float*)cVector, __riscv_vcreate_v_f32m4x2(vr, vi), vl);
-    }
-}
-
-#endif /*LV_HAVE_RVVSEG*/
 
 #endif /* INCLUDED_volk_32fc_x2_divide_32fc_a_H */
