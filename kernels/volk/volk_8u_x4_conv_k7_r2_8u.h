@@ -42,8 +42,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_8u_x4_conv_k7_r2_8u_H
-#define INCLUDED_volk_8u_x4_conv_k7_r2_8u_H
+#ifndef INCLUDED_volk_8u_x4_conv_k7_r2_8u_u_H
+#define INCLUDED_volk_8u_x4_conv_k7_r2_8u_u_H
 
 typedef union {
     unsigned char /*DECISIONTYPE*/ t[64 /*NUMSTATES*/ / 8 /*DECISIONTYPE_BITSIZE*/];
@@ -118,87 +118,36 @@ static inline void BFLY(int i,
 }
 
 
-#if LV_HAVE_AVX2
+#if LV_HAVE_GENERIC
 
-#include <immintrin.h>
-#include <stdio.h>
-
-static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
-                                                 unsigned char* X,
-                                                 const unsigned char* syms,
-                                                 unsigned char* dec,
-                                                 unsigned int framebits,
-                                                 unsigned int excess,
-                                                 const unsigned char* Branchtab)
+static inline void volk_8u_x4_conv_k7_r2_8u_generic(unsigned char* Y,
+                                                    unsigned char* X,
+                                                    const unsigned char* syms,
+                                                    unsigned char* dec,
+                                                    unsigned int framebits,
+                                                    unsigned int excess,
+                                                    const unsigned char* Branchtab)
 {
-    unsigned int i;
-    for (i = 0; i < framebits + excess; i++) {
-        unsigned char* tmp;
-        unsigned int* dec_int = (unsigned int*)dec;
-        __m256i a76, a78, a79, a82, a84, a85, a86, a88, a89, a90, d10, d9, m23, m24, m25,
-            m26, s18, s19, s22, s23, t14, t15;
+    int nbits = framebits + excess;
+    int NUMSTATES = 64;
 
-        // Butterfly
-        s18 = ((__m256i*)X)[0];
-        s19 = ((__m256i*)X)[1];
-        a76 = _mm256_set1_epi8(syms[2 * i]);
-        a78 = ((const __m256i*)Branchtab)[0];
-        a79 = _mm256_xor_si256(a76, a78);
-        a82 = _mm256_set1_epi8(syms[2 * i + 1]);
-        a84 = ((const __m256i*)Branchtab)[1];
-        a85 = _mm256_xor_si256(a82, a84);
-        a86 = _mm256_avg_epu8(a79, a85);
-        a88 = _mm256_srli_epi16(a86, 2);
-        t14 = _mm256_and_si256(a88, _mm256_set1_epi8(63));
-        t15 = _mm256_subs_epu8(_mm256_set1_epi8(63), t14);
-        m23 = _mm256_adds_epu8(s18, t14);
-        m24 = _mm256_adds_epu8(s19, t15);
-        m25 = _mm256_adds_epu8(s18, t15);
-        m26 = _mm256_adds_epu8(s19, t14);
-        a89 = _mm256_min_epu8(m24, m23);
-        d9 = _mm256_cmpeq_epi8(a89, m24);
-        a90 = _mm256_min_epu8(m26, m25);
-        d10 = _mm256_cmpeq_epi8(a90, m26);
-        s22 = _mm256_unpacklo_epi8(d9, d10);
-        s23 = _mm256_unpackhi_epi8(d9, d10);
-        dec_int[2 * i] = _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x20));
-        dec_int[2 * i + 1] =
-            _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x31));
-        s22 = _mm256_unpacklo_epi8(a89, a90);
-        s23 = _mm256_unpackhi_epi8(a89, a90);
-        ((__m256i*)Y)[0] = _mm256_permute2x128_si256(s22, s23, 0x20);
-        ((__m256i*)Y)[1] = _mm256_permute2x128_si256(s22, s23, 0x31);
+    int s, i;
+    for (s = 0; s < nbits; s++) {
+        void* tmp;
+        for (i = 0; i < NUMSTATES / 2; i++) {
+            BFLY(i, s, syms, Y, X, (decision_t*)dec, Branchtab);
+        }
 
-        // Renormalize
-        __m256i m5, m6;
-        m5 = ((__m256i*)Y)[0];
-        m5 = _mm256_min_epu8(m5, ((__m256i*)Y)[1]);
-        m5 = ((__m256i)_mm256_min_epu8(_mm256_permute2x128_si256(m5, m5, 0x21), m5));
-        __m256i m7;
-        m7 = _mm256_min_epu8(_mm256_srli_si256(m5, 8), m5);
-        m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 32)),
-                                       ((__m256i)m7)));
-        m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 16)),
-                                       ((__m256i)m7)));
-        m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 8)),
-                                       ((__m256i)m7)));
-        m7 = _mm256_unpacklo_epi8(m7, m7);
-        m7 = _mm256_shufflelo_epi16(m7, 0);
-        m6 = _mm256_unpacklo_epi64(m7, m7);
-        m6 = _mm256_permute2x128_si256(
-            m6, m6, 0); // copy lower half of m6 to upper half, since above ops
-                        // operate on 128 bit lanes
-        ((__m256i*)Y)[0] = _mm256_subs_epu8(((__m256i*)Y)[0], m6);
-        ((__m256i*)Y)[1] = _mm256_subs_epu8(((__m256i*)Y)[1], m6);
+        renormalize(Y);
 
-        // Swap pointers to old and new metrics
-        tmp = X;
+        ///     Swap pointers to old and new metrics
+        tmp = (void*)X;
         X = Y;
-        Y = tmp;
+        Y = (unsigned char*)tmp;
     }
 }
 
-#endif /*LV_HAVE_AVX2*/
+#endif /* LV_HAVE_GENERIC */
 
 
 #if LV_HAVE_SSE3
@@ -301,7 +250,91 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
     }
 }
 
-#endif /*LV_HAVE_SSE3*/
+#endif /* LV_HAVE_SSE3 */
+
+
+#if LV_HAVE_AVX2
+
+#include <immintrin.h>
+#include <stdio.h>
+
+static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
+                                                 unsigned char* X,
+                                                 const unsigned char* syms,
+                                                 unsigned char* dec,
+                                                 unsigned int framebits,
+                                                 unsigned int excess,
+                                                 const unsigned char* Branchtab)
+{
+    unsigned int i;
+    for (i = 0; i < framebits + excess; i++) {
+        unsigned char* tmp;
+        unsigned int* dec_int = (unsigned int*)dec;
+        __m256i a76, a78, a79, a82, a84, a85, a86, a88, a89, a90, d10, d9, m23, m24, m25,
+            m26, s18, s19, s22, s23, t14, t15;
+
+        // Butterfly
+        s18 = ((__m256i*)X)[0];
+        s19 = ((__m256i*)X)[1];
+        a76 = _mm256_set1_epi8(syms[2 * i]);
+        a78 = ((const __m256i*)Branchtab)[0];
+        a79 = _mm256_xor_si256(a76, a78);
+        a82 = _mm256_set1_epi8(syms[2 * i + 1]);
+        a84 = ((const __m256i*)Branchtab)[1];
+        a85 = _mm256_xor_si256(a82, a84);
+        a86 = _mm256_avg_epu8(a79, a85);
+        a88 = _mm256_srli_epi16(a86, 2);
+        t14 = _mm256_and_si256(a88, _mm256_set1_epi8(63));
+        t15 = _mm256_subs_epu8(_mm256_set1_epi8(63), t14);
+        m23 = _mm256_adds_epu8(s18, t14);
+        m24 = _mm256_adds_epu8(s19, t15);
+        m25 = _mm256_adds_epu8(s18, t15);
+        m26 = _mm256_adds_epu8(s19, t14);
+        a89 = _mm256_min_epu8(m24, m23);
+        d9 = _mm256_cmpeq_epi8(a89, m24);
+        a90 = _mm256_min_epu8(m26, m25);
+        d10 = _mm256_cmpeq_epi8(a90, m26);
+        s22 = _mm256_unpacklo_epi8(d9, d10);
+        s23 = _mm256_unpackhi_epi8(d9, d10);
+        dec_int[2 * i] = _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x20));
+        dec_int[2 * i + 1] =
+            _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x31));
+        s22 = _mm256_unpacklo_epi8(a89, a90);
+        s23 = _mm256_unpackhi_epi8(a89, a90);
+        ((__m256i*)Y)[0] = _mm256_permute2x128_si256(s22, s23, 0x20);
+        ((__m256i*)Y)[1] = _mm256_permute2x128_si256(s22, s23, 0x31);
+
+        // Renormalize
+        __m256i m5, m6;
+        m5 = ((__m256i*)Y)[0];
+        m5 = _mm256_min_epu8(m5, ((__m256i*)Y)[1]);
+        m5 = ((__m256i)_mm256_min_epu8(_mm256_permute2x128_si256(m5, m5, 0x21), m5));
+        __m256i m7;
+        m7 = _mm256_min_epu8(_mm256_srli_si256(m5, 8), m5);
+        m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 32)),
+                                       ((__m256i)m7)));
+        m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 16)),
+                                       ((__m256i)m7)));
+        m7 = ((__m256i)_mm256_min_epu8(((__m256i)_mm256_srli_epi64(m7, 8)),
+                                       ((__m256i)m7)));
+        m7 = _mm256_unpacklo_epi8(m7, m7);
+        m7 = _mm256_shufflelo_epi16(m7, 0);
+        m6 = _mm256_unpacklo_epi64(m7, m7);
+        m6 = _mm256_permute2x128_si256(
+            m6, m6, 0); // copy lower half of m6 to upper half, since above ops
+                        // operate on 128 bit lanes
+        ((__m256i*)Y)[0] = _mm256_subs_epu8(((__m256i*)Y)[0], m6);
+        ((__m256i*)Y)[1] = _mm256_subs_epu8(((__m256i*)Y)[1], m6);
+
+        // Swap pointers to old and new metrics
+        tmp = X;
+        X = Y;
+        Y = tmp;
+    }
+}
+
+#endif /* LV_HAVE_AVX2 */
+
 
 #if LV_HAVE_NEON
 
@@ -436,38 +469,7 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
     }
 }
 
-#endif /*LV_HAVE_NEON*/
-
-#if LV_HAVE_GENERIC
-
-static inline void volk_8u_x4_conv_k7_r2_8u_generic(unsigned char* Y,
-                                                    unsigned char* X,
-                                                    const unsigned char* syms,
-                                                    unsigned char* dec,
-                                                    unsigned int framebits,
-                                                    unsigned int excess,
-                                                    const unsigned char* Branchtab)
-{
-    int nbits = framebits + excess;
-    int NUMSTATES = 64;
-
-    int s, i;
-    for (s = 0; s < nbits; s++) {
-        void* tmp;
-        for (i = 0; i < NUMSTATES / 2; i++) {
-            BFLY(i, s, syms, Y, X, (decision_t*)dec, Branchtab);
-        }
-
-        renormalize(Y);
-
-        ///     Swap pointers to old and new metrics
-        tmp = (void*)X;
-        X = Y;
-        Y = (unsigned char*)tmp;
-    }
-}
-
-#endif /* LV_HAVE_GENERIC */
+#endif /* LV_HAVE_NEON */
 
 #if LV_HAVE_RVV
 #include <riscv_vector.h>
@@ -673,6 +675,11 @@ static inline void volk_8u_x4_conv_k7_r2_8u_rvv(unsigned char* Y,
         }
     }
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
 
-#endif /*INCLUDED_volk_8u_x4_conv_k7_r2_8u_H*/
+#endif /* INCLUDED_volk_8u_x4_conv_k7_r2_8u_u_H */
+
+#ifndef INCLUDED_volk_8u_x4_conv_k7_r2_8u_a_H
+#define INCLUDED_volk_8u_x4_conv_k7_r2_8u_a_H
+
+#endif /* INCLUDED_volk_8u_x4_conv_k7_r2_8u_a_H */

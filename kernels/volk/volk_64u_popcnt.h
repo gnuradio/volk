@@ -44,8 +44,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_64u_popcnt_a_H
-#define INCLUDED_volk_64u_popcnt_a_H
+#ifndef INCLUDED_volk_64u_popcnt_u_H
+#define INCLUDED_volk_64u_popcnt_u_H
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -82,18 +82,6 @@ static inline void volk_64u_popcnt_generic(uint64_t* ret, const uint64_t value)
 }
 
 #endif /*LV_HAVE_GENERIC*/
-
-
-#if LV_HAVE_SSE4_2 && LV_HAVE_64
-
-#include <nmmintrin.h>
-
-static inline void volk_64u_popcnt_a_sse4_2(uint64_t* ret, const uint64_t value)
-{
-    *ret = _mm_popcnt_u64(value);
-}
-
-#endif /*LV_HAVE_SSE4_2*/
 
 
 #if LV_HAVE_NEON
@@ -145,5 +133,21 @@ static inline void volk_64u_popcnt_rva22(uint64_t* ret, const uint64_t value)
     *ret = __riscv_cpop_64(value);
 }
 #endif /*LV_HAVE_RVA22V*/
+
+#endif /*INCLUDED_volk_64u_popcnt_u_H*/
+
+#ifndef INCLUDED_volk_64u_popcnt_a_H
+#define INCLUDED_volk_64u_popcnt_a_H
+
+#if LV_HAVE_SSE4_2 && LV_HAVE_64
+
+#include <nmmintrin.h>
+
+static inline void volk_64u_popcnt_a_sse4_2(uint64_t* ret, const uint64_t value)
+{
+    *ret = _mm_popcnt_u64(value);
+}
+
+#endif /*LV_HAVE_SSE4_2*/
 
 #endif /*INCLUDED_volk_64u_popcnt_a_H*/
