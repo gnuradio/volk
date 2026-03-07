@@ -44,8 +44,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_64u_popcnt_a_H
-#define INCLUDED_volk_64u_popcnt_a_H
+#ifndef INCLUDED_volk_64u_popcnt_u_H
+#define INCLUDED_volk_64u_popcnt_u_H
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -84,18 +84,6 @@ static inline void volk_64u_popcnt_generic(uint64_t* ret, const uint64_t value)
 #endif /*LV_HAVE_GENERIC*/
 
 
-#if LV_HAVE_SSE4_2 && LV_HAVE_64
-
-#include <nmmintrin.h>
-
-static inline void volk_64u_popcnt_a_sse4_2(uint64_t* ret, const uint64_t value)
-{
-    *ret = _mm_popcnt_u64(value);
-}
-
-#endif /*LV_HAVE_SSE4_2*/
-
-
 #if LV_HAVE_NEON
 #include <arm_neon.h>
 static inline void volk_64u_popcnt_neon(uint64_t* ret, const uint64_t value)
@@ -105,7 +93,7 @@ static inline void volk_64u_popcnt_neon(uint64_t* ret, const uint64_t value)
     uint32x2_t count32x2_val;
     uint64x1_t count64x1_val;
 
-    input_val = vld1_u8((unsigned char*)&value);
+    input_val = vld1_u8((const unsigned char*)&value);
     count8x8_val = vcnt_u8(input_val);
     count16x4_val = vpaddl_u8(count8x8_val);
     count32x2_val = vpaddl_u16(count16x4_val);
@@ -145,5 +133,21 @@ static inline void volk_64u_popcnt_rva22(uint64_t* ret, const uint64_t value)
     *ret = __riscv_cpop_64(value);
 }
 #endif /*LV_HAVE_RVA22V*/
+
+#endif /*INCLUDED_volk_64u_popcnt_u_H*/
+
+#ifndef INCLUDED_volk_64u_popcnt_a_H
+#define INCLUDED_volk_64u_popcnt_a_H
+
+#if LV_HAVE_SSE4_2 && LV_HAVE_64
+
+#include <nmmintrin.h>
+
+static inline void volk_64u_popcnt_a_sse4_2(uint64_t* ret, const uint64_t value)
+{
+    *ret = _mm_popcnt_u64(value);
+}
+
+#endif /*LV_HAVE_SSE4_2*/
 
 #endif /*INCLUDED_volk_64u_popcnt_a_H*/
