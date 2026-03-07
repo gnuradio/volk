@@ -169,6 +169,95 @@ static inline void volk_16i_x2_add_saturated_16i_u_avx512bw(int16_t* outVector,
 #endif /* LV_HAVE_AVX512BW */
 
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_16i_x2_add_saturated_16i_neon(int16_t* outVector,
+                                                      const int16_t* inVectorA,
+                                                      const int16_t* inVectorB,
+                                                      unsigned int num_points)
+{
+    const unsigned int eighthPoints = num_points / 8;
+    unsigned int number = 0;
+
+    for (; number < eighthPoints; number++) {
+        int16x8_t a = vld1q_s16(inVectorA + 8 * number);
+        int16x8_t b = vld1q_s16(inVectorB + 8 * number);
+        vst1q_s16(outVector + 8 * number, vqaddq_s16(a, b));
+    }
+
+    for (number = eighthPoints * 8; number < num_points; number++) {
+        int32_t sum = (int32_t)inVectorA[number] + (int32_t)inVectorB[number];
+        if (sum > 32767)
+            sum = 32767;
+        else if (sum < -32768)
+            sum = -32768;
+        outVector[number] = (int16_t)sum;
+    }
+}
+
+#endif /* LV_HAVE_NEON */
+
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+#include <volk/volk_common.h>
+
+static inline void volk_16i_x2_add_saturated_16i_neonv8(int16_t* outVector,
+                                                        const int16_t* inVectorA,
+                                                        const int16_t* inVectorB,
+                                                        unsigned int num_points)
+{
+    const unsigned int sixteenthPoints = num_points / 16;
+    unsigned int number = 0;
+
+    for (; number < sixteenthPoints; number++) {
+        __VOLK_PREFETCH(inVectorA + 32);
+        __VOLK_PREFETCH(inVectorB + 32);
+        int16x8_t a0 = vld1q_s16(inVectorA);
+        int16x8_t b0 = vld1q_s16(inVectorB);
+        int16x8_t a1 = vld1q_s16(inVectorA + 8);
+        int16x8_t b1 = vld1q_s16(inVectorB + 8);
+        vst1q_s16(outVector, vqaddq_s16(a0, b0));
+        vst1q_s16(outVector + 8, vqaddq_s16(a1, b1));
+        inVectorA += 16;
+        inVectorB += 16;
+        outVector += 16;
+    }
+
+    for (number = sixteenthPoints * 16; number < num_points; number++) {
+        int32_t sum = (int32_t)(*inVectorA++) + (int32_t)(*inVectorB++);
+        if (sum > 32767)
+            sum = 32767;
+        else if (sum < -32768)
+            sum = -32768;
+        *outVector++ = (int16_t)sum;
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
+
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_16i_x2_add_saturated_16i_rvv(int16_t* outVector,
+                                                     const int16_t* inVectorA,
+                                                     const int16_t* inVectorB,
+                                                     unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, inVectorA += vl, inVectorB += vl, outVector += vl) {
+        vl = __riscv_vsetvl_e16m8(n);
+        vint16m8_t a = __riscv_vle16_v_i16m8(inVectorA, vl);
+        vint16m8_t b = __riscv_vle16_v_i16m8(inVectorB, vl);
+        __riscv_vse16(outVector, __riscv_vsadd(a, b, vl), vl);
+    }
+}
+
+#endif /* LV_HAVE_RVV */
+
+
 #endif /* INCLUDED_volk_16i_x2_add_saturated_16i_u_H */
 
 
@@ -268,95 +357,6 @@ static inline void volk_16i_x2_add_saturated_16i_a_avx512bw(int16_t* outVector,
 }
 
 #endif /* LV_HAVE_AVX512BW */
-
-
-#ifdef LV_HAVE_NEON
-#include <arm_neon.h>
-
-static inline void volk_16i_x2_add_saturated_16i_neon(int16_t* outVector,
-                                                      const int16_t* inVectorA,
-                                                      const int16_t* inVectorB,
-                                                      unsigned int num_points)
-{
-    const unsigned int eighthPoints = num_points / 8;
-    unsigned int number = 0;
-
-    for (; number < eighthPoints; number++) {
-        int16x8_t a = vld1q_s16(inVectorA + 8 * number);
-        int16x8_t b = vld1q_s16(inVectorB + 8 * number);
-        vst1q_s16(outVector + 8 * number, vqaddq_s16(a, b));
-    }
-
-    for (number = eighthPoints * 8; number < num_points; number++) {
-        int32_t sum = (int32_t)inVectorA[number] + (int32_t)inVectorB[number];
-        if (sum > 32767)
-            sum = 32767;
-        else if (sum < -32768)
-            sum = -32768;
-        outVector[number] = (int16_t)sum;
-    }
-}
-
-#endif /* LV_HAVE_NEON */
-
-
-#ifdef LV_HAVE_NEONV8
-#include <arm_neon.h>
-#include <volk/volk_common.h>
-
-static inline void volk_16i_x2_add_saturated_16i_neonv8(int16_t* outVector,
-                                                        const int16_t* inVectorA,
-                                                        const int16_t* inVectorB,
-                                                        unsigned int num_points)
-{
-    const unsigned int sixteenthPoints = num_points / 16;
-    unsigned int number = 0;
-
-    for (; number < sixteenthPoints; number++) {
-        __VOLK_PREFETCH(inVectorA + 32);
-        __VOLK_PREFETCH(inVectorB + 32);
-        int16x8_t a0 = vld1q_s16(inVectorA);
-        int16x8_t b0 = vld1q_s16(inVectorB);
-        int16x8_t a1 = vld1q_s16(inVectorA + 8);
-        int16x8_t b1 = vld1q_s16(inVectorB + 8);
-        vst1q_s16(outVector, vqaddq_s16(a0, b0));
-        vst1q_s16(outVector + 8, vqaddq_s16(a1, b1));
-        inVectorA += 16;
-        inVectorB += 16;
-        outVector += 16;
-    }
-
-    for (number = sixteenthPoints * 16; number < num_points; number++) {
-        int32_t sum = (int32_t)(*inVectorA++) + (int32_t)(*inVectorB++);
-        if (sum > 32767)
-            sum = 32767;
-        else if (sum < -32768)
-            sum = -32768;
-        *outVector++ = (int16_t)sum;
-    }
-}
-
-#endif /* LV_HAVE_NEONV8 */
-
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-
-static inline void volk_16i_x2_add_saturated_16i_rvv(int16_t* outVector,
-                                                     const int16_t* inVectorA,
-                                                     const int16_t* inVectorB,
-                                                     unsigned int num_points)
-{
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, inVectorA += vl, inVectorB += vl, outVector += vl) {
-        vl = __riscv_vsetvl_e16m8(n);
-        vint16m8_t a = __riscv_vle16_v_i16m8(inVectorA, vl);
-        vint16m8_t b = __riscv_vle16_v_i16m8(inVectorB, vl);
-        __riscv_vse16(outVector, __riscv_vsadd(a, b, vl), vl);
-    }
-}
-
-#endif /* LV_HAVE_RVV */
 
 
 #endif /* INCLUDED_volk_16i_x2_add_saturated_16i_a_H */

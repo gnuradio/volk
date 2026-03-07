@@ -47,6 +47,40 @@
  * \endcode
  */
 
+#ifndef INCLUDED_volk_16i_permute_and_scalar_add_u_H
+#define INCLUDED_volk_16i_permute_and_scalar_add_u_H
+
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_GENERIC
+static inline void volk_16i_permute_and_scalar_add_generic(short* target,
+                                                           short* src0,
+                                                           short* permute_indexes,
+                                                           short* cntl0,
+                                                           short* cntl1,
+                                                           short* cntl2,
+                                                           short* cntl3,
+                                                           short* scalars,
+                                                           unsigned int num_points)
+{
+    const unsigned int num_bytes = num_points * 2;
+
+    int i = 0;
+
+    int bound = num_bytes >> 1;
+
+    for (i = 0; i < bound; ++i) {
+        target[i] = src0[permute_indexes[i]] + (cntl0[i] & scalars[0]) +
+                    (cntl1[i] & scalars[1]) + (cntl2[i] & scalars[2]) +
+                    (cntl3[i] & scalars[3]);
+    }
+}
+
+#endif /* LV_HAVE_GENERIC */
+
+#endif /* INCLUDED_volk_16i_permute_and_scalar_add_u_H */
+
 #ifndef INCLUDED_volk_16i_permute_and_scalar_add_a_H
 #define INCLUDED_volk_16i_permute_and_scalar_add_a_H
 
@@ -162,33 +196,6 @@ static inline void volk_16i_permute_and_scalar_add_a_sse2(short* target,
                     (cntl3[i] & scalars[3]);
     }
 }
-#endif /*LV_HAVE_SSE*/
+#endif /* LV_HAVE_SSE2 */
 
-
-#ifdef LV_HAVE_GENERIC
-static inline void volk_16i_permute_and_scalar_add_generic(short* target,
-                                                           short* src0,
-                                                           short* permute_indexes,
-                                                           short* cntl0,
-                                                           short* cntl1,
-                                                           short* cntl2,
-                                                           short* cntl3,
-                                                           short* scalars,
-                                                           unsigned int num_points)
-{
-    const unsigned int num_bytes = num_points * 2;
-
-    int i = 0;
-
-    int bound = num_bytes >> 1;
-
-    for (i = 0; i < bound; ++i) {
-        target[i] = src0[permute_indexes[i]] + (cntl0[i] & scalars[0]) +
-                    (cntl1[i] & scalars[1]) + (cntl2[i] & scalars[2]) +
-                    (cntl3[i] & scalars[3]);
-    }
-}
-
-#endif /*LV_HAVE_GENERIC*/
-
-#endif /*INCLUDED_volk_16i_permute_and_scalar_add_a_H*/
+#endif /* INCLUDED_volk_16i_permute_and_scalar_add_a_H */
