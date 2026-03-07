@@ -39,8 +39,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_32fc_s32f_power_32fc_a_H
-#define INCLUDED_volk_32fc_s32f_power_32fc_a_H
+#ifndef INCLUDED_volk_32fc_s32f_power_32fc_u_H
+#define INCLUDED_volk_32fc_s32f_power_32fc_u_H
 
 #include <inttypes.h>
 #include <math.h>
@@ -74,5 +74,10 @@ static inline void volk_32fc_s32f_power_32fc_generic(lv_32fc_t* cVector,
 
 #endif /* LV_HAVE_GENERIC */
 
+
+#endif /* INCLUDED_volk_32fc_s32f_power_32fc_u_H */
+
+#ifndef INCLUDED_volk_32fc_s32f_power_32fc_a_H
+#define INCLUDED_volk_32fc_s32f_power_32fc_a_H
 
 #endif /* INCLUDED_volk_32fc_s32f_power_32fc_a_H */

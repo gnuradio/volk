@@ -76,8 +76,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_H
-#define INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_H
+#ifndef INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_H
+#define INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_H
 
 #include <float.h>
 #include <inttypes.h>
@@ -101,6 +101,21 @@ volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_generic(lv_32fc_t* cVector,
 #endif /* LV_HAVE_GENERIC */
 
 
+#ifdef LV_HAVE_SSE3
+
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_sse3(lv_32fc_t* cVector,
+                                                      const lv_32fc_t* aVector,
+                                                      const lv_32fc_t* bVector,
+                                                      const lv_32fc_t scalar,
+                                                      unsigned int num_points)
+{
+    volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_u_sse3(
+        cVector, aVector, bVector, &scalar, num_points);
+}
+#endif /* LV_HAVE_SSE3 */
+
+
 #ifdef LV_HAVE_AVX
 
 static inline void
@@ -114,51 +129,6 @@ volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_avx(lv_32fc_t* cVector,
         cVector, aVector, bVector, &scalar, num_points);
 }
 #endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_SSE3
-
-static inline void
-volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_sse3(lv_32fc_t* cVector,
-                                                      const lv_32fc_t* aVector,
-                                                      const lv_32fc_t* bVector,
-                                                      const lv_32fc_t scalar,
-                                                      unsigned int num_points)
-{
-    volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_u_sse3(
-        cVector, aVector, bVector, &scalar, num_points);
-}
-#endif /* LV_HAVE_SSE */
-
-
-#ifdef LV_HAVE_AVX
-
-static inline void
-volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_avx(lv_32fc_t* cVector,
-                                                     const lv_32fc_t* aVector,
-                                                     const lv_32fc_t* bVector,
-                                                     const lv_32fc_t scalar,
-                                                     unsigned int num_points)
-{
-    volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_a_avx(
-        cVector, aVector, bVector, &scalar, num_points);
-}
-#endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_SSE3
-
-static inline void
-volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_sse3(lv_32fc_t* cVector,
-                                                      const lv_32fc_t* aVector,
-                                                      const lv_32fc_t* bVector,
-                                                      const lv_32fc_t scalar,
-                                                      unsigned int num_points)
-{
-    volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_a_sse3(
-        cVector, aVector, bVector, &scalar, num_points);
-}
-#endif /* LV_HAVE_SSE */
 
 
 #ifdef LV_HAVE_NEON
@@ -190,4 +160,39 @@ volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_neonv8(lv_32fc_t* cVector,
 }
 #endif /* LV_HAVE_NEONV8 */
 
-#endif /* INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_H */
+#endif /* INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_u_H */
+
+#ifndef INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_H
+#define INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_H
+
+
+#ifdef LV_HAVE_SSE3
+
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_sse3(lv_32fc_t* cVector,
+                                                      const lv_32fc_t* aVector,
+                                                      const lv_32fc_t* bVector,
+                                                      const lv_32fc_t scalar,
+                                                      unsigned int num_points)
+{
+    volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_a_sse3(
+        cVector, aVector, bVector, &scalar, num_points);
+}
+#endif /* LV_HAVE_SSE3 */
+
+
+#ifdef LV_HAVE_AVX
+
+static inline void
+volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_avx(lv_32fc_t* cVector,
+                                                     const lv_32fc_t* aVector,
+                                                     const lv_32fc_t* bVector,
+                                                     const lv_32fc_t scalar,
+                                                     unsigned int num_points)
+{
+    volk_32fc_x2_s32fc_multiply_conjugate_add2_32fc_a_avx(
+        cVector, aVector, bVector, &scalar, num_points);
+}
+#endif /* LV_HAVE_AVX */
+
+#endif /* INCLUDED_volk_32fc_x2_s32fc_multiply_conjugate_add_32fc_a_H */

@@ -61,6 +61,24 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_32f_x2_multiply_32f_generic(float* cVector,
+                                                    const float* aVector,
+                                                    const float* bVector,
+                                                    unsigned int num_points)
+{
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    const float* bPtr = bVector;
+    unsigned int number = 0;
+
+    for (number = 0; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) * (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
@@ -97,43 +115,6 @@ static inline void volk_32f_x2_multiply_32f_u_sse(float* cVector,
     }
 }
 #endif /* LV_HAVE_SSE */
-
-#ifdef LV_HAVE_AVX512F
-#include <immintrin.h>
-
-static inline void volk_32f_x2_multiply_32f_u_avx512f(float* cVector,
-                                                      const float* aVector,
-                                                      const float* bVector,
-                                                      unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int sixteenthPoints = num_points / 16;
-
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr = bVector;
-
-    __m512 aVal, bVal, cVal;
-    for (; number < sixteenthPoints; number++) {
-
-        aVal = _mm512_loadu_ps(aPtr);
-        bVal = _mm512_loadu_ps(bPtr);
-
-        cVal = _mm512_mul_ps(aVal, bVal);
-
-        _mm512_storeu_ps(cPtr, cVal); // Store the results back into the C container
-
-        aPtr += 16;
-        bPtr += 16;
-        cPtr += 16;
-    }
-
-    number = sixteenthPoints * 16;
-    for (; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) * (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_AVX512F */
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -172,76 +153,10 @@ static inline void volk_32f_x2_multiply_32f_u_avx(float* cVector,
 }
 #endif /* LV_HAVE_AVX */
 
-
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_x2_multiply_32f_generic(float* cVector,
-                                                    const float* aVector,
-                                                    const float* bVector,
-                                                    unsigned int num_points)
-{
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr = bVector;
-    unsigned int number = 0;
-
-    for (number = 0; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) * (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_GENERIC */
-
-
-#endif /* INCLUDED_volk_32f_x2_multiply_32f_u_H */
-
-
-#ifndef INCLUDED_volk_32f_x2_multiply_32f_a_H
-#define INCLUDED_volk_32f_x2_multiply_32f_a_H
-
-#include <inttypes.h>
-#include <stdio.h>
-
-#ifdef LV_HAVE_SSE
-#include <xmmintrin.h>
-
-static inline void volk_32f_x2_multiply_32f_a_sse(float* cVector,
-                                                  const float* aVector,
-                                                  const float* bVector,
-                                                  unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
-
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr = bVector;
-
-    __m128 aVal, bVal, cVal;
-    for (; number < quarterPoints; number++) {
-
-        aVal = _mm_load_ps(aPtr);
-        bVal = _mm_load_ps(bPtr);
-
-        cVal = _mm_mul_ps(aVal, bVal);
-
-        _mm_store_ps(cPtr, cVal); // Store the results back into the C container
-
-        aPtr += 4;
-        bPtr += 4;
-        cPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) * (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_SSE */
-
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 
-static inline void volk_32f_x2_multiply_32f_a_avx512f(float* cVector,
+static inline void volk_32f_x2_multiply_32f_u_avx512f(float* cVector,
                                                       const float* aVector,
                                                       const float* bVector,
                                                       unsigned int num_points)
@@ -256,12 +171,12 @@ static inline void volk_32f_x2_multiply_32f_a_avx512f(float* cVector,
     __m512 aVal, bVal, cVal;
     for (; number < sixteenthPoints; number++) {
 
-        aVal = _mm512_load_ps(aPtr);
-        bVal = _mm512_load_ps(bPtr);
+        aVal = _mm512_loadu_ps(aPtr);
+        bVal = _mm512_loadu_ps(bPtr);
 
         cVal = _mm512_mul_ps(aVal, bVal);
 
-        _mm512_store_ps(cPtr, cVal); // Store the results back into the C container
+        _mm512_storeu_ps(cPtr, cVal); // Store the results back into the C container
 
         aPtr += 16;
         bPtr += 16;
@@ -274,45 +189,6 @@ static inline void volk_32f_x2_multiply_32f_a_avx512f(float* cVector,
     }
 }
 #endif /* LV_HAVE_AVX512F */
-
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void volk_32f_x2_multiply_32f_a_avx(float* cVector,
-                                                  const float* aVector,
-                                                  const float* bVector,
-                                                  unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int eighthPoints = num_points / 8;
-
-    float* cPtr = cVector;
-    const float* aPtr = aVector;
-    const float* bPtr = bVector;
-
-    __m256 aVal, bVal, cVal;
-    for (; number < eighthPoints; number++) {
-
-        aVal = _mm256_load_ps(aPtr);
-        bVal = _mm256_load_ps(bPtr);
-
-        cVal = _mm256_mul_ps(aVal, bVal);
-
-        _mm256_store_ps(cPtr, cVal); // Store the results back into the C container
-
-        aPtr += 8;
-        bPtr += 8;
-        cPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) * (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_AVX */
-
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
@@ -339,7 +215,6 @@ static inline void volk_32f_x2_multiply_32f_neon(float* cVector,
     }
 }
 #endif /* LV_HAVE_NEON */
-
 
 #ifdef LV_HAVE_NEONV8
 #include <arm_neon.h>
@@ -390,7 +265,6 @@ static inline void volk_32f_x2_multiply_32f_neonv8(float* cVector,
 
 #endif /* LV_HAVE_NEONV8 */
 
-
 #ifdef LV_HAVE_ORC
 extern void volk_32f_x2_multiply_32f_a_orc_impl(float* cVector,
                                                 const float* aVector,
@@ -422,6 +296,126 @@ static inline void volk_32f_x2_multiply_32f_rvv(float* cVector,
         __riscv_vse32(cVector, __riscv_vfmul(va, vb, vl), vl);
     }
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
+
+#endif /* INCLUDED_volk_32f_x2_multiply_32f_u_H */
+
+
+#ifndef INCLUDED_volk_32f_x2_multiply_32f_a_H
+#define INCLUDED_volk_32f_x2_multiply_32f_a_H
+
+#include <inttypes.h>
+#include <stdio.h>
+
+#ifdef LV_HAVE_SSE
+#include <xmmintrin.h>
+
+static inline void volk_32f_x2_multiply_32f_a_sse(float* cVector,
+                                                  const float* aVector,
+                                                  const float* bVector,
+                                                  unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    const float* bPtr = bVector;
+
+    __m128 aVal, bVal, cVal;
+    for (; number < quarterPoints; number++) {
+
+        aVal = _mm_load_ps(aPtr);
+        bVal = _mm_load_ps(bPtr);
+
+        cVal = _mm_mul_ps(aVal, bVal);
+
+        _mm_store_ps(cPtr, cVal); // Store the results back into the C container
+
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) * (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_SSE */
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_32f_x2_multiply_32f_a_avx(float* cVector,
+                                                  const float* aVector,
+                                                  const float* bVector,
+                                                  unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int eighthPoints = num_points / 8;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    const float* bPtr = bVector;
+
+    __m256 aVal, bVal, cVal;
+    for (; number < eighthPoints; number++) {
+
+        aVal = _mm256_load_ps(aPtr);
+        bVal = _mm256_load_ps(bPtr);
+
+        cVal = _mm256_mul_ps(aVal, bVal);
+
+        _mm256_store_ps(cPtr, cVal); // Store the results back into the C container
+
+        aPtr += 8;
+        bPtr += 8;
+        cPtr += 8;
+    }
+
+    number = eighthPoints * 8;
+    for (; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) * (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_AVX */
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_x2_multiply_32f_a_avx512f(float* cVector,
+                                                      const float* aVector,
+                                                      const float* bVector,
+                                                      unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int sixteenthPoints = num_points / 16;
+
+    float* cPtr = cVector;
+    const float* aPtr = aVector;
+    const float* bPtr = bVector;
+
+    __m512 aVal, bVal, cVal;
+    for (; number < sixteenthPoints; number++) {
+
+        aVal = _mm512_load_ps(aPtr);
+        bVal = _mm512_load_ps(bPtr);
+
+        cVal = _mm512_mul_ps(aVal, bVal);
+
+        _mm512_store_ps(cPtr, cVal); // Store the results back into the C container
+
+        aPtr += 16;
+        bPtr += 16;
+        cPtr += 16;
+    }
+
+    number = sixteenthPoints * 16;
+    for (; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) * (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_AVX512F */
 
 #endif /* INCLUDED_volk_32f_x2_multiply_32f_a_H */
