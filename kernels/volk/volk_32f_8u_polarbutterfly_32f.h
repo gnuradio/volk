@@ -58,8 +58,8 @@
  * \endcode
  */
 
-#ifndef VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_
-#define VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_
+#ifndef INCLUDED_volk_32f_8u_polarbutterfly_32f_u_H
+#define INCLUDED_volk_32f_8u_polarbutterfly_32f_u_H
 #include <math.h>
 #include <volk/volk_8u_x2_encodeframepolar_8u.h>
 
@@ -553,4 +553,9 @@ static inline void volk_32f_8u_polarbutterfly_32f_rvvseg(float* llrs,
 }
 #endif /* LV_HAVE_RVVSEG */
 
-#endif /* VOLK_KERNELS_VOLK_VOLK_32F_8U_POLARBUTTERFLY_32F_H_ */
+#endif /* INCLUDED_volk_32f_8u_polarbutterfly_32f_u_H */
+
+#ifndef INCLUDED_volk_32f_8u_polarbutterfly_32f_a_H
+#define INCLUDED_volk_32f_8u_polarbutterfly_32f_a_H
+
+#endif /* INCLUDED_volk_32f_8u_polarbutterfly_32f_a_H */

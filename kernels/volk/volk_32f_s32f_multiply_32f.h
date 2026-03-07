@@ -133,6 +133,82 @@ static inline void volk_32f_s32f_multiply_32f_u_avx(float* cVector,
 }
 #endif /* LV_HAVE_AVX */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_multiply_32f_u_neon(float* cVector,
+                                                     const float* aVector,
+                                                     const float scalar,
+                                                     unsigned int num_points)
+{
+    const unsigned int quarterPoints = num_points / 4;
+
+    const float* inputPtr = aVector;
+    float* outputPtr = cVector;
+
+    for (unsigned int number = 0; number < quarterPoints; number++) {
+        float32x4_t aVal = vld1q_f32(inputPtr);       // Load into NEON regs
+        float32x4_t cVal = vmulq_n_f32(aVal, scalar); // Do the multiply
+        vst1q_f32(outputPtr, cVal);                   // Store results back to output
+        inputPtr += 4;
+        outputPtr += 4;
+    }
+
+    for (unsigned int number = quarterPoints * 4; number < num_points; number++) {
+        *outputPtr++ = (*inputPtr++) * scalar;
+    }
+}
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_s32f_multiply_32f_neonv8(float* cVector,
+                                                     const float* aVector,
+                                                     const float scalar,
+                                                     unsigned int num_points)
+{
+    const unsigned int eighthPoints = num_points / 8;
+
+    const float* aPtr = aVector;
+    float* cPtr = cVector;
+    const float32x4_t scalarVec = vdupq_n_f32(scalar);
+
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        float32x4_t a0 = vld1q_f32(aPtr);
+        float32x4_t a1 = vld1q_f32(aPtr + 4);
+        __VOLK_PREFETCH(aPtr + 16);
+
+        vst1q_f32(cPtr, vmulq_f32(a0, scalarVec));
+        vst1q_f32(cPtr + 4, vmulq_f32(a1, scalarVec));
+
+        aPtr += 8;
+        cPtr += 8;
+    }
+
+    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) * scalar;
+    }
+}
+#endif /* LV_HAVE_NEONV8 */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32f_s32f_multiply_32f_rvv(float* cVector,
+                                                  const float* aVector,
+                                                  const float scalar,
+                                                  unsigned int num_points)
+{
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, aVector += vl, cVector += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(aVector, vl);
+        __riscv_vse32(cVector, __riscv_vfmul(v, scalar, vl), vl);
+    }
+}
+#endif /* LV_HAVE_RVV */
+
 #ifdef LV_HAVE_RISCV64
 extern void volk_32f_s32f_multiply_32f_sifive_u74(float* cVector,
                                                   const float* aVector,
@@ -140,6 +216,22 @@ extern void volk_32f_s32f_multiply_32f_sifive_u74(float* cVector,
                                                   unsigned int num_points);
 #endif /* LV_HAVE_RISCV64 */
 
+#ifdef LV_HAVE_ORC
+
+extern void volk_32f_s32f_multiply_32f_a_orc_impl(float* dst,
+                                                  const float* src,
+                                                  const float scalar,
+                                                  int num_points);
+
+static inline void volk_32f_s32f_multiply_32f_u_orc(float* cVector,
+                                                    const float* aVector,
+                                                    const float scalar,
+                                                    unsigned int num_points)
+{
+    volk_32f_s32f_multiply_32f_a_orc_impl(cVector, aVector, scalar, num_points);
+}
+
+#endif /* LV_HAVE_ORC */
 
 #endif /* INCLUDED_volk_32f_s32f_multiply_32f_u_H */
 
@@ -211,99 +303,5 @@ static inline void volk_32f_s32f_multiply_32f_a_avx(float* cVector,
     }
 }
 #endif /* LV_HAVE_AVX */
-
-#ifdef LV_HAVE_NEON
-#include <arm_neon.h>
-
-static inline void volk_32f_s32f_multiply_32f_u_neon(float* cVector,
-                                                     const float* aVector,
-                                                     const float scalar,
-                                                     unsigned int num_points)
-{
-    const unsigned int quarterPoints = num_points / 4;
-
-    const float* inputPtr = aVector;
-    float* outputPtr = cVector;
-
-    for (unsigned int number = 0; number < quarterPoints; number++) {
-        float32x4_t aVal = vld1q_f32(inputPtr);       // Load into NEON regs
-        float32x4_t cVal = vmulq_n_f32(aVal, scalar); // Do the multiply
-        vst1q_f32(outputPtr, cVal);                   // Store results back to output
-        inputPtr += 4;
-        outputPtr += 4;
-    }
-
-    for (unsigned int number = quarterPoints * 4; number < num_points; number++) {
-        *outputPtr++ = (*inputPtr++) * scalar;
-    }
-}
-#endif /* LV_HAVE_NEON */
-
-#ifdef LV_HAVE_NEONV8
-#include <arm_neon.h>
-
-static inline void volk_32f_s32f_multiply_32f_neonv8(float* cVector,
-                                                     const float* aVector,
-                                                     const float scalar,
-                                                     unsigned int num_points)
-{
-    const unsigned int eighthPoints = num_points / 8;
-
-    const float* aPtr = aVector;
-    float* cPtr = cVector;
-    const float32x4_t scalarVec = vdupq_n_f32(scalar);
-
-    for (unsigned int number = 0; number < eighthPoints; number++) {
-        float32x4_t a0 = vld1q_f32(aPtr);
-        float32x4_t a1 = vld1q_f32(aPtr + 4);
-        __VOLK_PREFETCH(aPtr + 16);
-
-        vst1q_f32(cPtr, vmulq_f32(a0, scalarVec));
-        vst1q_f32(cPtr + 4, vmulq_f32(a1, scalarVec));
-
-        aPtr += 8;
-        cPtr += 8;
-    }
-
-    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) * scalar;
-    }
-}
-#endif /* LV_HAVE_NEONV8 */
-
-
-#ifdef LV_HAVE_ORC
-
-extern void volk_32f_s32f_multiply_32f_a_orc_impl(float* dst,
-                                                  const float* src,
-                                                  const float scalar,
-                                                  int num_points);
-
-static inline void volk_32f_s32f_multiply_32f_u_orc(float* cVector,
-                                                    const float* aVector,
-                                                    const float scalar,
-                                                    unsigned int num_points)
-{
-    volk_32f_s32f_multiply_32f_a_orc_impl(cVector, aVector, scalar, num_points);
-}
-
-#endif /* LV_HAVE_ORC */
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-
-static inline void volk_32f_s32f_multiply_32f_rvv(float* cVector,
-                                                  const float* aVector,
-                                                  const float scalar,
-                                                  unsigned int num_points)
-{
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, aVector += vl, cVector += vl) {
-        vl = __riscv_vsetvl_e32m8(n);
-        vfloat32m8_t v = __riscv_vle32_v_f32m8(aVector, vl);
-        __riscv_vse32(cVector, __riscv_vfmul(v, scalar, vl), vl);
-    }
-}
-#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_32f_s32f_multiply_32f_a_H */
