@@ -30,23 +30,100 @@
  *
  */
 
-#ifndef INCLUDED_volk_32fc_convert_16ic_a_H
-#define INCLUDED_volk_32fc_convert_16ic_a_H
+#ifndef INCLUDED_volk_32fc_convert_16ic_u_H
+#define INCLUDED_volk_32fc_convert_16ic_u_H
 
 #include "volk/volk_complex.h"
 #include <limits.h>
 #include <math.h>
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_32fc_convert_16ic_generic(lv_16sc_t* outputVector,
+                                                  const lv_32fc_t* inputVector,
+                                                  unsigned int num_points)
+{
+    const float* inputVectorPtr = (const float*)inputVector;
+    int16_t* outputVectorPtr = (int16_t*)outputVector;
+    const float min_val = (float)SHRT_MIN;
+    const float max_val = (float)SHRT_MAX;
+    float aux;
+    unsigned int i;
+    for (i = 0; i < num_points * 2; i++) {
+        aux = *inputVectorPtr++;
+        if (aux > max_val)
+            aux = max_val;
+        else if (aux < min_val)
+            aux = min_val;
+        *outputVectorPtr++ = (int16_t)rintf(aux);
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
+#ifdef LV_HAVE_SSE2
+#include <emmintrin.h>
+
+static inline void volk_32fc_convert_16ic_u_sse2(lv_16sc_t* outputVector,
+                                                 const lv_32fc_t* inputVector,
+                                                 unsigned int num_points)
+{
+    const unsigned int sse_iters = num_points / 4;
+
+    const float* inputVectorPtr = (const float*)inputVector;
+    int16_t* outputVectorPtr = (int16_t*)outputVector;
+    float aux;
+
+    const float min_val = (float)SHRT_MIN;
+    const float max_val = (float)SHRT_MAX;
+
+    __m128 inputVal1, inputVal2;
+    __m128i intInputVal1, intInputVal2;
+    __m128 ret1, ret2;
+    const __m128 vmin_val = _mm_set_ps1(min_val);
+    const __m128 vmax_val = _mm_set_ps1(max_val);
+
+    unsigned int i;
+    for (i = 0; i < sse_iters; i++) {
+        inputVal1 = _mm_loadu_ps(inputVectorPtr);
+        inputVectorPtr += 4;
+        inputVal2 = _mm_loadu_ps(inputVectorPtr);
+        inputVectorPtr += 4;
+        __VOLK_PREFETCH(inputVectorPtr + 8);
+
+        // Clip
+        ret1 = _mm_max_ps(_mm_min_ps(inputVal1, vmax_val), vmin_val);
+        ret2 = _mm_max_ps(_mm_min_ps(inputVal2, vmax_val), vmin_val);
+
+        intInputVal1 = _mm_cvtps_epi32(ret1);
+        intInputVal2 = _mm_cvtps_epi32(ret2);
+
+        intInputVal1 = _mm_packs_epi32(intInputVal1, intInputVal2);
+
+        _mm_storeu_si128((__m128i*)outputVectorPtr, intInputVal1);
+        outputVectorPtr += 8;
+    }
+
+    for (i = sse_iters * 8; i < num_points * 2; i++) {
+        aux = *inputVectorPtr++;
+        if (aux > max_val)
+            aux = max_val;
+        else if (aux < min_val)
+            aux = min_val;
+        *outputVectorPtr++ = (int16_t)rintf(aux);
+    }
+}
+#endif /* LV_HAVE_SSE2 */
+
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 
-static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector,
+static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector,
                                                  const lv_32fc_t* inputVector,
                                                  unsigned int num_points)
 {
     const unsigned int avx_iters = num_points / 8;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -61,9 +138,9 @@ static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector,
     unsigned int i;
 
     for (i = 0; i < avx_iters; i++) {
-        inputVal1 = _mm256_load_ps((float*)inputVectorPtr);
+        inputVal1 = _mm256_loadu_ps(inputVectorPtr);
         inputVectorPtr += 8;
-        inputVal2 = _mm256_load_ps((float*)inputVectorPtr);
+        inputVal2 = _mm256_loadu_ps(inputVectorPtr);
         inputVectorPtr += 8;
         __VOLK_PREFETCH(inputVectorPtr + 16);
 
@@ -77,7 +154,7 @@ static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector,
         intInputVal1 = _mm256_packs_epi32(intInputVal1, intInputVal2);
         intInputVal1 = _mm256_permute4x64_epi64(intInputVal1, 0xd8);
 
-        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal1);
+        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal1);
         outputVectorPtr += 16;
     }
 
@@ -95,13 +172,13 @@ static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector,
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 
-static inline void volk_32fc_convert_16ic_a_avx512(lv_16sc_t* outputVector,
+static inline void volk_32fc_convert_16ic_u_avx512(lv_16sc_t* outputVector,
                                                    const lv_32fc_t* inputVector,
                                                    unsigned int num_points)
 {
     const unsigned int avx512_iters = num_points / 8;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -116,7 +193,7 @@ static inline void volk_32fc_convert_16ic_a_avx512(lv_16sc_t* outputVector,
     unsigned int i;
 
     for (i = 0; i < avx512_iters; i++) {
-        inputVal1 = _mm512_load_ps((float*)inputVectorPtr);
+        inputVal1 = _mm512_loadu_ps(inputVectorPtr);
         inputVectorPtr += 16;
         __VOLK_PREFETCH(inputVectorPtr + 16);
 
@@ -126,7 +203,7 @@ static inline void volk_32fc_convert_16ic_a_avx512(lv_16sc_t* outputVector,
         // Convert float to int32, then pack to int16 with saturation
         intInputVal = _mm512_cvtsepi32_epi16(_mm512_cvtps_epi32(ret1));
 
-        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal);
+        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal);
         outputVectorPtr += 16;
     }
 
@@ -141,61 +218,6 @@ static inline void volk_32fc_convert_16ic_a_avx512(lv_16sc_t* outputVector,
 }
 #endif /* LV_HAVE_AVX512F */
 
-#ifdef LV_HAVE_SSE2
-#include <emmintrin.h>
-
-static inline void volk_32fc_convert_16ic_a_sse2(lv_16sc_t* outputVector,
-                                                 const lv_32fc_t* inputVector,
-                                                 unsigned int num_points)
-{
-    const unsigned int sse_iters = num_points / 4;
-
-    float* inputVectorPtr = (float*)inputVector;
-    int16_t* outputVectorPtr = (int16_t*)outputVector;
-    float aux;
-
-    const float min_val = (float)SHRT_MIN;
-    const float max_val = (float)SHRT_MAX;
-
-    __m128 inputVal1, inputVal2;
-    __m128i intInputVal1, intInputVal2;
-    __m128 ret1, ret2;
-    const __m128 vmin_val = _mm_set_ps1(min_val);
-    const __m128 vmax_val = _mm_set_ps1(max_val);
-    unsigned int i;
-
-    for (i = 0; i < sse_iters; i++) {
-        inputVal1 = _mm_load_ps((float*)inputVectorPtr);
-        inputVectorPtr += 4;
-        inputVal2 = _mm_load_ps((float*)inputVectorPtr);
-        inputVectorPtr += 4;
-        __VOLK_PREFETCH(inputVectorPtr + 8);
-
-        // Clip
-        ret1 = _mm_max_ps(_mm_min_ps(inputVal1, vmax_val), vmin_val);
-        ret2 = _mm_max_ps(_mm_min_ps(inputVal2, vmax_val), vmin_val);
-
-        intInputVal1 = _mm_cvtps_epi32(ret1);
-        intInputVal2 = _mm_cvtps_epi32(ret2);
-
-        intInputVal1 = _mm_packs_epi32(intInputVal1, intInputVal2);
-
-        _mm_store_si128((__m128i*)outputVectorPtr, intInputVal1);
-        outputVectorPtr += 8;
-    }
-
-    for (i = sse_iters * 8; i < num_points * 2; i++) {
-        aux = *inputVectorPtr++;
-        if (aux > max_val)
-            aux = max_val;
-        else if (aux < min_val)
-            aux = min_val;
-        *outputVectorPtr++ = (int16_t)rintf(aux);
-    }
-}
-#endif /* LV_HAVE_SSE2 */
-
-
 #if LV_HAVE_NEONV7
 #include <arm_neon.h>
 
@@ -206,7 +228,7 @@ static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector,
 
     const unsigned int neon_iters = num_points / 4;
 
-    float32_t* inputVectorPtr = (float32_t*)inputVector;
+    const float32_t* inputVectorPtr = (const float32_t*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
 
     const float min_val_f = (float)SHRT_MIN;
@@ -273,7 +295,7 @@ static inline void volk_32fc_convert_16ic_neonv8(lv_16sc_t* outputVector,
 {
     const unsigned int neon_iters = num_points / 4;
 
-    float32_t* inputVectorPtr = (float32_t*)inputVector;
+    const float32_t* inputVectorPtr = (const float32_t*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
 
     const float min_val_f = (float)SHRT_MIN;
@@ -322,20 +344,77 @@ static inline void volk_32fc_convert_16ic_neonv8(lv_16sc_t* outputVector,
 }
 #endif /* LV_HAVE_NEONV8 */
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32fc_convert_16ic_generic(lv_16sc_t* outputVector,
-                                                  const lv_32fc_t* inputVector,
-                                                  unsigned int num_points)
+static inline void volk_32fc_convert_16ic_rvv(lv_16sc_t* outputVector,
+                                              const lv_32fc_t* inputVector,
+                                              unsigned int num_points)
 {
-    float* inputVectorPtr = (float*)inputVector;
+    int16_t* out = (int16_t*)outputVector;
+    const float* in = (const float*)inputVector;
+    size_t n = num_points * 2;
+    for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v = __riscv_vle32_v_f32m8(in, vl);
+        __riscv_vse16(out, __riscv_vfncvt_x(v, vl), vl);
+    }
+}
+#endif /* LV_HAVE_RVV */
+
+#endif /* INCLUDED_volk_32fc_convert_16ic_u_H */
+
+#ifndef INCLUDED_volk_32fc_convert_16ic_a_H
+#define INCLUDED_volk_32fc_convert_16ic_a_H
+
+#include "volk/volk_complex.h"
+#include <limits.h>
+#include <math.h>
+
+#ifdef LV_HAVE_SSE2
+#include <emmintrin.h>
+
+static inline void volk_32fc_convert_16ic_a_sse2(lv_16sc_t* outputVector,
+                                                 const lv_32fc_t* inputVector,
+                                                 unsigned int num_points)
+{
+    const unsigned int sse_iters = num_points / 4;
+
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
+    float aux;
+
     const float min_val = (float)SHRT_MIN;
     const float max_val = (float)SHRT_MAX;
-    float aux;
+
+    __m128 inputVal1, inputVal2;
+    __m128i intInputVal1, intInputVal2;
+    __m128 ret1, ret2;
+    const __m128 vmin_val = _mm_set_ps1(min_val);
+    const __m128 vmax_val = _mm_set_ps1(max_val);
     unsigned int i;
-    for (i = 0; i < num_points * 2; i++) {
+
+    for (i = 0; i < sse_iters; i++) {
+        inputVal1 = _mm_load_ps(inputVectorPtr);
+        inputVectorPtr += 4;
+        inputVal2 = _mm_load_ps(inputVectorPtr);
+        inputVectorPtr += 4;
+        __VOLK_PREFETCH(inputVectorPtr + 8);
+
+        // Clip
+        ret1 = _mm_max_ps(_mm_min_ps(inputVal1, vmax_val), vmin_val);
+        ret2 = _mm_max_ps(_mm_min_ps(inputVal2, vmax_val), vmin_val);
+
+        intInputVal1 = _mm_cvtps_epi32(ret1);
+        intInputVal2 = _mm_cvtps_epi32(ret2);
+
+        intInputVal1 = _mm_packs_epi32(intInputVal1, intInputVal2);
+
+        _mm_store_si128((__m128i*)outputVectorPtr, intInputVal1);
+        outputVectorPtr += 8;
+    }
+
+    for (i = sse_iters * 8; i < num_points * 2; i++) {
         aux = *inputVectorPtr++;
         if (aux > max_val)
             aux = max_val;
@@ -344,28 +423,18 @@ static inline void volk_32fc_convert_16ic_generic(lv_16sc_t* outputVector,
         *outputVectorPtr++ = (int16_t)rintf(aux);
     }
 }
-#endif /* LV_HAVE_GENERIC */
-
-#endif /* INCLUDED_volk_32fc_convert_16ic_a_H */
-
-#ifndef INCLUDED_volk_32fc_convert_16ic_u_H
-#define INCLUDED_volk_32fc_convert_16ic_u_H
-
-#include "volk/volk_complex.h"
-#include <limits.h>
-#include <math.h>
-
+#endif /* LV_HAVE_SSE2 */
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 
-static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector,
+static inline void volk_32fc_convert_16ic_a_avx2(lv_16sc_t* outputVector,
                                                  const lv_32fc_t* inputVector,
                                                  unsigned int num_points)
 {
     const unsigned int avx_iters = num_points / 8;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -380,9 +449,9 @@ static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector,
     unsigned int i;
 
     for (i = 0; i < avx_iters; i++) {
-        inputVal1 = _mm256_loadu_ps((float*)inputVectorPtr);
+        inputVal1 = _mm256_load_ps(inputVectorPtr);
         inputVectorPtr += 8;
-        inputVal2 = _mm256_loadu_ps((float*)inputVectorPtr);
+        inputVal2 = _mm256_load_ps(inputVectorPtr);
         inputVectorPtr += 8;
         __VOLK_PREFETCH(inputVectorPtr + 16);
 
@@ -396,7 +465,7 @@ static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector,
         intInputVal1 = _mm256_packs_epi32(intInputVal1, intInputVal2);
         intInputVal1 = _mm256_permute4x64_epi64(intInputVal1, 0xd8);
 
-        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal1);
+        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal1);
         outputVectorPtr += 16;
     }
 
@@ -414,13 +483,13 @@ static inline void volk_32fc_convert_16ic_u_avx2(lv_16sc_t* outputVector,
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
 
-static inline void volk_32fc_convert_16ic_u_avx512(lv_16sc_t* outputVector,
+static inline void volk_32fc_convert_16ic_a_avx512(lv_16sc_t* outputVector,
                                                    const lv_32fc_t* inputVector,
                                                    unsigned int num_points)
 {
     const unsigned int avx512_iters = num_points / 8;
 
-    float* inputVectorPtr = (float*)inputVector;
+    const float* inputVectorPtr = (const float*)inputVector;
     int16_t* outputVectorPtr = (int16_t*)outputVector;
     float aux;
 
@@ -435,7 +504,7 @@ static inline void volk_32fc_convert_16ic_u_avx512(lv_16sc_t* outputVector,
     unsigned int i;
 
     for (i = 0; i < avx512_iters; i++) {
-        inputVal1 = _mm512_loadu_ps((float*)inputVectorPtr);
+        inputVal1 = _mm512_load_ps(inputVectorPtr);
         inputVectorPtr += 16;
         __VOLK_PREFETCH(inputVectorPtr + 16);
 
@@ -445,7 +514,7 @@ static inline void volk_32fc_convert_16ic_u_avx512(lv_16sc_t* outputVector,
         // Convert float to int32, then pack to int16 with saturation
         intInputVal = _mm512_cvtsepi32_epi16(_mm512_cvtps_epi32(ret1));
 
-        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal);
+        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal);
         outputVectorPtr += 16;
     }
 
@@ -460,77 +529,4 @@ static inline void volk_32fc_convert_16ic_u_avx512(lv_16sc_t* outputVector,
 }
 #endif /* LV_HAVE_AVX512F */
 
-
-#ifdef LV_HAVE_SSE2
-#include <emmintrin.h>
-
-static inline void volk_32fc_convert_16ic_u_sse2(lv_16sc_t* outputVector,
-                                                 const lv_32fc_t* inputVector,
-                                                 unsigned int num_points)
-{
-    const unsigned int sse_iters = num_points / 4;
-
-    float* inputVectorPtr = (float*)inputVector;
-    int16_t* outputVectorPtr = (int16_t*)outputVector;
-    float aux;
-
-    const float min_val = (float)SHRT_MIN;
-    const float max_val = (float)SHRT_MAX;
-
-    __m128 inputVal1, inputVal2;
-    __m128i intInputVal1, intInputVal2;
-    __m128 ret1, ret2;
-    const __m128 vmin_val = _mm_set_ps1(min_val);
-    const __m128 vmax_val = _mm_set_ps1(max_val);
-
-    unsigned int i;
-    for (i = 0; i < sse_iters; i++) {
-        inputVal1 = _mm_loadu_ps((float*)inputVectorPtr);
-        inputVectorPtr += 4;
-        inputVal2 = _mm_loadu_ps((float*)inputVectorPtr);
-        inputVectorPtr += 4;
-        __VOLK_PREFETCH(inputVectorPtr + 8);
-
-        // Clip
-        ret1 = _mm_max_ps(_mm_min_ps(inputVal1, vmax_val), vmin_val);
-        ret2 = _mm_max_ps(_mm_min_ps(inputVal2, vmax_val), vmin_val);
-
-        intInputVal1 = _mm_cvtps_epi32(ret1);
-        intInputVal2 = _mm_cvtps_epi32(ret2);
-
-        intInputVal1 = _mm_packs_epi32(intInputVal1, intInputVal2);
-
-        _mm_storeu_si128((__m128i*)outputVectorPtr, intInputVal1);
-        outputVectorPtr += 8;
-    }
-
-    for (i = sse_iters * 8; i < num_points * 2; i++) {
-        aux = *inputVectorPtr++;
-        if (aux > max_val)
-            aux = max_val;
-        else if (aux < min_val)
-            aux = min_val;
-        *outputVectorPtr++ = (int16_t)rintf(aux);
-    }
-}
-#endif /* LV_HAVE_SSE2 */
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-
-static inline void volk_32fc_convert_16ic_rvv(lv_16sc_t* outputVector,
-                                              const lv_32fc_t* inputVector,
-                                              unsigned int num_points)
-{
-    int16_t* out = (int16_t*)outputVector;
-    float* in = (float*)inputVector;
-    size_t n = num_points * 2;
-    for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
-        vl = __riscv_vsetvl_e32m8(n);
-        vfloat32m8_t v = __riscv_vle32_v_f32m8(in, vl);
-        __riscv_vse16(out, __riscv_vfncvt_x(v, vl), vl);
-    }
-}
-#endif /*LV_HAVE_RVV*/
-
-#endif /* INCLUDED_volk_32fc_convert_16ic_u_H */
+#endif /* INCLUDED_volk_32fc_convert_16ic_a_H */
