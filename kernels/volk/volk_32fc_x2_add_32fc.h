@@ -61,122 +61,6 @@
 #ifndef INCLUDED_volk_32fc_x2_add_32fc_u_H
 #define INCLUDED_volk_32fc_x2_add_32fc_u_H
 
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void volk_32fc_x2_add_32fc_u_avx(lv_32fc_t* cVector,
-                                               const lv_32fc_t* aVector,
-                                               const lv_32fc_t* bVector,
-                                               unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
-
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    const lv_32fc_t* bPtr = bVector;
-
-    __m256 aVal, bVal, cVal;
-    for (; number < quarterPoints; number++) {
-
-        aVal = _mm256_loadu_ps((float*)aPtr);
-        bVal = _mm256_loadu_ps((float*)bPtr);
-
-        cVal = _mm256_add_ps(aVal, bVal);
-
-        _mm256_storeu_ps((float*)cPtr,
-                         cVal); // Store the results back into the C container
-
-        aPtr += 4;
-        bPtr += 4;
-        cPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) + (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void volk_32fc_x2_add_32fc_a_avx(lv_32fc_t* cVector,
-                                               const lv_32fc_t* aVector,
-                                               const lv_32fc_t* bVector,
-                                               unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int quarterPoints = num_points / 4;
-
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    const lv_32fc_t* bPtr = bVector;
-
-    __m256 aVal, bVal, cVal;
-    for (; number < quarterPoints; number++) {
-
-        aVal = _mm256_load_ps((float*)aPtr);
-        bVal = _mm256_load_ps((float*)bPtr);
-
-        cVal = _mm256_add_ps(aVal, bVal);
-
-        _mm256_store_ps((float*)cPtr,
-                        cVal); // Store the results back into the C container
-
-        aPtr += 4;
-        bPtr += 4;
-        cPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) + (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_AVX */
-
-
-#ifdef LV_HAVE_SSE
-#include <xmmintrin.h>
-
-static inline void volk_32fc_x2_add_32fc_u_sse(lv_32fc_t* cVector,
-                                               const lv_32fc_t* aVector,
-                                               const lv_32fc_t* bVector,
-                                               unsigned int num_points)
-{
-    unsigned int number = 0;
-    const unsigned int halfPoints = num_points / 2;
-
-    lv_32fc_t* cPtr = cVector;
-    const lv_32fc_t* aPtr = aVector;
-    const lv_32fc_t* bPtr = bVector;
-
-    __m128 aVal, bVal, cVal;
-    for (; number < halfPoints; number++) {
-
-        aVal = _mm_loadu_ps((float*)aPtr);
-        bVal = _mm_loadu_ps((float*)bPtr);
-
-        cVal = _mm_add_ps(aVal, bVal);
-
-        _mm_storeu_ps((float*)cPtr, cVal); // Store the results back into the C container
-
-        aPtr += 2;
-        bPtr += 2;
-        cPtr += 2;
-    }
-
-    number = halfPoints * 2;
-    for (; number < num_points; number++) {
-        *cPtr++ = (*aPtr++) + (*bPtr++);
-    }
-}
-#endif /* LV_HAVE_SSE */
-
-
 #ifdef LV_HAVE_GENERIC
 
 static inline void volk_32fc_x2_add_32fc_generic(lv_32fc_t* cVector,
@@ -199,7 +83,7 @@ static inline void volk_32fc_x2_add_32fc_generic(lv_32fc_t* cVector,
 #ifdef LV_HAVE_SSE
 #include <xmmintrin.h>
 
-static inline void volk_32fc_x2_add_32fc_a_sse(lv_32fc_t* cVector,
+static inline void volk_32fc_x2_add_32fc_u_sse(lv_32fc_t* cVector,
                                                const lv_32fc_t* aVector,
                                                const lv_32fc_t* bVector,
                                                unsigned int num_points)
@@ -213,12 +97,13 @@ static inline void volk_32fc_x2_add_32fc_a_sse(lv_32fc_t* cVector,
 
     __m128 aVal, bVal, cVal;
     for (; number < halfPoints; number++) {
-        aVal = _mm_load_ps((float*)aPtr);
-        bVal = _mm_load_ps((float*)bPtr);
+
+        aVal = _mm_loadu_ps((const float*)aPtr);
+        bVal = _mm_loadu_ps((const float*)bPtr);
 
         cVal = _mm_add_ps(aVal, bVal);
 
-        _mm_store_ps((float*)cPtr, cVal); // Store the results back into the C container
+        _mm_storeu_ps((float*)cPtr, cVal); // Store the results back into the C container
 
         aPtr += 2;
         bPtr += 2;
@@ -231,6 +116,45 @@ static inline void volk_32fc_x2_add_32fc_a_sse(lv_32fc_t* cVector,
     }
 }
 #endif /* LV_HAVE_SSE */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_32fc_x2_add_32fc_u_avx(lv_32fc_t* cVector,
+                                               const lv_32fc_t* aVector,
+                                               const lv_32fc_t* bVector,
+                                               unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const lv_32fc_t* bPtr = bVector;
+
+    __m256 aVal, bVal, cVal;
+    for (; number < quarterPoints; number++) {
+
+        aVal = _mm256_loadu_ps((const float*)aPtr);
+        bVal = _mm256_loadu_ps((const float*)bPtr);
+
+        cVal = _mm256_add_ps(aVal, bVal);
+
+        _mm256_storeu_ps((float*)cPtr,
+                         cVal); // Store the results back into the C container
+
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) + (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_AVX */
 
 
 #ifdef LV_HAVE_NEON
@@ -328,6 +252,86 @@ static inline void volk_32fc_x2_add_32fc_rvv(lv_32fc_t* cVector,
         __riscv_vse32(out, __riscv_vfadd(va, vb, vl), vl);
     }
 }
-#endif /*LV_HAVE_RVV*/
+#endif /* LV_HAVE_RVV */
+
+#endif /* INCLUDED_volk_32fc_x2_add_32fc_u_H */
+
+#ifndef INCLUDED_volk_32fc_x2_add_32fc_a_H
+#define INCLUDED_volk_32fc_x2_add_32fc_a_H
+
+#ifdef LV_HAVE_SSE
+#include <xmmintrin.h>
+
+static inline void volk_32fc_x2_add_32fc_a_sse(lv_32fc_t* cVector,
+                                               const lv_32fc_t* aVector,
+                                               const lv_32fc_t* bVector,
+                                               unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int halfPoints = num_points / 2;
+
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const lv_32fc_t* bPtr = bVector;
+
+    __m128 aVal, bVal, cVal;
+    for (; number < halfPoints; number++) {
+        aVal = _mm_load_ps((const float*)aPtr);
+        bVal = _mm_load_ps((const float*)bPtr);
+
+        cVal = _mm_add_ps(aVal, bVal);
+
+        _mm_store_ps((float*)cPtr, cVal); // Store the results back into the C container
+
+        aPtr += 2;
+        bPtr += 2;
+        cPtr += 2;
+    }
+
+    number = halfPoints * 2;
+    for (; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) + (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_SSE */
+
+
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
+
+static inline void volk_32fc_x2_add_32fc_a_avx(lv_32fc_t* cVector,
+                                               const lv_32fc_t* aVector,
+                                               const lv_32fc_t* bVector,
+                                               unsigned int num_points)
+{
+    unsigned int number = 0;
+    const unsigned int quarterPoints = num_points / 4;
+
+    lv_32fc_t* cPtr = cVector;
+    const lv_32fc_t* aPtr = aVector;
+    const lv_32fc_t* bPtr = bVector;
+
+    __m256 aVal, bVal, cVal;
+    for (; number < quarterPoints; number++) {
+
+        aVal = _mm256_load_ps((const float*)aPtr);
+        bVal = _mm256_load_ps((const float*)bPtr);
+
+        cVal = _mm256_add_ps(aVal, bVal);
+
+        _mm256_store_ps((float*)cPtr,
+                        cVal); // Store the results back into the C container
+
+        aPtr += 4;
+        bPtr += 4;
+        cPtr += 4;
+    }
+
+    number = quarterPoints * 4;
+    for (; number < num_points; number++) {
+        *cPtr++ = (*aPtr++) + (*bPtr++);
+    }
+}
+#endif /* LV_HAVE_AVX */
 
 #endif /* INCLUDED_volk_32fc_x2_add_32fc_a_H */
