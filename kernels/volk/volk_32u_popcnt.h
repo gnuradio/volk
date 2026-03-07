@@ -40,8 +40,8 @@
  * \endcode
  */
 
-#ifndef INCLUDED_VOLK_32u_POPCNT_A16_H
-#define INCLUDED_VOLK_32u_POPCNT_A16_H
+#ifndef INCLUDED_volk_32u_popcnt_u_H
+#define INCLUDED_volk_32u_popcnt_u_H
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -62,7 +62,7 @@ static inline void volk_32u_popcnt_generic(uint32_t* ret, const uint32_t value)
     *ret = retVal;
 }
 
-#endif /*LV_HAVE_GENERIC*/
+#endif /* LV_HAVE_GENERIC */
 
 
 #ifdef LV_HAVE_NEON
@@ -84,6 +84,29 @@ static inline void volk_32u_popcnt_neon(uint32_t* ret, const uint32_t value)
 #endif /* LV_HAVE_NEON */
 
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_32u_popcnt_rvv(uint32_t* ret, const uint32_t value)
+{
+    *ret = __riscv_vcpop(__riscv_vreinterpret_b4(__riscv_vmv_s_x_u64m1(value, 1)), 32);
+}
+#endif /* LV_HAVE_RVV */
+
+#ifdef LV_HAVE_RVA22V
+#include <riscv_bitmanip.h>
+
+static inline void volk_32u_popcnt_rva22(uint32_t* ret, const uint32_t value)
+{
+    *ret = __riscv_cpop_32(value);
+}
+#endif /* LV_HAVE_RVA22V */
+
+#endif /* INCLUDED_volk_32u_popcnt_u_H */
+
+#ifndef INCLUDED_volk_32u_popcnt_a_H
+#define INCLUDED_volk_32u_popcnt_a_H
+
 #ifdef LV_HAVE_SSE4_2
 
 #include <nmmintrin.h>
@@ -93,24 +116,6 @@ static inline void volk_32u_popcnt_a_sse4_2(uint32_t* ret, const uint32_t value)
     *ret = _mm_popcnt_u32(value);
 }
 
-#endif /*LV_HAVE_SSE4_2*/
+#endif /* LV_HAVE_SSE4_2 */
 
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-
-static inline void volk_32u_popcnt_rvv(uint32_t* ret, const uint32_t value)
-{
-    *ret = __riscv_vcpop(__riscv_vreinterpret_b4(__riscv_vmv_s_x_u64m1(value, 1)), 32);
-}
-#endif /*LV_HAVE_RVV*/
-
-#ifdef LV_HAVE_RVA22V
-#include <riscv_bitmanip.h>
-
-static inline void volk_32u_popcnt_rva22(uint32_t* ret, const uint32_t value)
-{
-    *ret = __riscv_cpop_32(value);
-}
-#endif /*LV_HAVE_RVA22V*/
-
-#endif /*INCLUDED_VOLK_32u_POPCNT_A16_H*/
+#endif /* INCLUDED_volk_32u_popcnt_a_H */
