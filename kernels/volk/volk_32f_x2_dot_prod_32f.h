@@ -461,6 +461,146 @@ static inline void volk_32f_x2_dot_prod_32f_u_avx512f(float* result,
 }
 #endif /* LV_HAVE_AVX512F */
 
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_dot_prod_32f_neon(float* result,
+                                                 const float* input,
+                                                 const float* taps,
+                                                 unsigned int num_points)
+{
+    const unsigned int sixteenthPoints = num_points / 16;
+    const float* aPtr = input;
+    const float* bPtr = taps;
+
+    // Use 4 independent accumulators for better pipelining
+    float32x4_t acc0 = vdupq_n_f32(0);
+    float32x4_t acc1 = vdupq_n_f32(0);
+    float32x4_t acc2 = vdupq_n_f32(0);
+    float32x4_t acc3 = vdupq_n_f32(0);
+
+    for (unsigned int number = 0; number < sixteenthPoints; number++) {
+        float32x4_t a0 = vld1q_f32(aPtr);
+        float32x4_t a1 = vld1q_f32(aPtr + 4);
+        float32x4_t a2 = vld1q_f32(aPtr + 8);
+        float32x4_t a3 = vld1q_f32(aPtr + 12);
+
+        float32x4_t b0 = vld1q_f32(bPtr);
+        float32x4_t b1 = vld1q_f32(bPtr + 4);
+        float32x4_t b2 = vld1q_f32(bPtr + 8);
+        float32x4_t b3 = vld1q_f32(bPtr + 12);
+
+        acc0 = vmlaq_f32(acc0, a0, b0);
+        acc1 = vmlaq_f32(acc1, a1, b1);
+        acc2 = vmlaq_f32(acc2, a2, b2);
+        acc3 = vmlaq_f32(acc3, a3, b3);
+
+        aPtr += 16;
+        bPtr += 16;
+    }
+
+    // Combine accumulators
+    acc0 = vaddq_f32(acc0, acc1);
+    acc2 = vaddq_f32(acc2, acc3);
+    acc0 = vaddq_f32(acc0, acc2);
+
+    // Horizontal sum (ARMv7 compatible)
+    float32x2_t sum = vadd_f32(vget_low_f32(acc0), vget_high_f32(acc0));
+    sum = vpadd_f32(sum, sum);
+    float dotProduct = vget_lane_f32(sum, 0);
+
+    // Handle remainder
+    for (unsigned int number = sixteenthPoints * 16; number < num_points; number++) {
+        dotProduct += (*aPtr++) * (*bPtr++);
+    }
+
+    *result = dotProduct;
+}
+
+#endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void volk_32f_x2_dot_prod_32f_neonv8(float* result,
+                                                   const float* input,
+                                                   const float* taps,
+                                                   unsigned int num_points)
+{
+    const unsigned int sixteenthPoints = num_points / 16;
+    const float* aPtr = input;
+    const float* bPtr = taps;
+
+    /* Use 4 independent accumulators for better pipelining with FMA */
+    float32x4_t acc0 = vdupq_n_f32(0);
+    float32x4_t acc1 = vdupq_n_f32(0);
+    float32x4_t acc2 = vdupq_n_f32(0);
+    float32x4_t acc3 = vdupq_n_f32(0);
+
+    for (unsigned int number = 0; number < sixteenthPoints; number++) {
+        float32x4_t a0 = vld1q_f32(aPtr);
+        float32x4_t a1 = vld1q_f32(aPtr + 4);
+        float32x4_t a2 = vld1q_f32(aPtr + 8);
+        float32x4_t a3 = vld1q_f32(aPtr + 12);
+
+        float32x4_t b0 = vld1q_f32(bPtr);
+        float32x4_t b1 = vld1q_f32(bPtr + 4);
+        float32x4_t b2 = vld1q_f32(bPtr + 8);
+        float32x4_t b3 = vld1q_f32(bPtr + 12);
+        __VOLK_PREFETCH(aPtr + 32);
+        __VOLK_PREFETCH(bPtr + 32);
+
+        /* Use FMA for accumulate */
+        acc0 = vfmaq_f32(acc0, a0, b0);
+        acc1 = vfmaq_f32(acc1, a1, b1);
+        acc2 = vfmaq_f32(acc2, a2, b2);
+        acc3 = vfmaq_f32(acc3, a3, b3);
+
+        aPtr += 16;
+        bPtr += 16;
+    }
+
+    /* Combine accumulators */
+    acc0 = vaddq_f32(acc0, acc1);
+    acc2 = vaddq_f32(acc2, acc3);
+    acc0 = vaddq_f32(acc0, acc2);
+
+    /* Horizontal sum */
+    float dotProduct = vaddvq_f32(acc0);
+
+    /* Handle remainder */
+    for (unsigned int number = sixteenthPoints * 16; number < num_points; number++) {
+        dotProduct += (*aPtr++) * (*bPtr++);
+    }
+
+    *result = dotProduct;
+}
+#endif /* LV_HAVE_NEONV8 */
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+#include <volk/volk_rvv_intrinsics.h>
+
+static inline void volk_32f_x2_dot_prod_32f_rvv(float* result,
+                                                const float* input,
+                                                const float* taps,
+                                                unsigned int num_points)
+{
+    vfloat32m8_t vsum = __riscv_vfmv_v_f_f32m8(0, __riscv_vsetvlmax_e32m8());
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
+        vl = __riscv_vsetvl_e32m8(n);
+        vfloat32m8_t v0 = __riscv_vle32_v_f32m8(input, vl);
+        vfloat32m8_t v1 = __riscv_vle32_v_f32m8(taps, vl);
+        vsum = __riscv_vfmacc_tu(vsum, v0, v1, vl);
+    }
+    size_t vl = __riscv_vsetvlmax_e32m1();
+    vfloat32m1_t v = RISCV_SHRINK8(vfadd, f, 32, vsum);
+    v = __riscv_vfredusum(v, __riscv_vfmv_s_f_f32m1(0, vl), vl);
+    *result = __riscv_vfmv_f(v);
+}
+#endif /*LV_HAVE_RVV*/
+
 #endif /*INCLUDED_volk_32f_x2_dot_prod_32f_u_H*/
 
 #ifndef INCLUDED_volk_32f_x2_dot_prod_32f_a_H
@@ -845,122 +985,6 @@ static inline void volk_32f_x2_dot_prod_32f_a_avx512f(float* result,
 }
 #endif /* LV_HAVE_AVX512F */
 
-#ifdef LV_HAVE_NEON
-#include <arm_neon.h>
-
-static inline void volk_32f_x2_dot_prod_32f_neon(float* result,
-                                                 const float* input,
-                                                 const float* taps,
-                                                 unsigned int num_points)
-{
-    const unsigned int sixteenthPoints = num_points / 16;
-    const float* aPtr = input;
-    const float* bPtr = taps;
-
-    // Use 4 independent accumulators for better pipelining
-    float32x4_t acc0 = vdupq_n_f32(0);
-    float32x4_t acc1 = vdupq_n_f32(0);
-    float32x4_t acc2 = vdupq_n_f32(0);
-    float32x4_t acc3 = vdupq_n_f32(0);
-
-    for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        float32x4_t a0 = vld1q_f32(aPtr);
-        float32x4_t a1 = vld1q_f32(aPtr + 4);
-        float32x4_t a2 = vld1q_f32(aPtr + 8);
-        float32x4_t a3 = vld1q_f32(aPtr + 12);
-
-        float32x4_t b0 = vld1q_f32(bPtr);
-        float32x4_t b1 = vld1q_f32(bPtr + 4);
-        float32x4_t b2 = vld1q_f32(bPtr + 8);
-        float32x4_t b3 = vld1q_f32(bPtr + 12);
-
-        acc0 = vmlaq_f32(acc0, a0, b0);
-        acc1 = vmlaq_f32(acc1, a1, b1);
-        acc2 = vmlaq_f32(acc2, a2, b2);
-        acc3 = vmlaq_f32(acc3, a3, b3);
-
-        aPtr += 16;
-        bPtr += 16;
-    }
-
-    // Combine accumulators
-    acc0 = vaddq_f32(acc0, acc1);
-    acc2 = vaddq_f32(acc2, acc3);
-    acc0 = vaddq_f32(acc0, acc2);
-
-    // Horizontal sum (ARMv7 compatible)
-    float32x2_t sum = vadd_f32(vget_low_f32(acc0), vget_high_f32(acc0));
-    sum = vpadd_f32(sum, sum);
-    float dotProduct = vget_lane_f32(sum, 0);
-
-    // Handle remainder
-    for (unsigned int number = sixteenthPoints * 16; number < num_points; number++) {
-        dotProduct += (*aPtr++) * (*bPtr++);
-    }
-
-    *result = dotProduct;
-}
-
-#endif /* LV_HAVE_NEON */
-
-#ifdef LV_HAVE_NEONV8
-#include <arm_neon.h>
-
-static inline void volk_32f_x2_dot_prod_32f_neonv8(float* result,
-                                                   const float* input,
-                                                   const float* taps,
-                                                   unsigned int num_points)
-{
-    const unsigned int sixteenthPoints = num_points / 16;
-    const float* aPtr = input;
-    const float* bPtr = taps;
-
-    /* Use 4 independent accumulators for better pipelining with FMA */
-    float32x4_t acc0 = vdupq_n_f32(0);
-    float32x4_t acc1 = vdupq_n_f32(0);
-    float32x4_t acc2 = vdupq_n_f32(0);
-    float32x4_t acc3 = vdupq_n_f32(0);
-
-    for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        float32x4_t a0 = vld1q_f32(aPtr);
-        float32x4_t a1 = vld1q_f32(aPtr + 4);
-        float32x4_t a2 = vld1q_f32(aPtr + 8);
-        float32x4_t a3 = vld1q_f32(aPtr + 12);
-
-        float32x4_t b0 = vld1q_f32(bPtr);
-        float32x4_t b1 = vld1q_f32(bPtr + 4);
-        float32x4_t b2 = vld1q_f32(bPtr + 8);
-        float32x4_t b3 = vld1q_f32(bPtr + 12);
-        __VOLK_PREFETCH(aPtr + 32);
-        __VOLK_PREFETCH(bPtr + 32);
-
-        /* Use FMA for accumulate */
-        acc0 = vfmaq_f32(acc0, a0, b0);
-        acc1 = vfmaq_f32(acc1, a1, b1);
-        acc2 = vfmaq_f32(acc2, a2, b2);
-        acc3 = vfmaq_f32(acc3, a3, b3);
-
-        aPtr += 16;
-        bPtr += 16;
-    }
-
-    /* Combine accumulators */
-    acc0 = vaddq_f32(acc0, acc1);
-    acc2 = vaddq_f32(acc2, acc3);
-    acc0 = vaddq_f32(acc0, acc2);
-
-    /* Horizontal sum */
-    float dotProduct = vaddvq_f32(acc0);
-
-    /* Handle remainder */
-    for (unsigned int number = sixteenthPoints * 16; number < num_points; number++) {
-        dotProduct += (*aPtr++) * (*bPtr++);
-    }
-
-    *result = dotProduct;
-}
-#endif /* LV_HAVE_NEONV8 */
-
 #ifdef LV_HAVE_NEONV7
 extern void volk_32f_x2_dot_prod_32f_a_neonasm(float* cVector,
                                                const float* aVector,
@@ -974,29 +998,5 @@ extern void volk_32f_x2_dot_prod_32f_a_neonasm_opts(float* cVector,
                                                     const float* bVector,
                                                     unsigned int num_points);
 #endif /* LV_HAVE_NEONV7 */
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-#include <volk/volk_rvv_intrinsics.h>
-
-static inline void volk_32f_x2_dot_prod_32f_rvv(float* result,
-                                                const float* input,
-                                                const float* taps,
-                                                unsigned int num_points)
-{
-    vfloat32m8_t vsum = __riscv_vfmv_v_f_f32m8(0, __riscv_vsetvlmax_e32m8());
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, input += vl, taps += vl) {
-        vl = __riscv_vsetvl_e32m8(n);
-        vfloat32m8_t v0 = __riscv_vle32_v_f32m8(input, vl);
-        vfloat32m8_t v1 = __riscv_vle32_v_f32m8(taps, vl);
-        vsum = __riscv_vfmacc_tu(vsum, v0, v1, vl);
-    }
-    size_t vl = __riscv_vsetvlmax_e32m1();
-    vfloat32m1_t v = RISCV_SHRINK8(vfadd, f, 32, vsum);
-    v = __riscv_vfredusum(v, __riscv_vfmv_s_f_f32m1(0, vl), vl);
-    *result = __riscv_vfmv_f(v);
-}
-#endif /*LV_HAVE_RVV*/
 
 #endif /*INCLUDED_volk_32f_x2_dot_prod_32f_a_H*/
