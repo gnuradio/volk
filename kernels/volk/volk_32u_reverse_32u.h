@@ -28,6 +28,7 @@
  * \endcode
  */
 #ifndef INCLUDED_VOLK_32u_REVERSE_32u_U_H
+#define INCLUDED_VOLK_32u_REVERSE_32u_U_H
 
 // Idea from "Bit Twiddling Hacks", which dedicates this method to public domain
 // https://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable
@@ -253,41 +254,6 @@ static inline void volk_32u_reverse_32u_bintree_permute_bottom_up(uint32_t* out,
 }
 #endif /* LV_HAVE_GENERIC */
 
-#ifdef LV_HAVE_NEONV8
-#include <arm_neon.h>
-
-static inline void
-volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_points)
-{
-    const uint32_t* in_ptr = in;
-    uint32_t* out_ptr = out;
-
-    const uint8x16_t idx = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
-
-    const unsigned int quarterPoints = num_points / 4;
-    unsigned int number = 0;
-    for (; number < quarterPoints; ++number) {
-        __VOLK_PREFETCH(in_ptr + 4);
-        uint32x4_t x = vld1q_u32(in_ptr);
-        uint32x4_t z =
-            vreinterpretq_u32_u8(vqtbl1q_u8(vrbitq_u8(vreinterpretq_u8_u32(x)), idx));
-        vst1q_u32(out_ptr, z);
-        in_ptr += 4;
-        out_ptr += 4;
-    }
-    number = quarterPoints * 4;
-    for (; number < num_points; ++number) {
-        *out_ptr = ((uint32_t)BitReverseTable256[*in_ptr & 0xff] << 24) |
-                   (BitReverseTable256[(*in_ptr >> 8) & 0xff] << 16) |
-                   (BitReverseTable256[(*in_ptr >> 16) & 0xff] << 8) |
-                   (BitReverseTable256[(*in_ptr >> 24) & 0xff]);
-        ++in_ptr;
-        ++out_ptr;
-    }
-}
-
-#endif /* LV_HAVE_NEONV8 */
-
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
 
@@ -335,6 +301,41 @@ volk_32u_reverse_32u_arm(uint32_t* out, const uint32_t* in, unsigned int num_poi
 }
 #undef DO_RBIT
 #endif /* LV_HAVE_NEON */
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+
+static inline void
+volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_points)
+{
+    const uint32_t* in_ptr = in;
+    uint32_t* out_ptr = out;
+
+    const uint8x16_t idx = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
+
+    const unsigned int quarterPoints = num_points / 4;
+    unsigned int number = 0;
+    for (; number < quarterPoints; ++number) {
+        __VOLK_PREFETCH(in_ptr + 4);
+        uint32x4_t x = vld1q_u32(in_ptr);
+        uint32x4_t z =
+            vreinterpretq_u32_u8(vqtbl1q_u8(vrbitq_u8(vreinterpretq_u8_u32(x)), idx));
+        vst1q_u32(out_ptr, z);
+        in_ptr += 4;
+        out_ptr += 4;
+    }
+    number = quarterPoints * 4;
+    for (; number < num_points; ++number) {
+        *out_ptr = ((uint32_t)BitReverseTable256[*in_ptr & 0xff] << 24) |
+                   (BitReverseTable256[(*in_ptr >> 8) & 0xff] << 16) |
+                   (BitReverseTable256[(*in_ptr >> 16) & 0xff] << 8) |
+                   (BitReverseTable256[(*in_ptr >> 24) & 0xff]);
+        ++in_ptr;
+        ++out_ptr;
+    }
+}
+
+#endif /* LV_HAVE_NEONV8 */
 
 
 #ifdef LV_HAVE_RVV
@@ -390,4 +391,4 @@ volk_32u_reverse_32u_rva23(uint32_t* out, const uint32_t* in, unsigned int num_p
 }
 #endif /* LV_HAVE_RVA23 */
 
-#endif /* INCLUDED_volk_32u_reverse_32u_u_H */
+#endif /* INCLUDED_VOLK_32u_REVERSE_32u_U_H */
