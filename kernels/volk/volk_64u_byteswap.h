@@ -56,6 +56,29 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_64u_byteswap_generic(uint64_t* intsToSwap,
+                                             unsigned int num_points)
+{
+    uint32_t* inputPtr = (uint32_t*)intsToSwap;
+    unsigned int point;
+    for (point = 0; point < num_points; point++) {
+        uint32_t output1 = *inputPtr;
+        uint32_t output2 = inputPtr[1];
+
+        output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) |
+                   ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
+
+        output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) |
+                   ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
+
+        *inputPtr++ = output2;
+        *inputPtr++ = output1;
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
 #ifdef LV_HAVE_SSE2
 #include <emmintrin.h>
 
@@ -109,6 +132,98 @@ static inline void volk_64u_byteswap_u_sse2(uint64_t* intsToSwap, unsigned int n
 }
 #endif /* LV_HAVE_SSE2 */
 
+#if LV_HAVE_SSSE3
+#include <tmmintrin.h>
+static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
+                                             unsigned int num_points)
+{
+    unsigned int number = 0;
+
+    const unsigned int nPerSet = 2;
+    const uint64_t nSets = num_points / nPerSet;
+
+    uint32_t* inputPtr = (uint32_t*)intsToSwap;
+
+    uint8_t shuffleVector[16] = { 7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8 };
+
+    const __m128i myShuffle = _mm_loadu_si128((__m128i*)&shuffleVector);
+
+    for (; number < nSets; number++) {
+        // Load the 32t values, increment inputPtr later since we're doing it in-place.
+        const __m128i input = _mm_loadu_si128((__m128i*)inputPtr);
+        const __m128i output = _mm_shuffle_epi8(input, myShuffle);
+
+        // Store the results
+        _mm_storeu_si128((__m128i*)inputPtr, output);
+
+        /*  inputPtr is 32bit so increment twice  */
+        inputPtr += 2 * nPerSet;
+    }
+
+    // Byteswap any remaining points:
+    for (number = nSets * nPerSet; number < num_points; ++number) {
+        uint32_t output1 = *inputPtr;
+        uint32_t output2 = inputPtr[1];
+        uint32_t out1 =
+            ((((output1) >> 24) & 0x000000ff) | (((output1) >> 8) & 0x0000ff00) |
+             (((output1) << 8) & 0x00ff0000) | (((output1) << 24) & 0xff000000));
+
+        uint32_t out2 =
+            ((((output2) >> 24) & 0x000000ff) | (((output2) >> 8) & 0x0000ff00) |
+             (((output2) << 8) & 0x00ff0000) | (((output2) << 24) & 0xff000000));
+        *inputPtr++ = out2;
+        *inputPtr++ = out1;
+    }
+}
+#endif /* LV_HAVE_SSSE3 */
+
+#if LV_HAVE_AVX2
+#include <immintrin.h>
+static inline void volk_64u_byteswap_u_avx2(uint64_t* intsToSwap, unsigned int num_points)
+{
+    unsigned int number = 0;
+
+    const unsigned int nPerSet = 4;
+    const uint64_t nSets = num_points / nPerSet;
+
+    uint32_t* inputPtr = (uint32_t*)intsToSwap;
+
+    const uint8_t shuffleVector[32] = { 7,  6,  5,  4,  3,  2,  1,  0,  15, 14, 13,
+                                        12, 11, 10, 9,  8,  23, 22, 21, 20, 19, 18,
+                                        17, 16, 31, 30, 29, 28, 27, 26, 25, 24 };
+
+    const __m256i myShuffle = _mm256_loadu_si256((__m256i*)&shuffleVector[0]);
+
+    for (; number < nSets; number++) {
+        // Load the 32t values, increment inputPtr later since we're doing it in-place.
+        const __m256i input = _mm256_loadu_si256((__m256i*)inputPtr);
+        const __m256i output = _mm256_shuffle_epi8(input, myShuffle);
+
+        // Store the results
+        _mm256_storeu_si256((__m256i*)inputPtr, output);
+
+        /*  inputPtr is 32bit so increment twice  */
+        inputPtr += 2 * nPerSet;
+    }
+
+    // Byteswap any remaining points:
+    for (number = nSets * nPerSet; number < num_points; ++number) {
+        uint32_t output1 = *inputPtr;
+        uint32_t output2 = inputPtr[1];
+        uint32_t out1 =
+            ((((output1) >> 24) & 0x000000ff) | (((output1) >> 8) & 0x0000ff00) |
+             (((output1) << 8) & 0x00ff0000) | (((output1) << 24) & 0xff000000));
+
+        uint32_t out2 =
+            ((((output2) >> 24) & 0x000000ff) | (((output2) >> 8) & 0x0000ff00) |
+             (((output2) << 8) & 0x00ff0000) | (((output2) << 24) & 0xff000000));
+        *inputPtr++ = out2;
+        *inputPtr++ = out1;
+    }
+}
+
+#endif /* LV_HAVE_AVX2 */
+
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
@@ -159,123 +274,55 @@ static inline void volk_64u_byteswap_neon(uint64_t* intsToSwap, unsigned int num
 #endif /* LV_HAVE_NEON */
 
 
-#ifdef LV_HAVE_GENERIC
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
 
-static inline void volk_64u_byteswap_generic(uint64_t* intsToSwap,
-                                             unsigned int num_points)
+static inline void volk_64u_byteswap_rvv(uint64_t* intsToSwap, unsigned int num_points)
 {
-    uint32_t* inputPtr = (uint32_t*)intsToSwap;
-    unsigned int point;
-    for (point = 0; point < num_points; point++) {
-        uint32_t output1 = *inputPtr;
-        uint32_t output2 = inputPtr[1];
-
-        output1 = (((output1 >> 24) & 0xff) | ((output1 >> 8) & 0x0000ff00) |
-                   ((output1 << 8) & 0x00ff0000) | ((output1 << 24) & 0xff000000));
-
-        output2 = (((output2 >> 24) & 0xff) | ((output2 >> 8) & 0x0000ff00) |
-                   ((output2 << 8) & 0x00ff0000) | ((output2 << 24) & 0xff000000));
-
-        *inputPtr++ = output2;
-        *inputPtr++ = output1;
+    size_t n = num_points;
+    size_t vlmax = __riscv_vsetvlmax_e8m1();
+    if (vlmax <= 256) {
+        vuint8m1_t vidx = __riscv_vreinterpret_u8m1(
+            __riscv_vsub(__riscv_vreinterpret_u64m1(__riscv_vid_v_u8m1(vlmax)),
+                         0x0706050403020100 - 0x1020304050607,
+                         vlmax / 8));
+        for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
+            vl = __riscv_vsetvl_e64m8(n);
+            vuint8m8_t v =
+                __riscv_vreinterpret_u8m8(__riscv_vle64_v_u64m8(intsToSwap, vl));
+            v = RISCV_PERM8(__riscv_vrgather, v, vidx);
+            __riscv_vse64(intsToSwap, __riscv_vreinterpret_u64m8(v), vl);
+        }
+    } else {
+        vuint16m2_t vid = __riscv_vid_v_u16m2(vlmax);
+        vuint16m2_t voff1 = __riscv_vand(vid, 0x7, vlmax);
+        vuint16m2_t voff2 = __riscv_vrsub(voff1, 0x7, vlmax);
+        vuint16m2_t vidx = __riscv_vadd(__riscv_vsub(vid, voff1, vlmax), voff2, vlmax);
+        for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
+            vl = __riscv_vsetvl_e64m8(n);
+            vuint8m8_t v =
+                __riscv_vreinterpret_u8m8(__riscv_vle64_v_u64m8(intsToSwap, vl));
+            v = RISCV_PERM8(__riscv_vrgatherei16, v, vidx);
+            __riscv_vse64(intsToSwap, __riscv_vreinterpret_u64m8(v), vl);
+        }
     }
 }
-#endif /* LV_HAVE_GENERIC */
+#endif /* LV_HAVE_RVV */
 
-#if LV_HAVE_AVX2
-#include <immintrin.h>
-static inline void volk_64u_byteswap_a_avx2(uint64_t* intsToSwap, unsigned int num_points)
+#ifdef LV_HAVE_RVA23
+#include <riscv_vector.h>
+
+static inline void volk_64u_byteswap_rva23(uint64_t* intsToSwap, unsigned int num_points)
 {
-    unsigned int number = 0;
-
-    const unsigned int nPerSet = 4;
-    const uint64_t nSets = num_points / nPerSet;
-
-    uint32_t* inputPtr = (uint32_t*)intsToSwap;
-
-    const uint8_t shuffleVector[32] = { 7,  6,  5,  4,  3,  2,  1,  0,  15, 14, 13,
-                                        12, 11, 10, 9,  8,  23, 22, 21, 20, 19, 18,
-                                        17, 16, 31, 30, 29, 28, 27, 26, 25, 24 };
-
-    const __m256i myShuffle = _mm256_loadu_si256((__m256i*)&shuffleVector[0]);
-
-    for (; number < nSets; number++) {
-
-        // Load the 32t values, increment inputPtr later since we're doing it in-place.
-        const __m256i input = _mm256_load_si256((__m256i*)inputPtr);
-        const __m256i output = _mm256_shuffle_epi8(input, myShuffle);
-
-        // Store the results
-        _mm256_store_si256((__m256i*)inputPtr, output);
-
-        /*  inputPtr is 32bit so increment twice  */
-        inputPtr += 2 * nPerSet;
-    }
-
-    // Byteswap any remaining points:
-    for (number = nSets * nPerSet; number < num_points; ++number) {
-        uint32_t output1 = *inputPtr;
-        uint32_t output2 = inputPtr[1];
-        uint32_t out1 =
-            ((((output1) >> 24) & 0x000000ff) | (((output1) >> 8) & 0x0000ff00) |
-             (((output1) << 8) & 0x00ff0000) | (((output1) << 24) & 0xff000000));
-
-        uint32_t out2 =
-            ((((output2) >> 24) & 0x000000ff) | (((output2) >> 8) & 0x0000ff00) |
-             (((output2) << 8) & 0x00ff0000) | (((output2) << 24) & 0xff000000));
-        *inputPtr++ = out2;
-        *inputPtr++ = out1;
+    size_t n = num_points;
+    for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
+        vl = __riscv_vsetvl_e64m8(n);
+        vuint64m8_t v = __riscv_vle64_v_u64m8(intsToSwap, vl);
+        __riscv_vse64(intsToSwap, __riscv_vrev8(v, vl), vl);
     }
 }
+#endif /* LV_HAVE_RVA23 */
 
-#endif /* LV_HAVE_AVX2 */
-
-
-#if LV_HAVE_SSSE3
-#include <tmmintrin.h>
-static inline void volk_64u_byteswap_a_ssse3(uint64_t* intsToSwap,
-                                             unsigned int num_points)
-{
-    unsigned int number = 0;
-
-    const unsigned int nPerSet = 2;
-    const uint64_t nSets = num_points / nPerSet;
-
-    uint32_t* inputPtr = (uint32_t*)intsToSwap;
-
-    uint8_t shuffleVector[16] = { 7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8 };
-
-    const __m128i myShuffle = _mm_loadu_si128((__m128i*)&shuffleVector);
-
-    for (; number < nSets; number++) {
-
-        // Load the 32t values, increment inputPtr later since we're doing it in-place.
-        const __m128i input = _mm_load_si128((__m128i*)inputPtr);
-        const __m128i output = _mm_shuffle_epi8(input, myShuffle);
-
-        // Store the results
-        _mm_store_si128((__m128i*)inputPtr, output);
-
-        /*  inputPtr is 32bit so increment twice  */
-        inputPtr += 2 * nPerSet;
-    }
-
-    // Byteswap any remaining points:
-    for (number = nSets * nPerSet; number < num_points; ++number) {
-        uint32_t output1 = *inputPtr;
-        uint32_t output2 = inputPtr[1];
-        uint32_t out1 =
-            ((((output1) >> 24) & 0x000000ff) | (((output1) >> 8) & 0x0000ff00) |
-             (((output1) << 8) & 0x00ff0000) | (((output1) << 24) & 0xff000000));
-
-        uint32_t out2 =
-            ((((output2) >> 24) & 0x000000ff) | (((output2) >> 8) & 0x0000ff00) |
-             (((output2) << 8) & 0x00ff0000) | (((output2) << 24) & 0xff000000));
-        *inputPtr++ = out2;
-        *inputPtr++ = out1;
-    }
-}
-#endif /* LV_HAVE_SSSE3 */
 #endif /* INCLUDED_volk_64u_byteswap_u_H */
 
 
@@ -338,57 +385,9 @@ static inline void volk_64u_byteswap_a_sse2(uint64_t* intsToSwap, unsigned int n
 }
 #endif /* LV_HAVE_SSE2 */
 
-#if LV_HAVE_AVX2
-#include <immintrin.h>
-static inline void volk_64u_byteswap_u_avx2(uint64_t* intsToSwap, unsigned int num_points)
-{
-    unsigned int number = 0;
-
-    const unsigned int nPerSet = 4;
-    const uint64_t nSets = num_points / nPerSet;
-
-    uint32_t* inputPtr = (uint32_t*)intsToSwap;
-
-    const uint8_t shuffleVector[32] = { 7,  6,  5,  4,  3,  2,  1,  0,  15, 14, 13,
-                                        12, 11, 10, 9,  8,  23, 22, 21, 20, 19, 18,
-                                        17, 16, 31, 30, 29, 28, 27, 26, 25, 24 };
-
-    const __m256i myShuffle = _mm256_loadu_si256((__m256i*)&shuffleVector[0]);
-
-    for (; number < nSets; number++) {
-        // Load the 32t values, increment inputPtr later since we're doing it in-place.
-        const __m256i input = _mm256_loadu_si256((__m256i*)inputPtr);
-        const __m256i output = _mm256_shuffle_epi8(input, myShuffle);
-
-        // Store the results
-        _mm256_storeu_si256((__m256i*)inputPtr, output);
-
-        /*  inputPtr is 32bit so increment twice  */
-        inputPtr += 2 * nPerSet;
-    }
-
-    // Byteswap any remaining points:
-    for (number = nSets * nPerSet; number < num_points; ++number) {
-        uint32_t output1 = *inputPtr;
-        uint32_t output2 = inputPtr[1];
-        uint32_t out1 =
-            ((((output1) >> 24) & 0x000000ff) | (((output1) >> 8) & 0x0000ff00) |
-             (((output1) << 8) & 0x00ff0000) | (((output1) << 24) & 0xff000000));
-
-        uint32_t out2 =
-            ((((output2) >> 24) & 0x000000ff) | (((output2) >> 8) & 0x0000ff00) |
-             (((output2) << 8) & 0x00ff0000) | (((output2) << 24) & 0xff000000));
-        *inputPtr++ = out2;
-        *inputPtr++ = out1;
-    }
-}
-
-#endif /* LV_HAVE_AVX2 */
-
-
 #if LV_HAVE_SSSE3
 #include <tmmintrin.h>
-static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
+static inline void volk_64u_byteswap_a_ssse3(uint64_t* intsToSwap,
                                              unsigned int num_points)
 {
     unsigned int number = 0;
@@ -403,12 +402,13 @@ static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
     const __m128i myShuffle = _mm_loadu_si128((__m128i*)&shuffleVector);
 
     for (; number < nSets; number++) {
+
         // Load the 32t values, increment inputPtr later since we're doing it in-place.
-        const __m128i input = _mm_loadu_si128((__m128i*)inputPtr);
+        const __m128i input = _mm_load_si128((__m128i*)inputPtr);
         const __m128i output = _mm_shuffle_epi8(input, myShuffle);
 
         // Store the results
-        _mm_storeu_si128((__m128i*)inputPtr, output);
+        _mm_store_si128((__m128i*)inputPtr, output);
 
         /*  inputPtr is 32bit so increment twice  */
         inputPtr += 2 * nPerSet;
@@ -431,54 +431,52 @@ static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
 }
 #endif /* LV_HAVE_SSSE3 */
 
-
-#ifdef LV_HAVE_RVV
-#include <riscv_vector.h>
-
-static inline void volk_64u_byteswap_rvv(uint64_t* intsToSwap, unsigned int num_points)
+#if LV_HAVE_AVX2
+#include <immintrin.h>
+static inline void volk_64u_byteswap_a_avx2(uint64_t* intsToSwap, unsigned int num_points)
 {
-    size_t n = num_points;
-    size_t vlmax = __riscv_vsetvlmax_e8m1();
-    if (vlmax <= 256) {
-        vuint8m1_t vidx = __riscv_vreinterpret_u8m1(
-            __riscv_vsub(__riscv_vreinterpret_u64m1(__riscv_vid_v_u8m1(vlmax)),
-                         0x0706050403020100 - 0x1020304050607,
-                         vlmax / 8));
-        for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
-            vl = __riscv_vsetvl_e64m8(n);
-            vuint8m8_t v =
-                __riscv_vreinterpret_u8m8(__riscv_vle64_v_u64m8(intsToSwap, vl));
-            v = RISCV_PERM8(__riscv_vrgather, v, vidx);
-            __riscv_vse64(intsToSwap, __riscv_vreinterpret_u64m8(v), vl);
-        }
-    } else {
-        vuint16m2_t vid = __riscv_vid_v_u16m2(vlmax);
-        vuint16m2_t voff1 = __riscv_vand(vid, 0x7, vlmax);
-        vuint16m2_t voff2 = __riscv_vrsub(voff1, 0x7, vlmax);
-        vuint16m2_t vidx = __riscv_vadd(__riscv_vsub(vid, voff1, vlmax), voff2, vlmax);
-        for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
-            vl = __riscv_vsetvl_e64m8(n);
-            vuint8m8_t v =
-                __riscv_vreinterpret_u8m8(__riscv_vle64_v_u64m8(intsToSwap, vl));
-            v = RISCV_PERM8(__riscv_vrgatherei16, v, vidx);
-            __riscv_vse64(intsToSwap, __riscv_vreinterpret_u64m8(v), vl);
-        }
+    unsigned int number = 0;
+
+    const unsigned int nPerSet = 4;
+    const uint64_t nSets = num_points / nPerSet;
+
+    uint32_t* inputPtr = (uint32_t*)intsToSwap;
+
+    const uint8_t shuffleVector[32] = { 7,  6,  5,  4,  3,  2,  1,  0,  15, 14, 13,
+                                        12, 11, 10, 9,  8,  23, 22, 21, 20, 19, 18,
+                                        17, 16, 31, 30, 29, 28, 27, 26, 25, 24 };
+
+    const __m256i myShuffle = _mm256_loadu_si256((__m256i*)&shuffleVector[0]);
+
+    for (; number < nSets; number++) {
+
+        // Load the 32t values, increment inputPtr later since we're doing it in-place.
+        const __m256i input = _mm256_load_si256((__m256i*)inputPtr);
+        const __m256i output = _mm256_shuffle_epi8(input, myShuffle);
+
+        // Store the results
+        _mm256_store_si256((__m256i*)inputPtr, output);
+
+        /*  inputPtr is 32bit so increment twice  */
+        inputPtr += 2 * nPerSet;
+    }
+
+    // Byteswap any remaining points:
+    for (number = nSets * nPerSet; number < num_points; ++number) {
+        uint32_t output1 = *inputPtr;
+        uint32_t output2 = inputPtr[1];
+        uint32_t out1 =
+            ((((output1) >> 24) & 0x000000ff) | (((output1) >> 8) & 0x0000ff00) |
+             (((output1) << 8) & 0x00ff0000) | (((output1) << 24) & 0xff000000));
+
+        uint32_t out2 =
+            ((((output2) >> 24) & 0x000000ff) | (((output2) >> 8) & 0x0000ff00) |
+             (((output2) << 8) & 0x00ff0000) | (((output2) << 24) & 0xff000000));
+        *inputPtr++ = out2;
+        *inputPtr++ = out1;
     }
 }
-#endif /* LV_HAVE_RVV */
 
-#ifdef LV_HAVE_RVA23
-#include <riscv_vector.h>
-
-static inline void volk_64u_byteswap_rva23(uint64_t* intsToSwap, unsigned int num_points)
-{
-    size_t n = num_points;
-    for (size_t vl; n > 0; n -= vl, intsToSwap += vl) {
-        vl = __riscv_vsetvl_e64m8(n);
-        vuint64m8_t v = __riscv_vle64_v_u64m8(intsToSwap, vl);
-        __riscv_vse64(intsToSwap, __riscv_vrev8(v, vl), vl);
-    }
-}
-#endif /* LV_HAVE_RVA23 */
+#endif /* LV_HAVE_AVX2 */
 
 #endif /* INCLUDED_volk_64u_byteswap_a_H */
