@@ -253,7 +253,7 @@ static inline void volk_32f_binary_slicer_32i_rvv(int* cVector,
     size_t n = num_points;
     for (size_t vl; n > 0; n -= vl, aVector += vl, cVector += vl) {
         vl = __riscv_vsetvl_e32m8(n);
-        vuint32m8_t v = __riscv_vle32_v_u32m8((uint32_t*)aVector, vl);
+        vuint32m8_t v = __riscv_vle32_v_u32m8((const uint32_t*)aVector, vl);
         v = __riscv_vsrl(__riscv_vnot(v, vl), 31, vl);
         __riscv_vse32((uint32_t*)cVector, v, vl);
     }

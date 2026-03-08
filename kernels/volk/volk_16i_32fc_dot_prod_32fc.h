@@ -97,7 +97,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_sse(lv_32fc_t* result,
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
-    const float* bPtr = (float*)taps;
+    const float* bPtr = (const float*)taps;
 
     __m64 m0, m1;
     __m128 f0, f1, f2, f3;
@@ -183,7 +183,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2_fma(lv_32fc_t* result,
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
-    const float* bPtr = (float*)taps;
+    const float* bPtr = (const float*)taps;
 
     __m128i m0, m1;
     __m256i f0, f1;
@@ -270,7 +270,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_u_avx2(lv_32fc_t* result,
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
-    const float* bPtr = (float*)taps;
+    const float* bPtr = (const float*)taps;
 
     __m128i m0, m1;
     __m256i f0, f1;
@@ -360,8 +360,8 @@ static inline void volk_16i_32fc_dot_prod_32fc_neon(lv_32fc_t* result,
 
     unsigned ii;
     unsigned quarter_points = num_points / 4;
-    lv_32fc_t* tapsPtr = (lv_32fc_t*)taps;
-    short* inputPtr = (short*)input;
+    const lv_32fc_t* tapsPtr = taps;
+    const short* inputPtr = input;
     lv_32fc_t accumulator_vec[4];
 
     float32x4x2_t tapsVal, accumulator_val;
@@ -373,7 +373,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_neon(lv_32fc_t* result,
     accumulator_val.val[1] = vdupq_n_f32(0.0);
 
     for (ii = 0; ii < quarter_points; ++ii) {
-        tapsVal = vld2q_f32((float*)tapsPtr);
+        tapsVal = vld2q_f32((const float*)tapsPtr);
         input16 = vld1_s16(inputPtr);
         // widen 16-bit int to 32-bit int
         input32 = vmovl_s16(input16);
@@ -546,7 +546,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_sse(lv_32fc_t* result,
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
-    const float* bPtr = (float*)taps;
+    const float* bPtr = (const float*)taps;
 
     __m64 m0, m1;
     __m128 f0, f1, f2, f3;
@@ -631,7 +631,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2_fma(lv_32fc_t* result,
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
-    const float* bPtr = (float*)taps;
+    const float* bPtr = (const float*)taps;
 
     __m128i m0, m1;
     __m256i f0, f1;
@@ -718,7 +718,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_a_avx2(lv_32fc_t* result,
 
     lv_32fc_t returnValue = lv_cmake(0.0f, 0.0f);
     const short* aPtr = input;
-    const float* bPtr = (float*)taps;
+    const float* bPtr = (const float*)taps;
 
     __m128i m0, m1;
     __m256i f0, f1;
