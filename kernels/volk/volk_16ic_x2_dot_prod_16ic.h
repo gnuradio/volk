@@ -92,9 +92,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_sse2(lv_16sc_t* out,
         for (number = 0; number < sse_iters; number++) {
             // a[127:0]=[a3.i,a3.r,a2.i,a2.r,a1.i,a1.r,a0.i,a0.r]
             a = _mm_loadu_si128(
-                (__m128i*)_in_a); // load (2 byte imag, 2 byte real) x 4 into 128 bits reg
+                (const __m128i*)_in_a); // load (2 byte imag, 2 byte real) x 4 into 128 bits reg
             __VOLK_PREFETCH(_in_a + 8);
-            b = _mm_loadu_si128((__m128i*)_in_b);
+            b = _mm_loadu_si128((const __m128i*)_in_b);
             __VOLK_PREFETCH(_in_b + 8);
             c = _mm_mullo_epi16(a, b); // a3.i*b3.i, a3.r*b3.r, ....
 
@@ -234,9 +234,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_avx2(lv_16sc_t* out,
                                     0xFF);
 
         for (number = 0; number < avx_iters; number++) {
-            a = _mm256_loadu_si256((__m256i*)_in_a);
+            a = _mm256_loadu_si256((const __m256i*)_in_a);
             __VOLK_PREFETCH(_in_a + 16);
-            b = _mm256_loadu_si256((__m256i*)_in_b);
+            b = _mm256_loadu_si256((const __m256i*)_in_b);
             __VOLK_PREFETCH(_in_b + 16);
             c = _mm256_mullo_epi16(a, b);
 
@@ -296,8 +296,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon(lv_16sc_t* out,
     unsigned int quarter_points = num_points / 4;
     unsigned int number;
 
-    lv_16sc_t* a_ptr = (lv_16sc_t*)in_a;
-    lv_16sc_t* b_ptr = (lv_16sc_t*)in_b;
+    const lv_16sc_t* a_ptr = (const lv_16sc_t*)in_a;
+    const lv_16sc_t* b_ptr = (const lv_16sc_t*)in_b;
     *out = lv_cmake((int16_t)0, (int16_t)0);
 
     if (quarter_points > 0) {
@@ -311,8 +311,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon(lv_16sc_t* out,
         lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
 
         for (number = 0; number < quarter_points; ++number) {
-            a_val = vld2_s16((int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-            b_val = vld2_s16((int16_t*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+            a_val = vld2_s16((const int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+            b_val = vld2_s16((const int16_t*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
             __VOLK_PREFETCH(a_ptr + 8);
             __VOLK_PREFETCH(b_ptr + 8);
 
@@ -350,7 +350,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon(lv_16sc_t* out,
 
     // tail case
     for (number = quarter_points * 4; number < num_points; ++number) {
-        *out += (*a_ptr++) * (*b_ptr++);
+        lv_16sc_t tmp = (*a_ptr++) * (*b_ptr++);
+        *out = lv_cmake(sat_adds16i(lv_creal(*out), lv_creal(tmp)),
+                        sat_adds16i(lv_cimag(*out), lv_cimag(tmp)));
     }
 }
 
@@ -368,8 +370,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_vma(lv_16sc_t* out,
     unsigned int quarter_points = num_points / 4;
     unsigned int number;
 
-    lv_16sc_t* a_ptr = (lv_16sc_t*)in_a;
-    lv_16sc_t* b_ptr = (lv_16sc_t*)in_b;
+    const lv_16sc_t* a_ptr = (const lv_16sc_t*)in_a;
+    const lv_16sc_t* b_ptr = (const lv_16sc_t*)in_b;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     int16x4x2_t a_val, b_val, accumulator;
@@ -379,8 +381,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_vma(lv_16sc_t* out,
     accumulator.val[1] = vdup_n_s16(0);
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2_s16((int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld2_s16((int16_t*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld2_s16((const int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld2_s16((const int16_t*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -399,11 +401,19 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_vma(lv_16sc_t* out,
     }
 
     vst2_s16((int16_t*)accum_result, accumulator);
-    *out = accum_result[0] + accum_result[1] + accum_result[2] + accum_result[3];
+    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
+    for (number = 0; number < 4; ++number) {
+        dotProduct = lv_cmake(
+            sat_adds16i(lv_creal(dotProduct), lv_creal(accum_result[number])),
+            sat_adds16i(lv_cimag(dotProduct), lv_cimag(accum_result[number])));
+    }
+    *out = dotProduct;
 
     // tail case
     for (number = quarter_points * 4; number < num_points; ++number) {
-        *out += (*a_ptr++) * (*b_ptr++);
+        lv_16sc_t tmp = (*a_ptr++) * (*b_ptr++);
+        *out = lv_cmake(sat_adds16i(lv_creal(*out), lv_creal(tmp)),
+                        sat_adds16i(lv_cimag(*out), lv_cimag(tmp)));
     }
 }
 
@@ -421,8 +431,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_optvma(lv_16sc_t* out,
     unsigned int quarter_points = num_points / 4;
     unsigned int number;
 
-    lv_16sc_t* a_ptr = (lv_16sc_t*)in_a;
-    lv_16sc_t* b_ptr = (lv_16sc_t*)in_b;
+    const lv_16sc_t* a_ptr = (const lv_16sc_t*)in_a;
+    const lv_16sc_t* b_ptr = (const lv_16sc_t*)in_b;
     // for 2-lane vectors, 1st lane holds the real part,
     // 2nd lane holds the imaginary part
     int16x4x2_t a_val, b_val, accumulator1, accumulator2;
@@ -434,8 +444,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_optvma(lv_16sc_t* out,
     accumulator2.val[1] = vdup_n_s16(0);
 
     for (number = 0; number < quarter_points; ++number) {
-        a_val = vld2_s16((int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
-        b_val = vld2_s16((int16_t*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
+        a_val = vld2_s16((const int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
+        b_val = vld2_s16((const int16_t*)b_ptr); // b0r|b1r|b2r|b3r || b0i|b1i|b2i|b3i
         __VOLK_PREFETCH(a_ptr + 8);
         __VOLK_PREFETCH(b_ptr + 8);
 
@@ -453,11 +463,19 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon_optvma(lv_16sc_t* out,
     accumulator1.val[1] = vqadd_s16(accumulator1.val[1], accumulator2.val[1]);
 
     vst2_s16((int16_t*)accum_result, accumulator1);
-    *out = accum_result[0] + accum_result[1] + accum_result[2] + accum_result[3];
+    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
+    for (number = 0; number < 4; ++number) {
+        dotProduct = lv_cmake(
+            sat_adds16i(lv_creal(dotProduct), lv_creal(accum_result[number])),
+            sat_adds16i(lv_cimag(dotProduct), lv_cimag(accum_result[number])));
+    }
+    *out = dotProduct;
 
     // tail case
     for (number = quarter_points * 4; number < num_points; ++number) {
-        *out += (*a_ptr++) * (*b_ptr++);
+        lv_16sc_t tmp = (*a_ptr++) * (*b_ptr++);
+        *out = lv_cmake(sat_adds16i(lv_creal(*out), lv_creal(tmp)),
+                        sat_adds16i(lv_cimag(*out), lv_cimag(tmp)));
     }
 }
 
@@ -486,8 +504,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_neonv8(lv_16sc_t* out,
     int16x8_t acc_imag2 = vdupq_n_s16(0);
 
     for (number = 0; number < eighth_points; ++number) {
-        a_val = vld2q_s16((int16_t*)a_ptr);
-        b_val = vld2q_s16((int16_t*)b_ptr);
+        a_val = vld2q_s16((const int16_t*)a_ptr);
+        b_val = vld2q_s16((const int16_t*)b_ptr);
         __VOLK_PREFETCH(a_ptr + 16);
         __VOLK_PREFETCH(b_ptr + 16);
 
@@ -507,9 +525,16 @@ static inline void volk_16ic_x2_dot_prod_16ic_neonv8(lv_16sc_t* out,
     int16x8_t acc_real = vqaddq_s16(acc_real1, acc_real2);
     int16x8_t acc_imag = vqaddq_s16(acc_imag1, acc_imag2);
 
-    /* Horizontal sum using ARMv8 vaddvq */
-    int16_t sum_real = vaddvq_s16(acc_real);
-    int16_t sum_imag = vaddvq_s16(acc_imag);
+    /* Horizontal sum with saturation (vaddvq_s16 would wrap) */
+    __VOLK_ATTR_ALIGNED(16) int16_t real_arr[8];
+    __VOLK_ATTR_ALIGNED(16) int16_t imag_arr[8];
+    vst1q_s16(real_arr, acc_real);
+    vst1q_s16(imag_arr, acc_imag);
+    int16_t sum_real = 0, sum_imag = 0;
+    for (number = 0; number < 8; ++number) {
+        sum_real = sat_adds16i(sum_real, real_arr[number]);
+        sum_imag = sat_adds16i(sum_imag, imag_arr[number]);
+    }
 
     *out = lv_cmake(sum_real, sum_imag);
 
@@ -543,12 +568,12 @@ static inline void volk_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result,
         vint16m4_t vbr = __riscv_vnsra(vb, 0, vl), vbi = __riscv_vnsra(vb, 16, vl);
         vint16m4_t vr = __riscv_vnmsac(__riscv_vmul(var, vbr, vl), vai, vbi, vl);
         vint16m4_t vi = __riscv_vmacc(__riscv_vmul(var, vbi, vl), vai, vbr, vl);
-        vsumr = __riscv_vadd_tu(vsumr, vsumr, vr, vl);
-        vsumi = __riscv_vadd_tu(vsumi, vsumi, vi, vl);
+        vsumr = __riscv_vsadd_tu(vsumr, vsumr, vr, vl);
+        vsumi = __riscv_vsadd_tu(vsumi, vsumi, vi, vl);
     }
     size_t vl = __riscv_vsetvlmax_e16m1();
-    vint16m1_t vr = RISCV_SHRINK4(vadd, i, 16, vsumr);
-    vint16m1_t vi = RISCV_SHRINK4(vadd, i, 16, vsumi);
+    vint16m1_t vr = RISCV_SHRINK4(vsadd, i, 16, vsumr);
+    vint16m1_t vi = RISCV_SHRINK4(vsadd, i, 16, vsumi);
     vint16m1_t z = __riscv_vmv_s_x_i16m1(0, vl);
     *result = lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
                        __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
@@ -576,12 +601,12 @@ static inline void volk_16ic_x2_dot_prod_16ic_rvvseg(lv_16sc_t* result,
         vint16m4_t vbr = __riscv_vget_i16m4(vb, 0), vbi = __riscv_vget_i16m4(vb, 1);
         vint16m4_t vr = __riscv_vnmsac(__riscv_vmul(var, vbr, vl), vai, vbi, vl);
         vint16m4_t vi = __riscv_vmacc(__riscv_vmul(var, vbi, vl), vai, vbr, vl);
-        vsumr = __riscv_vadd_tu(vsumr, vsumr, vr, vl);
-        vsumi = __riscv_vadd_tu(vsumi, vsumi, vi, vl);
+        vsumr = __riscv_vsadd_tu(vsumr, vsumr, vr, vl);
+        vsumi = __riscv_vsadd_tu(vsumi, vsumi, vi, vl);
     }
     size_t vl = __riscv_vsetvlmax_e16m1();
-    vint16m1_t vr = RISCV_SHRINK4(vadd, i, 16, vsumr);
-    vint16m1_t vi = RISCV_SHRINK4(vadd, i, 16, vsumi);
+    vint16m1_t vr = RISCV_SHRINK4(vsadd, i, 16, vsumr);
+    vint16m1_t vi = RISCV_SHRINK4(vsadd, i, 16, vsumi);
     vint16m1_t z = __riscv_vmv_s_x_i16m1(0, vl);
     *result = lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
                        __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
@@ -629,9 +654,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_sse2(lv_16sc_t* out,
         for (number = 0; number < sse_iters; number++) {
             // a[127:0]=[a3.i,a3.r,a2.i,a2.r,a1.i,a1.r,a0.i,a0.r]
             a = _mm_load_si128(
-                (__m128i*)_in_a); // load (2 byte imag, 2 byte real) x 4 into 128 bits reg
+                (const __m128i*)_in_a); // load (2 byte imag, 2 byte real) x 4 into 128 bits reg
             __VOLK_PREFETCH(_in_a + 8);
-            b = _mm_load_si128((__m128i*)_in_b);
+            b = _mm_load_si128((const __m128i*)_in_b);
             __VOLK_PREFETCH(_in_b + 8);
             c = _mm_mullo_epi16(a, b); // a3.i*b3.i, a3.r*b3.r, ....
 
@@ -772,9 +797,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_avx2(lv_16sc_t* out,
                                     0xFF);
 
         for (number = 0; number < avx_iters; number++) {
-            a = _mm256_load_si256((__m256i*)_in_a);
+            a = _mm256_load_si256((const __m256i*)_in_a);
             __VOLK_PREFETCH(_in_a + 16);
-            b = _mm256_load_si256((__m256i*)_in_b);
+            b = _mm256_load_si256((const __m256i*)_in_b);
             __VOLK_PREFETCH(_in_b + 16);
             c = _mm256_mullo_epi16(a, b);
 
