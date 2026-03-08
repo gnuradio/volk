@@ -155,7 +155,6 @@ volk_32fc_s32f_deinterleave_real_16i_neon(int16_t* iBuffer,
     float32x4_t vScalar = vdupq_n_f32(scalar);
 
     float32x4_t half = vdupq_n_f32(0.5f);
-    float32x4_t neg_half = vdupq_n_f32(-0.5f);
     float32x4_t zero = vdupq_n_f32(0.0f);
 
     for (; number < quarter_points; number++) {
@@ -163,10 +162,28 @@ volk_32fc_s32f_deinterleave_real_16i_neon(int16_t* iBuffer,
         complexVectorPtr += 8;
 
         float32x4_t scaled = vmulq_f32(input.val[0], vScalar);
-        // Round to nearest: add copysign(0.5, x) before truncating
-        uint32x4_t neg = vcltq_f32(scaled, zero);
-        scaled = vaddq_f32(scaled, vbslq_f32(neg, neg_half, half));
-        int32x4_t intVal = vcvtq_s32_f32(scaled);
+
+        // Round-to-nearest-even (banker's rounding) to match generic rintf
+        float32x4_t abs_scaled = vabsq_f32(scaled);
+        float32x4_t added = vaddq_f32(abs_scaled, half);
+        int32x4_t rounded = vcvtq_s32_f32(added);
+
+        // Fix ties: when frac == 0.5, round to even (subtract 1 if odd)
+        int32x4_t trunc_int = vcvtq_s32_f32(abs_scaled);
+        float32x4_t trunc_f = vcvtq_f32_s32(trunc_int);
+        float32x4_t frac = vsubq_f32(abs_scaled, trunc_f);
+        uint32x4_t is_tie = vceqq_f32(frac, half);
+        uint32x4_t is_odd =
+            vtstq_u32(vreinterpretq_u32_s32(rounded), vdupq_n_u32(1));
+        uint32x4_t fix = vandq_u32(is_tie, is_odd);
+        rounded = vsubq_s32(
+            rounded, vreinterpretq_s32_u32(vandq_u32(fix, vdupq_n_u32(1))));
+
+        // Restore original sign
+        uint32x4_t neg_mask = vcltq_f32(scaled, zero);
+        int32x4_t neg_rounded = vnegq_s32(rounded);
+        int32x4_t intVal = vbslq_s32(neg_mask, neg_rounded, rounded);
+
         int16x4_t shortVal = vqmovn_s32(intVal);
 
         vst1_s16(iBufferPtr, shortVal);

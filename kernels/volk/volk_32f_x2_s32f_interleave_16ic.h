@@ -159,8 +159,7 @@ static inline void volk_32f_x2_s32f_interleave_16ic_neon(lv_16sc_t* complexVecto
     int16_t* complexVectorPtr = (int16_t*)complexVector;
 
     float32x4_t vScalar = vdupq_n_f32(scalar);
-    float32x4_t half = vdupq_n_f32(0.5f);
-    float32x4_t neg_half = vdupq_n_f32(-0.5f);
+    float32x4_t magic = vdupq_n_f32(8388608.0f); // 2^23 for round-to-nearest-even
     float32x4_t zero = vdupq_n_f32(0.0f);
 
     for (; number < quarter_points; number++) {
@@ -170,11 +169,16 @@ static inline void volk_32f_x2_s32f_interleave_16ic_neon(lv_16sc_t* complexVecto
         iValue = vmulq_f32(iValue, vScalar);
         qValue = vmulq_f32(qValue, vScalar);
 
-        // Round to nearest: add copysign(0.5, x) before truncating
+        // Round to nearest even using magic number trick (matches rintf behavior)
+        // For |x| < 2^23: adding then subtracting 2^23 forces IEEE 754 round-to-nearest-even
         uint32x4_t iNeg = vcltq_f32(iValue, zero);
         uint32x4_t qNeg = vcltq_f32(qValue, zero);
-        iValue = vaddq_f32(iValue, vbslq_f32(iNeg, neg_half, half));
-        qValue = vaddq_f32(qValue, vbslq_f32(qNeg, neg_half, half));
+        float32x4_t iPosRound = vsubq_f32(vaddq_f32(iValue, magic), magic);
+        float32x4_t iNegRound = vaddq_f32(vsubq_f32(iValue, magic), magic);
+        float32x4_t qPosRound = vsubq_f32(vaddq_f32(qValue, magic), magic);
+        float32x4_t qNegRound = vaddq_f32(vsubq_f32(qValue, magic), magic);
+        iValue = vbslq_f32(iNeg, iNegRound, iPosRound);
+        qValue = vbslq_f32(qNeg, qNegRound, qPosRound);
 
         int32x4_t iInt = vcvtq_s32_f32(iValue);
         int32x4_t qInt = vcvtq_s32_f32(qValue);

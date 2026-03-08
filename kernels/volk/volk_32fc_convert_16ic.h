@@ -238,8 +238,8 @@ static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector,
 
     const float32x4_t min_val = vmovq_n_f32(min_val_f);
     const float32x4_t max_val = vmovq_n_f32(max_val_f);
-    float32x4_t half = vdupq_n_f32(0.5f);
-    float32x4_t ret1, ret2, a, b, sign, PlusHalf, Round;
+    const float32x4_t magic = vdupq_n_f32(8388608.0f); /* 2^23: round-to-nearest-even */
+    float32x4_t ret1, ret2, a, b;
 
     int32x4_t toint_a = { 0, 0, 0, 0 };
     int32x4_t toint_b = { 0, 0, 0, 0 };
@@ -256,15 +256,9 @@ static inline void volk_32fc_convert_16ic_neon(lv_16sc_t* outputVector,
         ret1 = vmaxq_f32(vminq_f32(a, max_val), min_val);
         ret2 = vmaxq_f32(vminq_f32(b, max_val), min_val);
 
-        sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_f32(ret1), 31)));
-        PlusHalf = vaddq_f32(ret1, half);
-        Round = vsubq_f32(PlusHalf, sign);
-        toint_a = vcvtq_s32_f32(Round);
-
-        sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_f32(ret2), 31)));
-        PlusHalf = vaddq_f32(ret2, half);
-        Round = vsubq_f32(PlusHalf, sign);
-        toint_b = vcvtq_s32_f32(Round);
+        /* round-to-nearest-even via magic-number trick (|val| < 2^23) */
+        toint_a = vcvtq_s32_f32(vsubq_f32(vaddq_f32(ret1, magic), magic));
+        toint_b = vcvtq_s32_f32(vsubq_f32(vaddq_f32(ret2, magic), magic));
 
         intInputVal1 = vqmovn_s32(toint_a);
         intInputVal2 = vqmovn_s32(toint_b);
@@ -353,7 +347,7 @@ static inline void volk_32fc_convert_16ic_rvv(lv_16sc_t* outputVector,
 {
     int16_t* out = (int16_t*)outputVector;
     const float* in = (const float*)inputVector;
-    size_t n = num_points * 2;
+    size_t n = (size_t)num_points * 2;
     for (size_t vl; n > 0; n -= vl, in += vl, out += vl) {
         vl = __riscv_vsetvl_e32m8(n);
         vfloat32m8_t v = __riscv_vle32_v_f32m8(in, vl);

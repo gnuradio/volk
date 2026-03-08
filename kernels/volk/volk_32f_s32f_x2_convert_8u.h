@@ -374,6 +374,7 @@ static inline void volk_32f_s32f_x2_convert_8u_neon(uint8_t* outputVector,
     float32x4_t vBias = vdupq_n_f32(bias);
     float32x4_t vmin_val = vdupq_n_f32(min_val);
     float32x4_t vmax_val = vdupq_n_f32(max_val);
+    float32x4_t vhalf = vdupq_n_f32(0.5f);
 
     for (; number < sixteenth_points; number++) {
         float32x4_t inputVal0 = vld1q_f32(inputVectorPtr);
@@ -392,10 +393,10 @@ static inline void volk_32f_s32f_x2_convert_8u_neon(uint8_t* outputVector,
         inputVal2 = vmaxq_f32(vminq_f32(inputVal2, vmax_val), vmin_val);
         inputVal3 = vmaxq_f32(vminq_f32(inputVal3, vmax_val), vmin_val);
 
-        uint32x4_t intVal0 = vcvtq_u32_f32(inputVal0);
-        uint32x4_t intVal1 = vcvtq_u32_f32(inputVal1);
-        uint32x4_t intVal2 = vcvtq_u32_f32(inputVal2);
-        uint32x4_t intVal3 = vcvtq_u32_f32(inputVal3);
+        uint32x4_t intVal0 = vcvtq_u32_f32(vaddq_f32(inputVal0, vhalf));
+        uint32x4_t intVal1 = vcvtq_u32_f32(vaddq_f32(inputVal1, vhalf));
+        uint32x4_t intVal2 = vcvtq_u32_f32(vaddq_f32(inputVal2, vhalf));
+        uint32x4_t intVal3 = vcvtq_u32_f32(vaddq_f32(inputVal3, vhalf));
 
         uint16x4_t shortVal0 = vqmovn_u32(intVal0);
         uint16x4_t shortVal1 = vqmovn_u32(intVal1);
