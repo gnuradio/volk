@@ -85,11 +85,13 @@ volk_32f_tanh_32f_series(float* cVector, const float* aVector, unsigned int num_
     float* cPtr = cVector;
     const float* aPtr = aVector;
     for (unsigned int number = 0; number < num_points; number++) {
-        if (*aPtr > 4.97)
+        if (*aPtr > 4.97) {
             *cPtr++ = 1;
-        else if (*aPtr <= -4.97)
+            aPtr++;
+        } else if (*aPtr <= -4.97) {
             *cPtr++ = -1;
-        else {
+            aPtr++;
+        } else {
             float x2 = (*aPtr) * (*aPtr);
             float a = (*aPtr) * (135135.0f + x2 * (17325.0f + x2 * (378.0f + x2)));
             float b = 135135.0f + x2 * (62370.0f + x2 * (3150.0f + x2 * 28.0f));
