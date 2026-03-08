@@ -370,7 +370,7 @@ static inline void volk_32f_x2_pow_32f_u_avx2_fma(float* cVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *cPtr++ = pow(*aPtr++, *bPtr++);
+        *cPtr++ = powf(*aPtr++, *bPtr++);
     }
 }
 
@@ -518,7 +518,7 @@ static inline void volk_32f_x2_pow_32f_u_avx2(float* cVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *cPtr++ = pow(*aPtr++, *bPtr++);
+        *cPtr++ = powf(*aPtr++, *bPtr++);
     }
 }
 
@@ -1176,7 +1176,7 @@ static inline void volk_32f_x2_pow_32f_a_avx2_fma(float* cVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *cPtr++ = pow(*aPtr++, *bPtr++);
+        *cPtr++ = powf(*aPtr++, *bPtr++);
     }
 }
 
@@ -1324,7 +1324,7 @@ static inline void volk_32f_x2_pow_32f_a_avx2(float* cVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *cPtr++ = pow(*aPtr++, *bPtr++);
+        *cPtr++ = powf(*aPtr++, *bPtr++);
     }
 }
 

@@ -178,7 +178,7 @@ volk_32f_acos_32f_u_avx(float* bVector, const float* aVector, unsigned int num_p
 
 #endif /* LV_HAVE_AVX */
 
-#ifdef LV_HAVE_AVX2
+#if defined(LV_HAVE_AVX2) && defined(LV_HAVE_FMA)
 #include <immintrin.h>
 #include <volk/volk_avx2_fma_intrinsics.h>
 
@@ -228,7 +228,7 @@ static inline void volk_32f_acos_32f_u_avx2_fma(float* bVector,
     }
 }
 
-#endif /* LV_HAVE_AVX2 */
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
 
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
@@ -499,7 +499,7 @@ volk_32f_acos_32f_a_avx(float* bVector, const float* aVector, unsigned int num_p
 
 #endif /* LV_HAVE_AVX */
 
-#ifdef LV_HAVE_AVX2
+#if defined(LV_HAVE_AVX2) && defined(LV_HAVE_FMA)
 #include <immintrin.h>
 #include <volk/volk_avx2_fma_intrinsics.h>
 
@@ -549,7 +549,7 @@ static inline void volk_32f_acos_32f_a_avx2_fma(float* bVector,
     }
 }
 
-#endif /* LV_HAVE_AVX2 */
+#endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
 
 #ifdef LV_HAVE_AVX512F
 #include <immintrin.h>
