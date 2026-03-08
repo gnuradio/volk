@@ -59,7 +59,7 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_generic(lv_32fc_t* cVector,
 {
     unsigned int number = 0;
     float* cPtr = (float*)cVector;
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     const int8_t* a8Ptr = (const int8_t*)aVector;
     const int8_t* b8Ptr = (const int8_t*)bVector;
     for (number = 0; number < num_points; number++) {
@@ -99,7 +99,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_u_avx2(lv_32fc_t* cVector,
     __m256i conjugateSign =
         _mm256_set_epi16(-1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1);
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    const float fInvScalar = 1.0f / scalar;
+    __m256 invScalar = _mm256_set1_ps(fInvScalar);
 
     for (; number < oneEigthPoints; number++) {
         // Convert  8 bit values into 16 bit values
@@ -156,8 +157,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_u_avx2(lv_32fc_t* cVector,
         lv_32fc_t bVal = lv_cmake(bReal, -bImag);
         lv_32fc_t temp = aVal * bVal;
 
-        *cFloatPtr++ = lv_creal(temp) / scalar;
-        *cFloatPtr++ = lv_cimag(temp) / scalar;
+        *cFloatPtr++ = lv_creal(temp) * fInvScalar;
+        *cFloatPtr++ = lv_cimag(temp) * fInvScalar;
     }
 }
 #endif /* LV_HAVE_AVX2 */
@@ -280,8 +281,8 @@ static inline void volk_8ic_x2_s32f_multiply_conjugate_32fc_rvv(lv_32fc_t* cVect
         vint16m2_t vr = __riscv_vwmacc(__riscv_vwmul(var, vbr, vl), vai, vbi, vl);
         vint16m2_t vi =
             __riscv_vsub(__riscv_vwmul(vai, vbr, vl), __riscv_vwmul(var, vbi, vl), vl);
-        vfloat32m4_t vrf = __riscv_vfmul(__riscv_vfwcvt_f(vr, vl), 1.0 / scalar, vl);
-        vfloat32m4_t vif = __riscv_vfmul(__riscv_vfwcvt_f(vi, vl), 1.0 / scalar, vl);
+        vfloat32m4_t vrf = __riscv_vfmul(__riscv_vfwcvt_f(vr, vl), 1.0f / scalar, vl);
+        vfloat32m4_t vif = __riscv_vfmul(__riscv_vfwcvt_f(vi, vl), 1.0f / scalar, vl);
         vuint32m4_t vru = __riscv_vreinterpret_u32m4(vrf);
         vuint32m4_t viu = __riscv_vreinterpret_u32m4(vif);
         vuint64m8_t v =
@@ -311,8 +312,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_rvvseg(lv_32fc_t* cVector,
         vint16m2_t vr = __riscv_vwmacc(__riscv_vwmul(var, vbr, vl), vai, vbi, vl);
         vint16m2_t vi =
             __riscv_vsub(__riscv_vwmul(vai, vbr, vl), __riscv_vwmul(var, vbi, vl), vl);
-        vfloat32m4_t vrf = __riscv_vfmul(__riscv_vfwcvt_f(vr, vl), 1.0 / scalar, vl);
-        vfloat32m4_t vif = __riscv_vfmul(__riscv_vfwcvt_f(vi, vl), 1.0 / scalar, vl);
+        vfloat32m4_t vrf = __riscv_vfmul(__riscv_vfwcvt_f(vr, vl), 1.0f / scalar, vl);
+        vfloat32m4_t vif = __riscv_vfmul(__riscv_vfwcvt_f(vi, vl), 1.0f / scalar, vl);
         __riscv_vsseg2e32_v_f32m4x2(
             (float*)cVector, __riscv_vcreate_v_f32m4x2(vrf, vif), vl);
     }
@@ -349,7 +350,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_sse4_1(lv_32fc_t* cVector,
     const lv_8sc_t* b = bVector;
     __m128i conjugateSign = _mm_set_epi16(-1, 1, -1, 1, -1, 1, -1, 1);
 
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    const float fInvScalar = 1.0f / scalar;
+    __m128 invScalar = _mm_set_ps1(fInvScalar);
 
     for (; number < quarterPoints; number++) {
         // Convert into 8 bit values into 16 bit values
@@ -406,8 +408,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_sse4_1(lv_32fc_t* cVector,
         lv_32fc_t bVal = lv_cmake(bReal, -bImag);
         lv_32fc_t temp = aVal * bVal;
 
-        *cFloatPtr++ = lv_creal(temp) / scalar;
-        *cFloatPtr++ = lv_cimag(temp) / scalar;
+        *cFloatPtr++ = lv_creal(temp) * fInvScalar;
+        *cFloatPtr++ = lv_cimag(temp) * fInvScalar;
     }
 }
 #endif /* LV_HAVE_SSE4_1 */
@@ -434,7 +436,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_avx2(lv_32fc_t* cVector,
     __m256i conjugateSign =
         _mm256_set_epi16(-1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1);
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    const float fInvScalar = 1.0f / scalar;
+    __m256 invScalar = _mm256_set1_ps(fInvScalar);
 
     for (; number < oneEigthPoints; number++) {
         // Convert  8 bit values into 16 bit values
@@ -491,8 +494,8 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_avx2(lv_32fc_t* cVector,
         lv_32fc_t bVal = lv_cmake(bReal, -bImag);
         lv_32fc_t temp = aVal * bVal;
 
-        *cFloatPtr++ = lv_creal(temp) / scalar;
-        *cFloatPtr++ = lv_cimag(temp) / scalar;
+        *cFloatPtr++ = lv_creal(temp) * fInvScalar;
+        *cFloatPtr++ = lv_cimag(temp) * fInvScalar;
     }
 }
 #endif /* LV_HAVE_AVX2 */

@@ -55,7 +55,7 @@ volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutput,
                                           unsigned int num_points)
 {
     // Calculate the Power of the complex point
-    const float normFactSq = 1.0 / (normalizationFactor * normalizationFactor);
+    const float normFactSq = 1.0f / (normalizationFactor * normalizationFactor);
 
     // Calculate dBm
     // 50 ohm load assumption
@@ -104,7 +104,7 @@ volk_32fc_s32f_power_spectrum_32f_neon(float* logPowerOutput,
 {
     float* logPowerOutputPtr = logPowerOutput;
     const lv_32fc_t* complexFFTInputPtr = complexFFTInput;
-    const float iNormalizationFactor = 1.0 / normalizationFactor;
+    const float iNormalizationFactor = 1.0f / normalizationFactor;
     unsigned int number;
     unsigned int quarter_points = num_points / 4;
     float32x4x2_t fft_vec;
@@ -190,7 +190,7 @@ static inline void volk_32fc_s32f_power_spectrum_32f_rvv(float* logPowerOutput,
     const vint32m2_t m2 = __riscv_vmv_v_x_i32m2(0x7FFFFF, vlmax);
     const vint32m2_t c127 = __riscv_vmv_v_x_i32m2(127, vlmax);
 
-    const float normFactSq = 1.0 / (normalizationFactor * normalizationFactor);
+    const float normFactSq = 1.0f / (normalizationFactor * normalizationFactor);
 
     size_t n = num_points;
     for (size_t vl; n > 0; n -= vl, complexFFTInput += vl, logPowerOutput += vl) {
@@ -275,7 +275,7 @@ volk_32fc_s32f_power_spectrum_32f_rvvseg(float* logPowerOutput,
     const vint32m2_t m2 = __riscv_vmv_v_x_i32m2(0x7FFFFF, vlmax);
     const vint32m2_t c127 = __riscv_vmv_v_x_i32m2(127, vlmax);
 
-    const float normFactSq = 1.0 / (normalizationFactor * normalizationFactor);
+    const float normFactSq = 1.0f / (normalizationFactor * normalizationFactor);
 
     size_t n = num_points;
     for (size_t vl; n > 0; n -= vl, complexFFTInput += vl, logPowerOutput += vl) {

@@ -104,7 +104,7 @@ static inline void volk_32f_stddev_and_mean_32f_x2_generic(float* stddev,
         SquareSum[1] += r * powf(n_plus_one * Val1 - Sum[1], 2);
     }
 
-    SquareSum[0] += SquareSum[1] + .5f / half_points * pow(Sum[0] - Sum[1], 2);
+    SquareSum[0] += SquareSum[1] + .5f / half_points * powf(Sum[0] - Sum[1], 2);
     Sum[0] += Sum[1];
 
     uint32_t points_done = half_points * 2;

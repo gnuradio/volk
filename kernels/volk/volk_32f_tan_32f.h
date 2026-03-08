@@ -277,7 +277,7 @@ volk_32f_tan_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int n
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *bPtr++ = tan(*aPtr++);
+        *bPtr++ = tanf(*aPtr++);
     }
 }
 
@@ -388,7 +388,7 @@ volk_32f_tan_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_p
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *bPtr++ = tan(*aPtr++);
+        *bPtr++ = tanf(*aPtr++);
     }
 }
 
@@ -725,7 +725,7 @@ volk_32f_tan_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int n
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *bPtr++ = tan(*aPtr++);
+        *bPtr++ = tanf(*aPtr++);
     }
 }
 
@@ -836,7 +836,7 @@ volk_32f_tan_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_p
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        *bPtr++ = tan(*aPtr++);
+        *bPtr++ = tanf(*aPtr++);
     }
 }
 

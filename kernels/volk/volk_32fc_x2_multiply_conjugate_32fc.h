@@ -201,7 +201,7 @@ static inline void volk_32fc_x2_multiply_conjugate_32fc_neon(lv_32fc_t* cVector,
     }
 
     for (number = quarter_points * 4; number < num_points; number++) {
-        *cVector++ = (*a_ptr++) * conj(*b_ptr++);
+        *cVector++ = (*a_ptr++) * lv_conj(*b_ptr++);
     }
 }
 #endif /* LV_HAVE_NEON */

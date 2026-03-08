@@ -61,7 +61,7 @@ volk_8ic_s32f_deinterleave_32f_x2_generic(float* iBuffer,
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
     unsigned int number;
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     for (number = 0; number < num_points; number++) {
         *iBufferPtr++ = (float)(*complexVectorPtr++) * invScalar;
         *qBufferPtr++ = (float)(*complexVectorPtr++) * invScalar;
@@ -86,7 +86,7 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_u_avx2(float* iBuffer,
     const unsigned int sixteenthPoints = num_points / 16;
     __m256 iFloatValue, qFloatValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     __m256i complexVal, iIntVal, qIntVal;
     __m128i iComplexVal, qComplexVal;
@@ -278,7 +278,8 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_a_sse(float* iBuffer,
     const unsigned int quarterPoints = num_points / 4;
     __m128 cplxValue1, cplxValue2, iValue, qValue;
 
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    const float iScalar = 1.0f / scalar;
+    __m128 invScalar = _mm_set_ps1(iScalar);
     const int8_t* complexVectorPtr = (const int8_t*)complexVector;
 
     __VOLK_ATTR_ALIGNED(16) float floatBuffer[8];
@@ -316,8 +317,8 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_a_sse(float* iBuffer,
     number = quarterPoints * 4;
     complexVectorPtr = (const int8_t*)&complexVector[number];
     for (; number < num_points; number++) {
-        *iBufferPtr++ = (float)(*complexVectorPtr++) / scalar;
-        *qBufferPtr++ = (float)(*complexVectorPtr++) / scalar;
+        *iBufferPtr++ = (float)(*complexVectorPtr++) * iScalar;
+        *qBufferPtr++ = (float)(*complexVectorPtr++) * iScalar;
     }
 }
 #endif /* LV_HAVE_SSE */
@@ -340,7 +341,7 @@ volk_8ic_s32f_deinterleave_32f_x2_a_sse4_1(float* iBuffer,
     const unsigned int eighthPoints = num_points / 8;
     __m128 iFloatValue, qFloatValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
     __m128i complexVal, iIntVal, qIntVal, iComplexVal, qComplexVal;
     const int8_t* complexVectorPtr = (const int8_t*)complexVector;
@@ -411,7 +412,7 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_a_avx2(float* iBuffer,
     const unsigned int sixteenthPoints = num_points / 16;
     __m256 iFloatValue, qFloatValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     __m256i complexVal, iIntVal, qIntVal, iComplexVal, qComplexVal;
     const int8_t* complexVectorPtr = (const int8_t*)complexVector;

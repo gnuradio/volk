@@ -64,7 +64,7 @@ static inline void volk_32i_s32f_convert_32f_generic(float* outputVector,
     float* outputVectorPtr = outputVector;
     const int32_t* inputVectorPtr = inputVector;
     unsigned int number = 0;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
 
     for (number = 0; number < num_points; number++) {
         *outputVectorPtr++ = ((float)(*inputVectorPtr++)) * iScalar;
@@ -85,7 +85,7 @@ static inline void volk_32i_s32f_convert_32f_u_sse2(float* outputVector,
     const unsigned int quarterPoints = num_points / 4;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
     const int32_t* inputPtr = (const int32_t*)inputVector;
     __m128i inputVal;
@@ -124,7 +124,7 @@ static inline void volk_32i_s32f_convert_32f_u_avx2(float* outputVector,
     const unsigned int oneEightPoints = num_points / 8;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     const int32_t* inputPtr = (const int32_t*)inputVector;
     __m256i inputVal;
@@ -163,7 +163,7 @@ static inline void volk_32i_s32f_convert_32f_u_avx512f(float* outputVector,
     const unsigned int onesixteenthPoints = num_points / 16;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m512 invScalar = _mm512_set1_ps(iScalar);
     const int32_t* inputPtr = (const int32_t*)inputVector;
     __m512i inputVal;
@@ -303,7 +303,7 @@ static inline void volk_32i_s32f_convert_32f_a_sse2(float* outputVector,
     const unsigned int quarterPoints = num_points / 4;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
     const int32_t* inputPtr = (const int32_t*)inputVector;
     __m128i inputVal;
@@ -341,7 +341,7 @@ static inline void volk_32i_s32f_convert_32f_a_avx2(float* outputVector,
     const unsigned int oneEightPoints = num_points / 8;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     const int32_t* inputPtr = (const int32_t*)inputVector;
     __m256i inputVal;
@@ -380,7 +380,7 @@ static inline void volk_32i_s32f_convert_32f_a_avx512f(float* outputVector,
     const unsigned int onesixteenthPoints = num_points / 16;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m512 invScalar = _mm512_set1_ps(iScalar);
     const int32_t* inputPtr = (const int32_t*)inputVector;
     __m512i inputVal;

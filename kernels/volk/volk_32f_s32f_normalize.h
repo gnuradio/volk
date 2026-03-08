@@ -68,7 +68,7 @@ static inline void volk_32f_s32f_normalize_generic(float* vecBuffer,
 {
     unsigned int number = 0;
     float* inputPtr = vecBuffer;
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     for (number = 0; number < num_points; number++) {
         *inputPtr *= invScalar;
         inputPtr++;
@@ -86,7 +86,7 @@ static inline void volk_32f_s32f_normalize_u_avx(float* vecBuffer,
     unsigned int number = 0;
     float* inputPtr = vecBuffer;
 
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     __m256 vecScalar = _mm256_set1_ps(invScalar);
 
     __m256 input1;
@@ -196,7 +196,7 @@ static inline void volk_32f_s32f_normalize_u_orc(float* vecBuffer,
                                                  const float scalar,
                                                  unsigned int num_points)
 {
-    float invscalar = 1.0 / scalar;
+    float invscalar = 1.0f / scalar;
     volk_32f_s32f_normalize_a_orc_impl(vecBuffer, vecBuffer, invscalar, num_points);
 }
 #endif /* LV_HAVE_ORC */
@@ -219,7 +219,7 @@ static inline void volk_32f_s32f_normalize_a_sse(float* vecBuffer,
     unsigned int number = 0;
     float* inputPtr = vecBuffer;
 
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     __m128 vecScalar = _mm_set_ps1(invScalar);
 
     __m128 input1;
@@ -254,7 +254,7 @@ static inline void volk_32f_s32f_normalize_a_avx(float* vecBuffer,
     unsigned int number = 0;
     float* inputPtr = vecBuffer;
 
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     __m256 vecScalar = _mm256_set1_ps(invScalar);
 
     __m256 input1;
