@@ -122,20 +122,21 @@ static inline void volk_32f_s32f_convert_32i_u_sse(int32_t* outputVector,
         ret = _mm_max_ps(_mm_min_ps(_mm_mul_ps(ret, vScalar), vmax_val), vmin_val);
 
         _mm_store_ps(outputFloatBuffer, ret);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[0]);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[1]);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[2]);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[3]);
+        *outputVectorPtr++ = (outputFloatBuffer[0] >= max_val) ? INT_MAX : (int32_t)rintf(outputFloatBuffer[0]);
+        *outputVectorPtr++ = (outputFloatBuffer[1] >= max_val) ? INT_MAX : (int32_t)rintf(outputFloatBuffer[1]);
+        *outputVectorPtr++ = (outputFloatBuffer[2] >= max_val) ? INT_MAX : (int32_t)rintf(outputFloatBuffer[2]);
+        *outputVectorPtr++ = (outputFloatBuffer[3] >= max_val) ? INT_MAX : (int32_t)rintf(outputFloatBuffer[3]);
     }
 
     number = quarterPoints * 4;
     for (; number < num_points; number++) {
         r = inputVector[number] * scalar;
-        if (r > max_val)
-            r = max_val;
+        if (r >= max_val)
+            outputVector[number] = INT_MAX;
         else if (r < min_val)
-            r = min_val;
-        outputVector[number] = (int32_t)rintf(r);
+            outputVector[number] = INT_MIN;
+        else
+            outputVector[number] = (int32_t)rintf(r);
     }
 }
 
@@ -174,6 +175,10 @@ static inline void volk_32f_s32f_convert_32i_u_sse2(int32_t* outputVector,
         inputVal1 =
             _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
         intInputVal1 = _mm_cvtps_epi32(inputVal1);
+        // Fix positive overflow: CVTPS2DQ returns 0x80000000 for values >= 2^31
+        intInputVal1 = _mm_xor_si128(
+            intInputVal1,
+            _mm_castps_si128(_mm_cmpge_ps(inputVal1, vmax_val)));
 
         _mm_storeu_si128((__m128i*)outputVectorPtr, intInputVal1);
         outputVectorPtr += 4;
@@ -182,11 +187,12 @@ static inline void volk_32f_s32f_convert_32i_u_sse2(int32_t* outputVector,
     number = quarterPoints * 4;
     for (; number < num_points; number++) {
         r = inputVector[number] * scalar;
-        if (r > max_val)
-            r = max_val;
+        if (r >= max_val)
+            outputVector[number] = INT_MAX;
         else if (r < min_val)
-            r = min_val;
-        outputVector[number] = (int32_t)rintf(r);
+            outputVector[number] = INT_MIN;
+        else
+            outputVector[number] = (int32_t)rintf(r);
     }
 }
 
@@ -225,6 +231,10 @@ static inline void volk_32f_s32f_convert_32i_u_avx(int32_t* outputVector,
         inputVal1 = _mm256_max_ps(
             _mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
         intInputVal1 = _mm256_cvtps_epi32(inputVal1);
+        // Fix positive overflow: VCVTPS2DQ returns 0x80000000 for values >= 2^31
+        intInputVal1 = _mm256_castps_si256(_mm256_xor_ps(
+            _mm256_castsi256_ps(intInputVal1),
+            _mm256_cmp_ps(inputVal1, vmax_val, _CMP_GE_OS)));
 
         _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal1);
         outputVectorPtr += 8;
@@ -233,11 +243,12 @@ static inline void volk_32f_s32f_convert_32i_u_avx(int32_t* outputVector,
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
         r = inputVector[number] * scalar;
-        if (r > max_val)
-            r = max_val;
+        if (r >= max_val)
+            outputVector[number] = INT_MAX;
         else if (r < min_val)
-            r = min_val;
-        outputVector[number] = (int32_t)rintf(r);
+            outputVector[number] = INT_MIN;
+        else
+            outputVector[number] = (int32_t)rintf(r);
     }
 }
 
@@ -263,21 +274,17 @@ static inline void volk_32f_s32f_convert_32i_neon(int32_t* outputVector,
     float32x4_t vScalar = vdupq_n_f32(scalar);
     float32x4_t vmin_val = vdupq_n_f32(min_val);
     float32x4_t vmax_val = vdupq_n_f32(max_val);
-    float32x4_t half = vdupq_n_f32(0.5f);
-    float32x4_t neg_half = vdupq_n_f32(-0.5f);
-    float32x4_t zero = vdupq_n_f32(0.0f);
-
     for (; number < quarter_points; number++) {
         float32x4_t inputVal = vld1q_f32(inputPtr);
         inputVal = vmulq_f32(inputVal, vScalar);
         inputVal = vmaxq_f32(vminq_f32(inputVal, vmax_val), vmin_val);
-        // Round to nearest: add copysign(0.5, x) before truncating
-        uint32x4_t neg = vcltq_f32(inputVal, zero);
-        inputVal = vaddq_f32(inputVal, vbslq_f32(neg, neg_half, half));
-        int32x4_t intVal = vcvtq_s32_f32(inputVal);
-        vst1q_s32(outputPtr, intVal);
+        float buf[4];
+        vst1q_f32(buf, inputVal);
+        *outputPtr++ = (buf[0] >= max_val) ? INT_MAX : (int32_t)rintf(buf[0]);
+        *outputPtr++ = (buf[1] >= max_val) ? INT_MAX : (int32_t)rintf(buf[1]);
+        *outputPtr++ = (buf[2] >= max_val) ? INT_MAX : (int32_t)rintf(buf[2]);
+        *outputPtr++ = (buf[3] >= max_val) ? INT_MAX : (int32_t)rintf(buf[3]);
         inputPtr += 4;
-        outputPtr += 4;
     }
 
     number = quarter_points * 4;
@@ -369,6 +376,7 @@ static inline void volk_32f_s32f_convert_32i_rvv(int32_t* outputVector,
 #define INCLUDED_volk_32f_s32f_convert_32i_a_H
 
 #include <inttypes.h>
+#include <limits.h>
 #include <stdio.h>
 #include <volk/volk_common.h>
 
@@ -405,20 +413,21 @@ static inline void volk_32f_s32f_convert_32i_a_sse(int32_t* outputVector,
         ret = _mm_max_ps(_mm_min_ps(_mm_mul_ps(ret, vScalar), vmax_val), vmin_val);
 
         _mm_store_ps(outputFloatBuffer, ret);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[0]);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[1]);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[2]);
-        *outputVectorPtr++ = (int32_t)rintf(outputFloatBuffer[3]);
+        *outputVectorPtr++ = (outputFloatBuffer[0] >= max_val) ? INT_MAX : (int32_t)rintf(outputFloatBuffer[0]);
+        *outputVectorPtr++ = (outputFloatBuffer[1] >= max_val) ? INT_MAX : (int32_t)rintf(outputFloatBuffer[1]);
+        *outputVectorPtr++ = (outputFloatBuffer[2] >= max_val) ? INT_MAX : (int32_t)rintf(outputFloatBuffer[2]);
+        *outputVectorPtr++ = (outputFloatBuffer[3] >= max_val) ? INT_MAX : (int32_t)rintf(outputFloatBuffer[3]);
     }
 
     number = quarterPoints * 4;
     for (; number < num_points; number++) {
         r = inputVector[number] * scalar;
-        if (r > max_val)
-            r = max_val;
+        if (r >= max_val)
+            outputVector[number] = INT_MAX;
         else if (r < min_val)
-            r = min_val;
-        outputVector[number] = (int32_t)rintf(r);
+            outputVector[number] = INT_MIN;
+        else
+            outputVector[number] = (int32_t)rintf(r);
     }
 }
 
@@ -457,6 +466,10 @@ static inline void volk_32f_s32f_convert_32i_a_sse2(int32_t* outputVector,
         inputVal1 =
             _mm_max_ps(_mm_min_ps(_mm_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
         intInputVal1 = _mm_cvtps_epi32(inputVal1);
+        // Fix positive overflow: CVTPS2DQ returns 0x80000000 for values >= 2^31
+        intInputVal1 = _mm_xor_si128(
+            intInputVal1,
+            _mm_castps_si128(_mm_cmpge_ps(inputVal1, vmax_val)));
 
         _mm_store_si128((__m128i*)outputVectorPtr, intInputVal1);
         outputVectorPtr += 4;
@@ -465,11 +478,12 @@ static inline void volk_32f_s32f_convert_32i_a_sse2(int32_t* outputVector,
     number = quarterPoints * 4;
     for (; number < num_points; number++) {
         r = inputVector[number] * scalar;
-        if (r > max_val)
-            r = max_val;
+        if (r >= max_val)
+            outputVector[number] = INT_MAX;
         else if (r < min_val)
-            r = min_val;
-        outputVector[number] = (int32_t)rintf(r);
+            outputVector[number] = INT_MIN;
+        else
+            outputVector[number] = (int32_t)rintf(r);
     }
 }
 
@@ -508,6 +522,10 @@ static inline void volk_32f_s32f_convert_32i_a_avx(int32_t* outputVector,
         inputVal1 = _mm256_max_ps(
             _mm256_min_ps(_mm256_mul_ps(inputVal1, vScalar), vmax_val), vmin_val);
         intInputVal1 = _mm256_cvtps_epi32(inputVal1);
+        // Fix positive overflow: VCVTPS2DQ returns 0x80000000 for values >= 2^31
+        intInputVal1 = _mm256_castps_si256(_mm256_xor_ps(
+            _mm256_castsi256_ps(intInputVal1),
+            _mm256_cmp_ps(inputVal1, vmax_val, _CMP_GE_OS)));
 
         _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal1);
         outputVectorPtr += 8;
@@ -516,11 +534,12 @@ static inline void volk_32f_s32f_convert_32i_a_avx(int32_t* outputVector,
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
         r = inputVector[number] * scalar;
-        if (r > max_val)
-            r = max_val;
+        if (r >= max_val)
+            outputVector[number] = INT_MAX;
         else if (r < min_val)
-            r = min_val;
-        outputVector[number] = (int32_t)rintf(r);
+            outputVector[number] = INT_MIN;
+        else
+            outputVector[number] = (int32_t)rintf(r);
     }
 }
 
