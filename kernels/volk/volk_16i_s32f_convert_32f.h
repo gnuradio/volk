@@ -38,9 +38,6 @@
  * \endcode
  */
 
-/* TODO: volk_16i_s32f_convert_32f_a_sse4_1 uses unaligned loads/stores but is named _a_ */
-/* TODO: volk_16i_s32f_convert_32f_a_sse uses unaligned store but is named _a_ */
-
 #ifndef INCLUDED_volk_16i_s32f_convert_32f_u_H
 #define INCLUDED_volk_16i_s32f_convert_32f_u_H
 
@@ -54,12 +51,13 @@ static inline void volk_16i_s32f_convert_32f_generic(float* outputVector,
                                                      const float scalar,
                                                      unsigned int num_points)
 {
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
     const int16_t* inputVectorPtr = inputVector;
     unsigned int number = 0;
 
     for (number = 0; number < num_points; number++) {
-        *outputVectorPtr++ = ((float)(*inputVectorPtr++)) / scalar;
+        *outputVectorPtr++ = ((float)(*inputVectorPtr++)) * reciprocal;
     }
 }
 #endif /* LV_HAVE_GENERIC */
@@ -75,9 +73,10 @@ static inline void volk_16i_s32f_convert_32f_u_sse(float* outputVector,
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m128 invScalar = _mm_set_ps1(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m128 ret;
 
     for (; number < quarterPoints; number++) {
@@ -95,7 +94,7 @@ static inline void volk_16i_s32f_convert_32f_u_sse(float* outputVector,
 
     number = quarterPoints * 4;
     for (; number < num_points; number++) {
-        outputVector[number] = (float)(inputVector[number]) / scalar;
+        outputVector[number] = (float)(inputVector[number]) * reciprocal;
     }
 }
 #endif /* LV_HAVE_SSE */
@@ -111,9 +110,10 @@ static inline void volk_16i_s32f_convert_32f_u_sse4_1(float* outputVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m128 invScalar = _mm_set_ps1(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m128i inputVal;
     __m128i inputVal2;
     __m128 ret;
@@ -121,7 +121,7 @@ static inline void volk_16i_s32f_convert_32f_u_sse4_1(float* outputVector,
     for (; number < eighthPoints; number++) {
 
         // Load the 8 values
-        inputVal = _mm_loadu_si128((__m128i*)inputPtr);
+        inputVal = _mm_loadu_si128((const __m128i*)inputPtr);
 
         // Shift the input data to the right by 64 bits ( 8 bytes )
         inputVal2 = _mm_srli_si128(inputVal, 8);
@@ -146,7 +146,7 @@ static inline void volk_16i_s32f_convert_32f_u_sse4_1(float* outputVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        outputVector[number] = ((float)(inputVector[number])) / scalar;
+        outputVector[number] = ((float)(inputVector[number])) * reciprocal;
     }
 }
 #endif /* LV_HAVE_SSE4_1 */
@@ -162,9 +162,10 @@ static inline void volk_16i_s32f_convert_32f_u_avx(float* outputVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m128 invScalar = _mm_set_ps1(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m128i inputVal, inputVal2;
     __m128 ret;
     __m256 output;
@@ -173,8 +174,7 @@ static inline void volk_16i_s32f_convert_32f_u_avx(float* outputVector,
     for (; number < eighthPoints; number++) {
 
         // Load the 8 values
-        // inputVal = _mm_loadu_si128((__m128i*)inputPtr);
-        inputVal = _mm_loadu_si128((__m128i*)inputPtr);
+        inputVal = _mm_loadu_si128((const __m128i*)inputPtr);
 
         // Shift the input data to the right by 64 bits ( 8 bytes )
         inputVal2 = _mm_srli_si128(inputVal, 8);
@@ -200,7 +200,7 @@ static inline void volk_16i_s32f_convert_32f_u_avx(float* outputVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        outputVector[number] = ((float)(inputVector[number])) / scalar;
+        outputVector[number] = ((float)(inputVector[number])) * reciprocal;
     }
 }
 #endif /* LV_HAVE_AVX */
@@ -216,9 +216,10 @@ static inline void volk_16i_s32f_convert_32f_u_avx2(float* outputVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m256 invScalar = _mm256_set1_ps(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m128i inputVal;
     __m256i inputVal2;
     __m256 ret;
@@ -226,7 +227,7 @@ static inline void volk_16i_s32f_convert_32f_u_avx2(float* outputVector,
     for (; number < eighthPoints; number++) {
 
         // Load the 8 values
-        inputVal = _mm_loadu_si128((__m128i*)inputPtr);
+        inputVal = _mm_loadu_si128((const __m128i*)inputPtr);
 
         // Convert
         inputVal2 = _mm256_cvtepi16_epi32(inputVal);
@@ -243,7 +244,7 @@ static inline void volk_16i_s32f_convert_32f_u_avx2(float* outputVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        outputVector[number] = ((float)(inputVector[number])) / scalar;
+        outputVector[number] = ((float)(inputVector[number])) * reciprocal;
     }
 }
 #endif /* LV_HAVE_AVX2 */
@@ -259,9 +260,10 @@ static inline void volk_16i_s32f_convert_32f_u_avx512(float* outputVector,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m512 invScalar = _mm512_set1_ps(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m512 invScalar = _mm512_set1_ps(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m256i inputVal;
     __m512i inputVal2;
     __m512 ret;
@@ -269,7 +271,7 @@ static inline void volk_16i_s32f_convert_32f_u_avx512(float* outputVector,
     for (; number < sixteenthPoints; number++) {
 
         // Load 16 int16 values
-        inputVal = _mm256_loadu_si256((__m256i*)inputPtr);
+        inputVal = _mm256_loadu_si256((const __m256i*)inputPtr);
 
         // Convert int16 → int32 → float
         inputVal2 = _mm512_cvtepi16_epi32(inputVal);
@@ -284,7 +286,7 @@ static inline void volk_16i_s32f_convert_32f_u_avx512(float* outputVector,
 
     number = sixteenthPoints * 16;
     for (; number < num_points; number++) {
-        outputVector[number] = ((float)(inputVector[number])) / scalar;
+        outputVector[number] = ((float)(inputVector[number])) * reciprocal;
     }
 }
 #endif /* LV_HAVE_AVX512F */
@@ -302,13 +304,14 @@ static inline void volk_16i_s32f_convert_32f_neon(float* outputVector,
     unsigned int number = 0;
     unsigned int eighth_points = num_points / 8;
 
+    const float reciprocal = 1.0f / scalar;
     int16x4x2_t input16;
     int32x4_t input32_0, input32_1;
     float32x4_t input_float_0, input_float_1;
     float32x4x2_t output_float;
     float32x4_t inv_scale;
 
-    inv_scale = vdupq_n_f32(1.0 / scalar);
+    inv_scale = vdupq_n_f32(reciprocal);
 
     // the generic disassembles to a 128-bit load
     // and duplicates every instruction to operate on 64-bits
@@ -330,7 +333,7 @@ static inline void volk_16i_s32f_convert_32f_neon(float* outputVector,
     }
 
     for (number = eighth_points * 8; number < num_points; number++) {
-        *outputPtr++ = ((float)(*inputPtr++)) / scalar;
+        *outputPtr++ = ((float)(*inputPtr++)) * reciprocal;
     }
 }
 #endif /* LV_HAVE_NEON */
@@ -348,7 +351,8 @@ static inline void volk_16i_s32f_convert_32f_neonv8(float* outputVector,
     float* out = outputVector;
     const int16_t* in = inputVector;
 
-    const float32x4_t inv_scale = vdupq_n_f32(1.0f / scalar);
+    const float reciprocal = 1.0f / scalar;
+    const float32x4_t inv_scale = vdupq_n_f32(reciprocal);
 
     /* Process 8 int16 values per iteration using 64-bit loads */
     while (n >= 8) {
@@ -379,7 +383,7 @@ static inline void volk_16i_s32f_convert_32f_neonv8(float* outputVector,
 
     /* Scalar tail */
     while (n > 0) {
-        *out++ = ((float)(*in++)) / scalar;
+        *out++ = ((float)(*in++)) * reciprocal;
         n--;
     }
 }
@@ -421,9 +425,10 @@ static inline void volk_16i_s32f_convert_32f_a_sse(float* outputVector,
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m128 invScalar = _mm_set_ps1(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m128 ret;
 
     for (; number < quarterPoints; number++) {
@@ -433,7 +438,7 @@ static inline void volk_16i_s32f_convert_32f_a_sse(float* outputVector,
                          (float)(inputPtr[0]));
 
         ret = _mm_mul_ps(ret, invScalar);
-        _mm_storeu_ps(outputVectorPtr, ret);
+        _mm_store_ps(outputVectorPtr, ret);
 
         inputPtr += 4;
         outputVectorPtr += 4;
@@ -441,7 +446,7 @@ static inline void volk_16i_s32f_convert_32f_a_sse(float* outputVector,
 
     number = quarterPoints * 4;
     for (; number < num_points; number++) {
-        outputVector[number] = (float)(inputVector[number]) / scalar;
+        outputVector[number] = (float)(inputVector[number]) * reciprocal;
     }
 }
 #endif /* LV_HAVE_SSE */
@@ -457,9 +462,10 @@ static inline void volk_16i_s32f_convert_32f_a_sse4_1(float* outputVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m128 invScalar = _mm_set_ps1(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m128i inputVal;
     __m128i inputVal2;
     __m128 ret;
@@ -467,7 +473,7 @@ static inline void volk_16i_s32f_convert_32f_a_sse4_1(float* outputVector,
     for (; number < eighthPoints; number++) {
 
         // Load the 8 values
-        inputVal = _mm_loadu_si128((__m128i*)inputPtr);
+        inputVal = _mm_load_si128((const __m128i*)inputPtr);
 
         // Shift the input data to the right by 64 bits ( 8 bytes )
         inputVal2 = _mm_srli_si128(inputVal, 8);
@@ -478,12 +484,12 @@ static inline void volk_16i_s32f_convert_32f_a_sse4_1(float* outputVector,
 
         ret = _mm_cvtepi32_ps(inputVal);
         ret = _mm_mul_ps(ret, invScalar);
-        _mm_storeu_ps(outputVectorPtr, ret);
+        _mm_store_ps(outputVectorPtr, ret);
         outputVectorPtr += 4;
 
         ret = _mm_cvtepi32_ps(inputVal2);
         ret = _mm_mul_ps(ret, invScalar);
-        _mm_storeu_ps(outputVectorPtr, ret);
+        _mm_store_ps(outputVectorPtr, ret);
 
         outputVectorPtr += 4;
 
@@ -492,7 +498,7 @@ static inline void volk_16i_s32f_convert_32f_a_sse4_1(float* outputVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        outputVector[number] = ((float)(inputVector[number])) / scalar;
+        outputVector[number] = ((float)(inputVector[number])) * reciprocal;
     }
 }
 #endif /* LV_HAVE_SSE4_1 */
@@ -508,9 +514,10 @@ static inline void volk_16i_s32f_convert_32f_a_avx(float* outputVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m128 invScalar = _mm_set_ps1(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m128i inputVal, inputVal2;
     __m128 ret;
     __m256 output;
@@ -519,8 +526,7 @@ static inline void volk_16i_s32f_convert_32f_a_avx(float* outputVector,
     for (; number < eighthPoints; number++) {
 
         // Load the 8 values
-        // inputVal = _mm_loadu_si128((__m128i*)inputPtr);
-        inputVal = _mm_load_si128((__m128i*)inputPtr);
+        inputVal = _mm_load_si128((const __m128i*)inputPtr);
 
         // Shift the input data to the right by 64 bits ( 8 bytes )
         inputVal2 = _mm_srli_si128(inputVal, 8);
@@ -546,7 +552,7 @@ static inline void volk_16i_s32f_convert_32f_a_avx(float* outputVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        outputVector[number] = ((float)(inputVector[number])) / scalar;
+        outputVector[number] = ((float)(inputVector[number])) * reciprocal;
     }
 }
 #endif /* LV_HAVE_AVX */
@@ -562,9 +568,10 @@ static inline void volk_16i_s32f_convert_32f_a_avx2(float* outputVector,
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m256 invScalar = _mm256_set1_ps(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m128i inputVal;
     __m256i inputVal2;
     __m256 ret;
@@ -572,7 +579,7 @@ static inline void volk_16i_s32f_convert_32f_a_avx2(float* outputVector,
     for (; number < eighthPoints; number++) {
 
         // Load the 8 values
-        inputVal = _mm_load_si128((__m128i*)inputPtr);
+        inputVal = _mm_load_si128((const __m128i*)inputPtr);
 
         // Convert
         inputVal2 = _mm256_cvtepi16_epi32(inputVal);
@@ -589,7 +596,7 @@ static inline void volk_16i_s32f_convert_32f_a_avx2(float* outputVector,
 
     number = eighthPoints * 8;
     for (; number < num_points; number++) {
-        outputVector[number] = ((float)(inputVector[number])) / scalar;
+        outputVector[number] = ((float)(inputVector[number])) * reciprocal;
     }
 }
 #endif /* LV_HAVE_AVX2 */
@@ -605,9 +612,10 @@ static inline void volk_16i_s32f_convert_32f_a_avx512(float* outputVector,
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
 
+    const float reciprocal = 1.0f / scalar;
     float* outputVectorPtr = outputVector;
-    __m512 invScalar = _mm512_set1_ps(1.0 / scalar);
-    int16_t* inputPtr = (int16_t*)inputVector;
+    __m512 invScalar = _mm512_set1_ps(reciprocal);
+    const int16_t* inputPtr = inputVector;
     __m256i inputVal;
     __m512i inputVal2;
     __m512 ret;
@@ -615,7 +623,7 @@ static inline void volk_16i_s32f_convert_32f_a_avx512(float* outputVector,
     for (; number < sixteenthPoints; number++) {
 
         // Load 16 int16 values
-        inputVal = _mm256_load_si256((__m256i*)inputPtr);
+        inputVal = _mm256_load_si256((const __m256i*)inputPtr);
 
         // Convert int16 → int32 → float
         inputVal2 = _mm512_cvtepi16_epi32(inputVal);
@@ -630,7 +638,7 @@ static inline void volk_16i_s32f_convert_32f_a_avx512(float* outputVector,
 
     number = sixteenthPoints * 16;
     for (; number < num_points; number++) {
-        outputVector[number] = ((float)(inputVector[number])) / scalar;
+        outputVector[number] = ((float)(inputVector[number])) * reciprocal;
     }
 }
 #endif /* LV_HAVE_AVX512F */
