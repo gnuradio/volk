@@ -62,7 +62,7 @@ static inline void volk_16i_max_star_horizontal_16i_generic(int16_t* target,
     int bound = num_bytes >> 1;
 
     for (i = 0; i < bound; i += 2) {
-        target[i >> 1] = ((int16_t)(src0[i] - src0[i + 1]) > 0) ? src0[i] : src0[i + 1];
+        target[i >> 1] = (src0[i] > src0[i + 1]) ? src0[i] : src0[i + 1];
     }
 }
 
@@ -78,26 +78,16 @@ static inline void volk_16i_max_star_horizontal_16i_neon(int16_t* target,
     const unsigned int eighth_points = num_points / 16;
     unsigned number;
     int16x8x2_t input_vec;
-    int16x8_t diff, max_vec, zeros;
-    uint16x8_t comp1, comp2;
-    zeros = vdupq_n_s16(0);
+    int16x8_t max_vec;
     for (number = 0; number < eighth_points; ++number) {
         input_vec = vld2q_s16(src0);
-        //__VOLK_PREFETCH(src0+16);
-        diff = vsubq_s16(input_vec.val[0], input_vec.val[1]);
-        comp1 = vcgeq_s16(diff, zeros);
-        comp2 = vcltq_s16(diff, zeros);
-
-        input_vec.val[0] = vandq_s16(input_vec.val[0], (int16x8_t)comp1);
-        input_vec.val[1] = vandq_s16(input_vec.val[1], (int16x8_t)comp2);
-
-        max_vec = vaddq_s16(input_vec.val[0], input_vec.val[1]);
+        max_vec = vmaxq_s16(input_vec.val[0], input_vec.val[1]);
         vst1q_s16(target, max_vec);
         src0 += 16;
         target += 8;
     }
     for (number = 0; number < num_points % 16; number += 2) {
-        target[number >> 1] = ((int16_t)(src0[number] - src0[number + 1]) > 0)
+        target[number >> 1] = (src0[number] > src0[number + 1])
                                   ? src0[number]
                                   : src0[number + 1];
     }
@@ -126,35 +116,31 @@ static inline void volk_16i_max_star_horizontal_16i_a_ssse3(int16_t* target,
 {
     const unsigned int num_bytes = num_points * 2;
 
-    static const uint8_t shufmask0[16] = {
+    /* Shuffle masks to deinterleave even/odd 16-bit elements */
+    static const uint8_t shuf_even_lo[16] = {
         0x00, 0x01, 0x04, 0x05, 0x08, 0x09, 0x0c, 0x0d,
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
     };
-    static const uint8_t shufmask1[16] = {
+    static const uint8_t shuf_even_hi[16] = {
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
         0x00, 0x01, 0x04, 0x05, 0x08, 0x09, 0x0c, 0x0d
     };
-    static const uint8_t andmask0[16] = {
-        0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    static const uint8_t shuf_odd_lo[16] = {
+        0x02, 0x03, 0x06, 0x07, 0x0a, 0x0b, 0x0e, 0x0f,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
     };
-    static const uint8_t andmask1[16] = {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02
+    static const uint8_t shuf_odd_hi[16] = {
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0x02, 0x03, 0x06, 0x07, 0x0a, 0x0b, 0x0e, 0x0f
     };
 
-    __m128i xmm0 = {}, xmm1 = {}, xmm2 = {}, xmm3 = {}, xmm4 = {};
-    __m128i xmm5 = {}, xmm6 = {}, xmm7 = {}, xmm8 = {};
+    __m128i xmm_even_lo = _mm_load_si128((const __m128i*)shuf_even_lo);
+    __m128i xmm_even_hi = _mm_load_si128((const __m128i*)shuf_even_hi);
+    __m128i xmm_odd_lo = _mm_load_si128((const __m128i*)shuf_odd_lo);
+    __m128i xmm_odd_hi = _mm_load_si128((const __m128i*)shuf_odd_hi);
 
-    xmm4 = _mm_load_si128((__m128i*)shufmask0);
-    xmm5 = _mm_load_si128((__m128i*)shufmask1);
-    xmm6 = _mm_load_si128((__m128i*)andmask0);
-    xmm7 = _mm_load_si128((__m128i*)andmask1);
-
-    __m128i *p_target, *p_src0;
-
-    p_target = (__m128i*)target;
-    p_src0 = (__m128i*)src0;
+    __m128i* p_target = (__m128i*)target;
+    const __m128i* p_src0 = (const __m128i*)src0;
 
     int bound = num_bytes >> 5;
     int intermediate = (num_bytes >> 4) & 1;
@@ -163,59 +149,37 @@ static inline void volk_16i_max_star_horizontal_16i_a_ssse3(int16_t* target,
     int i = 0;
 
     for (i = 0; i < bound; ++i) {
-        xmm0 = _mm_load_si128(p_src0);
-        xmm1 = _mm_load_si128(&p_src0[1]);
-
-        xmm2 = _mm_xor_si128(xmm2, xmm2);
+        __m128i xmm0 = _mm_load_si128(&p_src0[0]);
+        __m128i xmm1 = _mm_load_si128(&p_src0[1]);
         p_src0 += 2;
 
-        xmm3 = _mm_hsub_epi16(xmm0, xmm1);
+        __m128i evens = _mm_or_si128(
+            _mm_shuffle_epi8(xmm0, xmm_even_lo),
+            _mm_shuffle_epi8(xmm1, xmm_even_hi));
+        __m128i odds = _mm_or_si128(
+            _mm_shuffle_epi8(xmm0, xmm_odd_lo),
+            _mm_shuffle_epi8(xmm1, xmm_odd_hi));
 
-        xmm2 = _mm_cmpgt_epi16(xmm2, xmm3);
-
-        xmm8 = _mm_and_si128(xmm2, xmm6);
-        xmm3 = _mm_and_si128(xmm2, xmm7);
-
-
-        xmm8 = _mm_add_epi8(xmm8, xmm4);
-        xmm3 = _mm_add_epi8(xmm3, xmm5);
-
-        xmm0 = _mm_shuffle_epi8(xmm0, xmm8);
-        xmm1 = _mm_shuffle_epi8(xmm1, xmm3);
-
-
-        xmm3 = _mm_add_epi16(xmm0, xmm1);
-
-
-        _mm_store_si128(p_target, xmm3);
-
+        _mm_store_si128(p_target, _mm_max_epi16(evens, odds));
         p_target += 1;
     }
 
     if (intermediate) {
-        xmm0 = _mm_load_si128(p_src0);
-
-        xmm2 = _mm_xor_si128(xmm2, xmm2);
+        __m128i xmm0 = _mm_load_si128(p_src0);
         p_src0 += 1;
 
-        xmm3 = _mm_hsub_epi16(xmm0, xmm1);
-        xmm2 = _mm_cmpgt_epi16(xmm2, xmm3);
+        __m128i evens = _mm_shuffle_epi8(xmm0, xmm_even_lo);
+        __m128i odds = _mm_shuffle_epi8(xmm0, xmm_odd_lo);
+        __m128i result = _mm_max_epi16(evens, odds);
 
-        xmm8 = _mm_and_si128(xmm2, xmm6);
-
-        xmm3 = _mm_add_epi8(xmm8, xmm4);
-
-        xmm0 = _mm_shuffle_epi8(xmm0, xmm3);
-
-        _mm_storel_pd((double*)p_target, bit128_p(&xmm0)->double_vec);
-
+        _mm_storel_pd((double*)p_target, bit128_p(&result)->double_vec);
         p_target = (__m128i*)((int8_t*)p_target + 8);
     }
 
     for (i = (bound << 4) + (intermediate << 3);
          i < (bound << 4) + (intermediate << 3) + leftovers;
          i += 2) {
-        target[i >> 1] = ((int16_t)(src0[i] - src0[i + 1]) > 0) ? src0[i] : src0[i + 1];
+        target[i >> 1] = (src0[i] > src0[i + 1]) ? src0[i] : src0[i + 1];
     }
 }
 
