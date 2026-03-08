@@ -39,8 +39,6 @@
  * \endcode
  */
 
-/* TODO: volk_16ic_s32f_magnitude_32f_a_avx2 uses unaligned loads but is named _a_ */
-
 #ifndef INCLUDED_volk_16ic_s32f_magnitude_32f_u_H
 #define INCLUDED_volk_16ic_s32f_magnitude_32f_u_H
 
@@ -59,7 +57,7 @@ static inline void volk_16ic_s32f_magnitude_32f_generic(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
     unsigned int number = 0;
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     for (number = 0; number < num_points; number++) {
         float real = ((float)(*complexVectorPtr++)) * invScalar;
         float imag = ((float)(*complexVectorPtr++)) * invScalar;
@@ -82,7 +80,8 @@ static inline void volk_16ic_s32f_magnitude_32f_u_avx2(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    const float fInvScalar = 1.0f / scalar;
+    __m256 invScalar = _mm256_set1_ps(fInvScalar);
 
     __m256 cplxValue1, cplxValue2, result;
     __m256i int1, int2;
@@ -91,7 +90,7 @@ static inline void volk_16ic_s32f_magnitude_32f_u_avx2(float* magnitudeVector,
 
     for (; number < eighthPoints; number++) {
 
-        int1 = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+        int1 = _mm256_loadu_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 16;
         short1 = _mm256_extracti128_si256(int1, 0);
         short2 = _mm256_extracti128_si256(int1, 1);
@@ -121,8 +120,8 @@ static inline void volk_16ic_s32f_magnitude_32f_u_avx2(float* magnitudeVector,
     magnitudeVectorPtr = &magnitudeVector[number];
     complexVectorPtr = (const int16_t*)&complexVector[number];
     for (; number < num_points; number++) {
-        float val1Real = (float)(*complexVectorPtr++) / scalar;
-        float val1Imag = (float)(*complexVectorPtr++) / scalar;
+        float val1Real = (float)(*complexVectorPtr++) * fInvScalar;
+        float val1Imag = (float)(*complexVectorPtr++) * fInvScalar;
         *magnitudeVectorPtr++ = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag));
     }
 }
@@ -317,7 +316,7 @@ static inline void volk_16ic_s32f_magnitude_32f_a_sse(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
 
     __m128 cplxValue1, cplxValue2, result, re, im;
@@ -385,7 +384,8 @@ static inline void volk_16ic_s32f_magnitude_32f_a_sse3(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    const float fInvScalar = 1.0f / scalar;
+    __m128 invScalar = _mm_set_ps1(fInvScalar);
 
     __m128 cplxValue1, cplxValue2, result;
 
@@ -427,8 +427,8 @@ static inline void volk_16ic_s32f_magnitude_32f_a_sse3(float* magnitudeVector,
     magnitudeVectorPtr = &magnitudeVector[number];
     complexVectorPtr = (const int16_t*)&complexVector[number];
     for (; number < num_points; number++) {
-        float val1Real = (float)(*complexVectorPtr++) / scalar;
-        float val1Imag = (float)(*complexVectorPtr++) / scalar;
+        float val1Real = (float)(*complexVectorPtr++) * fInvScalar;
+        float val1Imag = (float)(*complexVectorPtr++) * fInvScalar;
         *magnitudeVectorPtr++ = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag));
     }
 }
@@ -448,7 +448,8 @@ static inline void volk_16ic_s32f_magnitude_32f_a_avx2(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    const float fInvScalar = 1.0f / scalar;
+    __m256 invScalar = _mm256_set1_ps(fInvScalar);
 
     __m256 cplxValue1, cplxValue2, result;
     __m256i int1, int2;
@@ -457,7 +458,7 @@ static inline void volk_16ic_s32f_magnitude_32f_a_avx2(float* magnitudeVector,
 
     for (; number < eighthPoints; number++) {
 
-        int1 = _mm256_loadu_si256((__m256i*)complexVectorPtr);
+        int1 = _mm256_load_si256((const __m256i*)complexVectorPtr);
         complexVectorPtr += 16;
         short1 = _mm256_extracti128_si256(int1, 0);
         short2 = _mm256_extracti128_si256(int1, 1);
@@ -487,8 +488,8 @@ static inline void volk_16ic_s32f_magnitude_32f_a_avx2(float* magnitudeVector,
     magnitudeVectorPtr = &magnitudeVector[number];
     complexVectorPtr = (const int16_t*)&complexVector[number];
     for (; number < num_points; number++) {
-        float val1Real = (float)(*complexVectorPtr++) / scalar;
-        float val1Imag = (float)(*complexVectorPtr++) / scalar;
+        float val1Real = (float)(*complexVectorPtr++) * fInvScalar;
+        float val1Imag = (float)(*complexVectorPtr++) * fInvScalar;
         *magnitudeVectorPtr++ = sqrtf((val1Real * val1Real) + (val1Imag * val1Imag));
     }
 }
