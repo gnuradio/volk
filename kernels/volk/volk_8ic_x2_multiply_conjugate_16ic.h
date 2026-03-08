@@ -230,7 +230,11 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_rvv(lv_16sc_t* cVector,
         vint16m4_t vb = __riscv_vle16_v_i16m4((const int16_t*)bVector, vl);
         vint8m2_t var = __riscv_vnsra(va, 0, vl), vai = __riscv_vnsra(va, 8, vl);
         vint8m2_t vbr = __riscv_vnsra(vb, 0, vl), vbi = __riscv_vnsra(vb, 8, vl);
-        vint16m4_t vr = __riscv_vwmacc(__riscv_vwmul(var, vbr, vl), vai, vbi, vl);
+        // Use int32 intermediates for real part to avoid int16 wrapping overflow
+        // (e.g. both inputs = -128-128j gives ar*br+ai*bi = 32768, exceeding INT16_MAX)
+        vint32m8_t vr32 = __riscv_vwadd_vv(
+            __riscv_vwmul(var, vbr, vl), __riscv_vwmul(vai, vbi, vl), vl);
+        vint16m4_t vr = __riscv_vnclip(vr32, 0, 0, vl);
         vint16m4_t vi =
             __riscv_vsub(__riscv_vwmul(vai, vbr, vl), __riscv_vwmul(var, vbi, vl), vl);
         vuint16m4_t vru = __riscv_vreinterpret_u16m4(vr);
@@ -256,7 +260,11 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_rvvseg(lv_16sc_t* cVector
         vint8m2x2_t vb = __riscv_vlseg2e8_v_i8m2x2((const int8_t*)bVector, vl);
         vint8m2_t var = __riscv_vget_i8m2(va, 0), vai = __riscv_vget_i8m2(va, 1);
         vint8m2_t vbr = __riscv_vget_i8m2(vb, 0), vbi = __riscv_vget_i8m2(vb, 1);
-        vint16m4_t vr = __riscv_vwmacc(__riscv_vwmul(var, vbr, vl), vai, vbi, vl);
+        // Use int32 intermediates for real part to avoid int16 wrapping overflow
+        // (e.g. both inputs = -128-128j gives ar*br+ai*bi = 32768, exceeding INT16_MAX)
+        vint32m8_t vr32 = __riscv_vwadd_vv(
+            __riscv_vwmul(var, vbr, vl), __riscv_vwmul(vai, vbi, vl), vl);
+        vint16m4_t vr = __riscv_vnclip(vr32, 0, 0, vl);
         vint16m4_t vi =
             __riscv_vsub(__riscv_vwmul(vai, vbr, vl), __riscv_vwmul(var, vbi, vl), vl);
         __riscv_vsseg2e16_v_i16m4x2(

@@ -315,7 +315,7 @@ static inline void volk_32fc_accumulator_s32fc_rvv(lv_32fc_t* result,
     size_t vlmax = __riscv_vsetvlmax_e32m8();
     vfloat32m8_t vsum = __riscv_vfmv_v_f_f32m8(0, vlmax);
     const float* in = (const float*)inputBuffer;
-    size_t n = num_points * 2;
+    size_t n = (size_t)num_points * 2;
     for (size_t vl; n > 0; n -= vl, in += vl) {
         vl = __riscv_vsetvl_e32m8(n < vlmax ? n : vlmax); /* force exact vl */
         vfloat32m8_t v = __riscv_vle32_v_f32m8(in, vl);
