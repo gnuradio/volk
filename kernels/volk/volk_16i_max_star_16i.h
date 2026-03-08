@@ -60,7 +60,7 @@ volk_16i_max_star_16i_generic(short* target, short* src0, unsigned int num_point
 
     short candidate = src0[0];
     for (i = 1; i < bound; ++i) {
-        candidate = ((short)(candidate - src0[i]) > 0) ? candidate : src0[i];
+        candidate = (candidate > src0[i]) ? candidate : src0[i];
     }
     target[0] = candidate;
 }
@@ -90,20 +90,16 @@ volk_16i_max_star_16i_a_ssse3(short* target, short* src0, unsigned int num_point
     short cands[8];
     __m128i xmm0, xmm1, xmm3, xmm4, xmm5, xmm6;
 
-    __m128i* p_src0;
+    const __m128i* p_src0;
 
-    p_src0 = (__m128i*)src0;
+    p_src0 = (const __m128i*)src0;
 
     int bound = num_bytes >> 4;
     int leftovers = (num_bytes >> 1) & 7;
 
     int i = 0;
 
-    xmm1 = _mm_setzero_si128();
-    xmm0 = _mm_setzero_si128();
-    //_mm_insert_epi16(xmm0, candidate, 0);
-
-    xmm0 = _mm_shuffle_epi8(xmm0, xmm1);
+    xmm0 = _mm_set1_epi16(candidate);
 
     for (i = 0; i < bound; ++i) {
         xmm1 = _mm_load_si128(p_src0);
@@ -125,11 +121,11 @@ volk_16i_max_star_16i_a_ssse3(short* target, short* src0, unsigned int num_point
     _mm_store_si128((__m128i*)cands, xmm0);
 
     for (i = 0; i < 8; ++i) {
-        candidate = ((short)(candidate - cands[i]) > 0) ? candidate : cands[i];
+        candidate = (candidate > cands[i]) ? candidate : cands[i];
     }
 
     for (i = 0; i < leftovers; ++i) {
-        candidate = ((short)(candidate - src0[(bound << 3) + i]) > 0)
+        candidate = (candidate > src0[(bound << 3) + i])
                         ? candidate
                         : src0[(bound << 3) + i];
     }
