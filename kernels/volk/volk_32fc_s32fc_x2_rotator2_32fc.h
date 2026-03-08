@@ -65,8 +65,6 @@
  * \endcode
  */
 
-/* TODO: volk_32fc_s32fc_x2_rotator2_32fc_a_avx uses unaligned loads/stores but is named _a_ */
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -781,12 +779,12 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx(lv_32fc_t* outVector,
     for (i = 0; i < (unsigned int)(num_points / ROTATOR_RELOAD); ++i) {
         // Inner loop: use fast SIMD multiply
         for (j = 0; j < ROTATOR_RELOAD_4; ++j) {
-            aVal = _mm256_loadu_ps((const float*)aPtr);
+            aVal = _mm256_load_ps((const float*)aPtr);
 
             z = _mm256_complexmul_ps(aVal, phase_Val);
             phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
 
-            _mm256_storeu_ps((float*)cPtr, z);
+            _mm256_store_ps((float*)cPtr, z);
 
             aPtr += 4;
             cPtr += 4;
@@ -811,12 +809,12 @@ static inline void volk_32fc_s32fc_x2_rotator2_32fc_a_avx(lv_32fc_t* outVector,
 
     // Handle remainder
     for (i = 0; i < (num_points % ROTATOR_RELOAD) / 4; ++i) {
-        aVal = _mm256_loadu_ps((const float*)aPtr);
+        aVal = _mm256_load_ps((const float*)aPtr);
 
         z = _mm256_complexmul_ps(aVal, phase_Val);
         phase_Val = _mm256_complexmul_ps(phase_Val, inc_Val);
 
-        _mm256_storeu_ps((float*)cPtr, z);
+        _mm256_store_ps((float*)cPtr, z);
 
         aPtr += 4;
         cPtr += 4;
