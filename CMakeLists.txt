@@ -179,13 +179,7 @@ endif()
 
 # Python
 include(VolkPython) #sets PYTHON_EXECUTABLE and PYTHON_DASH_B
-volk_python_check_module("python >= 3.4" sys "sys.version_info >= (3, 4)"
-                         PYTHON_MIN_VER_FOUND)
 volk_python_check_module("mako >= 0.4.2" mako "mako.__version__ >= '0.4.2'" MAKO_FOUND)
-
-if(NOT PYTHON_MIN_VER_FOUND)
-    message(FATAL_ERROR "Python 3.4 or greater required to build VOLK")
-endif()
 
 # Mako
 if(NOT MAKO_FOUND)

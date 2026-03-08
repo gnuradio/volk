@@ -14,7 +14,7 @@ environment:
     - job_name: VS 17 2022 / python 3.12
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
       CMAKE_GENERATOR: Visual Studio 17 2022
-      PYTHON: "C:\Python312-x64"
+      PYTHON: "C:\\Python312"
 
 install:
     # Prepend the selected Python to the PATH of this build
@@ -27,7 +27,7 @@ install:
     - pip install mako
 before_build:
     - git submodule update --init --recursive
-    - cmake -G "%CMAKE_GENERATOR%" -A x64 -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=ON .
+    - cmake -G "%CMAKE_GENERATOR%" -A x64 -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=ON -DPython3_FIND_REGISTRY=NEVER .
 build_script:
     - cmake --build . --config Release --target INSTALL
 test_script:
