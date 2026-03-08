@@ -244,7 +244,7 @@ static inline void volk_32fc_x2_add_32fc_rvv(lv_32fc_t* cVector,
     const float* ina = (const float*)aVector;
     const float* inb = (const float*)bVector;
     float* out = (float*)cVector;
-    size_t n = num_points * 2;
+    size_t n = (size_t)num_points * 2;
     for (size_t vl; n > 0; n -= vl, ina += vl, inb += vl, out += vl) {
         vl = __riscv_vsetvl_e32m8(n);
         vfloat32m8_t va = __riscv_vle32_v_f32m8(ina, vl);

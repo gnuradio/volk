@@ -696,14 +696,13 @@ static inline void volk_32fc_x2_dot_prod_32fc_a_sse3(lv_32fc_t* result,
                                                       unsigned int num_points)
 {
 
-    const unsigned int num_bytes = num_points * 8;
     unsigned int isodd = num_points & 1;
 
     lv_32fc_t dotProduct;
     memset(&dotProduct, 0x0, 2 * sizeof(float));
 
     unsigned int number = 0;
-    const unsigned int halfPoints = num_bytes >> 4;
+    const unsigned int halfPoints = num_points / 2;
 
     __m128 x, y, yl, yh, z, tmp1, tmp2, dotProdVal;
 
