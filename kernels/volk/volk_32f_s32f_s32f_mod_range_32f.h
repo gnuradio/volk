@@ -62,7 +62,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_generic(float* outputVector,
 #endif /* LV_HAVE_GENERIC */
 
 
-#ifdef LV_HAVE_SSE
+#ifdef LV_HAVE_SSE2
 #include <xmmintrin.h>
 
 static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector,
@@ -112,7 +112,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector,
     volk_32f_s32f_s32f_mod_range_32f_generic(
         outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
 }
-#endif /* LV_HAVE_SSE */
+#endif /* LV_HAVE_SSE2 */
 
 
 #ifdef LV_HAVE_SSE2
@@ -400,7 +400,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_rvv(float* outputVector,
 #ifndef INCLUDED_volk_32f_s32f_s32f_mod_range_32f_a_H
 #define INCLUDED_volk_32f_s32f_s32f_mod_range_32f_a_H
 
-#ifdef LV_HAVE_SSE
+#ifdef LV_HAVE_SSE2
 #include <xmmintrin.h>
 
 static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector,
@@ -450,7 +450,7 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector,
     volk_32f_s32f_s32f_mod_range_32f_generic(
         outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
 }
-#endif /* LV_HAVE_SSE */
+#endif /* LV_HAVE_SSE2 */
 
 
 #ifdef LV_HAVE_SSE2
