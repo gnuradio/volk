@@ -215,12 +215,12 @@ static inline void volk_32fc_index_max_32u_u_avx512f(uint32_t* target,
     const uint32_t sixteenthPoints = num_points / 16;
 
     // Index ordering after shuffle: [0,1,8,9, 2,3,10,11, 4,5,12,13, 6,7,14,15]
-    __m512 currentIndexes =
-        _mm512_setr_ps(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
-    const __m512 indexIncrement = _mm512_set1_ps(16);
+    __m512i currentIndexes =
+        _mm512_setr_epi32(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
+    const __m512i indexIncrement = _mm512_set1_epi32(16);
 
     __m512 maxValues = _mm512_setzero_ps();
-    __m512 maxIndices = _mm512_setzero_ps();
+    __m512i maxIndices = _mm512_setzero_si512();
 
     for (uint32_t number = 0; number < sixteenthPoints; number++) {
         // Load 16 complex values (32 floats)
@@ -245,27 +245,27 @@ static inline void volk_32fc_index_max_32u_u_avx512f(uint32_t* target,
 
         // Compare and update maximums
         __mmask16 cmpMask = _mm512_cmp_ps_mask(mag_sq, maxValues, _CMP_GT_OS);
-        maxIndices = _mm512_mask_blend_ps(cmpMask, maxIndices, currentIndexes);
+        maxIndices = _mm512_mask_blend_epi32(cmpMask, maxIndices, currentIndexes);
         maxValues = _mm512_max_ps(mag_sq, maxValues);
 
-        currentIndexes = _mm512_add_ps(currentIndexes, indexIncrement);
+        currentIndexes = _mm512_add_epi32(currentIndexes, indexIncrement);
     }
 
     // Reduce 16 values to find maximum
     __VOLK_ATTR_ALIGNED(64) float maxValuesBuffer[16];
-    __VOLK_ATTR_ALIGNED(64) float maxIndexesBuffer[16];
+    __VOLK_ATTR_ALIGNED(64) uint32_t maxIndexesBuffer[16];
     _mm512_store_ps(maxValuesBuffer, maxValues);
-    _mm512_store_ps(maxIndexesBuffer, maxIndices);
+    _mm512_store_si512((__m512i*)maxIndexesBuffer, maxIndices);
 
     float max = 0.0f;
     uint32_t index = 0;
     for (uint32_t i = 0; i < 16; i++) {
         if (maxValuesBuffer[i] > max) {
             max = maxValuesBuffer[i];
-            index = (uint32_t)maxIndexesBuffer[i];
+            index = maxIndexesBuffer[i];
         } else if (maxValuesBuffer[i] == max) {
-            if ((uint32_t)maxIndexesBuffer[i] < index)
-                index = (uint32_t)maxIndexesBuffer[i];
+            if (maxIndexesBuffer[i] < index)
+                index = maxIndexesBuffer[i];
         }
     }
 
@@ -743,12 +743,12 @@ static inline void volk_32fc_index_max_32u_a_avx512f(uint32_t* target,
     const uint32_t sixteenthPoints = num_points / 16;
 
     // Index ordering after shuffle: [0,1,8,9, 2,3,10,11, 4,5,12,13, 6,7,14,15]
-    __m512 currentIndexes =
-        _mm512_setr_ps(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
-    const __m512 indexIncrement = _mm512_set1_ps(16);
+    __m512i currentIndexes =
+        _mm512_setr_epi32(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
+    const __m512i indexIncrement = _mm512_set1_epi32(16);
 
     __m512 maxValues = _mm512_setzero_ps();
-    __m512 maxIndices = _mm512_setzero_ps();
+    __m512i maxIndices = _mm512_setzero_si512();
 
     for (uint32_t number = 0; number < sixteenthPoints; number++) {
         // Load 16 complex values (32 floats)
@@ -773,27 +773,27 @@ static inline void volk_32fc_index_max_32u_a_avx512f(uint32_t* target,
 
         // Compare and update maximums
         __mmask16 cmpMask = _mm512_cmp_ps_mask(mag_sq, maxValues, _CMP_GT_OS);
-        maxIndices = _mm512_mask_blend_ps(cmpMask, maxIndices, currentIndexes);
+        maxIndices = _mm512_mask_blend_epi32(cmpMask, maxIndices, currentIndexes);
         maxValues = _mm512_max_ps(mag_sq, maxValues);
 
-        currentIndexes = _mm512_add_ps(currentIndexes, indexIncrement);
+        currentIndexes = _mm512_add_epi32(currentIndexes, indexIncrement);
     }
 
     // Reduce 16 values to find maximum
     __VOLK_ATTR_ALIGNED(64) float maxValuesBuffer[16];
-    __VOLK_ATTR_ALIGNED(64) float maxIndexesBuffer[16];
+    __VOLK_ATTR_ALIGNED(64) uint32_t maxIndexesBuffer[16];
     _mm512_store_ps(maxValuesBuffer, maxValues);
-    _mm512_store_ps(maxIndexesBuffer, maxIndices);
+    _mm512_store_si512((__m512i*)maxIndexesBuffer, maxIndices);
 
     float max = 0.0f;
     uint32_t index = 0;
     for (uint32_t i = 0; i < 16; i++) {
         if (maxValuesBuffer[i] > max) {
             max = maxValuesBuffer[i];
-            index = (uint32_t)maxIndexesBuffer[i];
+            index = maxIndexesBuffer[i];
         } else if (maxValuesBuffer[i] == max) {
-            if ((uint32_t)maxIndexesBuffer[i] < index)
-                index = (uint32_t)maxIndexesBuffer[i];
+            if (maxIndexesBuffer[i] < index)
+                index = maxIndexesBuffer[i];
         }
     }
 

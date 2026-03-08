@@ -213,12 +213,12 @@ static inline void volk_32fc_index_min_32u_u_avx512f(uint32_t* target,
     const uint32_t sixteenthPoints = num_points / 16;
 
     // Index ordering after shuffle: [0,1,8,9, 2,3,10,11, 4,5,12,13, 6,7,14,15]
-    __m512 currentIndexes =
-        _mm512_setr_ps(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
-    const __m512 indexIncrement = _mm512_set1_ps(16);
+    __m512i currentIndexes =
+        _mm512_setr_epi32(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
+    const __m512i indexIncrement = _mm512_set1_epi32(16);
 
     __m512 minValues = _mm512_set1_ps(FLT_MAX);
-    __m512 minIndices = _mm512_setzero_ps();
+    __m512i minIndices = _mm512_setzero_si512();
 
     for (uint32_t number = 0; number < sixteenthPoints; number++) {
         // Load 16 complex values (32 floats)
@@ -243,27 +243,27 @@ static inline void volk_32fc_index_min_32u_u_avx512f(uint32_t* target,
 
         // Compare and update minimums
         __mmask16 cmpMask = _mm512_cmp_ps_mask(mag_sq, minValues, _CMP_LT_OS);
-        minIndices = _mm512_mask_blend_ps(cmpMask, minIndices, currentIndexes);
+        minIndices = _mm512_mask_blend_epi32(cmpMask, minIndices, currentIndexes);
         minValues = _mm512_min_ps(mag_sq, minValues);
 
-        currentIndexes = _mm512_add_ps(currentIndexes, indexIncrement);
+        currentIndexes = _mm512_add_epi32(currentIndexes, indexIncrement);
     }
 
     // Reduce 16 values to find minimum
     __VOLK_ATTR_ALIGNED(64) float minValuesBuffer[16];
-    __VOLK_ATTR_ALIGNED(64) float minIndexesBuffer[16];
+    __VOLK_ATTR_ALIGNED(64) uint32_t minIndexesBuffer[16];
     _mm512_store_ps(minValuesBuffer, minValues);
-    _mm512_store_ps(minIndexesBuffer, minIndices);
+    _mm512_store_si512((__m512i*)minIndexesBuffer, minIndices);
 
     float min = FLT_MAX;
     uint32_t index = 0;
     for (uint32_t i = 0; i < 16; i++) {
         if (minValuesBuffer[i] < min) {
             min = minValuesBuffer[i];
-            index = (uint32_t)minIndexesBuffer[i];
+            index = minIndexesBuffer[i];
         } else if (minValuesBuffer[i] == min) {
-            if ((uint32_t)minIndexesBuffer[i] < index)
-                index = (uint32_t)minIndexesBuffer[i];
+            if (minIndexesBuffer[i] < index)
+                index = minIndexesBuffer[i];
         }
     }
 
@@ -537,10 +537,10 @@ static inline void volk_32fc_index_min_32u_a_sse3(uint32_t* target,
 
         xmm1 = _mm_hadd_ps(xmm1, xmm2);
 
-        xmm3 = _mm_min_ps(xmm1, xmm3);
+        xmm5.float_vec = _mm_cmplt_ps(xmm1, xmm3);
+        xmm4.float_vec = _mm_cmpnlt_ps(xmm1, xmm3);
 
-        xmm4.float_vec = _mm_cmpgt_ps(xmm1, xmm3);
-        xmm5.float_vec = _mm_cmpeq_ps(xmm1, xmm3);
+        xmm3 = _mm_min_ps(xmm1, xmm3);
 
         xmm11 = _mm_and_si128(xmm8, xmm5.int_vec);
         xmm12 = _mm_and_si128(xmm9, xmm4.int_vec);
@@ -562,12 +562,12 @@ static inline void volk_32fc_index_min_32u_a_sse3(uint32_t* target,
 
         xmm1 = _mm_hadd_ps(xmm2, xmm2);
 
-        xmm3 = _mm_min_ps(xmm1, xmm3);
-
         xmm10 = _mm_setr_epi32(2, 2, 2, 2);
 
-        xmm4.float_vec = _mm_cmpgt_ps(xmm1, xmm3);
-        xmm5.float_vec = _mm_cmpeq_ps(xmm1, xmm3);
+        xmm5.float_vec = _mm_cmplt_ps(xmm1, xmm3);
+        xmm4.float_vec = _mm_cmpnlt_ps(xmm1, xmm3);
+
+        xmm3 = _mm_min_ps(xmm1, xmm3);
 
         xmm11 = _mm_and_si128(xmm8, xmm5.int_vec);
         xmm12 = _mm_and_si128(xmm9, xmm4.int_vec);
@@ -741,12 +741,12 @@ static inline void volk_32fc_index_min_32u_a_avx512f(uint32_t* target,
     const uint32_t sixteenthPoints = num_points / 16;
 
     // Index ordering after shuffle: [0,1,8,9, 2,3,10,11, 4,5,12,13, 6,7,14,15]
-    __m512 currentIndexes =
-        _mm512_setr_ps(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
-    const __m512 indexIncrement = _mm512_set1_ps(16);
+    __m512i currentIndexes =
+        _mm512_setr_epi32(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15);
+    const __m512i indexIncrement = _mm512_set1_epi32(16);
 
     __m512 minValues = _mm512_set1_ps(FLT_MAX);
-    __m512 minIndices = _mm512_setzero_ps();
+    __m512i minIndices = _mm512_setzero_si512();
 
     for (uint32_t number = 0; number < sixteenthPoints; number++) {
         // Load 16 complex values (32 floats)
@@ -771,27 +771,27 @@ static inline void volk_32fc_index_min_32u_a_avx512f(uint32_t* target,
 
         // Compare and update minimums
         __mmask16 cmpMask = _mm512_cmp_ps_mask(mag_sq, minValues, _CMP_LT_OS);
-        minIndices = _mm512_mask_blend_ps(cmpMask, minIndices, currentIndexes);
+        minIndices = _mm512_mask_blend_epi32(cmpMask, minIndices, currentIndexes);
         minValues = _mm512_min_ps(mag_sq, minValues);
 
-        currentIndexes = _mm512_add_ps(currentIndexes, indexIncrement);
+        currentIndexes = _mm512_add_epi32(currentIndexes, indexIncrement);
     }
 
     // Reduce 16 values to find minimum
     __VOLK_ATTR_ALIGNED(64) float minValuesBuffer[16];
-    __VOLK_ATTR_ALIGNED(64) float minIndexesBuffer[16];
+    __VOLK_ATTR_ALIGNED(64) uint32_t minIndexesBuffer[16];
     _mm512_store_ps(minValuesBuffer, minValues);
-    _mm512_store_ps(minIndexesBuffer, minIndices);
+    _mm512_store_si512((__m512i*)minIndexesBuffer, minIndices);
 
     float min = FLT_MAX;
     uint32_t index = 0;
     for (uint32_t i = 0; i < 16; i++) {
         if (minValuesBuffer[i] < min) {
             min = minValuesBuffer[i];
-            index = (uint32_t)minIndexesBuffer[i];
+            index = minIndexesBuffer[i];
         } else if (minValuesBuffer[i] == min) {
-            if ((uint32_t)minIndexesBuffer[i] < index)
-                index = (uint32_t)minIndexesBuffer[i];
+            if (minIndexesBuffer[i] < index)
+                index = minIndexesBuffer[i];
         }
     }
 
