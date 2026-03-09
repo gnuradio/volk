@@ -31,7 +31,8 @@
  *
  * \b Example
  * Convert floats from [-1,1] to 8-bit integers with a scale of 5 to maintain smallest
- delta
+ * delta
+ * \code
  *  int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
