@@ -21,11 +21,11 @@
  * \endcode
  *
  * \b Inputs
- * \li in_ptr: The input vector of floats.
+ * \li in: The input vector of floats.
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li out_ptr: The vector where results will be stored.
+ * \li out: The vector where results will be stored.
  *
  * \b Example
  * Calculate common angles around the top half of the unit circle.
