@@ -12,11 +12,14 @@
  *
  * \b Deprecation
  *
- * This kernel is deprecated.
+ * This kernel is deprecated. No replacement has been identified.
  *
  * \b Overview
  *
- * <FIXME>
+ * Computes the max* (max-star) operation over a vector of 16-bit signed integers,
+ * returning the maximum value. In log-MAP decoding the max* operation selects the
+ * dominant path metric; this implementation performs the max selection without the
+ * log-domain correction term.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -24,20 +27,39 @@
  * \endcode
  *
  * \b Inputs
- * \li src0: The input vector.
- * \li num_points: The number of complex data points.
+ * \li src0: The input vector of 16-bit signed integers (short).
+ * \li num_points: The number of data points in the input vector.
  *
  * \b Outputs
- * \li target: The output value of the max* operation.
+ * \li target: The maximum value found in the input vector (single short value).
  *
  * \b Example
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * volk_16i_max_star_16i();
+ *   int main() {
+ *     unsigned int N = 10;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
- * volk_free(t);
+ *     short* src0 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *     short* target = (short*)volk_malloc(sizeof(short), alignment);
+ *
+ *     // Initialize with sample path metrics
+ *     for (unsigned int i = 0; i < N; ++i) {
+ *       src0[i] = (short)(100 - (int)(i * 20));
+ *     }
+ *     // src0 = {100, 80, 60, 40, 20, 0, -20, -40, -60, -80}
+ *
+ *     volk_16i_max_star_16i(target, src0, N);
+ *
+ *     printf("max* = %d\n", target[0]);
+ *     // Expected output: max* = 100
+ *
+ *     volk_free(src0);
+ *     volk_free(target);
+ *     return 0;
+ *   }
  * \endcode
  */
 
