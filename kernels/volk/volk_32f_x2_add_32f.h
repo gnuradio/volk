@@ -24,14 +24,14 @@
  * \b Inputs
  * \li aVector: First vector of input points.
  * \li bVector: Second vector of input points.
- * \li num_points: The number of values in both input vector.
+ * \li num_points: The number of values in both input vectors.
  *
  * \b Outputs
  * \li cVector: The output vector.
  *
  * \b Example
  *
- * The follow example adds the increasing and decreasing vectors such that the result of
+ * The following example adds the increasing and decreasing vectors such that the result of
  * every summation pair is 10
  *
  * \code
