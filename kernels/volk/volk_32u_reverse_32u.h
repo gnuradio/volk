@@ -10,21 +10,54 @@
 /*!
  * \page volk_32u_reverse_32u
  *
- * \b bit reversal of the input 32 bit word
-
+ * \b Overview
+ *
+ * Reverses the bit order of each 32-bit unsigned integer in the input vector. For each
+ * element, bit 0 becomes bit 31, bit 1 becomes bit 30, and so on.
+ *
  * <b>Dispatcher Prototype</b>
- * \code volk_32u_reverse_32u(uint32_t *outputVector, uint32_t *inputVector; unsigned int
- num_points);
+ * \code
+ * void volk_32u_reverse_32u(uint32_t* out, const uint32_t* in, unsigned int num_points)
  * \endcode
  *
  * \b Inputs
- * \li inputVector: The input vector
- * \li num_points The number of data points.
+ * \li in: Vector of 32-bit unsigned integers to bit-reverse (uint32_t).
+ * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li outputVector: The vector where the results will be stored, which is the
- bit-reversed input
+ * \li out: Vector of 32-bit unsigned integers containing the bit-reversed results
+ * (uint32_t).
  *
+ * \b Example
+ * Bit-reverse several 32-bit values and print the results in hex.
+ * \code
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
+ *   #include <stdint.h>
+ *
+ *   int main() {
+ *     unsigned int num_points = 4;
+ *     unsigned int alignment = volk_get_alignment();
+ *
+ *     uint32_t* in = (uint32_t*)volk_malloc(sizeof(uint32_t) * num_points, alignment);
+ *     uint32_t* out = (uint32_t*)volk_malloc(sizeof(uint32_t) * num_points, alignment);
+ *
+ *     // Initialize with values that have recognizable bit patterns
+ *     in[0] = 0x00000001; // only LSB set -> expect only MSB set: 0x80000000
+ *     in[1] = 0x80000000; // only MSB set -> expect only LSB set: 0x00000001
+ *     in[2] = 0x0F0F0F0F; // alternating nibbles
+ *     in[3] = 0xAAAAAAAA; // alternating bits: 1010... -> 0101...: 0x55555555
+ *
+ *     volk_32u_reverse_32u(out, in, num_points);
+ *
+ *     for (unsigned int i = 0; i < num_points; i++) {
+ *       printf("in: 0x%08X  ->  out: 0x%08X\n", in[i], out[i]);
+ *     }
+ *
+ *     volk_free(in);
+ *     volk_free(out);
+ *     return 0;
+ *   }
  * \endcode
  */
 #ifndef INCLUDED_VOLK_32u_REVERSE_32u_U_H
