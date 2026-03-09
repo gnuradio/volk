@@ -12,8 +12,8 @@
  *
  * \b Overview
  *
- * Convert the input vector of 8-bit chars to a vector of floats. The
- * floats are then divided by the scalar factor.  shorts.
+ * Converts 8-bit signed integers to 32-bit floats, dividing each value by
+ * the scalar factor. This is useful for normalizing quantized samples.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -21,20 +21,48 @@
  * float scalar, unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li inputVector: The input vector of 8-bit chars.
- * \li scalar: the scaling factor used to divide the results of the conversion.
- * \li num_points: The number of values.
+ * \li inputVector: The input vector of 8-bit signed chars (int8_t).
+ * \li scalar: The scaling factor used to divide the results of the conversion.
+ * \li num_points: The number of values to convert.
  *
  * \b Outputs
- * \li outputVector: The output 16-bit shorts.
+ * \li outputVector: The output vector of 32-bit floats (float).
  *
  * \b Example
+ * Convert 8-bit ADC samples to normalized floats in the range [-1.0, 1.0].
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
  *
- * volk_8i_s32f_convert_32f();
+ * int main() {
+ *     unsigned int N = 8;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
+ *     int8_t* input = (int8_t*)volk_malloc(sizeof(int8_t) * N, alignment);
+ *     float* output = (float*)volk_malloc(sizeof(float) * N, alignment);
+ *
+ *     // Simulate 8-bit ADC samples
+ *     input[0] = 127;   // max positive
+ *     input[1] = -128;  // max negative
+ *     input[2] = 64;
+ *     input[3] = -64;
+ *     input[4] = 0;
+ *     input[5] = 32;
+ *     input[6] = -32;
+ *     input[7] = 1;
+ *
+ *     // Divide by 128 to normalize to approximately [-1.0, 1.0]
+ *     float scalar = 128.0f;
+ *     volk_8i_s32f_convert_32f(output, input, scalar, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         printf("input[%u] = %4d  ->  output[%u] = %+.4f\n", i, input[i], i, output[i]);
+ *     }
+ *
+ *     volk_free(input);
+ *     volk_free(output);
+ *     return 0;
+ * }
  * \endcode
  */
 
