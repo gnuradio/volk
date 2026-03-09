@@ -12,34 +12,69 @@
  *
  * \b Deprecation
  *
- * This kernel is deprecated.
+ * This kernel is deprecated, no replacement has been identified.
  *
  * \b Overview
  *
- * <FIXME>
+ * Computes the element-wise maximum across four 16-bit integer input vectors using a
+ * tournament-style comparison. For each element index, the kernel first selects the
+ * larger value from each pair (src0 vs src1, and src2 vs src3), then selects the larger
+ * of those two results. This implements the max-log-MAP approximation of the max-star
+ * operation used in turbo and Viterbi decoding.
  *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_16i_x4_quad_max_star_16i(short* target, short* src0, short* src1, short*
- * src2, short* src3, unsigned int num_points) \endcode
+ * src2, short* src3, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
- * \li src0: The input vector 0.
- * \li src1: The input vector 1.
- * \li src2: The input vector 2.
- * \li src3: The input vector 3.
- * \li num_points: The number of data points.
+ * \li src0: First input vector of 16-bit integers (short).
+ * \li src1: Second input vector of 16-bit integers (short).
+ * \li src2: Third input vector of 16-bit integers (short).
+ * \li src3: Fourth input vector of 16-bit integers (short).
+ * \li num_points: The number of elements in each input/output vector.
  *
  * \b Outputs
- * \li target: The output value.
+ * \li target: Output vector of 16-bit integers (short) containing
+ * max(max(src0[i], src1[i]), max(src2[i], src3[i])) for each element.
  *
  * \b Example
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
  *
- * volk_16i_x4_quad_max_star_16i();
+ * int main() {
+ *     unsigned int N = 16;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
+ *     short* src0 = (short*)volk_malloc(N * sizeof(short), alignment);
+ *     short* src1 = (short*)volk_malloc(N * sizeof(short), alignment);
+ *     short* src2 = (short*)volk_malloc(N * sizeof(short), alignment);
+ *     short* src3 = (short*)volk_malloc(N * sizeof(short), alignment);
+ *     short* target = (short*)volk_malloc(N * sizeof(short), alignment);
+ *
+ *     // Initialize with sample trellis metric values
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         src0[i] = (short)(100 - 10 * (int)i);
+ *         src1[i] = (short)(5 * (int)i - 30);
+ *         src2[i] = (short)(50 + 3 * (int)i);
+ *         src3[i] = (short)(80 - 7 * (int)i);
+ *     }
+ *
+ *     volk_16i_x4_quad_max_star_16i(target, src0, src1, src2, src3, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         printf("target[%u] = %d\n", i, target[i]);
+ *     }
+ *
+ *     volk_free(src0);
+ *     volk_free(src1);
+ *     volk_free(src2);
+ *     volk_free(src3);
+ *     volk_free(target);
+ *     return 0;
+ * }
  * \endcode
  */
 
