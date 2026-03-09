@@ -17,8 +17,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_s32f_convert_32i(int32_t* outputVector, const float* inputVector, const
- * float scalar, unsigned int num_points) \endcode
+ * void volk_32f_s32f_convert_32i(int32_t* outputVector, const float* inputVector, const float scalar, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
  * \li inputVector: the input vector of floats.
@@ -31,7 +31,7 @@
  * \b Example
  * Convert floats from [-1,1] to integers with a scale of 5 to maintain smallest delta
  * \code
- *  int N = 10;
+ *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
  *   int32_t* out = (int32_t*)volk_malloc(sizeof(int32_t)*N, alignment);
