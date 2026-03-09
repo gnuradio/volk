@@ -26,7 +26,7 @@
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li bVector: A pointer to the output vector of floats.
+ * \li out: A pointer to the output vector of floats.
  *
  * \b Example
  * \code
@@ -35,8 +35,8 @@
     float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
     float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
 
-    for(unsigned int ii = 1; ii < N; ++ii){
-        in[ii] = (float)(ii*ii);
+    for(unsigned int ii = 0; ii < N; ++ii){
+        in[ii] = (float)(ii + 1);
     }
 
     volk_32f_reciprocal_32f(out, in, N);
