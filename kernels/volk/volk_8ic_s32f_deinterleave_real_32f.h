@@ -18,8 +18,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_8ic_s32f_deinterleave_real_32f(float* iBuffer, const lv_8sc_t* complexVector,
- * const float scalar, unsigned int num_points) \endcode
+ * void volk_8ic_s32f_deinterleave_real_32f(float* iBuffer, const lv_8sc_t*
+ * complexVector, const float scalar, unsigned int num_points) \endcode
  *
  * \b Inputs
  * \li complexVector: The complex input vector.
@@ -30,12 +30,41 @@
  * \li iBuffer: The I buffer output data.
  *
  * \b Example
+ * Extract and scale the real (I) component from 8-bit complex samples.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * volk_8ic_s32f_deinterleave_real_32f();
+ *   int main(){
+ *     unsigned int N = 8;
+ *     float scalar = 127.0f; // normalize to [-1.0, 1.0] range
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
+ *     // Allocate aligned memory
+ *     lv_8sc_t* complexVector = (lv_8sc_t*)volk_malloc(sizeof(lv_8sc_t) * N, alignment);
+ *     float* iBuffer = (float*)volk_malloc(sizeof(float) * N, alignment);
+ *
+ *     // Fill with sample complex data (I, Q pairs)
+ *     complexVector[0] = lv_cmake((int8_t)127,  (int8_t)0);
+ *     complexVector[1] = lv_cmake((int8_t)90,   (int8_t)90);
+ *     complexVector[2] = lv_cmake((int8_t)0,    (int8_t)127);
+ *     complexVector[3] = lv_cmake((int8_t)-90,  (int8_t)90);
+ *     complexVector[4] = lv_cmake((int8_t)-127, (int8_t)0);
+ *     complexVector[5] = lv_cmake((int8_t)-90,  (int8_t)-90);
+ *     complexVector[6] = lv_cmake((int8_t)0,    (int8_t)-127);
+ *     complexVector[7] = lv_cmake((int8_t)90,   (int8_t)-90);
+ *
+ *     // Deinterleave real part and divide by scalar
+ *     volk_8ic_s32f_deinterleave_real_32f(iBuffer, complexVector, scalar, N);
+ *
+ *     for(unsigned int i = 0; i < N; i++){
+ *       printf("I[%u] = %1.4f\n", i, iBuffer[i]);
+ *     }
+ *
+ *     volk_free(complexVector);
+ *     volk_free(iBuffer);
+ *     return 0;
+ *   }
  * \endcode
  */
 
