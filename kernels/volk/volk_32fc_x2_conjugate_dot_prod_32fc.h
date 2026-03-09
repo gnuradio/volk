@@ -50,8 +50,8 @@
  *
  * volk_32fc_x2_conjugate_dot_prod_32fc(&res, a, b, N);
  *
- * printf("Expected: %8.2f%+8.2fi\n", lv_real(e), lv_imag(e));
- * printf("Result:   %8.2f%+8.2fi\n", lv_real(res), lv_imag(res));
+ * printf("Expected: %8.2f%+8.2fi\n", lv_creal(e), lv_cimag(e));
+ * printf("Result:   %8.2f%+8.2fi\n", lv_creal(res), lv_cimag(res));
  *
  * volk_free(a);
  * volk_free(b);
