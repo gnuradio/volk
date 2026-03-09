@@ -10,22 +10,64 @@
 /*!
  * \page volk_32f_s32f_s32f_mod_range_32f
  *
- * \b wraps floating point numbers to stay within a defined [min,max] range
+ * \b Overview
+ *
+ * Wraps floating point numbers to stay within a defined [lower_bound, upper_bound]
+ * range. Values outside the range are shifted by integer multiples of the range width
+ * until they fall within bounds.
  *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_32f_s32f_s32f_mod_range_32f(float* outputVector, const float* inputVector,
- * const float lower_bound, const float upper_bound, unsigned int num_points) \endcode
+ * const float lower_bound, const float upper_bound, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
- * \li inputVector: The input vector
- * \li lower_bound: The lower output boundary
- * \li upper_bound: The upper output boundary
- * \li num_points The number of data points.
+ * \li inputVector: The input vector of floats to be wrapped.
+ * \li lower_bound: The lower output boundary.
+ * \li upper_bound: The upper output boundary.
+ * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li outputVector: The vector where the results will be stored.
+ * \li outputVector: The vector where the wrapped results will be stored.
  *
+ * \b Example
+ * Wrap phase values into the range [-pi, pi].
+ * \code
+ * #include <volk/volk.h>
+ * #include <math.h>
+ * #include <stdio.h>
+ *
+ * int main() {
+ *     unsigned int N = 8;
+ *     size_t alignment = volk_get_alignment();
+ *
+ *     float* input = (float*)volk_malloc(sizeof(float) * N, alignment);
+ *     float* output = (float*)volk_malloc(sizeof(float) * N, alignment);
+ *
+ *     // Simulate accumulated phase values that have drifted outside [-pi, pi]
+ *     input[0] = 0.5f;
+ *     input[1] = 3.5f;       // slightly above pi
+ *     input[2] = -3.5f;      // slightly below -pi
+ *     input[3] = 7.0f;       // more than one full wrap above pi
+ *     input[4] = -7.0f;      // more than one full wrap below -pi
+ *     input[5] = (float)M_PI;
+ *     input[6] = (float)-M_PI;
+ *     input[7] = 12.566f;    // approximately 4*pi
+ *
+ *     float lower_bound = (float)-M_PI;
+ *     float upper_bound = (float)M_PI;
+ *
+ *     volk_32f_s32f_s32f_mod_range_32f(output, input, lower_bound, upper_bound, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         printf("input: %8.3f  ->  output: %8.3f\n", input[i], output[i]);
+ *     }
+ *
+ *     volk_free(input);
+ *     volk_free(output);
+ *     return 0;
+ * }
  * \endcode
  */
 
