@@ -20,7 +20,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_64f_add_64f(double* cVector, const double* aVector, const
+ * void volk_32f_64f_add_64f(double* cVector, const float* aVector, const
  * double* bVector, unsigned int num_points) \endcode
  *
  * \b Inputs
@@ -41,8 +41,8 @@
  *   double* out = (double*)volk_malloc(sizeof(double)*N, alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       increasing[ii] = (double)ii;
- *       decreasing[ii] = 10.f - (double)ii;
+ *       increasing[ii] = (float)ii;
+ *       decreasing[ii] = 10.0 - (double)ii;
  *   }
  *
  *   volk_32f_64f_add_64f(out, increasing, decreasing, N);
