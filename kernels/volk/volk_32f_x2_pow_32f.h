@@ -24,7 +24,7 @@
  * unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li bVector: The input vector of indices (power values).
+ * \li bVector: The input vector of exponent values.
  * \li aVector: The input vector of base values.
  * \li num_points: The number of values in both input vectors.
  *
@@ -32,7 +32,7 @@
  * \li cVector: The output vector.
  *
  * \b Example
- * Calculate the first two powers of two (2^x).
+ * Calculate the first ten powers of two (2^x).
  * \code
  *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
