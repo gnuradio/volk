@@ -13,16 +13,17 @@
  * \b Overview
  *
  * Computes the standard deviation and mean of the input buffer by means of
- * Youngs and Cramer's Algorithm
+ * Youngs and Cramer's Algorithm.
  *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_32f_stddev_and_mean_32f_x2(float* stddev, float* mean, const float*
- * inputBuffer, unsigned int num_points) \endcode
+ * inputBuffer, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
  * \li inputBuffer: The buffer of points.
- * \li num_points The number of values in input buffer.
+ * \li num_points: The number of values in input buffer.
  *
  * \b Outputs
  * \li stddev: The calculated standard deviation.
