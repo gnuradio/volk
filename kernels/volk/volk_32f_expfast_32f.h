@@ -17,8 +17,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_expfast_32f(float* bVector, const float* aVector, unsigned int
- * num_points) \endcode
+ * void volk_32f_expfast_32f(float* bVector, const float* aVector, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
  * \li aVector: Input vector of floats.
