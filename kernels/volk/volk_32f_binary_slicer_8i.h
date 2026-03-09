@@ -40,9 +40,9 @@
     in[1] = 1.1f;
     in[2] = 0.4f;
     in[3] = -0.7f;
-    in[5] = -1.2f;
-    in[6] = 0.2f;
-    in[7] = -0.8f;
+    in[4] = -1.2f;
+    in[5] = 0.2f;
+    in[6] = -0.8f;
 
     volk_32f_binary_slicer_8i(out, in, N);
 
