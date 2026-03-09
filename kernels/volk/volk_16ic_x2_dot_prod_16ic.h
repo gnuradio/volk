@@ -12,24 +12,62 @@
  *
  * \b Overview
  *
- * Multiplies two input complex vectors (16-bit integer each component) and accumulates
- * them, storing the result. Results are saturated so never go beyond the limits of the
- * data type.
+ * Computes the dot product of two complex 16-bit integer vectors. Each
+ * element-wise complex multiplication is accumulated into a single complex
+ * result using saturated arithmetic to prevent overflow.
  *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_16ic_x2_dot_prod_16ic(lv_16sc_t* result, const lv_16sc_t* in_a, const
- * lv_16sc_t* in_b, unsigned int num_points); \endcode
+ * lv_16sc_t* in_b, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
- * \li in_a:          One of the vectors to be multiplied and accumulated.
- * \li in_b:          The other vector to be multiplied and accumulated.
- * \li num_points:    Number of complex values to be multiplied together, accumulated and
- * stored into \p result
+ * \li in_a: The first complex input vector (lv_16sc_t).
+ * \li in_b: The second complex input vector (lv_16sc_t).
+ * \li num_points: The number of complex samples to multiply and accumulate.
  *
  * \b Outputs
- * \li result:        Value of the accumulated result.
+ * \li result: The complex dot product of the two input vectors (lv_16sc_t).
  *
+ * \b Example
+ * Compute the complex dot product of two short vectors.
+ * \code
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
+ *
+ *   int main() {
+ *     unsigned int N = 4;
+ *     unsigned int alignment = volk_get_alignment();
+ *
+ *     // Allocate input and output buffers
+ *     lv_16sc_t* in_a =
+ *         (lv_16sc_t*)volk_malloc(N * sizeof(lv_16sc_t), alignment);
+ *     lv_16sc_t* in_b =
+ *         (lv_16sc_t*)volk_malloc(N * sizeof(lv_16sc_t), alignment);
+ *     lv_16sc_t result;
+ *
+ *     // Fill with complex samples: (real, imag)
+ *     in_a[0] = lv_cmake((int16_t)100, (int16_t)200);
+ *     in_a[1] = lv_cmake((int16_t)-50, (int16_t)300);
+ *     in_a[2] = lv_cmake((int16_t)400, (int16_t)-100);
+ *     in_a[3] = lv_cmake((int16_t)150, (int16_t)250);
+ *
+ *     in_b[0] = lv_cmake((int16_t)10, (int16_t)-20);
+ *     in_b[1] = lv_cmake((int16_t)30, (int16_t)40);
+ *     in_b[2] = lv_cmake((int16_t)-10, (int16_t)50);
+ *     in_b[3] = lv_cmake((int16_t)20, (int16_t)-30);
+ *
+ *     // Compute complex dot product: sum(in_a[i] * in_b[i])
+ *     volk_16ic_x2_dot_prod_16ic(&result, in_a, in_b, N);
+ *
+ *     printf("Dot product: (%d, %d)\n", lv_creal(result), lv_cimag(result));
+ *
+ *     volk_free(in_a);
+ *     volk_free(in_b);
+ *     return 0;
+ *   }
+ * \endcode
  */
 
 #ifndef INCLUDED_volk_16ic_x2_dot_prod_16ic_H
