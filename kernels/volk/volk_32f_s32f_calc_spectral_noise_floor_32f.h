@@ -17,7 +17,7 @@
  * Calculates the spectral noise floor of an input power spectrum by
  * determining the mean of the input power spectrum, then
  * recalculating the mean excluding any power spectrum values that
- * exceed the mean by the spectralExclusionValue (in dB).  Provides a
+ * exceed the mean by the spectralExclusionValue (in dB). Provides a
  * rough estimation of the signal noise floor.
  *
  * <b>Dispatcher Prototype</b>
@@ -29,19 +29,43 @@
  * \b Inputs
  * \li realDataPoints: The input power spectrum.
  * \li spectralExclusionValue: The number of dB above the noise floor that a data point
- * must be to be excluded from the noise floor calculation - default value is 20. \li
- * num_points: The number of data points.
+ * must be to be excluded from the noise floor calculation - default value is 20.
+ * \li num_points: The number of data points.
  *
  * \b Outputs
  * \li noiseFloorAmplitude: The noise floor of the input spectrum, in dB.
  *
  * \b Example
+ * Estimate the noise floor of a power spectrum with two strong signals above the noise.
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
  *
- * volk_32f_s32f_calc_spectral_noise_floor_32f
+ * int main() {
+ *     unsigned int N = 256;
+ *     size_t alignment = volk_get_alignment();
  *
- * volk_free(x);
+ *     float* powerSpectrum = (float*)volk_malloc(sizeof(float) * N, alignment);
+ *     float noiseFloor = 0.0f;
+ *
+ *     // Fill spectrum with a noise floor around -100 dB
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         powerSpectrum[i] = -100.0f + (float)(i % 3) * 0.5f;
+ *     }
+ *     // Insert two strong signals well above the noise floor
+ *     powerSpectrum[64] = -30.0f;
+ *     powerSpectrum[192] = -40.0f;
+ *
+ *     // Estimate noise floor, excluding bins more than 20 dB above the mean
+ *     float spectralExclusionValue = 20.0f;
+ *     volk_32f_s32f_calc_spectral_noise_floor_32f(
+ *         &noiseFloor, powerSpectrum, spectralExclusionValue, N);
+ *
+ *     printf("Estimated noise floor: %f dB\n", noiseFloor);
+ *
+ *     volk_free(powerSpectrum);
+ *     return 0;
+ * }
  * \endcode
  */
 
