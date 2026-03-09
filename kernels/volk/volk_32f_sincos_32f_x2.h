@@ -19,7 +19,8 @@
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_32f_sincos_32f_x2(float* sinVector, float* cosVector, const float* inVector,
- * unsigned int num_points) \endcode
+ * unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
  * \li inVector: The input vector of angles in radians.
