@@ -27,7 +27,7 @@
  * \li num_points: The number of values in both input vectors.
  *
  * \b Outputs
- * \li complexVector: The output vector.
+ * \li cVector: The output vector.
  *
  * \b Example
  * Subtract and increasing vector from a decreasing vector.
