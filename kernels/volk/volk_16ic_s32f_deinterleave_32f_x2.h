@@ -17,8 +17,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- *  void volk_16ic_s32f_deinterleave_32f_x2(float* iBuffer, float* qBuffer, const
- * lv_16sc_t* complexVector, const float scalar, unsigned int num_points){ \endcode
+ * void volk_16ic_s32f_deinterleave_32f_x2(float* iBuffer, float* qBuffer, const lv_16sc_t* complexVector, const float scalar, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
  * \li complexVector: The complex input vector of 16-bit shorts.
@@ -31,12 +31,25 @@
  *
  * \b Example
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
  *
- * volk_16ic_s32f_deinterleave_32f_x2();
+ * int N = 10;
+ * unsigned int alignment = volk_get_alignment();
+ * float scalar = 100.0f;
  *
- * volk_free(x);
- * volk_free(t);
+ * lv_16sc_t* complexVector = (lv_16sc_t*)volk_malloc(sizeof(lv_16sc_t) * N, alignment);
+ * float* iBuffer = (float*)volk_malloc(sizeof(float) * N, alignment);
+ * float* qBuffer = (float*)volk_malloc(sizeof(float) * N, alignment);
+ *
+ * for (int i = 0; i < N; i++) {
+ *     complexVector[i] = lv_cmake((int16_t)(i * 50), (int16_t)(i * -40));
+ * }
+ *
+ * volk_16ic_s32f_deinterleave_32f_x2(iBuffer, qBuffer, complexVector, scalar, N);
+ *
+ * volk_free(complexVector);
+ * volk_free(iBuffer);
+ * volk_free(qBuffer);
  * \endcode
  */
 
