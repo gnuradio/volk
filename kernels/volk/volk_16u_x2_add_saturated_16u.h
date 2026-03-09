@@ -40,6 +40,7 @@
  *       a[i] = 60000;
  *       b[i] = 200;
  *   }
+ *   // Override first two to demonstrate saturation
  *   a[0] = 60000; b[0] = 10000; // 70000 -> saturates to 65535
  *   a[1] = 1000;  b[1] = 2000;  // 3000 -> no saturation
  *

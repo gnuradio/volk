@@ -36,11 +36,12 @@
  *   int8_t* b = (int8_t*)volk_malloc(sizeof(int8_t) * N, alignment);
  *   int8_t* result = (int8_t*)volk_malloc(sizeof(int8_t) * N, alignment);
  *
- *   // Values that will cause saturation
  *   for (unsigned int ii = 0; ii < N; ++ii) {
  *       a[ii] = 100;
  *       b[ii] = 50;
  *   }
+ *
+ *   // Values that will cause saturation
  *   a[1] = -100;
  *   b[1] = -50;
  *

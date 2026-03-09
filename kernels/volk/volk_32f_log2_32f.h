@@ -49,7 +49,7 @@
  * \endcode
  *
  * \b Inputs
- * \li aVector: the input vector of floats.
+ * \li aVector: The input vector of floats.
  * \li num_points: The number of data points.
  *
  * \b Outputs

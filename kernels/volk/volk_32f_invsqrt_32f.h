@@ -36,7 +36,7 @@
  *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       in[ii] = (float)(ii + 1);
+ *       in[ii] = 1.0 / (float)(ii*ii);
  *   }
  *
  *   volk_32f_invsqrt_32f(out, in, N);
