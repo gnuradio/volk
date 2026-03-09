@@ -32,8 +32,13 @@
  * \li result: pointer to a float value to hold the dot product result.
  *
  * \b Example
+ *
  * Take the dot product of an increasing vector and a vector of ones. The result is the
- * sum of integers (0,9). \code int N = 10; unsigned int alignment = volk_get_alignment();
+ * sum of integers (0,9).
+ *
+ * \code
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
  *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
  *   float* ones = (float*)volk_malloc(sizeof(float)*N, alignment);
  *   float* out = (float*)volk_malloc(sizeof(float)*1, alignment);
@@ -50,8 +55,6 @@
  *   volk_free(increasing);
  *   volk_free(ones);
  *   volk_free(out);
- *
- *   return 0;
  * \endcode
  */
 
