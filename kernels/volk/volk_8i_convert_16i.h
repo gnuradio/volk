@@ -12,8 +12,8 @@
  *
  * \b Overview
  *
- * Convert the input vector of 8-bit chars to a vector of 16-bit
- * shorts.
+ * Converts 8-bit signed integers to 16-bit signed integers by scaling each value
+ * by 256 (i.e. shifting left by 8 bits into the upper byte of the 16-bit output).
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -21,19 +21,46 @@
  * num_points) \endcode
  *
  * \b Inputs
- * \li inputVector: The input vector of 8-bit chars.
- * \li num_points: The number of values.
+ * \li inputVector: The input vector of 8-bit signed chars (int8_t).
+ * \li num_points: The number of values to convert.
  *
  * \b Outputs
- * \li outputVector: The output 16-bit shorts.
+ * \li outputVector: The output vector of 16-bit signed shorts (int16_t).
  *
  * \b Example
+ * Convert a small array of 8-bit values to 16-bit and verify the scaling.
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
  *
- * volk_8i_convert_16i();
+ * int main() {
+ *     unsigned int N = 8;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
+ *     int8_t* input = (int8_t*)volk_malloc(sizeof(int8_t) * N, alignment);
+ *     int16_t* output = (int16_t*)volk_malloc(sizeof(int16_t) * N, alignment);
+ *
+ *     // Initialize with sample signed 8-bit values
+ *     input[0] = 1;
+ *     input[1] = -1;
+ *     input[2] = 127;
+ *     input[3] = -128;
+ *     input[4] = 0;
+ *     input[5] = 42;
+ *     input[6] = -50;
+ *     input[7] = 100;
+ *
+ *     // Each output value equals the input value multiplied by 256
+ *     volk_8i_convert_16i(output, input, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         printf("in: %4d  out: %6d\n", input[i], output[i]);
+ *     }
+ *
+ *     volk_free(input);
+ *     volk_free(output);
+ *     return 0;
+ * }
  * \endcode
  */
 
