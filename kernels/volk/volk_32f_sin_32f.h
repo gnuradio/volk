@@ -25,7 +25,7 @@
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li bVector: The output vector.
+ * \li bVector: The output vector of floats.
  *
  * \b Example
  * Calculate sin(theta) for several common angles.
