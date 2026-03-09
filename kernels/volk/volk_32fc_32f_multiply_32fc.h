@@ -12,13 +12,15 @@
  *
  * \b Overview
  *
- * Multiplies a complex vector by a floating point vector and returns
- * the complex result.
+ * Multiplies each element of a complex float vector by the corresponding
+ * element of a real float vector. Both the real and imaginary parts of each
+ * complex input are scaled by the real value.
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_32f_multiply_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector, const
- * float* bVector, unsigned int num_points); \endcode
+ * void volk_32fc_32f_multiply_32fc(lv_32fc_t* cVector, const lv_32fc_t* aVector,
+ * const float* bVector, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
  * \li aVector: The input vector of complex floats.
@@ -26,16 +28,47 @@
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li outputVector: The output vector complex floats.
+ * \li cVector: The output vector of complex floats.
  *
  * \b Example
+ * Scale a complex signal by a real-valued gain ramp.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * volk_32fc_32f_multiply_32fc();
+ *   int main() {
+ *     unsigned int N = 4;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
- * volk_free(t);
+ *     lv_32fc_t* aVector = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t) * N, alignment);
+ *     float* bVector     = (float*)volk_malloc(sizeof(float) * N, alignment);
+ *     lv_32fc_t* cVector = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t) * N, alignment);
+ *
+ *     // Complex signal: (1+2j, 3+4j, 5+6j, 7+8j)
+ *     aVector[0] = lv_cmake(1.0f, 2.0f);
+ *     aVector[1] = lv_cmake(3.0f, 4.0f);
+ *     aVector[2] = lv_cmake(5.0f, 6.0f);
+ *     aVector[3] = lv_cmake(7.0f, 8.0f);
+ *
+ *     // Real gain ramp: 0.5, 1.0, 1.5, 2.0
+ *     bVector[0] = 0.5f;
+ *     bVector[1] = 1.0f;
+ *     bVector[2] = 1.5f;
+ *     bVector[3] = 2.0f;
+ *
+ *     volk_32fc_32f_multiply_32fc(cVector, aVector, bVector, N);
+ *
+ *     // Expected: (0.5+1j, 3+4j, 7.5+9j, 14+16j)
+ *     for (unsigned int i = 0; i < N; i++) {
+ *       printf("cVector[%u] = (%.1f, %.1f)\n",
+ *              i, lv_creal(cVector[i]), lv_cimag(cVector[i]));
+ *     }
+ *
+ *     volk_free(aVector);
+ *     volk_free(bVector);
+ *     volk_free(cVector);
+ *     return 0;
+ *   }
  * \endcode
  */
 
