@@ -19,10 +19,11 @@
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_32fc_s32f_magnitude_16i(int16_t* magnitudeVector, const lv_32fc_t*
- * complexVector, unsigned int num_points) \endcode
+ * complexVector, const float scalar, unsigned int num_points) \endcode
  *
  * \b Inputs
  * \li complexVector: The complex input vector.
+ * \li scalar: The value to be multiplied against each sample.
  * \li num_points: The number of samples.
  *
  * \b Outputs
