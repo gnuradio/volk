@@ -18,13 +18,69 @@
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 /*!
-  \brief Multiplys the one complex vector with the complex conjugate of the second complex
-  vector and stores their results in the third vector \param cVector The complex vector
-  where the results will be stored \param aVector One of the complex vectors to be
-  multiplied \param bVector The complex vector which will be converted to complex
-  conjugate and multiplied \param num_points The number of complex values in aVector and
-  bVector to be multiplied together and stored into cVector
-*/
+ * \page volk_8ic_x2_multiply_conjugate_16ic
+ *
+ * \b Overview
+ *
+ * Multiplies each element of one complex 8-bit integer vector by the complex
+ * conjugate of the corresponding element in a second complex 8-bit integer
+ * vector. The results are stored as complex 16-bit integers to accommodate
+ * the wider product range.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_8ic_x2_multiply_conjugate_16ic(lv_16sc_t* cVector, const lv_8sc_t*
+ * aVector, const lv_8sc_t* bVector, unsigned int num_points) \endcode
+ *
+ * \b Inputs
+ * \li aVector: The first complex 8-bit input vector.
+ * \li bVector: The second complex 8-bit input vector whose conjugate is used.
+ * \li num_points: The number of complex values to process.
+ *
+ * \b Outputs
+ * \li cVector: The complex 16-bit output vector.
+ *
+ * \b Example
+ * Multiply a complex signal by the conjugate of a reference to compute correlation.
+ * \code
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
+ *
+ *   int main(){
+ *     unsigned int N = 4;
+ *     unsigned int alignment = volk_get_alignment();
+ *
+ *     // Allocate aligned memory
+ *     lv_8sc_t* aVector = (lv_8sc_t*)volk_malloc(sizeof(lv_8sc_t) * N, alignment);
+ *     lv_8sc_t* bVector = (lv_8sc_t*)volk_malloc(sizeof(lv_8sc_t) * N, alignment);
+ *     lv_16sc_t* cVector = (lv_16sc_t*)volk_malloc(sizeof(lv_16sc_t) * N, alignment);
+ *
+ *     // Fill with sample complex data representing received signal
+ *     aVector[0] = lv_cmake((int8_t)10,  (int8_t)20);
+ *     aVector[1] = lv_cmake((int8_t)-5,  (int8_t)15);
+ *     aVector[2] = lv_cmake((int8_t)30,  (int8_t)-10);
+ *     aVector[3] = lv_cmake((int8_t)-20, (int8_t)-25);
+ *
+ *     // Fill with reference signal
+ *     bVector[0] = lv_cmake((int8_t)3,   (int8_t)4);
+ *     bVector[1] = lv_cmake((int8_t)-2,  (int8_t)7);
+ *     bVector[2] = lv_cmake((int8_t)6,   (int8_t)-3);
+ *     bVector[3] = lv_cmake((int8_t)-4,  (int8_t)1);
+ *
+ *     // Compute a[i] * conj(b[i]) for each element
+ *     volk_8ic_x2_multiply_conjugate_16ic(cVector, aVector, bVector, N);
+ *
+ *     for(unsigned int i = 0; i < N; i++){
+ *       printf("c[%u] = (%d, %d)\n", i, lv_creal(cVector[i]), lv_cimag(cVector[i]));
+ *     }
+ *
+ *     volk_free(aVector);
+ *     volk_free(bVector);
+ *     volk_free(cVector);
+ *     return 0;
+ *   }
+ * \endcode
+ */
 static inline void volk_8ic_x2_multiply_conjugate_16ic_a_avx2(lv_16sc_t* cVector,
                                                               const lv_8sc_t* aVector,
                                                               const lv_8sc_t* bVector,
@@ -92,7 +148,7 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_a_avx2(lv_16sc_t* cVector
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 /*!
-  \brief Multiplys the one complex vector with the complex conjugate of the second complex
+  \brief Multiplies the one complex vector with the complex conjugate of the second complex
   vector and stores their results in the third vector \param cVector The complex vector
   where the results will be stored \param aVector One of the complex vectors to be
   multiplied \param bVector The complex vector which will be converted to complex
@@ -161,7 +217,7 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_a_sse4_1(lv_16sc_t* cVect
 
 #ifdef LV_HAVE_GENERIC
 /*!
-  \brief Multiplys the one complex vector with the complex conjugate of the second complex
+  \brief Multiplies the one complex vector with the complex conjugate of the second complex
   vector and stores their results in the third vector \param cVector The complex vector
   where the results will be stored \param aVector One of the complex vectors to be
   multiplied \param bVector The complex vector which will be converted to complex
@@ -297,7 +353,7 @@ static inline void volk_8ic_x2_multiply_conjugate_16ic_neon(lv_16sc_t* cVector,
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 /*!
-  \brief Multiplys the one complex vector with the complex conjugate of the second complex
+  \brief Multiplies the one complex vector with the complex conjugate of the second complex
   vector and stores their results in the third vector \param cVector The complex vector
   where the results will be stored \param aVector One of the complex vectors to be
   multiplied \param bVector The complex vector which will be converted to complex
