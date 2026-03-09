@@ -12,13 +12,13 @@
  *
  * \b Overview
  *
- * Multiplies two input double-precision doubleing point vectors together.
+ * Multiplies a single-precision floating point vector by a double-precision floating point vector.
  *
  * c[i] = a[i] * b[i]
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_64f_multiply_64f(double* cVector, const double* aVector, const double*
+ * void volk_32f_64f_multiply_64f(double* cVector, const float* aVector, const double*
  * bVector, unsigned int num_points) \endcode
  *
  * \b Inputs
@@ -39,8 +39,8 @@
  *   double* out = (double*)volk_malloc(sizeof(double)*N, alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       increasing[ii] = (double)ii;
- *       decreasing[ii] = 10.f - (double)ii;
+ *       increasing[ii] = (float)ii;
+ *       decreasing[ii] = 10. - (double)ii;
  *   }
  *
  *   volk_32f_64f_multiply_64f(out, increasing, decreasing, N);
