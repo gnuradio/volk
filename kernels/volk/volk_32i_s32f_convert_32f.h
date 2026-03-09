@@ -26,7 +26,7 @@
  * \li num_points: The number of values.
  *
  * \b Outputs
- * \li complexVector: The output vector of floats.
+ * \li outputVector: The output vector of floats.
  *
  * \b Example
  * Convert full-range integers to floats in range [0,1].
