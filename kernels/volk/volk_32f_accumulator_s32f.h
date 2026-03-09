@@ -40,7 +40,7 @@
  *
  *   volk_32f_accumulator_s32f(out, increasing, N);
  *
- *   printf("sum(1..100) = %1.2f\n", out[0]);
+ *   printf("sum(0..99) = %1.2f\n", out[0]);
  *
  *   volk_free(increasing);
  *   volk_free(out);
