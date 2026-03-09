@@ -30,7 +30,6 @@
  * \b Example
  * \code
  *   int N = 10;
- *   unsigned int alignment = volk_get_alignment();
  *
  *   uint64_t bitstring[] = {0x0, 0x1, 0xf, 0xffffffffffffffff,
  *       0x5555555555555555, 0xaaaaaaaaaaaaaaaa, 0x2a2a2a2a2a2a2a2a,
