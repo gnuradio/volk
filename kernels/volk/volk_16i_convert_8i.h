@@ -12,7 +12,8 @@
  *
  * \b Overview
  *
- * Converts 16-bit shorts to 8-bit chars.
+ * Converts 16-bit signed integers to 8-bit signed integers by arithmetic
+ * right-shifting each input value by 8 bits (keeping the high byte).
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -20,20 +21,51 @@
  * num_points) \endcode
  *
  * \b Inputs
- * \li inputVector: The input vector of 16-bit shorts.
- * \li num_points: The number of complex data points.
+ * \li inputVector: The input vector of 16-bit signed integers (int16_t).
+ * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li outputVector: The output vector of 8-bit chars.
+ * \li outputVector: The output vector of 8-bit signed integers (int8_t).
  *
  * \b Example
+ * Convert 16-bit samples to 8-bit by extracting the high byte.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * volk_16i_convert_8i();
+ *   int main() {
+ *     unsigned int num_points = 8;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
- * volk_free(t);
+ *     // Allocate aligned memory
+ *     int16_t* input =
+ *         (int16_t*)volk_malloc(sizeof(int16_t) * num_points, alignment);
+ *     int8_t* output =
+ *         (int8_t*)volk_malloc(sizeof(int8_t) * num_points, alignment);
+ *
+ *     // Initialize with values whose high byte is meaningful
+ *     // Right-shifting by 8 keeps the upper byte: 0x0100 >> 8 = 1, etc.
+ *     input[0] = 0x0100;  // 256  -> 1
+ *     input[1] = 0x0200;  // 512  -> 2
+ *     input[2] = 0x0A00;  // 2560 -> 10
+ *     input[3] = 0x7F00;  // 32512 -> 127
+ *     input[4] = -256;    // 0xFF00 -> -1 (sign-preserving)
+ *     input[5] = -512;    // 0xFE00 -> -2
+ *     input[6] = 0x0050;  // 80   -> 0 (low byte discarded)
+ *     input[7] = 0x03C0;  // 960  -> 3
+ *
+ *     // Convert 16-bit to 8-bit: output[i] = (int8_t)(input[i] >> 8)
+ *     volk_16i_convert_8i(output, input, num_points);
+ *
+ *     for (unsigned int i = 0; i < num_points; i++) {
+ *       printf("input[%u] = %6d  ->  output[%u] = %4d\n",
+ *              i, input[i], i, output[i]);
+ *     }
+ *
+ *     volk_free(input);
+ *     volk_free(output);
+ *     return 0;
+ *   }
  * \endcode
  */
 
