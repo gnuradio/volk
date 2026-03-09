@@ -24,7 +24,7 @@
  * \b Inputs
  * \li aVector: First vector of input points.
  * \li bVector: Second vector of input points.
- * \li num_points: The number of values in both input vector.
+ * \li num_points: The number of values in both input vectors.
  *
  * \b Outputs
  * \li cVector: The output vector.
@@ -42,14 +42,14 @@
  *   lv_32fc_t* out = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       increasing[ii] = (lv_32fc_t)ii;
- *       decreasing[ii] = 10.f - (lv_32fc_t)ii;
+ *       increasing[ii] = lv_cmake((float)ii, 0.f);
+ *       decreasing[ii] = lv_cmake(10.f - (float)ii, 0.f);
  *   }
  *
  *   volk_32fc_x2_add_32fc(out, increasing, decreasing, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out[%u] = %1.2f\n", ii, out[ii]);
+ *       printf("out[%u] = %1.2f + %1.2fj\n", ii, lv_creal(out[ii]), lv_cimag(out[ii]));
  *   }
  *
  *   volk_free(increasing);
