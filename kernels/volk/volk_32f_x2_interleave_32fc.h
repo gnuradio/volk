@@ -45,7 +45,7 @@
  *       imag[ii] = std::sqrt(1.f - real[ii] * real[ii]);
  *   }
  *
- *   volk_32f_x2_interleave_32fc(out, imag, real, N);
+ *   volk_32f_x2_interleave_32fc(out, real, imag, N);
  *
  *  for(unsigned int ii = 0; ii < N; ++ii){
  *      printf("out[%u] = %1.2f + %1.2fj\n", ii, std::real(out[ii]), std::imag(out[ii]));
