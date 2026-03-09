@@ -49,7 +49,7 @@
  *   volk_32fc_32f_add_32fc(out, increasing, decreasing, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       printf("out[%u] = %1.2f\n", ii, out[ii]);
+ *       printf("out[%u] = %1.2f + %1.2fi\n", ii, lv_creal(out[ii]), lv_cimag(out[ii]));
  *   }
  *
  *   volk_free(increasing);
