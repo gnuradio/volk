@@ -47,8 +47,8 @@
  *       float imag = std::sqrt(1.f - real * real);
  *       in[ii] = lv_cmake(real, imag);
  *       in[ii] = in[ii] * in[ii] + in[ii];
- *       in[N-ii] = lv_cmake(real, imag);
- *       in[N-ii] = in[N-ii] * in[N-ii] + in[N-ii];
+ *       in[N-1-ii] = lv_cmake(real, imag);
+ *       in[N-1-ii] = in[N-1-ii] * in[N-1-ii] + in[N-1-ii];
  *   }
  *
  *   volk_32fc_index_max_16u(max, in, N);
