@@ -32,12 +32,21 @@
  *
  * \b Example
  * \code
- * float x[4] = {-2.f, -1.f, 1.f, 2.f};
- * float y[4];
+ * unsigned int num_points = 4;
+ * unsigned int alignment = volk_get_alignment();
+ * float* in = (float*)volk_malloc(sizeof(float) * num_points, alignment);
+ * float* out = (float*)volk_malloc(sizeof(float) * num_points, alignment);
  *
- * volk_32f_s32f_x2_clamp_32f(y, x, -1.5f, 1.5f, 4);
- * // Expect y = {-1.5f, -1.f, 1.f, 1.5f}
+ * in[0] = -2.f;
+ * in[1] = -1.f;
+ * in[2] = 1.f;
+ * in[3] = 2.f;
  *
+ * volk_32f_s32f_x2_clamp_32f(out, in, -1.5f, 1.5f, num_points);
+ * // Expect out = {-1.5f, -1.f, 1.f, 1.5f}
+ *
+ * volk_free(in);
+ * volk_free(out);
  * \endcode
  */
 
