@@ -25,7 +25,7 @@
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li outputVector: The output vector complex floats.
+ * \li cVector: The output vector complex floats.
  *
  * \b Example
  * Mix two signals at f=0.3 and 0.1.
