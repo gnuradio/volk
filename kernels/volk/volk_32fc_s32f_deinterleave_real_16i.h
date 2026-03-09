@@ -12,7 +12,7 @@
  *
  * \b Overview
  *
- * Deinterleaves the complex floating point vector and return the real
+ * Deinterleaves the complex floating point vector and returns the real
  * part (inphase) of the samples scaled to 16-bit shorts.
  *
  * <b>Dispatcher Prototype</b>
@@ -22,7 +22,7 @@
  *
  * \b Inputs
  * \li complexVector: The complex input vector.
- * \li scalar: The value to be multiplied against each of the input vectors..
+ * \li scalar: The value to be multiplied against each of the input samples.
  * \li num_points: The number of complex data values to be deinterleaved.
  *
  * \b Outputs
