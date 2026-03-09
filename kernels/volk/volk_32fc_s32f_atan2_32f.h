@@ -22,9 +22,9 @@
  * const float normalizeFactor, unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li inputVector: The byte-aligned input vector containing interleaved IQ data (I = cos,
+ * \li complexVector: The byte-aligned input vector containing interleaved IQ data (I = cos,
  * Q = sin). \li normalizeFactor: The atan results are divided by this normalization
- * factor. \li num_points: The number of complex values in \p inputVector.
+ * factor. \li num_points: The number of complex values in \p complexVector.
  *
  * \b Outputs
  * \li outputVector: The vector where the results will be stored.
