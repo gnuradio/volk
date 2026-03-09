@@ -14,19 +14,19 @@
  * \b Overview
  *
  * Computes the inverse square root of the input vector and stores
- * result in the output vector.
+ * the result in the output vector.
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_invsqrt_32f(float* cVector, const float* aVector, unsigned int
- * num_points) \endcode
+ * void volk_32f_invsqrt_32f(float* cVector, const float* aVector, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
- * \li aVector: the input vector of floats.
+ * \li aVector: The input vector of floats.
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li cVector: The output vector.
+ * \li cVector: The output vector of floats.
  *
  * \b Example
  * \code
@@ -36,7 +36,7 @@
  *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       in[ii] = 1.0 / (float)(ii*ii);
+ *       in[ii] = (float)(ii + 1);
  *   }
  *
  *   volk_32f_invsqrt_32f(out, in, N);
