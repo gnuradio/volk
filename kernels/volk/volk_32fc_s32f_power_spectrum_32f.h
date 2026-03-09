@@ -12,7 +12,9 @@
  *
  * \b Overview
  *
- * Calculates the log10 power value for each input point.
+ * Computes the log power spectrum of complex FFT data. Each output sample is
+ * 10 * log10((real/norm)^2 + (imag/norm)^2), where norm is the normalization factor.
+ * This is useful for converting complex FFT output into a power spectral density in dB.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -20,20 +22,49 @@
  * complexFFTInput, const float normalizationFactor, unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li complexFFTInput The complex data output from the FFT point.
- * \li normalizationFactor: This value is divided against all the input values before the
- * power is calculated. \li num_points: The number of fft data points.
+ * \li complexFFTInput: The complex data output from the FFT.
+ * \li normalizationFactor: Each input value is divided by this factor before the power is
+ * calculated.
+ * \li num_points: The number of FFT data points.
  *
  * \b Outputs
- * \li logPowerOutput: The 10.0 * log10(r*r + i*i) for each data point.
+ * \li logPowerOutput: The 10.0 * log10(r*r + i*i) for each data point, where r and i are
+ * the normalized real and imaginary components.
  *
  * \b Example
+ * Compute the power spectrum in dB from simulated FFT output.
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
+ * #include <math.h>
  *
- * volk_32fc_s32f_power_spectrum_32f();
+ * int main() {
+ *     unsigned int N = 8;
+ *     unsigned int alignment = volk_get_alignment();
+ *     float normalizationFactor = (float)N;
  *
- * volk_free(x);
+ *     lv_32fc_t* fftOutput =
+ *         (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t) * N, alignment);
+ *     float* powerSpectrum =
+ *         (float*)volk_malloc(sizeof(float) * N, alignment);
+ *
+ *     // Simulate FFT output with a strong bin at index 1
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         fftOutput[i] = lv_cmake(0.01f, 0.01f);
+ *     }
+ *     fftOutput[1] = lv_cmake(4.0f, 3.0f); // magnitude 5.0
+ *
+ *     volk_32fc_s32f_power_spectrum_32f(
+ *         powerSpectrum, fftOutput, normalizationFactor, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         printf("bin[%u] = %+.2f dB\n", i, powerSpectrum[i]);
+ *     }
+ *
+ *     volk_free(fftOutput);
+ *     volk_free(powerSpectrum);
+ *     return 0;
+ * }
  * \endcode
  */
 
