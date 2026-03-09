@@ -809,8 +809,9 @@ bool run_volk_tests(volk_func_desc_t desc,
                     const std::vector<lv_32fc_t>& complex_edge_cases)
 {
     // Ensure at least 1 trial to avoid empty-vector crashes in statistics
-    if (trials == 0)
+    if (trials == 0) {
         trials = 1;
+    }
 
     // Initialize this entry in results vector
     results->push_back(volk_test_results_t());
