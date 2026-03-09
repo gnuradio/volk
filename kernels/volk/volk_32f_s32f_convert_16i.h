@@ -30,9 +30,12 @@
  *
  * \b Example
  * Convert floats from [-1,1] to 16-bit integers with a scale of 5 to maintain smallest
- * delta int N = 10; unsigned int alignment = volk_get_alignment(); float* increasing =
- * (float*)volk_malloc(sizeof(float)*N, alignment); int16_t* out =
- * (int16_t*)volk_malloc(sizeof(int16_t)*N, alignment);
+ * delta
+ * \code
+ *   int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
+ *   int16_t* out = (int16_t*)volk_malloc(sizeof(int16_t)*N, alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
  *       increasing[ii] = 2.f * ((float)ii / (float)N) - 1.f;
@@ -41,7 +44,7 @@
  *   // Normalize by the smallest delta (0.2 in this example)
  *   float scale = 5.f;
  *
- *   volk_32f_s32f_convert_32i(out, increasing, scale, N);
+ *   volk_32f_s32f_convert_16i(out, increasing, scale, N);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
  *       printf("out[%u] = %i\n", ii, out[ii]);
