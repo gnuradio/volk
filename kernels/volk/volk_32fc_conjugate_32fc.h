@@ -24,7 +24,7 @@
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li bVector: The output vector of complex floats.
+ * \li cVector: The output vector of complex floats.
  *
  * \b Example
  * Generate points around the top half of the unit circle and conjugate them
