@@ -33,8 +33,13 @@
  *
  * unsigned int alignment = volk_get_alignment();
  * lv_16sc_t* input  = (lv_16sc_t*)volk_malloc(sizeof(lv_16sc_t)*N, alignment);
- * lv_32fc_t* output  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
- * volk_16ic_convert_32f(output, input, N);
+ * lv_32fc_t* output = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
+ *
+ * for (int i = 0; i < N; i++) {
+ *     input[i] = lv_cmake((int16_t)(i % 256), (int16_t)(i % 128));
+ * }
+ *
+ * volk_16ic_convert_32fc(output, input, N);
  *
  * volk_free(input);
  * volk_free(output);
