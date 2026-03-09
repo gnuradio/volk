@@ -28,25 +28,35 @@
  *
  * \b Example
  * \code
- *   int N = 10;
+ *   unsigned int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *
- *   uint64_t bitstring[] = {0x0, 0x1, 0xf, 0xffffffffffffffff,
- *       0x5a5a5a5a5a5a5a5a, 0xa5a5a5a5a5a5a5a5, 0x2a2a2a2a2a2a2a2a,
- *       0xffffffff, 0x32, 0x64};
- *   uint64_t hamming_distance = 0;
+ *   uint64_t* bitstring = (uint64_t*)volk_malloc(N * sizeof(uint64_t), alignment);
+ *
+ *   bitstring[0] = 0x0;
+ *   bitstring[1] = 0x1;
+ *   bitstring[2] = 0xf;
+ *   bitstring[3] = 0xffffffffffffffff;
+ *   bitstring[4] = 0x5a5a5a5a5a5a5a5a;
+ *   bitstring[5] = 0xa5a5a5a5a5a5a5a5;
+ *   bitstring[6] = 0x2a2a2a2a2a2a2a2a;
+ *   bitstring[7] = 0xffffffff;
+ *   bitstring[8] = 0x32;
+ *   bitstring[9] = 0x64;
  *
  *   printf("byteswap vector =\n");
- *   for(unsigned int ii=0; ii<N; ++ii){
+ *   for (unsigned int ii = 0; ii < N; ++ii) {
  *       printf("    %.16lx\n", bitstring[ii]);
  *   }
  *
  *   volk_64u_byteswap(bitstring, N);
  *
  *   printf("byteswapped vector =\n");
- *   for(unsigned int ii=0; ii<N; ++ii){
+ *   for (unsigned int ii = 0; ii < N; ++ii) {
  *       printf("    %.16lx\n", bitstring[ii]);
  *   }
+ *
+ *   volk_free(bitstring);
  * \endcode
  */
 
