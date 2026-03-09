@@ -13,35 +13,10 @@
  *
  * \b Overview
  *
- * Computes base 2 log of input vector and stores results in output vector.
- *
- * Note that this implementation is not conforming to the IEEE FP standard, i.e.,
- * +-Inf outputs are mapped to +-127.0f and +-NaN input values are not supported.
- *
- * This kernel was adapted from Jose Fonseca's Fast SSE2 log implementation
- * https://jrfonseca.blogspot.com/2008/09/fast-sse2-pow-tables-or-polynomials.html
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- * IN NO EVENT SHALL TUNGSTEN GRAPHICS AND/OR ITS SUPPLIERS BE LIABLE FOR
- * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * This is the MIT License (MIT)
+ * Computes the base-2 logarithm of the input vector and stores the results
+ * in the output vector. This is a fast approximation that does not conform to
+ * the IEEE FP standard; +-Inf outputs are mapped to +-127.0f and NaN input
+ * values are not supported.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -49,11 +24,11 @@
  * \endcode
  *
  * \b Inputs
- * \li aVector: the input vector of floats.
+ * \li aVector: The input vector of floats.
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li bVector: The output vector.
+ * \li bVector: The output vector of floats.
  *
  * \b Example
  * \code
