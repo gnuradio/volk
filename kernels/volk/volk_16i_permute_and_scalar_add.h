@@ -12,38 +12,93 @@
  *
  * \b Deprecation
  *
- * This kernel is deprecated.
+ * This kernel is deprecated, no replacement has been identified.
  *
  * \b Overview
  *
- * <FIXME>
+ * Gathers elements from a source vector using an index array, then adds
+ * scalar-masked contributions from four control vectors. For each element i,
+ * computes: target[i] = src0[permute_indexes[i]] + (cntl0[i] & scalars[0]) +
+ * (cntl1[i] & scalars[1]) + (cntl2[i] & scalars[2]) + (cntl3[i] & scalars[3]).
+ * The control vectors act as bitwise masks that selectively pass or block each scalar
+ * value on a per-element basis.
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_16i_permute_and_scalar_add(short* target,  short* src0, short*
+ * void volk_16i_permute_and_scalar_add(short* target, short* src0, short*
  * permute_indexes, short* cntl0, short* cntl1, short* cntl2, short* cntl3, short*
- * scalars, unsigned int num_points) \endcode
+ * scalars, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
- * \li src0: The input vector.
- * \li permute_indexes: <FIXME>
- * \li cntl0: <FIXME>
- * \li cntl1: <FIXME>
- * \li cntl2: <FIXME>
- * \li cntl3: <FIXME>
- * \li scalars: <FIXME>
- * \li num_points: The number of complex data points.
+ * \li src0: The source vector of short values to gather from.
+ * \li permute_indexes: Vector of short indices used to look up elements in src0.
+ * \li cntl0: First control mask vector of short values (num_points elements).
+ * \li cntl1: Second control mask vector of short values (num_points elements).
+ * \li cntl2: Third control mask vector of short values (num_points elements).
+ * \li cntl3: Fourth control mask vector of short values (num_points elements).
+ * \li scalars: Array of 4 short values, each bitwise ANDed with the corresponding
+ * control vector.
+ * \li num_points: The number of short values to process.
  *
  * \b Outputs
- * \li target: The output value.
+ * \li target: The output vector of short values (num_points elements).
  *
  * \b Example
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
  *
- * volk_16i_permute_and_scalar_add();
+ * int N = 8;
+ * unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
+ * short* src0 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ * short* permute_indexes = (short*)volk_malloc(sizeof(short) * N, alignment);
+ * short* cntl0 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ * short* cntl1 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ * short* cntl2 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ * short* cntl3 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ * short* scalars = (short*)volk_malloc(sizeof(short) * 4, alignment);
+ * short* target = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *
+ * for (unsigned int ii = 0; ii < N; ++ii) {
+ *     src0[ii] = (short)(ii * 10);
+ * }
+ *
+ * // Reverse permutation: read src0 in reverse order
+ * for (unsigned int ii = 0; ii < N; ++ii) {
+ *     permute_indexes[ii] = (short)(N - 1 - ii);
+ * }
+ *
+ * // Control masks: -1 (all bits set) passes the scalar through, 0 blocks it
+ * for (unsigned int ii = 0; ii < N; ++ii) {
+ *     cntl0[ii] = -1;
+ *     cntl1[ii] = 0;
+ *     cntl2[ii] = 0;
+ *     cntl3[ii] = 0;
+ * }
+ *
+ * scalars[0] = 1;
+ * scalars[1] = 2;
+ * scalars[2] = 3;
+ * scalars[3] = 4;
+ *
+ * // target[i] = src0[7-i] + (-1 & 1) + 0 + 0 + 0 = src0[7-i] + 1
+ * volk_16i_permute_and_scalar_add(target, src0, permute_indexes, cntl0, cntl1, cntl2,
+ *                                 cntl3, scalars, N);
+ *
+ * for (unsigned int ii = 0; ii < N; ++ii) {
+ *     printf("target[%u] = %d\n", ii, target[ii]);
+ * }
+ *
+ * volk_free(src0);
+ * volk_free(permute_indexes);
+ * volk_free(cntl0);
+ * volk_free(cntl1);
+ * volk_free(cntl2);
+ * volk_free(cntl3);
+ * volk_free(scalars);
+ * volk_free(target);
  * \endcode
  */
 
