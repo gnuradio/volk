@@ -62,6 +62,10 @@
  *           printf("\n");
  *       }
  *   }
+ *
+ *   volk_free(x);
+ *   volk_free(y);
+ *   volk_free(z);
  * \endcode
  */
 
