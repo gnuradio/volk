@@ -34,13 +34,17 @@
  * \b Example
  * \code
  * int N = 10000;
+ * unsigned int alignment = volk_get_alignment();
  * lv_32fc_t y;
- * lv_32fc_t *x = (lv_32fc_t*)volk_malloc(N*sizeof(lv_32fc_t), volk_get_alignment());
- * float *t = (float*)volk_malloc(N*sizeof(float), volk_get_alignment());
+ * lv_32fc_t *x = (lv_32fc_t*)volk_malloc(N*sizeof(lv_32fc_t), alignment);
+ * float *t = (float*)volk_malloc(N*sizeof(float), alignment);
  *
- * <populate x and t with some values>
+ * for (int i = 0; i < N; i++) {
+ *     x[i] = lv_cmake((float)i, (float)(i + 1));
+ *     t[i] = (float)i;
+ * }
  *
- * volk_32fc_dot_prod_32fc(&y, x, t, N);
+ * volk_32fc_32f_dot_prod_32fc(&y, x, t, N);
  *
  * volk_free(x);
  * volk_free(t);
