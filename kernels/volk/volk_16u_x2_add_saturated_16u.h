@@ -36,7 +36,10 @@
  *   uint16_t* b = (uint16_t*)volk_malloc(N * sizeof(uint16_t), align);
  *   uint16_t* result = (uint16_t*)volk_malloc(N * sizeof(uint16_t), align);
  *
- *   // Values that will cause saturation
+ *   for (unsigned int i = 0; i < N; i++) {
+ *       a[i] = 60000;
+ *       b[i] = 200;
+ *   }
  *   a[0] = 60000; b[0] = 10000; // 70000 -> saturates to 65535
  *   a[1] = 1000;  b[1] = 2000;  // 3000 -> no saturation
  *
