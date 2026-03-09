@@ -12,11 +12,9 @@
  *
  * \b Overview
  *
- * This block computes the dot product (or inner product) between two
- * vectors, the \p input and \p taps vectors. Given a set of \p
- * num_points taps, the result is the sum of products between the two
- * vectors. The result is a single value stored in the \p result
- * address and is returned as a complex float.
+ * Computes the complex dot product (inner product) of two complex float vectors.
+ * The result is the sum of element-wise complex multiplications, returned as a
+ * single complex float value.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -24,21 +22,47 @@
  * lv_32fc_t* taps, unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li input: vector of complex floats.
- * \li taps:  complex float taps.
- * \li num_points: number of samples in both \p input and \p taps.
+ * \li input: The complex float input vector.
+ * \li taps: The complex float taps vector.
+ * \li num_points: The number of complex values in both \p input and \p taps.
  *
  * \b Outputs
- * \li result: pointer to a complex float value to hold the dot product result.
+ * \li result: Pointer to a complex float value to hold the dot product result.
  *
  * \b Example
+ * Compute the dot product of two short complex vectors.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * <FIXME>
+ *   int main(){
+ *     unsigned int N = 4;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_32fc_x2_dot_prod_32fc();
+ *     lv_32fc_t* input = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t) * N, alignment);
+ *     lv_32fc_t* taps  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t) * N, alignment);
+ *     lv_32fc_t result;
  *
+ *     // Initialize input: complex sinusoid samples
+ *     input[0] = lv_cmake(1.0f,  0.0f);
+ *     input[1] = lv_cmake(0.0f,  1.0f);
+ *     input[2] = lv_cmake(-1.0f, 0.0f);
+ *     input[3] = lv_cmake(0.0f, -1.0f);
+ *
+ *     // Initialize taps: simple FIR filter coefficients
+ *     taps[0] = lv_cmake(0.5f, 0.0f);
+ *     taps[1] = lv_cmake(0.25f, 0.1f);
+ *     taps[2] = lv_cmake(0.25f, -0.1f);
+ *     taps[3] = lv_cmake(0.5f, 0.0f);
+ *
+ *     volk_32fc_x2_dot_prod_32fc(&result, input, taps, N);
+ *
+ *     printf("Dot product = (%1.4f, %1.4f)\n", lv_creal(result), lv_cimag(result));
+ *
+ *     volk_free(input);
+ *     volk_free(taps);
+ *     return 0;
+ *   }
  * \endcode
  */
 
