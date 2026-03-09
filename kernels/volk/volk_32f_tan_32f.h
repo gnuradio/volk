@@ -12,9 +12,8 @@
  *
  * \b Overview
  *
- * Computes the tangent of each element of the aVector.
- *
- * b[i] = tan(a[i])
+ * Computes the tangent of the input vector and stores the results in the output
+ * vector.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -22,11 +21,11 @@
  * \endcode
  *
  * \b Inputs
- * \li aVector: The buffer of points.
- * \li num_points: The number of values in input buffer.
+ * \li aVector: The input vector of floats.
+ * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li bVector: The output buffer.
+ * \li bVector: The output vector of floats.
  *
  * \b Example
  * Calculate tan(theta) for common angles.
@@ -40,8 +39,8 @@
  *   in[1] = 0.524;
  *   in[2] = 0.785;
  *   in[3] = 1.047;
- *   in[4] = 1.571  ;
- *   in[5] = 1.571  ;
+ *   in[4] = 1.571;
+ *   in[5] = 1.571;
  *   in[6] = -1.047;
  *   in[7] = -0.785;
  *   in[8] = -0.524;
