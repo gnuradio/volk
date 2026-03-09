@@ -28,7 +28,7 @@
  * \li iBuffer: The I buffer output data.
  *
  * \b Example
- * \code
+ *
  * Generate complex numbers around the top half of the unit circle and
  * extract all of the real parts to a double buffer.
  * \code
