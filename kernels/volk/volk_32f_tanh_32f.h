@@ -38,7 +38,7 @@
  *   for(unsigned int ii = 0; ii < N; ++ii){
  *       // the approximate artanh(x) for x<1
  *       float x = (float)ii / (float)N;
- *       in[ii] = 0.5 * std::log((1.f+x)/(1.f-x));
+ *       in[ii] = 0.5f * logf((1.f+x)/(1.f-x));
  *   }
  *
  *   volk_32f_tanh_32f(out, in, N);
