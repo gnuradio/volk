@@ -16,49 +16,62 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_8u_x3_encodepolar_8u_x2(unsigned char* frame, const unsigned char*
- * frozen_bit_mask, const unsigned char* frozen_bits, const unsigned char* info_bits,
- * unsigned int frame_size, unsigned int info_bit_size) \endcode
+ * void volk_8u_x3_encodepolar_8u_x2(unsigned char* frame, unsigned char* temp,
+ * const unsigned char* frozen_bit_mask, const unsigned char* frozen_bits,
+ * const unsigned char* info_bits, unsigned int frame_size)
+ * \endcode
  *
  * \b Inputs
- * \li frame: buffer for encoded frame
  * \li frozen_bit_mask: bytes with 0xFF for frozen bit positions or 0x00 otherwise.
  * \li frozen_bits: values of frozen bits, 1 bit per byte
  * \li info_bits: info bit values, 1 bit per byte
  * \li frame_size: power of 2 value for frame size.
- * \li info_bit_size: number of info bits in a frame
  *
  * \b Outputs
  * \li frame: polar encoded frame.
+ * \li temp: temporary buffer used during encoding.
  *
  * \b Example
  * \code
  * int frame_exp = 10;
  * int frame_size = 0x01 << frame_exp;
- * int num_info_bits = frame_size;
- * int num_frozen_bits = frame_size - num_info_bits;
+ * int num_frozen_bits = frame_size / 2;
+ * int num_info_bits = frame_size - num_frozen_bits;
+ * unsigned int alignment = volk_get_alignment();
  *
- * // function sets frozenbit positions to 0xff and all others to 0x00.
- * unsigned char* frozen_bit_mask = get_frozen_bit_mask(frame_size, num_frozen_bits);
+ * // 0xFF for frozen bit positions, 0x00 for info bit positions
+ * unsigned char* frozen_bit_mask =
+ *     (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size, alignment);
+ * for (int i = 0; i < frame_size; ++i) {
+ *     frozen_bit_mask[i] = (i < num_frozen_bits) ? 0xFF : 0x00;
+ * }
  *
- * // set elements to desired values. Typically all zero.
- * unsigned char* frozen_bits = (unsigned char) volk_malloc(sizeof(unsigned char) *
- * num_frozen_bits, volk_get_alignment());
+ * // set frozen bit values, typically all zero
+ * unsigned char* frozen_bits =
+ *     (unsigned char*)volk_malloc(sizeof(unsigned char) * num_frozen_bits, alignment);
+ * for (int i = 0; i < num_frozen_bits; ++i) {
+ *     frozen_bits[i] = 0;
+ * }
  *
- * unsigned char* frame = (unsigned char) volk_malloc(sizeof(unsigned char) * frame_size,
- * volk_get_alignment()); unsigned char* temp = (unsigned char)
- * volk_malloc(sizeof(unsigned char) * frame_size, volk_get_alignment());
+ * unsigned char* info_bits =
+ *     (unsigned char*)volk_malloc(sizeof(unsigned char) * num_info_bits, alignment);
+ * for (int i = 0; i < num_info_bits; ++i) {
+ *     info_bits[i] = i % 2;
+ * }
  *
- * unsigned char* info_bits = get_info_bits_to_encode(num_info_bits);
+ * unsigned char* frame =
+ *     (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size, alignment);
+ * unsigned char* temp =
+ *     (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size, alignment);
  *
  * volk_8u_x3_encodepolar_8u_x2(
  *     frame, temp, frozen_bit_mask, frozen_bits, info_bits, frame_size);
  *
  * volk_free(frozen_bit_mask);
  * volk_free(frozen_bits);
+ * volk_free(info_bits);
  * volk_free(frame);
  * volk_free(temp);
- * volk_free(info_bits);
  * \endcode
  */
 
