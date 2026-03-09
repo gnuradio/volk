@@ -30,7 +30,7 @@
  *
  * \b Example
  * Generate complex numbers around the top half of the unit circle and
- * deinterleave in to real and imaginary double buffers.
+ * deinterleave into real and imaginary double buffers.
  * \code
  *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
