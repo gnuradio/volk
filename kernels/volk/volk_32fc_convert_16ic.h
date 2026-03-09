@@ -12,22 +12,54 @@
  *
  * \b Overview
  *
- * Converts a complex vector of 32-bits float each component into
- * a complex vector of 16-bits integer each component.
+ * Converts a complex vector of 32-bit float each component into
+ * a complex vector of 16-bit integer each component.
  * Values are saturated to the limit values of the output data type.
  *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_32fc_convert_16ic(lv_16sc_t* outputVector, const lv_32fc_t* inputVector,
- * unsigned int num_points); \endcode
+ * unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
- * \li inputVector:  The complex 32-bit float input data buffer.
- * \li num_points:   The number of data values to be converted.
+ * \li inputVector: The complex 32-bit float input data buffer.
+ * \li num_points: The number of data values to be converted.
  *
  * \b Outputs
  * \li outputVector: The complex 16-bit integer output data buffer.
  *
+ * \b Example
+ * Convert complex float samples to 16-bit integer representation with saturation.
+ * \code
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
+ *
+ *   int main(){
+ *     unsigned int N = 4;
+ *     unsigned int alignment = volk_get_alignment();
+ *
+ *     lv_32fc_t* input = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t) * N, alignment);
+ *     lv_16sc_t* output = (lv_16sc_t*)volk_malloc(sizeof(lv_16sc_t) * N, alignment);
+ *
+ *     // Mix of normal values and values that will saturate
+ *     input[0] = lv_cmake(100.0f, -200.0f);
+ *     input[1] = lv_cmake(16000.5f, -16000.5f);
+ *     input[2] = lv_cmake(50000.0f, -50000.0f);   // will saturate to SHRT_MAX/SHRT_MIN
+ *     input[3] = lv_cmake(-1234.7f, 5678.3f);
+ *
+ *     volk_32fc_convert_16ic(output, input, N);
+ *
+ *     // Expected output: (100,-200) (16000,-16000) (32767,-32768) (-1235,5678)
+ *     for (unsigned int i = 0; i < N; i++) {
+ *       printf("(%d,%d)\n", lv_creal(output[i]), lv_cimag(output[i]));
+ *     }
+ *
+ *     volk_free(input);
+ *     volk_free(output);
+ *     return 0;
+ *   }
+ * \endcode
  */
 
 #ifndef INCLUDED_volk_32fc_convert_16ic_a_H
