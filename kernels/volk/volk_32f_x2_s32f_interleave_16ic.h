@@ -15,7 +15,7 @@
  * Takes input vector iBuffer as the real (inphase) part and input
  * vector qBuffer as the imag (quadrature) part and combines them into
  * a complex output vector. The output is scaled by the input scalar
- * value and convert to a 16-bit short comlex number.
+ * value and convert to a 16-bit short complex number.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -25,7 +25,7 @@
  * \b Inputs
  * \li iBuffer: Input vector of samples for the real part.
  * \li qBuffer: Input vector of samples for the imaginary part.
- * \;i scalar:  The scalar value used to scale the values before converting to shorts.
+ * \li scalar:  The scalar value used to scale the values before converting to shorts.
  * \li num_points: The number of values in both input vectors.
  *
  * \b Outputs
@@ -47,7 +47,7 @@
  *   // Normalize by smallest delta (0.02 in this example)
  *   float scale = 50.f;
  *
- *   volk_32f_x2_s32f_interleave_16ic(out, imag, real, scale, N);
+ *   volk_32f_x2_s32f_interleave_16ic(out, real, imag, scale, N);
  *
  *  for(unsigned int ii = 0; ii < N; ++ii){
  *      printf("out[%u] = %i + %ij\n", ii, std::real(out[ii]), std::imag(out[ii]));
