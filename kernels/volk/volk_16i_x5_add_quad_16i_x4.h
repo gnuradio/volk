@@ -12,39 +12,82 @@
  *
  * \b Deprecation
  *
- * This kernel is deprecated.
+ * This kernel is deprecated, no replacement has been identified.
  *
  * \b Overview
  *
- * <FIXME>
+ * Adds a common 16-bit integer base vector (src0) to each of four other 16-bit integer
+ * vectors (src1, src2, src3, src4), producing four output vectors. Computes target0 =
+ * src0 + src1, target1 = src0 + src2, target2 = src0 + src3, and target3 = src0 + src4
+ * element-wise.
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_16i_x5_add_quad_16i_x4(short* target0, short* target1, short* target2, short*
- * target3, short* src0, short* src1, short* src2, short* src3, short* src4, unsigned int
- * num_points); \endcode
+ * void volk_16i_x5_add_quad_16i_x4(short* target0, short* target1, short* target2,
+ * short* target3, short* src0, short* src1, short* src2, short* src3, short* src4,
+ * unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
- * \li src0: The input vector 0.
- * \li src1: The input vector 1.
- * \li src2: The input vector 2.
- * \li src3: The input vector 3.
- * \li src4: The input vector 4.
- * \li num_points: The number of data points.
+ * \li src0: Common base vector of 16-bit integers added to each of the other inputs.
+ * \li src1: Input vector of 16-bit integers added to src0 to produce target0.
+ * \li src2: Input vector of 16-bit integers added to src0 to produce target1.
+ * \li src3: Input vector of 16-bit integers added to src0 to produce target2.
+ * \li src4: Input vector of 16-bit integers added to src0 to produce target3.
+ * \li num_points: The number of elements in each vector.
  *
  * \b Outputs
- * \li target0: The output value 0.
- * \li target1: The output value 1.
- * \li target2: The output value 2.
- * \li target3: The output value 3.
+ * \li target0: Output vector of 16-bit integers: src0 + src1.
+ * \li target1: Output vector of 16-bit integers: src0 + src2.
+ * \li target2: Output vector of 16-bit integers: src0 + src3.
+ * \li target3: Output vector of 16-bit integers: src0 + src4.
  *
  * \b Example
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
  *
- * volk_16i_x5_add_quad_16i_x4();
+ * int main() {
+ *     unsigned int N = 10;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
+ *     short* src0 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *     short* src1 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *     short* src2 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *     short* src3 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *     short* src4 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *     short* target0 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *     short* target1 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *     short* target2 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *     short* target3 = (short*)volk_malloc(sizeof(short) * N, alignment);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         src0[i] = (short)i;       // common base: 0, 1, 2, ...
+ *         src1[i] = (short)(i * 2); // 0, 2, 4, ...
+ *         src2[i] = (short)(i * 3); // 0, 3, 6, ...
+ *         src3[i] = (short)(i * 4); // 0, 4, 8, ...
+ *         src4[i] = (short)(i * 5); // 0, 5, 10, ...
+ *     }
+ *
+ *     volk_16i_x5_add_quad_16i_x4(
+ *         target0, target1, target2, target3,
+ *         src0, src1, src2, src3, src4, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         printf("i=%u: t0=%d t1=%d t2=%d t3=%d\n",
+ *                i, target0[i], target1[i], target2[i], target3[i]);
+ *     }
+ *
+ *     volk_free(src0);
+ *     volk_free(src1);
+ *     volk_free(src2);
+ *     volk_free(src3);
+ *     volk_free(src4);
+ *     volk_free(target0);
+ *     volk_free(target1);
+ *     volk_free(target2);
+ *     volk_free(target3);
+ * }
  * \endcode
  */
 
