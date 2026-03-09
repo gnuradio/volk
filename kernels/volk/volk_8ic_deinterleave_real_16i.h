@@ -12,8 +12,9 @@
  *
  * \b Overview
  *
- * Deinterleaves the complex 8-bit char vector into just the I (real)
- * vector and converts it to 16-bit shorts.
+ * Deinterleaves the complex 8-bit char vector into just the real (I)
+ * component and converts it to 16-bit shorts. Each 8-bit value is
+ * sign-extended to 16 bits and scaled by 128 (left-shifted by 7).
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -21,19 +22,45 @@
  * unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li complexVector: The complex input vector.
+ * \li complexVector: The complex input vector of interleaved 8-bit I/Q pairs (lv_8sc_t).
  * \li num_points: The number of complex data values to be deinterleaved.
  *
  * \b Outputs
- * \li iBuffer: The I buffer output data.
+ * \li iBuffer: The real (I) output vector of 16-bit shorts (int16_t).
  *
  * \b Example
+ * Extract the real component from complex 8-bit samples into a 16-bit vector.
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
  *
- * volk_8ic_deinterleave_real_16i();
+ * int main() {
+ *     unsigned int N = 4;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
+ *     lv_8sc_t* complexVector =
+ *         (lv_8sc_t*)volk_malloc(sizeof(lv_8sc_t) * N, alignment);
+ *     int16_t* iBuffer = (int16_t*)volk_malloc(sizeof(int16_t) * N, alignment);
+ *
+ *     // Simulate complex 8-bit samples: (I, Q) pairs
+ *     complexVector[0] = lv_cmake((int8_t)127, (int8_t)-128);
+ *     complexVector[1] = lv_cmake((int8_t)50, (int8_t)-50);
+ *     complexVector[2] = lv_cmake((int8_t)0, (int8_t)100);
+ *     complexVector[3] = lv_cmake((int8_t)-30, (int8_t)30);
+ *
+ *     // Extract real (I) component, scaled by 128
+ *     volk_8ic_deinterleave_real_16i(iBuffer, complexVector, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         printf("complex[%u] = (%4d, %4d)  ->  I = %6d\n",
+ *                i, lv_creal(complexVector[i]), lv_cimag(complexVector[i]),
+ *                iBuffer[i]);
+ *     }
+ *
+ *     volk_free(complexVector);
+ *     volk_free(iBuffer);
+ *     return 0;
+ * }
  * \endcode
  */
 
