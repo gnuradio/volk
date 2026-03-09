@@ -30,18 +30,22 @@
  *
  * \b Example
  * \code
- *   unsigned int N = 8;
- *   unsigned int align = volk_get_alignment();
- *   int8_t* a = (int8_t*)volk_malloc(N, align);
- *   int8_t* b = (int8_t*)volk_malloc(N, align);
- *   int8_t* result = (int8_t*)volk_malloc(N, align);
+ *   int N = 8;
+ *   unsigned int alignment = volk_get_alignment();
+ *   int8_t* a = (int8_t*)volk_malloc(sizeof(int8_t) * N, alignment);
+ *   int8_t* b = (int8_t*)volk_malloc(sizeof(int8_t) * N, alignment);
+ *   int8_t* result = (int8_t*)volk_malloc(sizeof(int8_t) * N, alignment);
  *
  *   // Values that will cause saturation
- *   a[0] = 100; b[0] = 50;   // 150 -> saturates to 127
- *   a[1] = -100; b[1] = -50; // -150 -> saturates to -128
+ *   for (unsigned int ii = 0; ii < N; ++ii) {
+ *       a[ii] = 100;
+ *       b[ii] = 50;
+ *   }
+ *   a[1] = -100;
+ *   b[1] = -50;
  *
  *   volk_8i_x2_add_saturated_8i(result, a, b, N);
- *   // result[0] == 127, result[1] == -128
+ *   // result[0] == 127 (saturated), result[1] == -128 (saturated)
  *
  *   volk_free(a);
  *   volk_free(b);
