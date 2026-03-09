@@ -44,11 +44,12 @@
  *       increasing[ii] =  distribution(generator);
  *   }
  *
- *   volk_32f_s32f_power_32f(stddev, increasing, mean, N);
+ *   volk_32f_s32f_stddev_32f(stddev, increasing, mean, N);
  *
  *   printf("std. dev. = %f\n", *stddev);
  *
  *   volk_free(increasing);
+ *   volk_free(stddev);
  * \endcode
  */
 
