@@ -22,7 +22,7 @@
  *
  * \b Inputs
  * \li numeratorVector: The numerator complex values.
- * \li numeratorVector: The denumerator complex values.
+ * \li denumeratorVector: The denumerator complex values.
  * \li num_points: The number of data points.
  *
  * \b Outputs
@@ -38,7 +38,6 @@
  *   lv_32fc_t* input_vector  = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *   lv_32fc_t* out = (lv_32fc_t*)volk_malloc(sizeof(lv_32fc_t)*N, alignment);
  *
- *   float delta = 2.f*M_PI / (float)N;
  *   for(unsigned int ii = 0; ii < N; ++ii){
  *       float real_1 = std::cos(0.3f * (float)ii);
  *       float imag_1 = std::sin(0.3f * (float)ii);
