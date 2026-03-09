@@ -17,38 +17,41 @@
  * <b>Dispatcher Prototype</b>
  * \code
  * volk_32f_8u_polarbutterfly_32f(float* llrs, unsigned char* u,
- *    const int frame_size, const int frame_exp,
- *    const int stage, const int u_num, const int row)
+ *    const int frame_exp, const int stage, const int u_num, const int row)
  * \endcode
  *
  * \b Inputs
  * \li llrs: buffer with LLRs. contains received LLRs and already decoded LLRs.
  * \li u: previously decoded bits
- * \li frame_size: = 2 ^ frame_exp.
  * \li frame_exp: power of 2 value for frame size.
  * \li stage: value in range [0, frame_exp). start stage algorithm goes deeper.
  * \li u_num: bit number currently to be decoded
  * \li row: row in graph to start decoding.
  *
  * \b Outputs
- * \li frame: necessary LLRs for bit [u_num] to be decoded
+ * \li llrs: necessary LLRs for bit [u_num] to be decoded
  *
  * \b Example
  * \code
  * int frame_exp = 10;
  * int frame_size = 0x01 << frame_exp;
  *
- * float* llrs = (float*) volk_malloc(sizeof(float) * frame_size * (frame_exp + 1),
- * volk_get_alignment()); unsigned char* u = (unsigned char) volk_malloc(sizeof(unsigned
- * char) * frame_size * (frame_exp + 1), volk_get_alignment());
+ * unsigned int alignment = volk_get_alignment();
+ * float* llrs = (float*)volk_malloc(sizeof(float) * frame_size * (frame_exp + 1),
+ *     alignment);
+ * unsigned char* u = (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size *
+ *     (frame_exp + 1), alignment);
  *
- *  {some_function_to_write_encoded_bits_to_float_llrs(llrs + frame_size * frame_exp,
- * data)};
+ * memset(llrs, 0, sizeof(float) * frame_size * (frame_exp + 1));
+ * memset(u, 0, sizeof(unsigned char) * frame_size * (frame_exp + 1));
+ * // write received channel LLRs into the last stage
+ * for(unsigned int i = 0; i < (unsigned int)frame_size; i++){
+ *     llrs[frame_size * frame_exp + i] = 1.0f - 2.0f * (i % 2);
+ * }
  *
  * unsigned int u_num;
- * for(u_num = 0; u_num < frame_size; u_num++){
- *     volk_32f_8u_polarbutterfly_32f_u_avx(llrs, u, frame_size, frame_exp, 0, u_num,
- * u_num);
+ * for(u_num = 0; u_num < (unsigned int)frame_size; u_num++){
+ *     volk_32f_8u_polarbutterfly_32f(llrs, u, frame_exp, 0, u_num, u_num);
  *     // next line could first search for frozen bit value and then do bit decision.
  *     u[u_num] = llrs[u_num] > 0 ? 0 : 1;
  * }
