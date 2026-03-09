@@ -13,11 +13,14 @@
  *
  * \b Deprecation
  *
- * This kernel is deprecated.
+ * This kernel is deprecated, no replacement has been identified.
  *
  * \b Overview
  *
- * <FIXME>
+ * Computes the maximum of each consecutive pair of 16-bit integers in the input
+ * vector. For every two adjacent elements (src0[2k], src0[2k+1]), the larger value is
+ * written to the output, producing num_points/2 results. This is a simplified max*
+ * (max-star) operation used in log-MAP decoding for communications applications.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -25,20 +28,48 @@
  * num_points); \endcode
  *
  * \b Inputs
- * \li src0: The input vector.
- * \li num_points: The number of complex data points.
+ * \li src0: The input vector of 16-bit integers. Must contain num_points elements, where
+ * num_points is even.
+ * \li num_points: The number of 16-bit integer data points in the input vector (must be
+ * even).
  *
  * \b Outputs
- * \li target: The output value of the max* operation.
+ * \li target: The output vector containing num_points/2 maximum values, one per
+ * consecutive input pair.
  *
  * \b Example
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
  *
- * volk_16i_max_star_horizontal_16i();
+ * int main() {
+ *     unsigned int num_points = 8;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
- * volk_free(t);
+ *     short* src0 = (short*)volk_malloc(sizeof(short) * num_points, alignment);
+ *     short* target = (short*)volk_malloc(sizeof(short) * (num_points / 2), alignment);
+ *
+ *     // Initialize with pairs of values
+ *     src0[0] = 10;  src0[1] = 5;
+ *     src0[2] = -3;  src0[3] = 7;
+ *     src0[4] = 15;  src0[5] = 15;
+ *     src0[6] = -8;  src0[7] = -2;
+ *
+ *     volk_16i_max_star_horizontal_16i(target, src0, num_points);
+ *
+ *     // Expected: max of each pair
+ *     // target[0] = max(10, 5)   = 10
+ *     // target[1] = max(-3, 7)   = 7
+ *     // target[2] = max(15, 15)  = 15
+ *     // target[3] = max(-8, -2)  = -2
+ *     for (unsigned int i = 0; i < num_points / 2; i++) {
+ *         printf("target[%u] = %d\n", i, target[i]);
+ *     }
+ *
+ *     volk_free(src0);
+ *     volk_free(target);
+ *     return 0;
+ * }
  * \endcode
  */
 
