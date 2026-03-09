@@ -12,8 +12,9 @@
  *
  * \b Overview
  *
- * Computes the magnitude of the complexVector and stores the results
- * in the magnitudeVector.
+ * Computes the magnitude of each complex 16-bit integer sample and stores
+ * the results as 16-bit integers. Values are internally normalized by
+ * SHRT_MAX before computing sqrt(I^2 + Q^2), then scaled back.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -21,20 +22,45 @@
  * unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li complexVector: The complex input vector.
- * \li num_points: The number of samples.
+ * \li complexVector: The complex input vector (lv_16sc_t).
+ * \li num_points: The number of complex samples.
  *
  * \b Outputs
- * \li magnitudeVector: The magnitude of the complex values.
+ * \li magnitudeVector: The magnitude of each complex value (int16_t).
  *
  * \b Example
+ * Compute the magnitude of several complex samples with known I/Q values.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * volk_16ic_magnitude_16i();
+ *   int main() {
+ *     unsigned int N = 4;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
- * volk_free(t);
+ *     // Allocate input and output vectors
+ *     lv_16sc_t* complexVector =
+ *         (lv_16sc_t*)volk_malloc(N * sizeof(lv_16sc_t), alignment);
+ *     int16_t* magnitudeVector =
+ *         (int16_t*)volk_malloc(N * sizeof(int16_t), alignment);
+ *
+ *     // Fill with complex samples whose magnitudes are easy to verify
+ *     complexVector[0] = lv_cmake((int16_t)3000, (int16_t)4000);   // mag ~ 5000
+ *     complexVector[1] = lv_cmake((int16_t)0, (int16_t)10000);     // mag ~ 10000
+ *     complexVector[2] = lv_cmake((int16_t)-7000, (int16_t)0);     // mag ~ 7000
+ *     complexVector[3] = lv_cmake((int16_t)20000, (int16_t)20000); // mag ~ 28284
+ *
+ *     // Compute magnitudes
+ *     volk_16ic_magnitude_16i(magnitudeVector, complexVector, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *       printf("mag[%u] = %d\n", i, magnitudeVector[i]);
+ *     }
+ *
+ *     volk_free(magnitudeVector);
+ *     volk_free(complexVector);
+ *     return 0;
+ *   }
  * \endcode
  */
 
