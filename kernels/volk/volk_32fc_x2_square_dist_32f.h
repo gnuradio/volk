@@ -17,7 +17,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_x2_square_dist_32f(float* target, const lv_32fc_t* src0, lv_32fc_t*
+ * void volk_32fc_x2_square_dist_32f(float* target, const lv_32fc_t* src0, const lv_32fc_t*
  * points, unsigned int num_points) { \endcode
  *
  * \b Inputs
