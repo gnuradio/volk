@@ -29,9 +29,6 @@
  *
  * \b Example
  * \code
-    int N = 10;
-    unsigned int alignment = volk_get_alignment();
-
     uint32_t bitstring = 0x55555555;
     uint32_t hamming_distance = 0;
 
