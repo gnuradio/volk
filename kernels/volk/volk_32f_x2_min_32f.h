@@ -15,7 +15,7 @@
  * Selects minimum value from each entry between bVector and aVector
  * and store their results in the cVector
  *
- * c[i] = max(a[i], b[i])
+ * c[i] = min(a[i], b[i])
  *
  * <b>Dispatcher Prototype</b>
  * \code
