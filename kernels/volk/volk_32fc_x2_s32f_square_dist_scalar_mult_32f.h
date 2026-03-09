@@ -12,8 +12,8 @@
  *
  * \b Overview
  *
- * Calculates the square distance between a single complex input for each
- * point in a complex vector scaled by a scalar value.
+ * Computes the squared distance between a single complex input and each
+ * point in a complex vector, scaled by a scalar value.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -23,11 +23,11 @@
  * \b Inputs
  * \li src0: The complex input. Only the first point is used.
  * \li points: A complex vector of reference points.
- * \li scalar: A float to scale the distances by
+ * \li scalar: A float to scale the distances by.
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li target: A vector of distances between src0 and the vector of points.
+ * \li target: A vector of scaled squared distances between src0 and the vector of points.
  *
  * \b Example
  * Calculate the distance between an input and reference points in a square
