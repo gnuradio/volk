@@ -12,8 +12,8 @@
  *
  * \b Overview
  *
- * Deinterleaves the complex 16 bit vector and returns the real (inphase) part of the
- * signal.
+ * Deinterleaves a complex 16-bit integer vector and returns only the real
+ * (in-phase) component of each sample.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -21,20 +21,50 @@
  * unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li complexVector: The complex input vector.
+ * \li complexVector: The complex input vector (lv_16sc_t).
  * \li num_points: The number of complex data values to be deinterleaved.
  *
  * \b Outputs
- * \li iBuffer: The I buffer output data.
+ * \li iBuffer: The in-phase (real) output vector (int16_t).
  *
  * \b Example
+ * Extract the real part of a complex signal.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * volk_16ic_deinterleave_real_16i();
+ *   int main() {
+ *     unsigned int N = 8;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
- * volk_free(t);
+ *     // Allocate input complex vector and output I buffer
+ *     lv_16sc_t* complexVector =
+ *         (lv_16sc_t*)volk_malloc(N * sizeof(lv_16sc_t), alignment);
+ *     int16_t* iBuffer = (int16_t*)volk_malloc(N * sizeof(int16_t), alignment);
+ *
+ *     // Fill with complex samples: (real, imag)
+ *     complexVector[0] = lv_cmake((int16_t)100, (int16_t)200);
+ *     complexVector[1] = lv_cmake((int16_t)-300, (int16_t)400);
+ *     complexVector[2] = lv_cmake((int16_t)500, (int16_t)-600);
+ *     complexVector[3] = lv_cmake((int16_t)700, (int16_t)800);
+ *     complexVector[4] = lv_cmake((int16_t)-900, (int16_t)1000);
+ *     complexVector[5] = lv_cmake((int16_t)1100, (int16_t)-1200);
+ *     complexVector[6] = lv_cmake((int16_t)-1300, (int16_t)1400);
+ *     complexVector[7] = lv_cmake((int16_t)1500, (int16_t)-1600);
+ *
+ *     // Extract the real (in-phase) component
+ *     volk_16ic_deinterleave_real_16i(iBuffer, complexVector, N);
+ *
+ *     // Verify: output should contain only the real parts
+ *     for (unsigned int i = 0; i < N; i++) {
+ *       printf("Sample %u: complex=(%d, %d) -> real=%d\n",
+ *              i, lv_creal(complexVector[i]), lv_cimag(complexVector[i]), iBuffer[i]);
+ *     }
+ *
+ *     volk_free(complexVector);
+ *     volk_free(iBuffer);
+ *     return 0;
+ *   }
  * \endcode
  */
 
