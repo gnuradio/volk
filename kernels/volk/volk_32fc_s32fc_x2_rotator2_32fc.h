@@ -29,6 +29,7 @@
  *
  * \b Outputs
  * \li outVector: The vector where the results will be stored.
+ * \li phase: The updated phase after rotation.
  *
  * \b Example
  * Generate a tone at f=0.3 (normalized frequency) and use the rotator with
