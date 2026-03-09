@@ -17,7 +17,8 @@
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_64f_convert_32f(float* outputVector, const double* inputVector, unsigned int
- * num_points) \endcode
+ * num_points)
+ * \endcode
  *
  * \b Inputs
  * \li inputVector: The vector of doubles to convert to floats.
