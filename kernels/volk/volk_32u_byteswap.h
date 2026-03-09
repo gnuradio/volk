@@ -12,7 +12,7 @@
  *
  * \b Overview
  *
- * Byteswaps (in-place) an aligned vector of int32_t's.
+ * Byteswaps (in-place) an aligned vector of uint32_t's.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -28,25 +28,35 @@
  *
  * \b Example
  * \code
- *   int N = 10;
+ *   unsigned int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *
- *   uint32_t bitstring[] = {0x0, 0x1, 0xf, 0xffffffff,
- *       0x5a5a5a5a, 0xa5a5a5a5, 0x2a2a2a2a,
- *       0xffffffff, 0x32, 0x64};
- *   uint32_t hamming_distance = 0;
+ *   uint32_t* bitstring = (uint32_t*)volk_malloc(N * sizeof(uint32_t), alignment);
+ *
+ *   bitstring[0] = 0x00000000;
+ *   bitstring[1] = 0x00000001;
+ *   bitstring[2] = 0x0000000f;
+ *   bitstring[3] = 0xffffffff;
+ *   bitstring[4] = 0x5a5a5a5a;
+ *   bitstring[5] = 0xa5a5a5a5;
+ *   bitstring[6] = 0x2a2a2a2a;
+ *   bitstring[7] = 0xffffffff;
+ *   bitstring[8] = 0x00000032;
+ *   bitstring[9] = 0x00000064;
  *
  *   printf("byteswap vector =\n");
- *   for(unsigned int ii=0; ii<N; ++ii){
+ *   for (unsigned int ii = 0; ii < N; ++ii) {
  *       printf("    %.8x\n", bitstring[ii]);
  *   }
  *
  *   volk_32u_byteswap(bitstring, N);
  *
  *   printf("byteswapped vector =\n");
- *   for(unsigned int ii=0; ii<N; ++ii){
+ *   for (unsigned int ii = 0; ii < N; ++ii) {
  *       printf("    %.8x\n", bitstring[ii]);
  *   }
+ *
+ *   volk_free(bitstring);
  * \endcode
  */
 
