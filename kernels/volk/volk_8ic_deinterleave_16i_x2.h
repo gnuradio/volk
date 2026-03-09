@@ -12,8 +12,9 @@
  *
  * \b Overview
  *
- * Deinterleaves the complex 8-bit char vector into I & Q vector data
- * and converts them to 16-bit shorts.
+ * Deinterleaves a complex 8-bit char vector into separate I and Q vectors
+ * of 16-bit shorts. Each 8-bit component is sign-extended to 16 bits and
+ * shifted left by 8, scaling the values by 256.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -21,20 +22,48 @@
  * complexVector, unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li complexVector: The complex input vector.
+ * \li complexVector: The complex input vector of interleaved 8-bit I/Q pairs (lv_8sc_t).
  * \li num_points: The number of complex data values to be deinterleaved.
  *
  * \b Outputs
- * \li iBuffer: The I buffer output data.
- * \li qBuffer: The Q buffer output data.
+ * \li iBuffer: The in-phase (I) output vector of 16-bit shorts (int16_t).
+ * \li qBuffer: The quadrature (Q) output vector of 16-bit shorts (int16_t).
  *
  * \b Example
+ * Deinterleave complex 8-bit samples into separate I and Q 16-bit vectors.
  * \code
- * int N = 10000;
+ * #include <volk/volk.h>
+ * #include <stdio.h>
  *
- * volk_8ic_deinterleave_16i_x2();
+ * int main() {
+ *     unsigned int N = 4;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
+ *     lv_8sc_t* complexVector =
+ *         (lv_8sc_t*)volk_malloc(sizeof(lv_8sc_t) * N, alignment);
+ *     int16_t* iBuffer = (int16_t*)volk_malloc(sizeof(int16_t) * N, alignment);
+ *     int16_t* qBuffer = (int16_t*)volk_malloc(sizeof(int16_t) * N, alignment);
+ *
+ *     // Simulate complex 8-bit samples: (I, Q) pairs
+ *     complexVector[0] = lv_cmake((int8_t)127, (int8_t)-128);
+ *     complexVector[1] = lv_cmake((int8_t)50, (int8_t)-50);
+ *     complexVector[2] = lv_cmake((int8_t)0, (int8_t)100);
+ *     complexVector[3] = lv_cmake((int8_t)-30, (int8_t)30);
+ *
+ *     volk_8ic_deinterleave_16i_x2(iBuffer, qBuffer, complexVector, N);
+ *
+ *     // Each 8-bit value is scaled by 256 (left-shifted by 8 bits)
+ *     for (unsigned int i = 0; i < N; i++) {
+ *         printf("complex[%u] = (%4d, %4d)  ->  I = %6d, Q = %6d\n",
+ *                i, lv_creal(complexVector[i]), lv_cimag(complexVector[i]),
+ *                iBuffer[i], qBuffer[i]);
+ *     }
+ *
+ *     volk_free(complexVector);
+ *     volk_free(iBuffer);
+ *     volk_free(qBuffer);
+ *     return 0;
+ * }
  * \endcode
  */
 
