@@ -27,7 +27,7 @@
  * \li result: The accumulated result.
  *
  * \b Example
- * Calculate the sum of numbers  0 through 99
+ * Calculate the sum of numbers 0 through 99
  * \code
  *   int N = 100;
  *   unsigned int alignment = volk_get_alignment();
