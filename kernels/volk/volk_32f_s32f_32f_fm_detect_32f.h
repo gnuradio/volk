@@ -12,32 +12,65 @@
  *
  * \b Overview
  *
- * Performs FM-detect differentiation on the input vector and stores
- * the results in the output vector.
+ * Computes the instantaneous frequency of an FM signal by differentiating consecutive
+ * phase samples with modular wrapping. Each output sample is the difference between
+ * adjacent input samples, wrapped to the interval (-bound, bound]. The saveValue
+ * parameter provides continuity across successive calls by storing the last input sample.
  *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_32f_s32f_32f_fm_detect_32f(float* outputVector, const float* inputVector,
- * const float bound, float* saveValue, unsigned int num_points) \endcode
+ * const float bound, float* saveValue, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
- * \li inputVector: The input vector containing phase data (must be on the interval
- * (-bound, bound]). \li bound: The interval that the input phase data is in, which is
- * used to modulo the differentiation. \li saveValue: A pointer to a float which contains
- * the phase value of the sample before the first input sample. \li num_points The number
- * of data points.
+ * \li inputVector: The input vector of phase samples as floats.
+ * \li bound: The wrapping bound for the phase interval; differences outside
+ * (-bound, bound] are wrapped by adding or subtracting 2*bound.
+ * \li saveValue: Pointer to a float holding the phase value of the sample before the
+ * first input sample (updated to the last input sample on return).
+ * \li num_points: The number of input samples.
  *
  * \b Outputs
- * \li outputVector: The vector where the results will be stored.
+ * \li outputVector: The vector of wrapped phase differences (instantaneous frequency).
  *
  * \b Example
+ * Detect instantaneous frequency from a phase ramp that wraps around PI.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
+ *   #include <math.h>
  *
- * <FIXME>
+ *   unsigned int N = 10;
+ *   unsigned int alignment = volk_get_alignment();
+ *   float bound = (float)M_PI;
  *
- * volk_32f_s32f_32f_fm_detect_32f();
+ *   float* input = (float*)volk_malloc(sizeof(float) * N, alignment);
+ *   float* output = (float*)volk_malloc(sizeof(float) * N, alignment);
  *
+ *   // Simulate a phase ramp that wraps around PI (as in FM demodulation)
+ *   float phase = 0.0f;
+ *   float freq = 0.8f; // radians per sample
+ *   for (unsigned int i = 0; i < N; i++) {
+ *       phase += freq;
+ *       // Wrap phase to (-PI, PI]
+ *       while (phase > bound) phase -= 2.0f * bound;
+ *       while (phase <= -bound) phase += 2.0f * bound;
+ *       input[i] = phase;
+ *   }
+ *
+ *   // saveValue holds the "previous" phase sample (0 for the first call)
+ *   float saveValue = 0.0f;
+ *
+ *   volk_32f_s32f_32f_fm_detect_32f(output, input, bound, &saveValue, N);
+ *
+ *   // Each output should recover the original frequency (~0.8 rad/sample)
+ *   for (unsigned int i = 0; i < N; i++) {
+ *       printf("output[%u] = %f\n", i, output[i]);
+ *   }
+ *
+ *   volk_free(input);
+ *   volk_free(output);
  * \endcode
  */
 
