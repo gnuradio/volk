@@ -41,7 +41,7 @@
  *       increasing[ii] = (float)ii;
  *   }
  *
- *   // Normalize by the smallest delta (0.2 in this example)
+ *   // Raise each input value to this power
  *   float scale = 2.0f;
  *
  *   volk_32f_s32f_power_32f(out, increasing, scale, N);
