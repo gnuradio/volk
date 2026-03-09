@@ -12,8 +12,8 @@
  *
  * \b Overview
  *
- * Selects maximum value from each entry between bVector and aVector
- * and store their results in the cVector.
+ * Selects the maximum value from each entry between aVector and bVector
+ * and stores the results in cVector.
  *
  * c[i] = max(a[i], b[i])
  *
