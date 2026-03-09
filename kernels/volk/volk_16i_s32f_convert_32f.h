@@ -12,29 +12,58 @@
  *
  * \b Overview
  *
- * Converts 16-bit shorts to scaled 32-bit floating point values.
+ * Converts 16-bit integers to 32-bit floats, dividing each value by a scalar.
+ * The output is: outputVector[i] = (float)inputVector[i] / scalar.
  *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_16i_s32f_convert_32f(float* outputVector, const int16_t* inputVector, const
- * float scalar, unsigned int num_points); \endcode
+ * float scalar, unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li inputVector: The input vector of 16-bit shorts.
- * \li scalar: The value divided against each point in the output buffer.
- * \li num_points: The number of complex data points.
+ * \li inputVector: The input vector of 16-bit integers (int16_t).
+ * \li scalar: The divisor applied to each converted value.
+ * \li num_points: The number of data points to convert.
  *
  * \b Outputs
- * \li outputVector: The output vector of 8-bit chars.
+ * \li outputVector: The output vector of 32-bit floats.
  *
  * \b Example
+ * Convert 16-bit ADC samples to normalized floating point values.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * volk_16i_s32f_convert_32f();
+ *   int main() {
+ *     unsigned int N = 8;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
- * volk_free(t);
+ *     // Simulate 16-bit ADC samples with a full-scale range of +/- 32767
+ *     int16_t* input = (int16_t*)volk_malloc(N * sizeof(int16_t), alignment);
+ *     float* output = (float*)volk_malloc(N * sizeof(float), alignment);
+ *
+ *     // Fill with sample values spanning the int16 range
+ *     input[0] = 32767;   // max positive
+ *     input[1] = 16384;   // half scale
+ *     input[2] = 8192;
+ *     input[3] = 0;
+ *     input[4] = -8192;
+ *     input[5] = -16384;
+ *     input[6] = -32767;  // max negative
+ *     input[7] = 1000;
+ *
+ *     // Divide by 32768.0 to normalize to approximately [-1.0, 1.0]
+ *     float scalar = 32768.0f;
+ *     volk_16i_s32f_convert_32f(output, input, scalar, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *       printf("input[%u] = %6d  ->  output[%u] = %9.6f\n", i, input[i], i, output[i]);
+ *     }
+ *
+ *     volk_free(input);
+ *     volk_free(output);
+ *     return 0;
+ *   }
  * \endcode
  */
 
