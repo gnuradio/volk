@@ -40,7 +40,7 @@
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
  *       increasing[ii] = (double)ii;
- *       decreasing[ii] = 10.f - (double)ii;
+ *       decreasing[ii] = 10.0 - (double)ii;
  *   }
  *
  *   volk_64f_x2_max_64f(out, increasing, decreasing, N);
