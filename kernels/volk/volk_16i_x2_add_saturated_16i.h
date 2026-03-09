@@ -21,12 +21,12 @@
  * int16_t* inVectorB, unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li inVectorA: First input vector.
- * \li inVectorB: Second input vector.
- * \li num_points: Vector length.
+ * \li inVectorA: First input vector (int16_t).
+ * \li inVectorB: Second input vector (int16_t).
+ * \li num_points: Number of elements to process.
  *
  * \b Outputs
- * \li outVector: Saturated sum output.
+ * \li outVector: Saturated sum output (int16_t).
  *
  * \b Example
  * \code
@@ -36,12 +36,16 @@
  *   int16_t* b = (int16_t*)volk_malloc(N * sizeof(int16_t), align);
  *   int16_t* result = (int16_t*)volk_malloc(N * sizeof(int16_t), align);
  *
- *   // Values that will cause saturation
+ *   for (unsigned int i = 0; i < N; i++) {
+ *       a[i] = 100;
+ *       b[i] = 200;
+ *   }
+ *   // Override first two to demonstrate saturation
  *   a[0] = 30000; b[0] = 10000;   // 40000 -> saturates to 32767
  *   a[1] = -30000; b[1] = -10000; // -40000 -> saturates to -32768
  *
  *   volk_16i_x2_add_saturated_16i(result, a, b, N);
- *   // result[0] == 32767, result[1] == -32768
+ *   // result[0] == 32767, result[1] == -32768, result[2] == 300, ...
  *
  *   volk_free(a);
  *   volk_free(b);
