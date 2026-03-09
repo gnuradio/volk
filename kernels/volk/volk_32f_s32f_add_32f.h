@@ -16,8 +16,8 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32f_s32f_add_32f(float* cVector, const float* aVector, const float scalar,
- * unsigned int num_points) \endcode
+ * void volk_32f_s32f_add_32f(float* cVector, const float* aVector, const float scalar, unsigned int num_points)
+ * \endcode
  *
  * \b Inputs
  * \li aVector: The input vector of floats.
@@ -29,7 +29,7 @@
  *
  * \b Example
  * \code
- *  int N = 10;
+ *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
  *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
