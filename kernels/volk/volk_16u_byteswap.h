@@ -12,7 +12,9 @@
  *
  * \b Overview
  *
- * Byteswaps (in-place) an aligned vector of int16_t's.
+ * Swaps the high and low bytes of each 16-bit unsigned integer in the input
+ * vector, in-place. This is useful for converting between big-endian and
+ * little-endian byte order.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -20,20 +22,48 @@
  * \endcode
  *
  * \b Inputs
- * \li intsToSwap: The vector of data to byte swap.
- * \li num_points: The number of data points.
+ * \li intsToSwap: The vector of uint16_t values to byte swap.
+ * \li num_points: The number of 16-bit values to process.
  *
  * \b Outputs
- * \li intsToSwap: returns as an in-place calculation.
+ * \li intsToSwap: The byte-swapped values, written in-place.
  *
  * \b Example
+ * Byte-swap a small vector of 16-bit unsigned integers.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * <FIXME>
+ *   int main() {
+ *     unsigned int N = 4;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_16u_byteswap(x, N);
+ *     // Allocate aligned buffer
+ *     uint16_t* data =
+ *         (uint16_t*)volk_malloc(N * sizeof(uint16_t), alignment);
  *
+ *     // Initialize with values whose bytes are easy to verify after swapping
+ *     // 0x0102 -> 0x0201, 0xAABB -> 0xBBAA, etc.
+ *     data[0] = 0x0102;
+ *     data[1] = 0xAABB;
+ *     data[2] = 0xFF00;
+ *     data[3] = 0x1234;
+ *
+ *     // Byte-swap each 16-bit element in-place
+ *     volk_16u_byteswap(data, N);
+ *
+ *     for (unsigned int i = 0; i < N; i++) {
+ *       printf("data[%u] = 0x%04X\n", i, data[i]);
+ *     }
+ *     // Expected output:
+ *     // data[0] = 0x0201
+ *     // data[1] = 0xBBAA
+ *     // data[2] = 0x00FF
+ *     // data[3] = 0x3412
+ *
+ *     volk_free(data);
+ *     return 0;
+ *   }
  * \endcode
  */
 
