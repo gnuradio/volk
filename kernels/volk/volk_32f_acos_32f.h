@@ -28,8 +28,8 @@
  * \li bVector: The vector where results will be stored.
  *
  * \b Example
- * \code
  * Calculate common angles around the top half of the unit circle.
+ * \code
  *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *   float* in = (float*)volk_malloc(sizeof(float)*N, alignment);
