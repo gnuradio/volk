@@ -32,8 +32,9 @@
  * \li outputVector: The output vector.
  *
  * \b Example
- * Convert floats from [-1,1] to 8-bit unsigend integers with a scale of 128 and a bias of
- 128
+ * Convert floats from [-1,1] to 8-bit unsigned integers with a scale of 128 and a bias of
+ * 128
+ * \code
  *  int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
