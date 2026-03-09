@@ -17,7 +17,7 @@
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_32fc_deinterleave_image_32f(float* qBuffer, const lv_32fc_t* complexVector,
+ * void volk_32fc_deinterleave_imag_32f(float* qBuffer, const lv_32fc_t* complexVector,
  * unsigned int num_points) \endcode
  *
  * \b Inputs
