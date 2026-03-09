@@ -7,8 +7,50 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-/*
- * for documentation see 'volk_8u_x3_encodepolar_8u_x2.h'
+/*!
+ * \page volk_8u_x2_encodeframepolar_8u
+ *
+ * \b Overview
+ *
+ * Performs polar encoding on a frame of data using the Arikan polar transform.
+ * The input data must be placed in the \p temp buffer before calling. The
+ * encoded result is written to \p frame. The frame size must be a power of 2.
+ *
+ * <b>Dispatcher Prototype</b>
+ * \code
+ * void volk_8u_x2_encodeframepolar_8u(unsigned char* frame, unsigned char* temp,
+ * unsigned int frame_size)
+ * \endcode
+ *
+ * \b Inputs
+ * \li temp: buffer containing the data to encode, also used as scratch space
+ * during encoding (1 bit per byte).
+ * \li frame_size: number of elements in the frame (must be a power of 2).
+ *
+ * \b Outputs
+ * \li frame: the polar encoded frame.
+ *
+ * \b Example
+ * \code
+ * int frame_exp = 4;
+ * int frame_size = 0x01 << frame_exp; // 16
+ * unsigned int alignment = volk_get_alignment();
+ *
+ * unsigned char* frame =
+ *     (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size, alignment);
+ * unsigned char* temp =
+ *     (unsigned char*)volk_malloc(sizeof(unsigned char) * frame_size, alignment);
+ *
+ * // Initialize temp with data to encode (1 bit per byte)
+ * for (int i = 0; i < frame_size; ++i) {
+ *     temp[i] = i % 2;
+ * }
+ *
+ * volk_8u_x2_encodeframepolar_8u(frame, temp, frame_size);
+ *
+ * volk_free(frame);
+ * volk_free(temp);
+ * \endcode
  */
 
 #ifndef VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_
