@@ -13,7 +13,7 @@
  * \b Overview
  *
  * Returns Argmax_i x[i]. Finds and returns the index which contains
- * the fist maximum value in the given vector.
+ * the first maximum value in the given vector.
  *
  * Note that num_points is a uint32_t, but the return value is
  * uint16_t. Providing a vector larger than the max of a uint16_t
@@ -31,7 +31,7 @@
  * \li num_points: The number of data points.
  *
  * \b Outputs
- * \li target: The index of the fist maximum value in the input buffer.
+ * \li target: The index of the first maximum value in the input buffer.
  *
  * \b Example
  * \code
