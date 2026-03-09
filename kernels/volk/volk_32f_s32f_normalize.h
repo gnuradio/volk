@@ -33,8 +33,6 @@
  *   int N = 10;
  *   unsigned int alignment = volk_get_alignment();
  *   float* increasing = (float*)volk_malloc(sizeof(float)*N, alignment);
- *   float* out = (float*)volk_malloc(sizeof(float)*N, alignment);
- *
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
  *       increasing[ii] = 2.f * ((float)ii / (float)N) - 1.f;
@@ -50,7 +48,6 @@
  *   }
  *
  *   volk_free(increasing);
- *   volk_free(out);
  * \endcode
  */
 
