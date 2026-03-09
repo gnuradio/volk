@@ -12,13 +12,13 @@
  *
  * \b Overview
  *
- * addtiplies two input double-precision floating point vectors together.
+ * Adds two input double-precision floating point vectors together.
  *
- * c[i] = a[i] * b[i]
+ * c[i] = a[i] + b[i]
  *
  * <b>Dispatcher Prototype</b>
  * \code
- * void volk_64f_x2_add_64f(float* cVector, const float* aVector, const float* bVector,
+ * void volk_64f_x2_add_64f(double* cVector, const double* aVector, const double* bVector,
  * unsigned int num_points) \endcode
  *
  * \b Inputs
@@ -39,8 +39,8 @@
  *   double* out = (double*)volk_malloc(sizeof(double)*N, alignment);
  *
  *   for(unsigned int ii = 0; ii < N; ++ii){
- *       increasing[ii] = (float)ii;
- *       decreasing[ii] = 10.f - (float)ii;
+ *       increasing[ii] = (double)ii;
+ *       decreasing[ii] = 10.0 - (double)ii;
  *   }
  *
  *   volk_64f_x2_add_64f(out, increasing, decreasing, N);
