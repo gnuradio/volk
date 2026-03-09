@@ -36,12 +36,14 @@
  *   uint8_t* b = (uint8_t*)volk_malloc(N, align);
  *   uint8_t* result = (uint8_t*)volk_malloc(N, align);
  *
- *   // Values that will cause saturation
- *   a[0] = 200; b[0] = 100; // 300 -> saturates to 255
- *   a[1] = 50;  b[1] = 30;  // 80 -> no saturation
+ *   for (unsigned int i = 0; i < N; i++) {
+ *       a[i] = 200;
+ *       b[i] = 100;
+ *   }
+ *   a[1] = 50; b[1] = 30; // 80 -> no saturation
  *
  *   volk_8u_x2_add_saturated_8u(result, a, b, N);
- *   // result[0] == 255, result[1] == 80
+ *   // result[0] == 255 (saturated), result[1] == 80
  *
  *   volk_free(a);
  *   volk_free(b);
