@@ -12,7 +12,7 @@
  *
  * \b Overview
  *
- * Deinterleaves the complex floating point vector and return the real
+ * Deinterleaves the complex floating point vector and returns the real
  * part (inphase) of the samples.
  *
  * <b>Dispatcher Prototype</b>
