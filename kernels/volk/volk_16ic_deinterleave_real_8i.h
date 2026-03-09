@@ -12,8 +12,9 @@
  *
  * \b Overview
  *
- * Deinterleaves the complex 16 bit vector and returns the real
- * (inphase) part of the signal as an 8-bit value.
+ * Deinterleaves a complex 16-bit integer vector and returns only the real
+ * (in-phase) component of each sample, right-shifted by 8 bits to produce
+ * an 8-bit result.
  *
  * <b>Dispatcher Prototype</b>
  * \code
@@ -21,20 +22,51 @@
  * unsigned int num_points) \endcode
  *
  * \b Inputs
- * \li complexVector: The complex input vector.
+ * \li complexVector: The complex input vector (lv_16sc_t).
  * \li num_points: The number of complex data values to be deinterleaved.
  *
  * \b Outputs
- * \li iBuffer: The I buffer output data with 8-bit precision.
+ * \li iBuffer: The in-phase (real) output vector, right-shifted by 8 (int8_t).
  *
  * \b Example
+ * Extract the real part of a complex signal, reduced to 8-bit precision.
  * \code
- * int N = 10000;
+ *   #include <volk/volk.h>
+ *   #include <stdio.h>
  *
- * volk_16ic_deinterleave_real_8i();
+ *   int main() {
+ *     unsigned int N = 8;
+ *     unsigned int alignment = volk_get_alignment();
  *
- * volk_free(x);
- * volk_free(t);
+ *     // Allocate input complex vector and output I buffer
+ *     lv_16sc_t* complexVector =
+ *         (lv_16sc_t*)volk_malloc(N * sizeof(lv_16sc_t), alignment);
+ *     int8_t* iBuffer = (int8_t*)volk_malloc(N * sizeof(int8_t), alignment);
+ *
+ *     // Fill with complex samples: (real, imag)
+ *     // Real parts are chosen as multiples of 256 so the >> 8 result is clear
+ *     complexVector[0] = lv_cmake((int16_t)256, (int16_t)100);
+ *     complexVector[1] = lv_cmake((int16_t)512, (int16_t)-200);
+ *     complexVector[2] = lv_cmake((int16_t)-768, (int16_t)300);
+ *     complexVector[3] = lv_cmake((int16_t)1024, (int16_t)-400);
+ *     complexVector[4] = lv_cmake((int16_t)-1280, (int16_t)500);
+ *     complexVector[5] = lv_cmake((int16_t)1536, (int16_t)-600);
+ *     complexVector[6] = lv_cmake((int16_t)-1792, (int16_t)700);
+ *     complexVector[7] = lv_cmake((int16_t)2048, (int16_t)-800);
+ *
+ *     // Extract real parts, right-shifted by 8 to produce 8-bit output
+ *     volk_16ic_deinterleave_real_8i(iBuffer, complexVector, N);
+ *
+ *     // Expected: 1, 2, -3, 4, -5, 6, -7, 8
+ *     for (unsigned int i = 0; i < N; i++) {
+ *       printf("Complex[%u] real=%d -> iBuffer=%d\n",
+ *              i, lv_creal(complexVector[i]), iBuffer[i]);
+ *     }
+ *
+ *     volk_free(complexVector);
+ *     volk_free(iBuffer);
+ *     return 0;
+ *   }
  * \endcode
  */
 
