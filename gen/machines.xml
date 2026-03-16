@@ -16,6 +16,14 @@
 <archs>generic neon neonv8 orc|</archs>
 </machine>
 
+<machine name="sve">
+<archs>generic neon neonv8 sve orc|</archs>
+</machine>
+
+<machine name="sve2">
+<archs>generic neon neonv8 sve sve2 orc|</archs>
+</machine>
+
 <!-- trailing | bar means generate without either for MSVC -->
 <machine name="sse2">
 <archs>generic 32|64| mmx| sse sse2 orc|</archs>
