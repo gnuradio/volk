@@ -21,14 +21,36 @@ int volk_get_index(const char* impl_names[], // list of implementations by name
 )
 {
     unsigned int i;
+
+    if (n_impls == 0) {
+        // uuuh so we're picking an implementation out of 0 available ones?
+        fprintf(stderr,
+                "Asked to return implementation for \"%.20s\", but 0 implementations "
+                "given: Bailing.",
+                impl_name);
+        return -1;
+    }
+
+    // Find the implementation whose name matches (in the first 20 characters)
     for (i = 0; i < n_impls; i++) {
         if (!strncmp(impl_names[i], impl_name, 20)) {
             return i;
         }
     }
+
     // TODO return -1;
     // something terrible should happen here
-    fprintf(stderr, "Volk warning: no arch found, returning generic impl\n");
+    if (!strcmp("generic", impl_name)) {
+        // we're in the error case, and we've already tried to look for the generic
+        // implementation, and failed: There's no good way to proceed here.
+        fprintf(stderr,
+                "Volk warning: tried to find \"generic\" impl, but failed. "
+                "Returning index 0, just to give any working implementation.\n");
+        return 0;
+    }
+    fprintf(stderr,
+            "Volk warning: no arch \"%.20s\" found, returning \"generic\" impl\n",
+            impl_name);
     return volk_get_index(impl_names, n_impls, "generic"); // but we'll fake it for now
 }
 
@@ -40,6 +62,7 @@ int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
                     const bool align          // if false, filter aligned implementations
 )
 {
+    fprintf(stderr, "Ranking %s\n", kern_name);
     size_t i;
     static volk_arch_pref_t* volk_arch_prefs;
     static size_t n_arch_prefs = 0;
