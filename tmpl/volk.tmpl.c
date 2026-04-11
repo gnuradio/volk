@@ -136,8 +136,17 @@ static inline void __init_${kern.name}(void)
     const int *impl_deps = get_machine()->${kern.name}_impl_deps;
     const bool *alignment = get_machine()->${kern.name}_impl_alignment;
     const size_t n_impls = get_machine()->${kern.name}_n_impls;
-    const size_t index_a = volk_rank_archs(name, impl_names, impl_deps, alignment, n_impls, true/*aligned*/);
-    const size_t index_u = volk_rank_archs(name, impl_names, impl_deps, alignment, n_impls, false/*unaligned*/);
+
+    // find the highest-ranked implementation for a given kernel. Will
+    // (warningly) fall back to "generic" if the specified name couldn't be found,
+    // and will properly fail with -1 if there's no implementations at all.
+    const int index_a = volk_rank_archs(
+        name, impl_names, impl_deps, alignment, n_impls, true /*aligned*/);
+    const int index_u = volk_rank_archs(
+        name, impl_names, impl_deps, alignment, n_impls, false /*unaligned*/);
+    assert(index_a >= 0);
+    assert(index_u >= 0);
+
     ${kern.name}_a = get_machine()->${kern.name}_impls[index_a];
     ${kern.name}_u = get_machine()->${kern.name}_impls[index_u];
 
