@@ -50,6 +50,7 @@ endif()
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules
 ) #location for custom "Modules"
 
+include(CMakeDependentOption)
 include(VolkBuildTypes)
 #select the release build type by default to get optimization flags
 if(NOT CMAKE_BUILD_TYPE)
@@ -152,29 +153,6 @@ if(VOLK_CPU_FEATURES)
     endif()
 else()
     message(STATUS "Building Volk without cpu_features")
-endif()
-
-# fmt - required for qa_utils table printing
-# For static builds, always use FetchContent to ensure we get a static library
-if(NOT ENABLE_STATIC_LIBS)
-    find_package(fmt QUIET)
-endif()
-if(NOT fmt_FOUND)
-    if(ENABLE_STATIC_LIBS)
-        message(STATUS "Static build: using FetchContent to build fmt as static library ...")
-    else()
-        message(STATUS "fmt package not found. Using FetchContent to download ...")
-    endif()
-    include(FetchContent)
-    FetchContent_Declare(
-        fmt
-        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-        GIT_TAG 10.2.1
-        GIT_SHALLOW TRUE)
-    set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
-    set(BUILD_SHARED_LIBS OFF)
-    FetchContent_MakeAvailable(fmt)
-    set(BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS_SAVED}")
 endif()
 
 # Python
@@ -348,9 +326,46 @@ endif()
 message(STATUS "  Modify using: -DENABLE_TESTING=ON/OFF")
 
 ########################################################################
+# Utility apps (rely on an OS being present instead of a bare-metal target)
+########################################################################
+option(ENABLE_UTILITY_APPS "Enable utility apps" ON)
+if(ENABLE_UTILITY_APPS)
+    message(STATUS "Utility apps are enabled.")
+else()
+    message(STATUS "Utility apps are disabled.")
+endif()
+
+# fmt - required for qa_utils table printing (tests and utility apps)
+# For static builds, always use FetchContent to ensure we get a static library
+if(ENABLE_TESTING OR ENABLE_UTILITY_APPS)
+    if(NOT ENABLE_STATIC_LIBS)
+        find_package(fmt QUIET)
+    endif()
+    if(NOT fmt_FOUND)
+        if(ENABLE_STATIC_LIBS)
+            message(
+                STATUS "Static build: using FetchContent to build fmt as static library ...")
+        else()
+            message(STATUS "fmt package not found. Using FetchContent to download ...")
+        endif()
+        include(FetchContent)
+        FetchContent_Declare(
+            fmt
+            GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+            GIT_TAG 12.1.0
+            GIT_SHALLOW TRUE)
+        set(BUILD_SHARED_LIBS_SAVED "${BUILD_SHARED_LIBS}")
+        set(BUILD_SHARED_LIBS OFF)
+        FetchContent_MakeAvailable(fmt)
+        set(BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS_SAVED}")
+    endif()
+endif()
+
+########################################################################
 # Option to enable post-build profiling using volk_profile, off by default
 ########################################################################
-option(ENABLE_PROFILING "Launch system profiler after build" OFF)
+cmake_dependent_option(ENABLE_PROFILING "Launch system profiler after build" OFF
+                       "ENABLE_UTILITY_APPS" OFF)
 if(ENABLE_PROFILING)
     if(DEFINED VOLK_CONFIGPATH)
         get_filename_component(VOLK_CONFIGPATH ${VOLK_CONFIGPATH} ABSOLUTE)
@@ -384,9 +399,12 @@ add_subdirectory(lib)
 add_subdirectory(tests)
 
 ########################################################################
-# And the utility apps
+# Utility apps
 ########################################################################
-add_subdirectory(apps)
+if(ENABLE_UTILITY_APPS)
+    add_subdirectory(apps)
+endif()
+
 option(ENABLE_MODTOOL "Enable volk_modtool python utility" True)
 if(ENABLE_MODTOOL)
     add_subdirectory(python/volk_modtool)
