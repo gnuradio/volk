@@ -6,10 +6,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 #
 
-if(NOT ENABLE_TESTING)
-    return()
-endif(NOT ENABLE_TESTING)
-
 find_package(fmt)
 find_package(GTest)
 

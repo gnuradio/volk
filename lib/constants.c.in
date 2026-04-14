@@ -11,14 +11,20 @@
 #include <config.h>
 #endif
 
+#cmakedefine VOLK_STATIC_DISPATCH
+
+#ifndef VOLK_STATIC_DISPATCH
 #include <stdlib.h>
+#endif
 #include <volk/constants.h>
 
 const char*
 volk_prefix()
 {
+#ifndef VOLK_STATIC_DISPATCH
   const char *prefix = getenv("VOLK_PREFIX");
   if (prefix != NULL) return prefix;
+#endif
   return "@prefix@";
 }
 

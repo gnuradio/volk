@@ -103,15 +103,52 @@ if(MSVC)
 endif(MSVC)
 
 ########################################################################
+# Build options
+########################################################################
+set(VOLK_STATIC_DISPATCH "" CACHE STRING
+    "Static dispatch to a specific machine (e.g. neonv8). Empty means dynamic dispatch.")
+cmake_dependent_option(ENABLE_UTILITY_APPS "Enable utility apps" ON "NOT CMAKE_CROSSCOMPILING" OFF)
+cmake_dependent_option(ENABLE_TESTING "Enable QA testing" ON "NOT CMAKE_CROSSCOMPILING" OFF)
+cmake_dependent_option(ENABLE_MODTOOL "Enable volk_modtool python utility" ON "NOT CMAKE_CROSSCOMPILING" OFF)
+cmake_dependent_option(ENABLE_PROFILING "Launch system profiler after build" OFF "ENABLE_UTILITY_APPS;NOT CMAKE_CROSSCOMPILING" OFF)
+
+########################################################################
+# Print summary of options
+########################################################################
+if (VOLK_STATIC_DISPATCH)
+    message(STATUS "Using static dispatch for: ${VOLK_STATIC_DISPATCH}")
+else()
+    message(STATUS "Using dynamic dispatch.")
+endif()
+
+if(ENABLE_UTILITY_APPS)
+    message(STATUS "Utility apps enabled.")
+endif()
+
+if (ENABLE_TESTING)
+    message(STATUS "Testing enabled.")
+endif()
+
+if (ENABLE_MODTOOL)
+    message(STATUS "volk_modtool python utility enabled.")
+endif()
+
+if (ENABLE_PROFILING)
+    message(STATUS "Launch system profiler after build enabled.")
+endif()
+
+########################################################################
 # Dependencies setup
 ########################################################################
 
-# cpu_features - sensible defaults, user settable option
-if(CMAKE_SYSTEM_PROCESSOR MATCHES
-   "(^mips)|(^arm)|(^aarch64)|(x86_64)|(AMD64|amd64)|(^i.86$)|(^powerpc)|(^ppc)|(^riscv)")
-    option(VOLK_CPU_FEATURES "Volk uses cpu_features" ON)
-else()
-    option(VOLK_CPU_FEATURES "Volk uses cpu_features" OFF)
+# cpu_features - only needed for dynamic dispatch (runtime CPU detection)
+if(NOT VOLK_STATIC_DISPATCH)
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES
+       "(^mips)|(^arm)|(^aarch64)|(x86_64)|(AMD64|amd64)|(^i.86$)|(^powerpc)|(^ppc)|(^riscv)")
+        option(VOLK_CPU_FEATURES "Volk uses cpu_features" ON)
+    else()
+        option(VOLK_CPU_FEATURES "Volk uses cpu_features" OFF)
+    endif()
 endif()
 
 if(VOLK_CPU_FEATURES)
@@ -183,7 +220,7 @@ endif()
 ########################################################################
 # Check if Orc is available
 ########################################################################
-option(ENABLE_ORC "Enable Orc" True)
+option(ENABLE_ORC "Enable Orc" ON)
 if(ENABLE_ORC)
     find_package(ORC)
 else(ENABLE_ORC)
@@ -225,27 +262,35 @@ install(
     FILES_MATCHING
     PATTERN "*.h")
 
+set(VOLK_INSTALL_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_alloc.hh
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_complex.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_common.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_mathematical_functions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/saturation_arithmetic.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_fma_intrinsics.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx512_intrinsics.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_sse_intrinsics.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_malloc.h
+    ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_dispatch.h
+    ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_config_fixed.h
+    ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_typedefs.h
+    ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_version.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/constants.h)
+
+if(NOT VOLK_STATIC_DISPATCH)
+    list(APPEND VOLK_INSTALL_HEADERS
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_prefs.h
+        ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_cpu.h)
+endif()
+
 install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_prefs.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_alloc.hh
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_complex.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_common.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_mathematical_functions.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/saturation_arithmetic.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_fma_intrinsics.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx512_intrinsics.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_sse_intrinsics.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_sse3_intrinsics.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_neon_intrinsics.h
-          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk.h
-          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_cpu.h
-          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_config_fixed.h
-          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_typedefs.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_malloc.h
-          ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_version.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/constants.h
+    FILES ${VOLK_INSTALL_HEADERS}
     DESTINATION include/volk
     COMPONENT "volk_devel")
 
@@ -315,26 +360,6 @@ install(
     DESTINATION ${CMAKE_MODULES_DIR}/volk)
 
 ########################################################################
-# Option to enable QA testing, on by default
-########################################################################
-option(ENABLE_TESTING "Enable QA testing" ON)
-if(ENABLE_TESTING)
-    message(STATUS "QA Testing is enabled.")
-else()
-    message(STATUS "QA Testing is disabled.")
-endif()
-message(STATUS "  Modify using: -DENABLE_TESTING=ON/OFF")
-
-########################################################################
-# Utility apps (rely on an OS being present instead of a bare-metal target)
-########################################################################
-option(ENABLE_UTILITY_APPS "Enable utility apps" ON)
-if(ENABLE_UTILITY_APPS)
-    message(STATUS "Utility apps are enabled.")
-else()
-    message(STATUS "Utility apps are disabled.")
-endif()
-
 # fmt - required for qa_utils table printing (tests and utility apps)
 # For static builds, always use FetchContent to ensure we get a static library
 if(ENABLE_TESTING OR ENABLE_UTILITY_APPS)
@@ -343,8 +368,7 @@ if(ENABLE_TESTING OR ENABLE_UTILITY_APPS)
     endif()
     if(NOT fmt_FOUND)
         if(ENABLE_STATIC_LIBS)
-            message(
-                STATUS "Static build: using FetchContent to build fmt as static library ...")
+            message(STATUS "Static build: using FetchContent to build fmt as static library ...")
         else()
             message(STATUS "fmt package not found. Using FetchContent to download ...")
         endif()
@@ -364,8 +388,6 @@ endif()
 ########################################################################
 # Option to enable post-build profiling using volk_profile, off by default
 ########################################################################
-cmake_dependent_option(ENABLE_PROFILING "Launch system profiler after build" OFF
-                       "ENABLE_UTILITY_APPS" OFF)
 if(ENABLE_PROFILING)
     if(DEFINED VOLK_CONFIGPATH)
         get_filename_component(VOLK_CONFIGPATH ${VOLK_CONFIGPATH} ABSOLUTE)
@@ -386,7 +408,6 @@ if(ENABLE_PROFILING)
 else()
     message(STATUS "System profiling is disabled.")
 endif()
-message(STATUS "  Modify using: -DENABLE_PROFILING=ON/OFF")
 
 ########################################################################
 # Setup the library
@@ -396,7 +417,9 @@ add_subdirectory(lib)
 ########################################################################
 # Add tests
 ########################################################################
-add_subdirectory(tests)
+if(ENABLE_TESTING)
+    add_subdirectory(tests)
+endif()
 
 ########################################################################
 # Utility apps
@@ -405,7 +428,6 @@ if(ENABLE_UTILITY_APPS)
     add_subdirectory(apps)
 endif()
 
-option(ENABLE_MODTOOL "Enable volk_modtool python utility" True)
 if(ENABLE_MODTOOL)
     add_subdirectory(python/volk_modtool)
 endif()

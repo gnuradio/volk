@@ -175,6 +175,30 @@ jobs:
       - name: test
         run: cd build && ctest -V
 
+  build-ubuntu-static-dispatch:
+    name: Build static dispatch on ubuntu-24.04
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: dependencies
+        run: sudo apt install python3-mako libgtest-dev libfmt-dev
+      - name: configure
+        run: mkdir build && cd build && cmake -DVOLK_STATIC_DISPATCH=generic -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
+      - name: build
+        run: cmake --build build -j$(nproc)
+      - name: Print info
+        run: |
+          ./build/apps/volk-config-info --alignment
+          ./build/apps/volk-config-info --avail-machines
+          ./build/apps/volk-config-info --all-machines
+          ./build/apps/volk-config-info --malloc
+          ./build/apps/volk-config-info --cc
+      - name: test
+        run: cd build && ctest -V
+
   build-windows:
     runs-on: windows-latest
 
