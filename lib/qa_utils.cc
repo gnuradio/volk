@@ -9,6 +9,7 @@
  */
 
 #include "qa_utils.h"
+#include <fmt/ranges.h>
 #include <volk/volk.h>
 
 #include <volk/volk.h>        // for volk_func_desc_t
@@ -18,6 +19,8 @@
 #include <stdint.h>    // for uint16_t, uint64_t
 #include <sys/time.h>  // for CLOCKS_PER_SEC
 #include <sys/types.h> // for int16_t, int32_t
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>    // for sqrt, fabs, abs
 #include <cstring>  // for memcpy, memset
@@ -26,9 +29,11 @@
 #include <limits>   // for numeric_limits
 #include <map>      // for map, map<>::mappe...
 #include <random>
+#include <tuple>
 #include <vector> // for vector, _Bit_refe...
 
-#include <fmt/core.h>
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 // Warmup time for CPU frequency scaling (ms)
 static double g_warmup_ms = 2000.0;
@@ -606,6 +611,34 @@ bool icompare(t* expected,
     return fail;
 }
 
+namespace {
+std::tuple<unsigned int, unsigned int> tol_precision(float tol, unsigned int col_length)
+{
+    /* one leading digit and a separating dot */
+    constexpr auto dot_length = 2U;
+    const auto tol_length =
+        std::max({ dot_length + 1,
+                   static_cast<unsigned int>(fmt::formatted_size(FMT_STRING("{}"), tol)),
+                   col_length });
+    if (tol >= 1.0f) {
+        /* |tolerance| > 1 : you get no courtesy digit after the dot */
+        return { tol_length, 0 };
+    }
+    const float log10 = std::log10(tol);
+    return { tol_length,
+             std::min<unsigned int>(tol_length - dot_length, -std::floor(log10)) };
+}
+template <class T>
+unsigned int max_col_length(const T& columns)
+{
+    unsigned col_len = 0;
+    for (const auto& col : columns) {
+        auto this_col_len = fmt::formatted_size("{}", col);
+        col_len = col_len > this_col_len ? col_len : this_col_len;
+    }
+    return col_len;
+}
+} // namespace
 // Print error table for failed comparisons
 // Shows: index, input(s), expected, actual, rel_error, tol
 void print_error_table(const std::vector<unsigned int>& fail_indices,
@@ -617,23 +650,34 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
                        float tol,
                        int max_errors = 10)
 {
+    constexpr std::array<const char*, 5> columns{
+        "index", "expected", "actual", "rel_err", "tol"
+    };
+    unsigned int index_len = fmt::formatted_size("{}", columns[0]) + 1;
+    unsigned int col_len = max_col_length(columns);
+    /* choose enough digits to represent tolerance */
+    const auto prec_tup = tol_precision(tol, col_len);
+    fmt::print("{}::{}\n", std::get<0>(prec_tup), std::get<1>(prec_tup));
+    col_len = std::max(col_len + 1, std::get<0>(prec_tup));
+    unsigned int val_prec = std::get<1>(prec_tup);
+
     if (fail_indices.empty())
         return;
 
     // Print header
-    fmt::print("{:>7}", "index");
+    fmt::print("{0:>{1}}", "index", index_len);
     for (size_t k = 0; k < input_sigs.size(); k++) {
-        fmt::print(" | {:>10}", fmt::format("in{}", k));
+        fmt::print(" | {0:>{1}}", fmt::format("in{}", k), col_len);
     }
     fmt::print(
-        " | {:>10} | {:>10} | {:>9} | {:>9}\n", "expected", "actual", "rel_err", "tol");
+        " | {0:>{1}}\n", fmt::join(columns.begin() + 1, columns.end(), " | "), col_len);
 
     // Print separator
-    fmt::print("{:-<7}", "");
+    fmt::print("{:-<{}}", "", index_len);
     for (size_t k = 0; k < input_sigs.size(); k++) {
-        fmt::print("-+-{:-<10}", "");
+        fmt::print("-+-{0:-<{1}}", "", col_len);
     }
-    fmt::print("-+-{:-<10}-+-{:-<10}-+-{:-<9}-+-{:-<9}\n", "", "", "", "");
+    fmt::print("-+-{0:-<{1}}-+-{0:-<{1}}-+-{0:-<{1}}-+-{0:-<{1}}\n", "", col_len);
 
     int print_count = 0;
     for (unsigned int idx : fail_indices) {
@@ -642,14 +686,13 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
             break;
         }
 
-        fmt::print("{:>7}", idx);
-
+        fmt::print("{0:>{1}}", idx, index_len);
         // Print input values
         for (size_t k = 0; k < input_sigs.size(); k++) {
             if (input_sigs[k].is_float) {
                 double val = (input_sigs[k].size == 8) ? ((double*)inputs[k])[idx]
                                                        : ((float*)inputs[k])[idx];
-                fmt::print(" | {:>10.4f}", val);
+                fmt::print(" | {0:>{1}.{2}f}", val, col_len, val_prec);
             } else {
                 int64_t val = 0;
                 switch (input_sigs[k].size) {
@@ -670,7 +713,7 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
                                                   : (int64_t)((uint8_t*)inputs[k])[idx];
                     break;
                 }
-                fmt::print(" | {:>10}", val);
+                fmt::print(" | {0:>{1}}", val, col_len);
             }
         }
 
@@ -686,7 +729,8 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
             }
             double abs_err = fabs(exp_val - act_val);
             rel_err = (fabs(exp_val) > 1e-30) ? abs_err / fabs(exp_val) : abs_err;
-            fmt::print(" | {:>10.4f} | {:>10.4f}", exp_val, act_val);
+            fmt::print(
+                " | {0:>{2}.{3}f} | {1:>{2}.{3}f}", exp_val, act_val, col_len, val_prec);
         } else {
             int64_t exp_i = 0, act_i = 0;
             switch (output_sig.size) {
@@ -715,12 +759,12 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
                                              : (int64_t)((uint8_t*)actual)[idx];
                 break;
             }
-            fmt::print(" | {:>10} | {:>10}", exp_i, act_i);
+            fmt::print(" | {0:>{2}} | {1:>{2}}", exp_i, act_i, col_len);
             double abs_err = (double)abs(exp_i - act_i);
             rel_err = (exp_i != 0) ? abs_err / fabs((double)exp_i) : abs_err;
         }
 
-        fmt::print(" | {:>9.1e} | {:>9.1e}\n", rel_err, (double)tol);
+        fmt::print(" | {0:>{2}.1e} | {1:>{2}.1e}\n", rel_err, (double)tol, col_len);
     }
 }
 
