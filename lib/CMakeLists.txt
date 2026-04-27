@@ -25,10 +25,12 @@ if(HAVE_FENV_H)
     add_definitions(-DHAVE_FENV_H)
 endif()
 
-check_include_file(dlfcn.h HAVE_DLFCN_H)
-if(HAVE_DLFCN_H)
-    add_definitions(-DHAVE_DLFCN_H)
-    list(APPEND volk_libraries ${CMAKE_DL_LIBS})
+if(NOT VOLK_STATIC_DISPATCH)
+    check_include_file(dlfcn.h HAVE_DLFCN_H)
+    if(HAVE_DLFCN_H)
+        add_definitions(-DHAVE_DLFCN_H)
+        list(APPEND volk_libraries ${CMAKE_DL_LIBS})
+    endif()
 endif()
 
 ########################################################################
@@ -338,6 +340,20 @@ endforeach(arch)
 message(STATUS "Available machines: ${available_machines}")
 
 ########################################################################
+# Static dispatch: validate machine name
+########################################################################
+if(VOLK_STATIC_DISPATCH)
+    list(FIND available_machines "${VOLK_STATIC_DISPATCH}" _sd_idx)
+    if(_sd_idx EQUAL -1)
+        message(FATAL_ERROR
+            "VOLK_STATIC_DISPATCH='${VOLK_STATIC_DISPATCH}' is not available.\n"
+            "Available machines: ${available_machines}")
+    endif()
+    message(STATUS "Static dispatch: ${VOLK_STATIC_DISPATCH}")
+    set(available_machines ${VOLK_STATIC_DISPATCH})
+endif()
+
+########################################################################
 # Create rules to run the volk generator
 ########################################################################
 
@@ -347,7 +363,11 @@ file(GLOB py_files ${PROJECT_SOURCE_DIR}/gen/*.py)
 file(GLOB h_files ${PROJECT_SOURCE_DIR}/kernels/volk/*.h)
 
 macro(gen_template tmpl output)
-    list(APPEND volk_gen_sources ${output})
+    if(${output} MATCHES "\\.h$")
+        list(APPEND volk_gen_headers ${output})
+    else()
+        list(APPEND volk_gen_sources ${output})
+    endif()
     add_custom_command(
         OUTPUT ${output}
         DEPENDS ${xml_files} ${py_files} ${h_files} ${tmpl}
@@ -359,21 +379,28 @@ endmacro(gen_template)
 
 make_directory(${PROJECT_BINARY_DIR}/include/volk)
 
-gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk.tmpl.h
-             ${PROJECT_BINARY_DIR}/include/volk/volk.h)
-gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk.tmpl.c ${PROJECT_BINARY_DIR}/lib/volk.c)
 gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_typedefs.tmpl.h
              ${PROJECT_BINARY_DIR}/include/volk/volk_typedefs.h)
-gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_cpu.tmpl.h
-             ${PROJECT_BINARY_DIR}/include/volk/volk_cpu.h)
-gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_cpu.tmpl.c
-             ${PROJECT_BINARY_DIR}/lib/volk_cpu.c)
 gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_config_fixed.tmpl.h
              ${PROJECT_BINARY_DIR}/include/volk/volk_config_fixed.h)
-gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_machines.tmpl.h
-             ${PROJECT_BINARY_DIR}/lib/volk_machines.h)
-gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_machines.tmpl.c
-             ${PROJECT_BINARY_DIR}/lib/volk_machines.c)
+
+if(VOLK_STATIC_DISPATCH)
+    gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_static_dispatch.tmpl.h
+                 ${PROJECT_BINARY_DIR}/include/volk/volk_dispatch.h ${VOLK_STATIC_DISPATCH})
+else()
+    gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_dynamic_dispatch.tmpl.h
+                 ${PROJECT_BINARY_DIR}/include/volk/volk_dispatch.h)
+    gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_dynamic_dispatch.tmpl.c
+                 ${PROJECT_BINARY_DIR}/lib/volk.c)
+    gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_cpu.tmpl.h
+                 ${PROJECT_BINARY_DIR}/include/volk/volk_cpu.h)
+    gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_cpu.tmpl.c
+                 ${PROJECT_BINARY_DIR}/lib/volk_cpu.c)
+    gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_machines.tmpl.h
+                 ${PROJECT_BINARY_DIR}/lib/volk_machines.h)
+    gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_machines.tmpl.c
+                 ${PROJECT_BINARY_DIR}/lib/volk_machines.c)
+endif()
 
 set(BASE_CFLAGS NONE)
 string(TOUPPER ${CMAKE_BUILD_TYPE} CBTU)
@@ -400,37 +427,39 @@ set(COMPILER_INFO
     "${CMAKE_C_COMPILER}:::${CMAKE_C_FLAGS_${GRCBTU}} ${CMAKE_C_FLAGS}\n${CMAKE_CXX_COMPILER}:::${CMAKE_CXX_FLAGS_${GRCBTU}} ${CMAKE_CXX_FLAGS}\n"
 )
 
-foreach(machine_name ${available_machines})
-    #generate machine source
-    set(machine_source ${CMAKE_CURRENT_BINARY_DIR}/volk_machine_${machine_name}.c)
-    gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_machine_xxx.tmpl.c ${machine_source}
-                 ${machine_name})
+if(NOT VOLK_STATIC_DISPATCH)
+    foreach(machine_name ${available_machines})
+        #generate machine source
+        set(machine_source ${CMAKE_CURRENT_BINARY_DIR}/volk_machine_${machine_name}.c)
+        gen_template(${PROJECT_SOURCE_DIR}/tmpl/volk_machine_xxx.tmpl.c ${machine_source}
+                     ${machine_name})
 
-    #determine machine flags
-    execute_process(
-        COMMAND
-            ${PYTHON_EXECUTABLE} ${PYTHON_DASH_B}
-            ${PROJECT_SOURCE_DIR}/gen/volk_compile_utils.py --mode "machine_flags"
-            --machine "${machine_name}" --compiler "${COMPILER_NAME}"
-        OUTPUT_VARIABLE ${machine_name}_flags
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
+        #determine machine flags
+        execute_process(
+            COMMAND
+                ${PYTHON_EXECUTABLE} ${PYTHON_DASH_B}
+                ${PROJECT_SOURCE_DIR}/gen/volk_compile_utils.py --mode "machine_flags"
+                --machine "${machine_name}" --compiler "${COMPILER_NAME}"
+            OUTPUT_VARIABLE ${machine_name}_flags
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    message(
-        STATUS
-            "BUILD INFO ::: ${machine_name} ::: ${COMPILER_NAME} ::: ${CMAKE_C_FLAGS_${CBTU}} ${CMAKE_C_FLAGS} ${${machine_name}_flags}"
-    )
-    set(COMPILER_INFO
-        "${COMPILER_INFO}${machine_name}:::${COMPILER_NAME}:::${CMAKE_C_FLAGS_${CBTU}} ${CMAKE_C_FLAGS} ${${machine_name}_flags}\n"
-    )
-    if(${machine_name}_flags AND NOT MSVC)
-        set_source_files_properties(${machine_source}
-                                    PROPERTIES COMPILE_FLAGS "${${machine_name}_flags}")
-    endif()
+        message(
+            STATUS
+                "BUILD INFO ::: ${machine_name} ::: ${COMPILER_NAME} ::: ${CMAKE_C_FLAGS_${CBTU}} ${CMAKE_C_FLAGS} ${${machine_name}_flags}"
+        )
+        set(COMPILER_INFO
+            "${COMPILER_INFO}${machine_name}:::${COMPILER_NAME}:::${CMAKE_C_FLAGS_${CBTU}} ${CMAKE_C_FLAGS} ${${machine_name}_flags}\n"
+        )
+        if(${machine_name}_flags AND NOT MSVC)
+            set_source_files_properties(${machine_source}
+                                        PROPERTIES COMPILE_FLAGS "${${machine_name}_flags}")
+        endif()
 
-    #add to available machine defs
-    string(TOUPPER LV_MACHINE_${machine_name} machine_def)
-    list(APPEND machine_defs ${machine_def})
-endforeach(machine_name)
+        #add to available machine defs
+        string(TOUPPER LV_MACHINE_${machine_name} machine_def)
+        list(APPEND machine_defs ${machine_def})
+    endforeach(machine_name)
+endif()
 
 # Convert to a C string to compile and display properly
 string(STRIP "${cmake_c_compiler_version}" cmake_c_compiler_version)
@@ -472,7 +501,7 @@ endforeach(ARCH)
 ########################################################################
 # Handle orc support
 ########################################################################
-if(ORC_FOUND)
+if(ORC_FOUND AND NOT VOLK_STATIC_DISPATCH)
     #setup orc library usage
     include_directories(${ORC_INCLUDE_DIRS})
     link_directories(${ORC_LIBRARY_DIRS})
@@ -494,14 +523,13 @@ if(ORC_FOUND)
         list(APPEND volk_sources ${orcc_gen})
 
     endforeach(orc_file)
-else()
+elseif(NOT ORC_FOUND)
     message(STATUS "Did not find liborc and orcc, disabling orc support...")
 endif()
 
 ########################################################################
 # Handle the generated constants
 ########################################################################
-
 message(STATUS "Loading version ${VERSION} into constants...")
 
 #double escape for windows backslash path separators
@@ -521,14 +549,22 @@ if(NOT WIN32)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -Wno-deprecated-declarations")
 endif()
 
-list(APPEND volk_sources ${CMAKE_CURRENT_SOURCE_DIR}/volk_prefs.c
-     ${CMAKE_CURRENT_SOURCE_DIR}/volk_rank_archs.c
-     ${CMAKE_CURRENT_SOURCE_DIR}/volk_malloc.c ${volk_gen_sources})
+if(VOLK_STATIC_DISPATCH)
+    list(APPEND volk_sources
+        ${CMAKE_CURRENT_SOURCE_DIR}/volk_malloc.c
+        ${volk_gen_sources})
+else()
+    list(APPEND volk_sources
+        ${CMAKE_CURRENT_SOURCE_DIR}/volk_prefs.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/volk_rank_archs.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/volk_malloc.c
+        ${volk_gen_sources})
 
-#set the machine definitions where applicable
-set_source_files_properties(
-    ${CMAKE_CURRENT_BINARY_DIR}/volk.c ${CMAKE_CURRENT_BINARY_DIR}/volk_machines.c
-    PROPERTIES COMPILE_DEFINITIONS "${machine_defs}")
+    #set the machine definitions where applicable
+    set_source_files_properties(
+        ${CMAKE_CURRENT_BINARY_DIR}/volk.c ${CMAKE_CURRENT_BINARY_DIR}/volk_machines.c
+        PROPERTIES COMPILE_DEFINITIONS "${machine_defs}")
+endif()
 
 if(MSVC)
     #add compatibility includes for stdint types
@@ -544,7 +580,7 @@ endif()
 #library linkage, but we have to define them here for compiling to
 #work. There are options starting with CMake 3.13 for using the OBJECT
 #to propagate this information.
-add_library(volk_obj OBJECT ${volk_sources})
+add_library(volk_obj OBJECT ${volk_sources} ${volk_gen_headers})
 target_include_directories(
     volk_obj
     PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
@@ -612,7 +648,7 @@ target_include_directories(
     PUBLIC $<INSTALL_INTERFACE:include>)
 
 #Configure target properties
-if(ORC_FOUND)
+if(ORC_FOUND AND NOT VOLK_STATIC_DISPATCH)
     target_link_libraries(volk PRIVATE ${ORC_LIBRARIES})
 endif()
 if(NOT MSVC)
@@ -646,7 +682,7 @@ if(ENABLE_STATIC_LIBS)
         target_link_libraries(volk_static
                               PRIVATE $<BUILD_INTERFACE:CpuFeatures::cpu_features>)
     endif()
-    if(ORC_FOUND)
+    if(ORC_FOUND AND NOT VOLK_STATIC_DISPATCH)
         target_link_libraries(volk_static PUBLIC ${ORC_LIBRARIES_STATIC})
     endif()
     if(NOT ANDROID)

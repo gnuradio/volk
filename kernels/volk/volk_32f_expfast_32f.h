@@ -53,10 +53,10 @@
 #include <math.h>
 #include <stdio.h>
 
-#define Mln2 0.6931471805f
-#define A 8388608.0f
-#define B 1065353216.0f
-#define C 60801.0f
+#define VOLK_EXPFAST_Mln2 0.6931471805f
+#define VOLK_EXPFAST_A 8388608.0f
+#define VOLK_EXPFAST_B 1065353216.0f
+#define VOLK_EXPFAST_C 60801.0f
 
 
 #ifndef INCLUDED_volk_32f_expfast_32f_a_H
@@ -78,8 +78,8 @@ static inline void volk_32f_expfast_32f_a_avx_fma(float* bVector,
 
     __m256 aVal, bVal, a, b;
     __m256i exp;
-    a = _mm256_set1_ps(A / Mln2);
-    b = _mm256_set1_ps(B - C);
+    a = _mm256_set1_ps(VOLK_EXPFAST_A / VOLK_EXPFAST_Mln2);
+    b = _mm256_set1_ps(VOLK_EXPFAST_B - VOLK_EXPFAST_C);
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_load_ps(aPtr);
@@ -114,8 +114,8 @@ volk_32f_expfast_32f_a_avx(float* bVector, const float* aVector, unsigned int nu
 
     __m256 aVal, bVal, a, b;
     __m256i exp;
-    a = _mm256_set1_ps(A / Mln2);
-    b = _mm256_set1_ps(B - C);
+    a = _mm256_set1_ps(VOLK_EXPFAST_A / VOLK_EXPFAST_Mln2);
+    b = _mm256_set1_ps(VOLK_EXPFAST_B - VOLK_EXPFAST_C);
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_load_ps(aPtr);
@@ -150,8 +150,8 @@ static inline void volk_32f_expfast_32f_a_sse4_1(float* bVector,
 
     __m128 aVal, bVal, a, b;
     __m128i exp;
-    a = _mm_set1_ps(A / Mln2);
-    b = _mm_set1_ps(B - C);
+    a = _mm_set1_ps(VOLK_EXPFAST_A / VOLK_EXPFAST_Mln2);
+    b = _mm_set1_ps(VOLK_EXPFAST_B - VOLK_EXPFAST_C);
 
     for (; number < quarterPoints; number++) {
         aVal = _mm_load_ps(aPtr);
@@ -191,8 +191,8 @@ static inline void volk_32f_expfast_32f_u_avx_fma(float* bVector,
 
     __m256 aVal, bVal, a, b;
     __m256i exp;
-    a = _mm256_set1_ps(A / Mln2);
-    b = _mm256_set1_ps(B - C);
+    a = _mm256_set1_ps(VOLK_EXPFAST_A / VOLK_EXPFAST_Mln2);
+    b = _mm256_set1_ps(VOLK_EXPFAST_B - VOLK_EXPFAST_C);
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_loadu_ps(aPtr);
@@ -226,8 +226,8 @@ volk_32f_expfast_32f_u_avx(float* bVector, const float* aVector, unsigned int nu
 
     __m256 aVal, bVal, a, b;
     __m256i exp;
-    a = _mm256_set1_ps(A / Mln2);
-    b = _mm256_set1_ps(B - C);
+    a = _mm256_set1_ps(VOLK_EXPFAST_A / VOLK_EXPFAST_Mln2);
+    b = _mm256_set1_ps(VOLK_EXPFAST_B - VOLK_EXPFAST_C);
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_loadu_ps(aPtr);
@@ -263,8 +263,8 @@ static inline void volk_32f_expfast_32f_u_sse4_1(float* bVector,
 
     __m128 aVal, bVal, a, b;
     __m128i exp;
-    a = _mm_set1_ps(A / Mln2);
-    b = _mm_set1_ps(B - C);
+    a = _mm_set1_ps(VOLK_EXPFAST_A / VOLK_EXPFAST_Mln2);
+    b = _mm_set1_ps(VOLK_EXPFAST_B - VOLK_EXPFAST_C);
 
     for (; number < quarterPoints; number++) {
         aVal = _mm_loadu_ps(aPtr);
@@ -313,8 +313,8 @@ volk_32f_expfast_32f_neon(float* bVector, const float* aVector, unsigned int num
     unsigned int number = 0;
     const unsigned int quarterPoints = num_points / 4;
 
-    float32x4_t a = vdupq_n_f32(A / Mln2);
-    float32x4_t b = vdupq_n_f32(B - C);
+    float32x4_t a = vdupq_n_f32(VOLK_EXPFAST_A / VOLK_EXPFAST_Mln2);
+    float32x4_t b = vdupq_n_f32(VOLK_EXPFAST_B - VOLK_EXPFAST_C);
 
     for (; number < quarterPoints; number++) {
         float32x4_t aVal = vld1q_f32(aPtr);
@@ -346,8 +346,8 @@ volk_32f_expfast_32f_neonv8(float* bVector, const float* aVector, unsigned int n
     unsigned int number = 0;
     const unsigned int eighthPoints = num_points / 8;
 
-    float32x4_t a = vdupq_n_f32(A / Mln2);
-    float32x4_t b = vdupq_n_f32(B - C);
+    float32x4_t a = vdupq_n_f32(VOLK_EXPFAST_A / VOLK_EXPFAST_Mln2);
+    float32x4_t b = vdupq_n_f32(VOLK_EXPFAST_B - VOLK_EXPFAST_C);
 
     for (; number < eighthPoints; number++) {
         __VOLK_PREFETCH(aPtr + 16);
@@ -383,8 +383,10 @@ static inline void
 volk_32f_expfast_32f_rvv(float* bVector, const float* aVector, unsigned int num_points)
 {
     size_t vlmax = __riscv_vsetvlmax_e32m8();
-    const vfloat32m8_t ca = __riscv_vfmv_v_f_f32m8(A / Mln2, vlmax);
-    const vfloat32m8_t cb = __riscv_vfmv_v_f_f32m8(B - C, vlmax);
+    const vfloat32m8_t ca =
+        __riscv_vfmv_v_f_f32m8(VOLK_EXPFAST_A / VOLK_EXPFAST_Mln2, vlmax);
+    const vfloat32m8_t cb =
+        __riscv_vfmv_v_f_f32m8(VOLK_EXPFAST_B - VOLK_EXPFAST_C, vlmax);
 
     size_t n = num_points;
     for (size_t vl; n > 0; n -= vl, aVector += vl, bVector += vl) {
@@ -396,5 +398,10 @@ volk_32f_expfast_32f_rvv(float* bVector, const float* aVector, unsigned int num_
     }
 }
 #endif /*LV_HAVE_RVV*/
+
+#undef VOLK_EXPFAST_Mln2
+#undef VOLK_EXPFAST_A
+#undef VOLK_EXPFAST_B
+#undef VOLK_EXPFAST_C
 
 #endif /* INCLUDED_volk_32f_expfast_32f_u_H */
