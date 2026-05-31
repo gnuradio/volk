@@ -624,8 +624,9 @@ std::tuple<unsigned int, unsigned int> tol_precision(float tol, unsigned int col
     return { tol_length,
              std::min<unsigned int>(tol_length - dot_length, -std::floor(log10)) };
 }
+
 template <class T>
-unsigned int max_col_length(const T& columns)
+unsigned int max_column_width(const T& columns)
 {
     unsigned col_len = 0;
     for (const auto& col : columns) {
@@ -635,6 +636,7 @@ unsigned int max_col_length(const T& columns)
     return col_len;
 }
 } // namespace
+
 // Print error table for failed comparisons
 // Shows: index, input(s), expected, actual, rel_error, tol
 void print_error_table(const std::vector<unsigned int>& fail_indices,
@@ -650,7 +652,7 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
         "index", "expected", "actual", "rel_err", "tol"
     };
     unsigned int index_len = fmt::formatted_size("{}", columns[0]) + 1;
-    unsigned int col_len = max_col_length(columns);
+    unsigned int col_len = max_column_width(columns);
     /* choose enough digits to represent tolerance */
     const auto prec_tup = tol_precision(tol, col_len);
     fmt::print("{}::{}\n", std::get<0>(prec_tup), std::get<1>(prec_tup));
