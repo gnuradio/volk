@@ -983,7 +983,7 @@ bool run_volk_tests(volk_func_desc_t desc,
         start = std::chrono::system_clock::now();
         switch (both_sigs.size()) {
         case 1:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test1(
                     (volk_fn_1arg)(manual_func), test_data[0], vlen, iter, "generic");
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -1005,7 +1005,7 @@ bool run_volk_tests(volk_func_desc_t desc,
             }
             break;
         case 2:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test2(
                     (volk_fn_2arg)(manual_func), test_data[0], vlen, iter, "generic");
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -1027,7 +1027,7 @@ bool run_volk_tests(volk_func_desc_t desc,
             }
             break;
         case 3:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test3(
                     (volk_fn_3arg)(manual_func), test_data[0], vlen, iter, "generic");
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -1068,7 +1068,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                 // Run additional warmup iterations
                 switch (both_sigs.size()) {
                 case 1:
-                    if (inputsc.size() == 0) {
+                    if (inputsc.empty()) {
                         run_cast_test1((volk_fn_1arg)(manual_func),
                                        test_data[0],
                                        vlen,
@@ -1093,7 +1093,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                     }
                     break;
                 case 2:
-                    if (inputsc.size() == 0) {
+                    if (inputsc.empty()) {
                         run_cast_test2((volk_fn_2arg)(manual_func),
                                        test_data[0],
                                        vlen,
@@ -1118,7 +1118,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                     }
                     break;
                 case 3:
-                    if (inputsc.size() == 0) {
+                    if (inputsc.empty()) {
                         run_cast_test3((volk_fn_3arg)(manual_func),
                                        test_data[0],
                                        vlen,
@@ -1177,7 +1177,7 @@ bool run_volk_tests(volk_func_desc_t desc,
 
         switch (both_sigs.size()) {
         case 1:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test1(
                     (volk_fn_1arg)(manual_func), test_data[i], vlen, iter, arch_list[i]);
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -1201,7 +1201,7 @@ bool run_volk_tests(volk_func_desc_t desc,
             }
             break;
         case 2:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test2(
                     (volk_fn_2arg)(manual_func), test_data[i], vlen, iter, arch_list[i]);
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -1225,7 +1225,7 @@ bool run_volk_tests(volk_func_desc_t desc,
             }
             break;
         case 3:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test3(
                     (volk_fn_3arg)(manual_func), test_data[i], vlen, iter, arch_list[i]);
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
