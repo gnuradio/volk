@@ -149,6 +149,7 @@ jobs:
           install: |
             case "${{ matrix.distro }}" in
               ubuntu*|jessie|stretch|buster|bullseye|trixie|forky)
+                export DEBIAN_FRONTEND=noninteractive
                 apt-get update -q -y
                 apt-get install -q -y git cmake python3-mako liborc-dev libgtest-dev libfmt-dev ${{ matrix.compiler.name }}
                 ;;
@@ -198,8 +199,8 @@ jobs:
           submodules: "recursive"
       - name: dependencies
         run: |
-          sudo apt-get update >/dev/null \
-          && sudo apt-get install -y python3-mako liborc-dev libgtest-dev libfmt-dev
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update >/dev/null \
+          && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-mako liborc-dev libgtest-dev libfmt-dev
       - name: Install sccache
         shell: bash
         run: sudo scripts/ci/install_sccache.bash "${{ matrix.name }}"

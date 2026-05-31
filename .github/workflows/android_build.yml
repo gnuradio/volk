@@ -31,11 +31,11 @@ jobs:
           submodules: "recursive"
 
       - name: Update repositories
-        run: sudo apt update
+        run: sudo DEBIAN_FRONTEND=noninteractive apt-get update > /dev/null
 
       # All dependencies
       - name: Install dependencies
-        run: sudo apt install -y cmake python3-mako curl
+        run: sudo DEBIAN_FRONTEND=noninteractive apt-get install -y cmake python3-mako curl
 
       - name: Install sccache
         shell: bash
