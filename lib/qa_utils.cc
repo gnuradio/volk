@@ -654,10 +654,10 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
     unsigned int index_len = fmt::formatted_size("{}", columns[0]) + 1;
     unsigned int col_len = max_column_width(columns);
     /* choose enough digits to represent tolerance */
-    const auto prec_tup = tol_precision(tol, col_len);
-    fmt::print("{}::{}\n", std::get<0>(prec_tup), std::get<1>(prec_tup));
-    col_len = std::max(col_len + 1, std::get<0>(prec_tup));
-    unsigned int val_prec = std::get<1>(prec_tup);
+    const auto [tol_length, value_prec] = tol_precision(tol, col_len);
+    fmt::print("{}::{}\n", tol_length, value_prec);
+    col_len = std::max(col_len + 1, tol_length);
+    unsigned int val_prec = value_prec;
 
     if (fail_indices.empty())
         return;
