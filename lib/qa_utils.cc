@@ -202,8 +202,8 @@ static std::vector<std::string> get_arch_list(volk_func_desc_t desc)
 template <typename T>
 T volk_lexical_cast(const std::string& str)
 {
-    for (unsigned int c_index = 0; c_index < str.size(); ++c_index) {
-        if (str.at(c_index) < '0' || str.at(c_index) > '9') {
+    for (char c_index : str) {
+        if (c_index < '0' || c_index > '9') {
             throw "not all numbers!";
         }
     }
@@ -272,13 +272,13 @@ std::vector<std::string> split_signature(const std::string& protokernel_signatur
 {
     std::vector<std::string> signature_tokens;
     std::string token;
-    for (unsigned int loc = 0; loc < protokernel_signature.size(); ++loc) {
-        if (protokernel_signature.at(loc) == '_') {
+    for (char loc : protokernel_signature) {
+        if (loc == '_') {
             // this is a break
             signature_tokens.push_back(token);
             token = "";
         } else {
-            token.push_back(protokernel_signature.at(loc));
+            token.push_back(loc);
         }
     }
     // Get the last one to the end of the string
@@ -814,8 +814,8 @@ public:
     }
     ~volk_qa_aligned_mem_pool()
     {
-        for (unsigned int ii = 0; ii < _mems.size(); ++ii) {
-            volk_free(_mems[ii]);
+        for (auto& _mem : _mems) {
+            volk_free(_mem);
         }
     }
 
@@ -934,9 +934,7 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
     std::vector<void*> inbuffs;
-    for (unsigned int inputsig_index = 0; inputsig_index < inputsig.size();
-         ++inputsig_index) {
-        volk_type_t sig = inputsig[inputsig_index];
+    for (const auto& sig : inputsig) {
         if (!sig.is_scalar) { // we don't make buffers for scalars
             inbuffs.push_back(
                 mem_pool.get_new(vlen * sig.size * (sig.is_complex ? 2 : 1)));
@@ -952,9 +950,9 @@ bool run_volk_tests(volk_func_desc_t desc,
     std::vector<std::vector<void*>> test_data;
     for (size_t i = 0; i < arch_list.size(); i++) {
         std::vector<void*> arch_buffs;
-        for (size_t j = 0; j < outputsig.size(); j++) {
-            arch_buffs.push_back(mem_pool.get_new(vlen * outputsig[j].size *
-                                                  (outputsig[j].is_complex ? 2 : 1)));
+        for (auto& j : outputsig) {
+            arch_buffs.push_back(
+                mem_pool.get_new(vlen * j.size * (j.is_complex ? 2 : 1)));
         }
         for (size_t j = 0; j < inputsig.size(); j++) {
             void* arch_inbuff = mem_pool.get_new(vlen * inputsig[j].size *
@@ -1486,11 +1484,11 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     // Calculate total data transferred (bytes read + written) for throughput display
     size_t bytes_per_call = 0;
-    for (size_t j = 0; j < outputsig.size(); j++) {
-        bytes_per_call += outputsig[j].size * (outputsig[j].is_complex ? 2 : 1) * vlen;
+    for (auto& j : outputsig) {
+        bytes_per_call += j.size * (j.is_complex ? 2 : 1) * vlen;
     }
-    for (size_t j = 0; j < inputsig.size(); j++) {
-        bytes_per_call += inputsig[j].size * (inputsig[j].is_complex ? 2 : 1) * vlen;
+    for (auto& j : inputsig) {
+        bytes_per_call += j.size * (j.is_complex ? 2 : 1) * vlen;
     }
     double total_mb = (bytes_per_call * iter) / 1e6; // Total megabytes transferred
 
