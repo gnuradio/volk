@@ -9,20 +9,19 @@
  */
 
 #include "qa_utils.h"
-#include <fmt/ranges.h>
 #include <volk/volk.h>
-
-#include <volk/volk.h>        // for volk_func_desc_t
 #include <volk/volk_malloc.h> // for volk_free, volk_m...
 
-#include <assert.h>    // for assert
-#include <stdint.h>    // for uint16_t, uint64_t
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <sys/time.h>  // for CLOCKS_PER_SEC
 #include <sys/types.h> // for int16_t, int32_t
 #include <algorithm>
 #include <array>
+#include <cassert> // for assert
 #include <chrono>
 #include <cmath>    // for sqrt, fabs, abs
+#include <cstdint>  // for uint16_t, uint64_t
 #include <cstring>  // for memcpy, memset
 #include <ctime>    // for clock
 #include <iostream> // for cerr
@@ -31,9 +30,6 @@
 #include <random>
 #include <tuple>
 #include <vector> // for vector, _Bit_refe...
-
-#include <fmt/format.h>
-#include <fmt/ranges.h>
 
 // Warmup time for CPU frequency scaling (ms)
 static double g_warmup_ms = 2000.0;
