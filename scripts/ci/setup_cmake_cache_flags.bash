@@ -11,7 +11,7 @@ printf '::group::S3 setup\n'
   if [[ -z "${SCCACHE_S3_BUCKET}" ]] ; then
     echo "using default S3 bucket"
     use_default=true
-    export SCCACHE_S3_BUCKET="gr4-sccache"
+    export SCCACHE_S3_BUCKET="volk-sccache"
     add_env SCCACHE_S3_BUCKET "${SCCACHE_S3_BUCKET}"
   fi
   if [[ -z "${SCCACHE_S3_ENDPOINT}" ]] ; then
@@ -30,9 +30,9 @@ printf '::group::S3 setup\n'
     # set up default bucket here
     echo "AWS key ID not set. Using default read-only key ID & key"
     use_default=true
-    export AWS_ACCESS_KEY_ID="0021090e73dcc12000000000c"
+    export AWS_ACCESS_KEY_ID="0021090e73dcc12000000000d"
     # Can't have a key without a key id.
-    export AWS_SECRET_ACCESS_KEY="K002P+ZeW31+o4HIhDz8CXZg6OpFI4k"
+    export AWS_SECRET_ACCESS_KEY="K002v5ntyoAssltLZnAgMBzEtcJsfkw"
   fi
   add_env AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
   add_env AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"

@@ -5,91 +5,102 @@ source /etc/os-release
 export DEBIAN_FRONTEND=noninteractive
 
 check_sccache_s3() {
-  type -p sccache >/dev/null && (sccache -h | grep -q ' *S3: *true')
+	type -p sccache >/dev/null && (sccache -h | grep -q ' *S3: *true')
 }
 install_deb() {
-  apt-get install -y sccache
+	apt-get install -y sccache
 }
 
-if check_sccache_s3; then
-  echo "installed $(sccache --version) has S3 support"
-  exit 0
+check_and_exit() {
+	if check_sccache_s3; then
+		echo "installed $(sccache --version) has S3 support"
+		exit 0
+	fi
+}
+check_and_exit
+
+if [[ "$OSTYPE" = "macos" ]] && type -p brew >/dev/null; then
+	brew install sccache
+	check_and_exit
 fi
 
 if [[ "${ID}" = "ubuntu" && -n "${VERSION_ID}" ]]; then
-  ver_major="$(echo "${VERSION_ID}" | cut -f1 -d.)"
-  if [[ "${ver_major}" -ge 26 ]]; then
-    install_deb && exit 0
-  fi
+	ver_major="$(echo "${VERSION_ID}" | cut -f1 -d.)"
+	if [[ "${ver_major}" -ge 26 ]]; then
+		install_deb && check_and_exit
+	fi
 fi
 
 if [[ "${ID}" = "debian" ]]; then
-  ver_major=0
-  if [[ -n "${VERSION_ID}" ]]; then
-    ver_major="$(echo "${VERSION_ID}" | cut -f1 -d.)"
-  else
-    # non-release, um??? we know that this works for forky=14, but uuum
-    # try to install, and if that succeeds, check availability of S3,
-    # if missing, uninstall.
-    if install_deb; then
-      gh_message "speculative sccache installation" "Don't know debian ${PRETTY_NAME}, trying to install deb"
-      if check_sccache_s3; then
-        echo "using debian packaged $(sccache --version), which has S3 support"
-        exit 0
-      else
-        gh_message "insufficient debian" "available sccache $(sccache --version) has no S3 support."
-        apt-get purge -y sccache
-      fi
-    fi
-  fi
-  if [[ "${ver_major}" -ge 14 ]]; then
-    install_deb && exit 0
-  fi
+	ver_major=0
+	if [[ -n "${VERSION_ID}" ]]; then
+		ver_major="$(echo "${VERSION_ID}" | cut -f1 -d.)"
+	else
+		# non-release, um??? we know that this works for forky=14, but uuum
+		# try to install, and if that succeeds, check availability of S3,
+		# if missing, uninstall.
+		if install_deb; then
+			gh_message "speculative sccache installation" "Don't know debian ${PRETTY_NAME}, trying to install deb"
+			if check_sccache_s3; then
+				echo "using debian packaged $(sccache --version), which has S3 support"
+				exit 0
+			else
+				gh_message "insufficient debian" "available sccache $(sccache --version) has no S3 support."
+				apt-get purge -y sccache
+			fi
+		fi
+	fi
+	if [[ "${ver_major}" -ge 14 ]]; then
+		install_deb
+		check_and_exit
+	fi
 fi
 
 gh_message "sccache external download" "need to download from external source"
 
 if [[ -z "${ARCH}" ]] && type -p dpkg >/dev/null; then
-  ARCH="$(dpkg --print-architecture)"
+	ARCH="$(dpkg --print-architecture)"
 fi
 if [[ -z "${ARCH}" ]] && type -p rpm >/dev/null; then
-  ARCH="$(rpm --eval '%{_arch}')"
+	ARCH="$(rpm --eval '%{_arch}')"
 fi
 if [[ -z "${ARCH}" ]] && type -p arch >/dev/null; then
-  ARCH="$(arch)"
+	ARCH="$(arch)"
 fi
 
 sccache_release="0.15.0"
 sccache_arch="${ARCH}"
 abi_suffix=""
+libc="musl"
 case "${ARCH}" in
 "x86_64" | "amd64")
-  sccache_arch="x86_64"
-  ;;
+	sccache_arch="x86_64"
+	;;
 "arm64" | "aarch64")
-  sccache_arch="aarch64"
-  ;;
-"arm" | "armv7")
-  sccache_arch="armv7"
-  abi_suffix="eabi"
-  ;;
+	sccache_arch="aarch64"
+	;;
+"arm" | "armv7" | "armhf")
+	sccache_arch="armv7"
+	abi_suffix="eabi"
+	;;
 "x86" | "i386" | "i686" | "pentium")
-  sccache_arch="i686"
-  ;;
+	sccache_arch="i686"
+	;;
 s390*)
-  sccache_arch="s390x"
-  ;;
-risc64*)
-  sccache_arch="riscv64gc"
-  ;;
+	sccache_arch="s390x"
+	libc="gnu"
+	;;
+riscv64*)
+	sccache_arch="riscv64gc"
+	;;
 esac
-URL="https://github.com/mozilla/sccache/releases/download/v${sccache_release}/sccache-v${sccache_release}-${sccache_arch}-unknown-linux-musl${abi_suffix}.tar.gz"
+URL="https://github.com/mozilla/sccache/releases/download/v${sccache_release}/sccache-v${sccache_release}-${sccache_arch}-unknown-linux-${libc}${abi_suffix}.tar.gz"
 echo "Getting '${URL}'"
 (
-  set -e
-  cd /tmp/
-  curl -s -L "${URL}" | tar xz
-  cd sccache-*
-  cp sccache /usr/bin
-  check_sccache_s3
+	set -e
+	cd /tmp/
+	curl -s -L "${URL}" | tar xz || fail_with_message "can't download" "not possible to download sccache for ${ARCH}"
+	cd sccache-*
+	cp sccache /usr/bin
+	check_and_exit
 ) || fail_with_message "no sccache installable" "couldn't install a suitable sccache"

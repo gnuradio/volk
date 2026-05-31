@@ -13,10 +13,13 @@ fail_with_message() {
   exit 2
 }
 add_output() {
-  printf '%s=%s\n' "$1" "$2" >> "${GITHUB_OUTPUT}"
+  printf '%s=%s\n' "$1" "$2" >>"${GITHUB_OUTPUT}"
 }
 add_env() {
-  printf '%s=%s\n' "$1" "$2" >> "${GITHUB_ENV}"
+  # For reasons, this might not exist in the strange VOLK build container
+  mkdir -p "$(dirname "${GITHUB_ENV}")"
+  touch "${GITHUB_ENV}"
+  printf '%s=%s\n' "$1" "$2" >>"${GITHUB_ENV}"
 }
 add_mask() {
   printf '::add-mask::%s\n' "$1"
