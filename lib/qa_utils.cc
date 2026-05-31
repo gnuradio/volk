@@ -93,8 +93,9 @@ void load_random_data(void* data,
     }
 
     unsigned int remaining_n = n - edge_case_count;
-    if (type.is_complex)
+    if (type.is_complex) {
         remaining_n *= 2;
+    }
 
     if (type.is_float) {
         if (type.size == 8) {
@@ -109,22 +110,25 @@ void load_random_data(void* data,
                                  rnd_engine);
         }
     } else {
-        if (type.is_complex)
+        if (type.is_complex) {
             n *= 2;
+        }
         switch (type.size) {
         case 8:
             if (type.is_signed) {
                 std::uniform_int_distribution<int64_t> uniform_dist(
                     std::numeric_limits<int64_t>::min(),
                     std::numeric_limits<int64_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((int64_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             } else {
                 std::uniform_int_distribution<uint64_t> uniform_dist(
                     std::numeric_limits<uint64_t>::min(),
                     std::numeric_limits<uint64_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((uint64_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             }
             break;
         case 4:
@@ -132,27 +136,31 @@ void load_random_data(void* data,
                 std::uniform_int_distribution<int32_t> uniform_dist(
                     std::numeric_limits<int32_t>::min(),
                     std::numeric_limits<int32_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((int32_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             } else {
                 std::uniform_int_distribution<uint32_t> uniform_dist(
                     std::numeric_limits<uint32_t>::min(),
                     std::numeric_limits<uint32_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((uint32_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             }
             break;
         case 2:
             if (type.is_signed) {
                 std::uniform_int_distribution<int16_t> uniform_dist(-6, 6);
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((int16_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             } else {
                 std::uniform_int_distribution<uint16_t> uniform_dist(
                     std::numeric_limits<uint16_t>::min(),
                     std::numeric_limits<uint16_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((uint16_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             }
             break;
         case 1:
@@ -160,14 +168,16 @@ void load_random_data(void* data,
                 std::uniform_int_distribution<int16_t> uniform_dist(
                     std::numeric_limits<int8_t>::min(),
                     std::numeric_limits<int8_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((int8_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             } else {
                 std::uniform_int_distribution<uint16_t> uniform_dist(
                     std::numeric_limits<uint8_t>::min(),
                     std::numeric_limits<uint8_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((uint8_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             }
             break;
         default:
@@ -296,27 +306,31 @@ static void get_signatures_from_name(std::vector<volk_type_t>& inputsig,
         std::string token = toked[token_index];
         try {
             type = volk_type_from_string(token);
-            if (side == SIDE_NAME)
+            if (side == SIDE_NAME) {
                 side = SIDE_OUTPUT; // if this is the first one after the name...
+            }
 
-            if (side == SIDE_INPUT)
+            if (side == SIDE_INPUT) {
                 inputsig.push_back(type);
-            else
+            } else {
                 outputsig.push_back(type);
+            }
         } catch (...) {
             if (token[0] == 'x' && (token.size() > 1) &&
                 (token[1] > '0' && token[1] < '9')) { // it's a multiplier
-                if (side == SIDE_INPUT)
+                if (side == SIDE_INPUT) {
                     assert(inputsig.size() > 0);
-                else
+                } else {
                     assert(outputsig.size() > 0);
+                }
                 int multiplier = volk_lexical_cast<int>(
                     token.substr(1, token.size() - 1)); // will throw if invalid
                 for (int i = 1; i < multiplier; i++) {
-                    if (side == SIDE_INPUT)
+                    if (side == SIDE_INPUT) {
                         inputsig.push_back(inputsig.back());
-                    else
+                    } else {
                         outputsig.push_back(outputsig.back());
+                    }
                 }
             } else if (side ==
                        SIDE_INPUT) { // it's the function name, at least it better be
@@ -324,8 +338,9 @@ static void get_signatures_from_name(std::vector<volk_type_t>& inputsig,
                 fn_name.append("_");
                 fn_name.append(token);
             } else if (side == SIDE_OUTPUT) {
-                if (token != toked.back())
+                if (token != toked.back()) {
                     throw; // the last token in the name is the alignment
+                }
             }
         }
     }
@@ -340,8 +355,9 @@ inline void run_cast_test1(volk_fn_1arg func,
                            unsigned int iter,
                            std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test2(volk_fn_2arg func,
@@ -350,8 +366,9 @@ inline void run_cast_test2(volk_fn_2arg func,
                            unsigned int iter,
                            std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test3(volk_fn_3arg func,
@@ -360,8 +377,9 @@ inline void run_cast_test3(volk_fn_3arg func,
                            unsigned int iter,
                            std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], buffs[2], vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test4(volk_fn_4arg func,
@@ -370,8 +388,9 @@ inline void run_cast_test4(volk_fn_4arg func,
                            unsigned int iter,
                            std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], buffs[2], buffs[3], vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test1_s32f(volk_fn_1arg_s32f func,
@@ -381,8 +400,9 @@ inline void run_cast_test1_s32f(volk_fn_1arg_s32f func,
                                 unsigned int iter,
                                 std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test2_s32f(volk_fn_2arg_s32f func,
@@ -392,8 +412,9 @@ inline void run_cast_test2_s32f(volk_fn_2arg_s32f func,
                                 unsigned int iter,
                                 std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test3_s32f(volk_fn_3arg_s32f func,
@@ -403,8 +424,9 @@ inline void run_cast_test3_s32f(volk_fn_3arg_s32f func,
                                 unsigned int iter,
                                 std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], buffs[2], scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test1_s32fc(volk_fn_1arg_s32fc func,
@@ -414,8 +436,9 @@ inline void run_cast_test1_s32fc(volk_fn_1arg_s32fc func,
                                  unsigned int iter,
                                  std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], &scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test2_s32fc(volk_fn_2arg_s32fc func,
@@ -425,8 +448,9 @@ inline void run_cast_test2_s32fc(volk_fn_2arg_s32fc func,
                                  unsigned int iter,
                                  std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], &scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func,
@@ -436,8 +460,9 @@ inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func,
                                  unsigned int iter,
                                  std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], buffs[2], &scalar, vlen, arch.c_str());
+    }
 }
 
 template <class t>
@@ -659,8 +684,9 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
     col_len = std::max(col_len + 1, tol_length);
     unsigned int val_prec = value_prec;
 
-    if (fail_indices.empty())
+    if (fail_indices.empty()) {
         return;
+    }
 
     // Print header
     fmt::print("{0:>{1}}", "index", index_len);
@@ -911,9 +937,10 @@ bool run_volk_tests(volk_func_desc_t desc,
     for (unsigned int inputsig_index = 0; inputsig_index < inputsig.size();
          ++inputsig_index) {
         volk_type_t sig = inputsig[inputsig_index];
-        if (!sig.is_scalar) // we don't make buffers for scalars
+        if (!sig.is_scalar) { // we don't make buffers for scalars
             inbuffs.push_back(
                 mem_pool.get_new(vlen * sig.size * (sig.is_complex ? 2 : 1)));
+        }
     }
     for (size_t i = 0; i < inbuffs.size(); i++) {
         load_random_data(
@@ -1169,8 +1196,9 @@ bool run_volk_tests(volk_func_desc_t desc,
                                         iter,
                                         arch_list[i]);
                 }
-            } else
+            } else {
                 throw "unsupported 1 arg function >1 scalars";
+            }
             break;
         case 2:
             if (inputsc.size() == 0) {
@@ -1192,8 +1220,9 @@ bool run_volk_tests(volk_func_desc_t desc,
                                         iter,
                                         arch_list[i]);
                 }
-            } else
+            } else {
                 throw "unsupported 2 arg function >1 scalars";
+            }
             break;
         case 3:
             if (inputsc.size() == 0) {
@@ -1215,8 +1244,9 @@ bool run_volk_tests(volk_func_desc_t desc,
                                         iter,
                                         arch_list[i]);
                 }
-            } else
+            } else {
                 throw "unsupported 3 arg function >1 scalars";
+            }
             break;
         case 4:
             run_cast_test4(
