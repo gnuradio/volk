@@ -12,10 +12,13 @@
 #include <stdlib.h>
 #include <string.h>
 #if defined(_MSC_VER)
+#include <direct.h>
 #include <io.h>
 #define access _access
 #define F_OK 0
 #else
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #endif
 #include <volk/volk_prefs.h>
@@ -24,52 +27,105 @@ void volk_get_config_path(char* path, bool read)
 {
     if (!path)
         return;
-    const char* suffix = "/.volk/volk_config";
-    const char* suffix2 = "/volk/volk_config"; // non-hidden
-    char* home = NULL;
+    const char* legacy_suffix = "/.volk/volk_config";
+    const char* nonhidden_suffix = "/volk/volk_config"; // non-hidden
+    char tmp[512] = { 0 };
 
-    // allows config redirection via env variable
-    home = getenv("VOLK_CONFIGPATH");
-    if (home != NULL) {
-        strncpy(path, home, 512);
-        strcat(path, suffix2);
-        if (!read || access(path, F_OK) != -1) {
+    /* 1) explicit override via VOLK_CONFIGPATH */
+    const char* env_override = getenv("VOLK_CONFIGPATH");
+    if (env_override) {
+        snprintf(tmp, sizeof(tmp), "%s%s", env_override, nonhidden_suffix);
+        if (!read || access(tmp, F_OK) == 0) {
+            strncpy(path, tmp, 512);
             return;
         }
     }
 
-    // check for user-local config file
-    home = getenv("HOME");
-    if (home != NULL) {
-        strncpy(path, home, 512);
-        strcat(path, suffix);
-        if (!read || (access(path, F_OK) != -1)) {
+    /* 2) XDG_CONFIG_HOME/volk if XDG set */
+    const char* xdg = getenv("XDG_CONFIG_HOME");
+    if (xdg) {
+        snprintf(tmp, sizeof(tmp), "%s/volk/volk_config", xdg);
+        if (!read) {
+            char parent[512];
+            char dir[512];
+            /* ensure XDG_CONFIG_HOME exists, then create XDG/volk */
+            snprintf(parent, sizeof(parent), "%s", xdg);
+            snprintf(dir, sizeof(dir), "%s/volk", xdg);
+#if defined(_MSC_VER)
+            _mkdir(parent);
+            _mkdir(dir);
+#else
+            struct stat st = { 0 };
+            if (stat(parent, &st) == -1) {
+                mkdir(parent, 0755);
+            }
+            if (stat(dir, &st) == -1) {
+                mkdir(dir, 0755);
+            }
+#endif
+        }
+        if (!read || access(tmp, F_OK) == 0) {
+            strncpy(path, tmp, 512);
             return;
         }
     }
 
-    // check for config file in APPDATA (Windows)
-    home = getenv("APPDATA");
-    if (home != NULL) {
-        strncpy(path, home, 512);
-        strcat(path, suffix);
-        if (!read || (access(path, F_OK) != -1)) {
+    /* 3) $HOME/.config/volk */
+    const char* home = getenv("HOME");
+    if (home) {
+        snprintf(tmp, sizeof(tmp), "%s/.config/volk/volk_config", home);
+        if (!read) {
+            char parent[512];
+            char dir[512];
+            /* ensure HOME/.config exists, then create HOME/.config/volk */
+            snprintf(parent, sizeof(parent), "%s/.config", home);
+            snprintf(dir, sizeof(dir), "%s/.config/volk", home);
+#if defined(_MSC_VER)
+            _mkdir(parent);
+            _mkdir(dir);
+#else
+            struct stat st = { 0 };
+            if (stat(parent, &st) == -1) {
+                mkdir(parent, 0755);
+            }
+            if (stat(dir, &st) == -1) {
+                mkdir(dir, 0755);
+            }
+#endif
+        }
+        if (!read || access(tmp, F_OK) == 0) {
+            strncpy(path, tmp, 512);
             return;
         }
     }
 
-    // check for system-wide config file
-    if (access("/etc/volk/volk_config", F_OK) != -1) {
-        strncpy(path, "/etc", 512);
-        strcat(path, suffix2);
-        if (!read || (access(path, F_OK) != -1)) {
+    /* 4) legacy $HOME/.volk */
+    if (home) {
+        snprintf(tmp, sizeof(tmp), "%s%s", home, legacy_suffix);
+        if (!read || access(tmp, F_OK) == 0) {
+            strncpy(path, tmp, 512);
             return;
         }
     }
 
-    // If still no path was found set path[0] to '0' and fall through
-    path[0] = 0;
-    return;
+    /* 5) Windows APPDATA fallback */
+    const char* appdata = getenv("APPDATA");
+    if (appdata) {
+        snprintf(tmp, sizeof(tmp), "%s%s", appdata, legacy_suffix);
+        if (!read || access(tmp, F_OK) == 0) {
+            strncpy(path, tmp, 512);
+            return;
+        }
+    }
+
+    /* 6) System-wide */
+    if (access("/etc/volk/volk_config", F_OK) == 0) {
+        strncpy(path, "/etc/volk/volk_config", 512);
+        return;
+    }
+
+    /* Nothing found - return empty path */
+    path[0] = '\0';
 }
 
 size_t volk_load_preferences(volk_arch_pref_t** prefs_res)
