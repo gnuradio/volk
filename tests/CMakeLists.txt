@@ -14,7 +14,7 @@ if(NOT fmt_FOUND OR NOT GTest_FOUND)
     return()
 endif(NOT fmt_FOUND OR NOT GTest_FOUND)
 
-file(GLOB volk_test_files "test_*.cc")
+file(GLOB volk_test_files CONFIGURE_DEPENDS "test_*.cc")
 
 add_executable(
   volk_tests

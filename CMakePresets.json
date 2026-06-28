@@ -1,0 +1,201 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Kitware/CMake/master/Help/manual/presets/schema.json",
+  "version": 10,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 30,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "ci",
+      "displayName": "CI Configuration",
+      "description": "Release build for CI pipeline",
+      "inherits": [".base-config", ".release-config", ".component-config"],
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
+      "name": "dev",
+      "displayName": "Development Configuration",
+      "description": "Debug build with strict warnings for development",
+      "inherits": [".base-config", ".debug-config", ".component-config"]
+    },
+    {
+      "name": "native",
+      "displayName": "Native Optimization Configuration",
+      "description": "Release build with native architecture optimizations",
+      "inherits": [".base-config", ".native-config", ".component-config"]
+    },
+    {
+      "name": "release",
+      "displayName": "Release Configuration",
+      "description": "Production release build",
+      "inherits": [".base-config", ".release-config", ".component-config"]
+    },
+    {
+      "name": ".component-config",
+      "hidden": true,
+      "description": "Ensure all VOLK components are active",
+      "cacheVariables": {
+        "ENABLE_TESTING": "ON",
+        "ENABLE_UTILITY_APPS": "ON",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": ".base-config",
+      "hidden": true,
+      "description": "Base configuration shared by all presets",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_STANDARD": "23",
+        "CMAKE_CXX_STANDARD": "26",
+        "CMAKE_CXX_EXTENSIONS": "OFF",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/${presetName}",
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/bin/${presetName}",
+        "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/bin/${presetName}"
+      }
+    },
+    {
+      "name": ".debug-config",
+      "hidden": true,
+      "description": "Debug build type configuration",
+      "inherits": [".base-config"],
+      "graphviz": "${sourceDir}/bin/${presetName}/graph-${presetName}.dot",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wswitch -Wshadow -Wunsafe-loop-optimizations",
+        "CMAKE_C_FLAGS": "-Wall -Wextra -Werror -Wswitch -Wshadow -Wunsafe-loop-optimizations -Werror=incompatible-pointer-types -Werror=pointer-sign"
+      }
+    },
+    {
+      "name": ".release-config",
+      "hidden": true,
+      "description": "Release build type configuration",
+      "inherits": [".base-config"],
+      "cacheVariables": {
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": ".native-config",
+      "hidden": true,
+      "description": "Native architecture optimization configuration",
+      "inherits": [".release-config"],
+      "cacheVariables": {
+        "CMAKE_TUNE_FLAGS": "-march=native -mtune=native"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": ".build-base",
+      "hidden": true,
+      "jobs": 0,
+      "inheritConfigureEnvironment": true
+    },
+    {
+      "name": "ci",
+      "displayName": "CI Build",
+      "configurePreset": "ci",
+      "inherits": [".build-base"]
+    },
+    {
+      "name": "dev",
+      "displayName": "Development Build",
+      "configurePreset": "dev",
+      "inherits": [".build-base"]
+    },
+    {
+      "name": "native",
+      "displayName": "Native Build",
+      "configurePreset": "native",
+      "inherits": [".build-base"]
+    },
+    {
+      "name": "release",
+      "displayName": "Release Build",
+      "configurePreset": "release",
+      "inherits": [".build-base"]
+    }
+  ],
+  "testPresets": [
+    {
+      "name": ".test-base",
+      "hidden": true,
+      "inheritConfigureEnvironment": true,
+      "output": { "verbosity": "verbose", "outputOnFailure": true },
+      "execution": { "jobs": 0, "noTestsAction": "error" }
+    },
+    {
+      "name": "ci",
+      "displayName": "CI Tests",
+      "configurePreset": "ci",
+      "inherits": [".test-base"]
+    },
+    {
+      "name": "dev",
+      "displayName": "Development Tests",
+      "configurePreset": "dev",
+      "inherits": [".test-base"]
+    },
+    {
+      "name": "native",
+      "displayName": "Native Tests",
+      "configurePreset": "native",
+      "inherits": [".test-base"]
+    },
+    {
+      "name": "release",
+      "displayName": "Release Tests",
+      "configurePreset": "release",
+      "inherits": [".test-base"]
+    }
+  ],
+  "packagePresets": [],
+  "workflowPresets": [
+    {
+      "name": "ci",
+      "displayName": "CI Workflow",
+      "description": "Configure, build, and test with CI settings",
+      "steps": [
+        { "type": "configure", "name": "ci" },
+        { "type": "build", "name": "ci" },
+        { "type": "test", "name": "ci" }
+      ]
+    },
+    {
+      "name": "dev",
+      "displayName": "Development Workflow",
+      "description": "Configure, build, and test with development settings",
+      "steps": [
+        { "type": "configure", "name": "dev" },
+        { "type": "build", "name": "dev" }
+      ]
+    },
+    {
+      "name": "native",
+      "displayName": "Native Workflow",
+      "description": "Configure, build, and test with native optimizations",
+      "steps": [
+        { "type": "configure", "name": "native" },
+        { "type": "build", "name": "native" },
+        { "type": "test", "name": "native" }
+      ]
+    },
+    {
+      "name": "release",
+      "displayName": "Release Workflow",
+      "description": "Configure, build, and test with release settings",
+      "steps": [
+        { "type": "configure", "name": "release" },
+        { "type": "build", "name": "release" },
+        { "type": "test", "name": "release" }
+      ]
+    }
+  ]
+}

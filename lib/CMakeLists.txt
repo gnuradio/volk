@@ -291,7 +291,7 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^riscv64$")
     message("---- Adding RISC-V ASM files")
     message("DEBUG: looking for ASM files in ${PROJECT_SOURCE_DIR}/kernels/volk/asm/riscv")
     include_directories(${PROJECT_SOURCE_DIR}/kernels/volk/asm/riscv)
-    file(GLOB asm_files ${PROJECT_SOURCE_DIR}/kernels/volk/asm/riscv/*.s)
+    file(GLOB asm_files CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/kernels/volk/asm/riscv/*.s)
     foreach(asm_file ${asm_files})
         list(APPEND volk_sources ${asm_file})
         message(STATUS "Adding source file: ${asm_file}")
@@ -358,9 +358,9 @@ endif()
 ########################################################################
 
 #dependencies are all python, xml, and header implementation files
-file(GLOB xml_files ${PROJECT_SOURCE_DIR}/gen/*.xml)
-file(GLOB py_files ${PROJECT_SOURCE_DIR}/gen/*.py)
-file(GLOB h_files ${PROJECT_SOURCE_DIR}/kernels/volk/*.h)
+file(GLOB xml_files CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/gen/*.xml)
+file(GLOB py_files CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/gen/*.py)
+file(GLOB h_files CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/kernels/volk/*.h)
 
 macro(gen_template tmpl output)
     if(${output} MATCHES "\\.h$")
@@ -487,7 +487,7 @@ foreach(ARCH ${ASM_ARCHS_AVAILABLE})
         # architecture specific assembler flags are now set in the cmake toolchain file
         # then add the files
         include_directories(${PROJECT_SOURCE_DIR}/kernels/volk/asm/neon)
-        file(GLOB asm_files ${PROJECT_SOURCE_DIR}/kernels/volk/asm/neon/*.s)
+        file(GLOB asm_files CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/kernels/volk/asm/neon/*.s)
         foreach(asm_file ${asm_files})
             list(APPEND volk_sources ${asm_file})
             message(STATUS "Adding source file: ${asm_file}")
@@ -507,7 +507,7 @@ if(ORC_FOUND AND NOT VOLK_STATIC_DISPATCH)
     link_directories(${ORC_LIBRARY_DIRS})
 
     #setup orc functions
-    file(GLOB orc_files ${PROJECT_SOURCE_DIR}/kernels/volk/asm/orc/*.orc)
+    file(GLOB orc_files CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/kernels/volk/asm/orc/*.orc)
     foreach(orc_file ${orc_files})
 
         #extract the name for the generated c source from the orc file
