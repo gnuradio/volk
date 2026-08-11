@@ -28,7 +28,7 @@
 #include <random>
 #include <vector> // for vector, _Bit_refe...
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 // Warmup time for CPU frequency scaling (ms)
 static double g_warmup_ms = 2000.0;

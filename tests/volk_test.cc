@@ -7,8 +7,6 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-#include <fmt/core.h>
-#include <fmt/ranges.h>
 #include <gtest/gtest.h>
 #include <volk/volk.h>
 #include <algorithm>
