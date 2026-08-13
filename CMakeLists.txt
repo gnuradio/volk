@@ -107,9 +107,9 @@ endif(MSVC)
 ########################################################################
 set(VOLK_STATIC_DISPATCH "" CACHE STRING
     "Static dispatch to a specific machine (e.g. neonv8). Empty means dynamic dispatch.")
-cmake_dependent_option(ENABLE_UTILITY_APPS "Enable utility apps" ON "NOT CMAKE_CROSSCOMPILING" OFF)
-cmake_dependent_option(ENABLE_TESTING "Enable QA testing" ON "NOT CMAKE_CROSSCOMPILING" OFF)
-cmake_dependent_option(ENABLE_MODTOOL "Enable volk_modtool python utility" ON "NOT CMAKE_CROSSCOMPILING" OFF)
+option(ENABLE_UTILITY_APPS "Enable utility apps" ON)
+option(ENABLE_TESTING "Enable QA testing" ON)
+option(ENABLE_MODTOOL "Enable volk_modtool python utility" ON)
 cmake_dependent_option(ENABLE_PROFILING "Launch system profiler after build" OFF "ENABLE_UTILITY_APPS;NOT CMAKE_CROSSCOMPILING" OFF)
 
 ########################################################################
