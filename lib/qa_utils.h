@@ -103,12 +103,12 @@ public:
         _complex_edge_cases = edge_cases;
     };
     // getters
-    float tol() { return _tol; };
+    float tol() const { return _tol; };
     lv_32fc_t scalar() { return _scalar; };
-    unsigned int vlen() { return _vlen; };
-    unsigned int iter() { return _iter; };
-    bool benchmark_mode() { return _benchmark_mode; };
-    bool absolute_mode() { return _absolute_mode; };
+    unsigned int vlen() const { return _vlen; };
+    unsigned int iter() const { return _iter; };
+    bool benchmark_mode() const { return _benchmark_mode; };
+    bool absolute_mode() const { return _absolute_mode; };
     std::string kernel_regex() { return _kernel_regex; };
     const std::vector<float>& float_edge_cases() const { return _float_edge_cases; };
     const std::vector<lv_32fc_t>& complex_edge_cases() const

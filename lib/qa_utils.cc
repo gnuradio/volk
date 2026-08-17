@@ -10,25 +10,26 @@
 
 #include "qa_utils.h"
 #include <volk/volk.h>
-
-#include <volk/volk.h>        // for volk_func_desc_t
 #include <volk/volk_malloc.h> // for volk_free, volk_m...
 
-#include <assert.h>    // for assert
-#include <stdint.h>    // for uint16_t, uint64_t
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <sys/time.h>  // for CLOCKS_PER_SEC
 #include <sys/types.h> // for int16_t, int32_t
+#include <algorithm>
+#include <array>
+#include <cassert> // for assert
 #include <chrono>
 #include <cmath>    // for sqrt, fabs, abs
+#include <cstdint>  // for uint16_t, uint64_t
 #include <cstring>  // for memcpy, memset
 #include <ctime>    // for clock
 #include <iostream> // for cerr
 #include <limits>   // for numeric_limits
 #include <map>      // for map, map<>::mappe...
 #include <random>
+#include <tuple>
 #include <vector> // for vector, _Bit_refe...
-
-#include <fmt/format.h>
 
 // Warmup time for CPU frequency scaling (ms)
 static double g_warmup_ms = 2000.0;
@@ -92,8 +93,9 @@ void load_random_data(void* data,
     }
 
     unsigned int remaining_n = n - edge_case_count;
-    if (type.is_complex)
+    if (type.is_complex) {
         remaining_n *= 2;
+    }
 
     if (type.is_float) {
         if (type.size == 8) {
@@ -108,22 +110,25 @@ void load_random_data(void* data,
                                  rnd_engine);
         }
     } else {
-        if (type.is_complex)
+        if (type.is_complex) {
             n *= 2;
+        }
         switch (type.size) {
         case 8:
             if (type.is_signed) {
                 std::uniform_int_distribution<int64_t> uniform_dist(
                     std::numeric_limits<int64_t>::min(),
                     std::numeric_limits<int64_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((int64_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             } else {
                 std::uniform_int_distribution<uint64_t> uniform_dist(
                     std::numeric_limits<uint64_t>::min(),
                     std::numeric_limits<uint64_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((uint64_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             }
             break;
         case 4:
@@ -131,27 +136,31 @@ void load_random_data(void* data,
                 std::uniform_int_distribution<int32_t> uniform_dist(
                     std::numeric_limits<int32_t>::min(),
                     std::numeric_limits<int32_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((int32_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             } else {
                 std::uniform_int_distribution<uint32_t> uniform_dist(
                     std::numeric_limits<uint32_t>::min(),
                     std::numeric_limits<uint32_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((uint32_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             }
             break;
         case 2:
             if (type.is_signed) {
                 std::uniform_int_distribution<int16_t> uniform_dist(-6, 6);
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((int16_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             } else {
                 std::uniform_int_distribution<uint16_t> uniform_dist(
                     std::numeric_limits<uint16_t>::min(),
                     std::numeric_limits<uint16_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((uint16_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             }
             break;
         case 1:
@@ -159,14 +168,16 @@ void load_random_data(void* data,
                 std::uniform_int_distribution<int16_t> uniform_dist(
                     std::numeric_limits<int8_t>::min(),
                     std::numeric_limits<int8_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((int8_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             } else {
                 std::uniform_int_distribution<uint16_t> uniform_dist(
                     std::numeric_limits<uint8_t>::min(),
                     std::numeric_limits<uint8_t>::max());
-                for (unsigned int i = 0; i < n; i++)
+                for (unsigned int i = 0; i < n; i++) {
                     ((uint8_t*)data)[i] = uniform_dist(rnd_engine);
+                }
             }
             break;
         default:
@@ -191,8 +202,8 @@ static std::vector<std::string> get_arch_list(volk_func_desc_t desc)
 template <typename T>
 T volk_lexical_cast(const std::string& str)
 {
-    for (unsigned int c_index = 0; c_index < str.size(); ++c_index) {
-        if (str.at(c_index) < '0' || str.at(c_index) > '9') {
+    for (char c_index : str) {
+        if (c_index < '0' || c_index > '9') {
             throw "not all numbers!";
         }
     }
@@ -261,13 +272,13 @@ std::vector<std::string> split_signature(const std::string& protokernel_signatur
 {
     std::vector<std::string> signature_tokens;
     std::string token;
-    for (unsigned int loc = 0; loc < protokernel_signature.size(); ++loc) {
-        if (protokernel_signature.at(loc) == '_') {
+    for (char loc : protokernel_signature) {
+        if (loc == '_') {
             // this is a break
             signature_tokens.push_back(token);
             token = "";
         } else {
-            token.push_back(protokernel_signature.at(loc));
+            token.push_back(loc);
         }
     }
     // Get the last one to the end of the string
@@ -295,27 +306,31 @@ static void get_signatures_from_name(std::vector<volk_type_t>& inputsig,
         std::string token = toked[token_index];
         try {
             type = volk_type_from_string(token);
-            if (side == SIDE_NAME)
+            if (side == SIDE_NAME) {
                 side = SIDE_OUTPUT; // if this is the first one after the name...
+            }
 
-            if (side == SIDE_INPUT)
+            if (side == SIDE_INPUT) {
                 inputsig.push_back(type);
-            else
+            } else {
                 outputsig.push_back(type);
+            }
         } catch (...) {
             if (token[0] == 'x' && (token.size() > 1) &&
                 (token[1] > '0' && token[1] < '9')) { // it's a multiplier
-                if (side == SIDE_INPUT)
+                if (side == SIDE_INPUT) {
                     assert(inputsig.size() > 0);
-                else
+                } else {
                     assert(outputsig.size() > 0);
+                }
                 int multiplier = volk_lexical_cast<int>(
                     token.substr(1, token.size() - 1)); // will throw if invalid
                 for (int i = 1; i < multiplier; i++) {
-                    if (side == SIDE_INPUT)
+                    if (side == SIDE_INPUT) {
                         inputsig.push_back(inputsig.back());
-                    else
+                    } else {
                         outputsig.push_back(outputsig.back());
+                    }
                 }
             } else if (side ==
                        SIDE_INPUT) { // it's the function name, at least it better be
@@ -323,8 +338,9 @@ static void get_signatures_from_name(std::vector<volk_type_t>& inputsig,
                 fn_name.append("_");
                 fn_name.append(token);
             } else if (side == SIDE_OUTPUT) {
-                if (token != toked.back())
+                if (token != toked.back()) {
                     throw; // the last token in the name is the alignment
+                }
             }
         }
     }
@@ -339,8 +355,9 @@ inline void run_cast_test1(volk_fn_1arg func,
                            unsigned int iter,
                            std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test2(volk_fn_2arg func,
@@ -349,8 +366,9 @@ inline void run_cast_test2(volk_fn_2arg func,
                            unsigned int iter,
                            std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test3(volk_fn_3arg func,
@@ -359,8 +377,9 @@ inline void run_cast_test3(volk_fn_3arg func,
                            unsigned int iter,
                            std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], buffs[2], vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test4(volk_fn_4arg func,
@@ -369,8 +388,9 @@ inline void run_cast_test4(volk_fn_4arg func,
                            unsigned int iter,
                            std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], buffs[2], buffs[3], vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test1_s32f(volk_fn_1arg_s32f func,
@@ -380,8 +400,9 @@ inline void run_cast_test1_s32f(volk_fn_1arg_s32f func,
                                 unsigned int iter,
                                 std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test2_s32f(volk_fn_2arg_s32f func,
@@ -391,8 +412,9 @@ inline void run_cast_test2_s32f(volk_fn_2arg_s32f func,
                                 unsigned int iter,
                                 std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test3_s32f(volk_fn_3arg_s32f func,
@@ -402,8 +424,9 @@ inline void run_cast_test3_s32f(volk_fn_3arg_s32f func,
                                 unsigned int iter,
                                 std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], buffs[2], scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test1_s32fc(volk_fn_1arg_s32fc func,
@@ -413,8 +436,9 @@ inline void run_cast_test1_s32fc(volk_fn_1arg_s32fc func,
                                  unsigned int iter,
                                  std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], &scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test2_s32fc(volk_fn_2arg_s32fc func,
@@ -424,8 +448,9 @@ inline void run_cast_test2_s32fc(volk_fn_2arg_s32fc func,
                                  unsigned int iter,
                                  std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], &scalar, vlen, arch.c_str());
+    }
 }
 
 inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func,
@@ -435,8 +460,9 @@ inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func,
                                  unsigned int iter,
                                  std::string arch)
 {
-    while (iter--)
+    while (iter--) {
         func(buffs[0], buffs[1], buffs[2], &scalar, vlen, arch.c_str());
+    }
 }
 
 template <class t>
@@ -606,6 +632,36 @@ bool icompare(t* expected,
     return fail;
 }
 
+namespace {
+std::tuple<unsigned int, unsigned int> tol_precision(float tol, unsigned int col_length)
+{
+    /* one leading digit and a separating dot */
+    constexpr auto dot_length = 2U;
+    const auto tol_length =
+        std::max({ dot_length + 1,
+                   static_cast<unsigned int>(fmt::formatted_size(FMT_STRING("{}"), tol)),
+                   col_length });
+    if (tol >= 1.0f) {
+        /* |tolerance| > 1 : you get no courtesy digit after the dot */
+        return { tol_length, 0 };
+    }
+    const float log10 = std::log10(tol);
+    return { tol_length,
+             std::min<unsigned int>(tol_length - dot_length, -std::floor(log10)) };
+}
+
+template <class T>
+unsigned int max_column_width(const T& columns)
+{
+    unsigned col_len = 0;
+    for (const auto& col : columns) {
+        auto this_col_len = fmt::formatted_size("{}", col);
+        col_len = col_len > this_col_len ? col_len : this_col_len;
+    }
+    return col_len;
+}
+} // namespace
+
 // Print error table for failed comparisons
 // Shows: index, input(s), expected, actual, rel_error, tol
 void print_error_table(const std::vector<unsigned int>& fail_indices,
@@ -617,23 +673,35 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
                        float tol,
                        int max_errors = 10)
 {
-    if (fail_indices.empty())
+    constexpr std::array<const char*, 5> columns{
+        "index", "expected", "actual", "rel_err", "tol"
+    };
+    unsigned int index_len = fmt::formatted_size("{}", columns[0]) + 1;
+    unsigned int col_len = max_column_width(columns);
+    /* choose enough digits to represent tolerance */
+    const auto [tol_length, value_prec] = tol_precision(tol, col_len);
+    fmt::print("{}::{}\n", tol_length, value_prec);
+    col_len = std::max(col_len + 1, tol_length);
+    unsigned int val_prec = value_prec;
+
+    if (fail_indices.empty()) {
         return;
+    }
 
     // Print header
-    fmt::print("{:>7}", "index");
+    fmt::print("{0:>{1}}", "index", index_len);
     for (size_t k = 0; k < input_sigs.size(); k++) {
-        fmt::print(" | {:>10}", fmt::format("in{}", k));
+        fmt::print(" | {0:>{1}}", fmt::format("in{}", k), col_len);
     }
     fmt::print(
-        " | {:>10} | {:>10} | {:>9} | {:>9}\n", "expected", "actual", "rel_err", "tol");
+        " | {0:>{1}}\n", fmt::join(columns.begin() + 1, columns.end(), " | "), col_len);
 
     // Print separator
-    fmt::print("{:-<7}", "");
+    fmt::print("{:-<{}}", "", index_len);
     for (size_t k = 0; k < input_sigs.size(); k++) {
-        fmt::print("-+-{:-<10}", "");
+        fmt::print("-+-{0:-<{1}}", "", col_len);
     }
-    fmt::print("-+-{:-<10}-+-{:-<10}-+-{:-<9}-+-{:-<9}\n", "", "", "", "");
+    fmt::print("-+-{0:-<{1}}-+-{0:-<{1}}-+-{0:-<{1}}-+-{0:-<{1}}\n", "", col_len);
 
     int print_count = 0;
     for (unsigned int idx : fail_indices) {
@@ -642,14 +710,13 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
             break;
         }
 
-        fmt::print("{:>7}", idx);
-
+        fmt::print("{0:>{1}}", idx, index_len);
         // Print input values
         for (size_t k = 0; k < input_sigs.size(); k++) {
             if (input_sigs[k].is_float) {
                 double val = (input_sigs[k].size == 8) ? ((double*)inputs[k])[idx]
                                                        : ((float*)inputs[k])[idx];
-                fmt::print(" | {:>10.4f}", val);
+                fmt::print(" | {0:>{1}.{2}f}", val, col_len, val_prec);
             } else {
                 int64_t val = 0;
                 switch (input_sigs[k].size) {
@@ -670,7 +737,7 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
                                                   : (int64_t)((uint8_t*)inputs[k])[idx];
                     break;
                 }
-                fmt::print(" | {:>10}", val);
+                fmt::print(" | {0:>{1}}", val, col_len);
             }
         }
 
@@ -686,7 +753,8 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
             }
             double abs_err = fabs(exp_val - act_val);
             rel_err = (fabs(exp_val) > 1e-30) ? abs_err / fabs(exp_val) : abs_err;
-            fmt::print(" | {:>10.4f} | {:>10.4f}", exp_val, act_val);
+            fmt::print(
+                " | {0:>{2}.{3}f} | {1:>{2}.{3}f}", exp_val, act_val, col_len, val_prec);
         } else {
             int64_t exp_i = 0, act_i = 0;
             switch (output_sig.size) {
@@ -715,12 +783,12 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
                                              : (int64_t)((uint8_t*)actual)[idx];
                 break;
             }
-            fmt::print(" | {:>10} | {:>10}", exp_i, act_i);
+            fmt::print(" | {0:>{2}} | {1:>{2}}", exp_i, act_i, col_len);
             double abs_err = (double)abs(exp_i - act_i);
             rel_err = (exp_i != 0) ? abs_err / fabs((double)exp_i) : abs_err;
         }
 
-        fmt::print(" | {:>9.1e} | {:>9.1e}\n", rel_err, (double)tol);
+        fmt::print(" | {0:>{2}.1e} | {1:>{2}.1e}\n", rel_err, (double)tol, col_len);
     }
 }
 
@@ -746,8 +814,8 @@ public:
     }
     ~volk_qa_aligned_mem_pool()
     {
-        for (unsigned int ii = 0; ii < _mems.size(); ++ii) {
-            volk_free(_mems[ii]);
+        for (auto& _mem : _mems) {
+            volk_free(_mem);
         }
     }
 
@@ -866,12 +934,11 @@ bool run_volk_tests(volk_func_desc_t desc,
         }
     }
     std::vector<void*> inbuffs;
-    for (unsigned int inputsig_index = 0; inputsig_index < inputsig.size();
-         ++inputsig_index) {
-        volk_type_t sig = inputsig[inputsig_index];
-        if (!sig.is_scalar) // we don't make buffers for scalars
+    for (const auto& sig : inputsig) {
+        if (!sig.is_scalar) { // we don't make buffers for scalars
             inbuffs.push_back(
                 mem_pool.get_new(vlen * sig.size * (sig.is_complex ? 2 : 1)));
+        }
     }
     for (size_t i = 0; i < inbuffs.size(); i++) {
         load_random_data(
@@ -883,9 +950,9 @@ bool run_volk_tests(volk_func_desc_t desc,
     std::vector<std::vector<void*>> test_data;
     for (size_t i = 0; i < arch_list.size(); i++) {
         std::vector<void*> arch_buffs;
-        for (size_t j = 0; j < outputsig.size(); j++) {
-            arch_buffs.push_back(mem_pool.get_new(vlen * outputsig[j].size *
-                                                  (outputsig[j].is_complex ? 2 : 1)));
+        for (auto& j : outputsig) {
+            arch_buffs.push_back(
+                mem_pool.get_new(vlen * j.size * (j.is_complex ? 2 : 1)));
         }
         for (size_t j = 0; j < inputsig.size(); j++) {
             void* arch_inbuff = mem_pool.get_new(vlen * inputsig[j].size *
@@ -914,7 +981,7 @@ bool run_volk_tests(volk_func_desc_t desc,
         start = std::chrono::system_clock::now();
         switch (both_sigs.size()) {
         case 1:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test1(
                     (volk_fn_1arg)(manual_func), test_data[0], vlen, iter, "generic");
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -936,7 +1003,7 @@ bool run_volk_tests(volk_func_desc_t desc,
             }
             break;
         case 2:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test2(
                     (volk_fn_2arg)(manual_func), test_data[0], vlen, iter, "generic");
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -958,7 +1025,7 @@ bool run_volk_tests(volk_func_desc_t desc,
             }
             break;
         case 3:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test3(
                     (volk_fn_3arg)(manual_func), test_data[0], vlen, iter, "generic");
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -999,7 +1066,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                 // Run additional warmup iterations
                 switch (both_sigs.size()) {
                 case 1:
-                    if (inputsc.size() == 0) {
+                    if (inputsc.empty()) {
                         run_cast_test1((volk_fn_1arg)(manual_func),
                                        test_data[0],
                                        vlen,
@@ -1024,7 +1091,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                     }
                     break;
                 case 2:
-                    if (inputsc.size() == 0) {
+                    if (inputsc.empty()) {
                         run_cast_test2((volk_fn_2arg)(manual_func),
                                        test_data[0],
                                        vlen,
@@ -1049,7 +1116,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                     }
                     break;
                 case 3:
-                    if (inputsc.size() == 0) {
+                    if (inputsc.empty()) {
                         run_cast_test3((volk_fn_3arg)(manual_func),
                                        test_data[0],
                                        vlen,
@@ -1108,7 +1175,7 @@ bool run_volk_tests(volk_func_desc_t desc,
 
         switch (both_sigs.size()) {
         case 1:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test1(
                     (volk_fn_1arg)(manual_func), test_data[i], vlen, iter, arch_list[i]);
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -1127,11 +1194,12 @@ bool run_volk_tests(volk_func_desc_t desc,
                                         iter,
                                         arch_list[i]);
                 }
-            } else
+            } else {
                 throw "unsupported 1 arg function >1 scalars";
+            }
             break;
         case 2:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test2(
                     (volk_fn_2arg)(manual_func), test_data[i], vlen, iter, arch_list[i]);
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -1150,11 +1218,12 @@ bool run_volk_tests(volk_func_desc_t desc,
                                         iter,
                                         arch_list[i]);
                 }
-            } else
+            } else {
                 throw "unsupported 2 arg function >1 scalars";
+            }
             break;
         case 3:
-            if (inputsc.size() == 0) {
+            if (inputsc.empty()) {
                 run_cast_test3(
                     (volk_fn_3arg)(manual_func), test_data[i], vlen, iter, arch_list[i]);
             } else if (inputsc.size() == 1 && inputsc[0].is_float) {
@@ -1173,8 +1242,9 @@ bool run_volk_tests(volk_func_desc_t desc,
                                         iter,
                                         arch_list[i]);
                 }
-            } else
+            } else {
                 throw "unsupported 3 arg function >1 scalars";
+            }
             break;
         case 4:
             run_cast_test4(
@@ -1414,11 +1484,11 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     // Calculate total data transferred (bytes read + written) for throughput display
     size_t bytes_per_call = 0;
-    for (size_t j = 0; j < outputsig.size(); j++) {
-        bytes_per_call += outputsig[j].size * (outputsig[j].is_complex ? 2 : 1) * vlen;
+    for (auto& j : outputsig) {
+        bytes_per_call += j.size * (j.is_complex ? 2 : 1) * vlen;
     }
-    for (size_t j = 0; j < inputsig.size(); j++) {
-        bytes_per_call += inputsig[j].size * (inputsig[j].is_complex ? 2 : 1) * vlen;
+    for (auto& j : inputsig) {
+        bytes_per_call += j.size * (j.is_complex ? 2 : 1) * vlen;
     }
     double total_mb = (bytes_per_call * iter) / 1e6; // Total megabytes transferred
 
