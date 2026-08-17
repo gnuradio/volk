@@ -9,7 +9,7 @@
 
 #include "volk_test.h"
 #include <fmt/chrono.h>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <fmt/ranges.h>
 #include <gtest/gtest-param-test.h>
 #include <gtest/gtest.h>
