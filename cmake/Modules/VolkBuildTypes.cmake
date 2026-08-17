@@ -29,15 +29,17 @@ list(
     APPEND
     AVAIL_BUILDTYPES
     None
+    ASAN
+    Coverage
     Debug
-    Release
-    RelWithDebInfo
-    MinSizeRel
     DebugParanoid
+    MinSizeRel
     NoOptWithASM
     O2WithASM
     O3WithASM
-    ASAN)
+    RelWithDebInfo
+    Release
+)
 
 ########################################################################
 # VOLK_CHECK_BUILD_TYPE(build type)
@@ -205,4 +207,40 @@ if(NOT WIN32)
     mark_as_advanced(
         CMAKE_CXX_FLAGS_ASAN CMAKE_C_FLAGS_ASAN CMAKE_EXE_LINKER_FLAGS_DEBUGPARANOID
         CMAKE_SHARED_LINKER_DEBUGPARANOID)
+endif(NOT WIN32)
+
+########################################################################
+# The following is taken from GNU Radio GrBuildTypes.cmake:
+########################################################################
+# For GCC and Clang, we can set a build type:
+#
+# -DCMAKE_BUILD_TYPE=Coverage
+#
+# This type 
+# - uses level 3 optimization (-O3), 
+# - outputs debug symbols (-g), and
+# - creates .gcda files while running functions in built executables and
+#   libraries.
+# NOTE: This is not defined on Windows systems.
+########################################################################
+if(NOT WIN32)
+    set(CMAKE_CXX_FLAGS_COVERAGE
+        "-Wall -pthread -g -O3"
+        CACHE STRING "Flags used by the C++ compiler during Coverage builds." FORCE)
+    set(CMAKE_C_FLAGS_COVERAGE
+        "-Wall -pthread -g -O3"
+        CACHE STRING "Flags used by the C compiler during Coverage builds." FORCE)
+    set(CMAKE_EXE_LINKER_FLAGS_COVERAGE
+        "-Wl,--warn-unresolved-symbols,--warn-once"
+        CACHE STRING "Flags used for linking binaries during Coverage builds." FORCE)
+    set(CMAKE_SHARED_LINKER_FLAGS_COVERAGE
+        "-Wl,--warn-unresolved-symbols,--warn-once"
+        CACHE STRING "Flags used by the shared lib linker during Coverage builds." FORCE)
+
+      mark_as_advanced(
+        CMAKE_CXX_FLAGS_COVERAGE 
+        CMAKE_C_FLAGS_COVERAGE
+        CMAKE_EXE_LINKER_FLAGS_COVERAGE
+        CMAKE_SHARED_LINKER_FLAGS_COVERAGE
+        )
 endif(NOT WIN32)
