@@ -1,5 +1,6 @@
 #
 # Copyright 2020 - 2022 Free Software Foundation, Inc.
+# Copyright 2026 Marcus MÜller
 #
 # This file is part of VOLK
 #
@@ -48,16 +49,32 @@ jobs:
         with:
           submodules: "recursive"
       - name: Install dependencies
-        run: sudo apt install python3-mako liborc-dev libgtest-dev libfmt-dev ${{ matrix.compiler.name }}
+        run: sudo apt install python3-mako liborc-dev libgtest-dev libfmt-dev curl ${{ matrix.compiler.name }}
+      - name: Install sccache
+        shell: bash
+        run: sudo scripts/ci/install_sccache.bash "${{ matrix.name }}"
+        continue-on-error: true
+      - name: Prepare sccache usage
+        id: enable_sccache
+        run: scripts/ci/setup_cmake_cache_flags.bash "${{ matrix.name }}"
       - name: Configure
         env:
           CC: ${{ matrix.compiler.cc }}
           CXX: ${{ matrix.compiler.cxx }}
-        run: mkdir build && cd build && cmake -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
+        run: >
+          mkdir build \
+          && cmake  \
+            -S . \
+            -B build \
+            -DCMAKE_C_FLAGS="-Werror" \
+            -DCMAKE_CXX_FLAGS="-Werror" \
+            -DBUILD_EXECUTABLE=ON \
+            ${{ steps.enable_sccache.outputs.CXX_LAUNCHER }} \
+            ${{ steps.enable_sccache.outputs.C_LAUNCHER }}
       - name: Build
         run: |
-          echo "Build with $(nproc) thread(s)"
-          cmake --build build -j$(nproc)
+          echo "Build with $(nproc)+1 thread(s)"
+          cmake --build build -j$(( $(nproc) + 1 ))
       - name: Print info
         run: |
           if [ -f ./build/cpu_features/list_cpu_features ]; then
@@ -72,12 +89,17 @@ jobs:
         run: |
           cd build
           ctest -V
+      - name: Show final sccache and build directory stats
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: scripts/ci/build-summary.sh "${{ matrix.name }}" "./build/"
 
-  build-ubuntu-arm:
+  build-distro-platform-matrix:
     # The host should always be linux
     # see: https://github.com/uraimo/run-on-arch-action
     runs-on: ubuntu-22.04
-    name: Build on ${{ matrix.distro }} ${{ matrix.arch }} ${{ matrix.compiler.name }}
+    name: Non-x86 build on ${{ matrix.distro }} ${{ matrix.arch }} ${{ matrix.compiler.name }}
 
     # Run steps on a matrix of compilers and possibly archs.
     strategy:
@@ -103,6 +125,8 @@ jobs:
         with:
           submodules: "recursive"
       - uses: uraimo/run-on-arch-action@v3
+        # Wish I gotten sccache to work in this, but the environment provided by this 
+        # action is so cursed that practically nothing works in there.
         name: Build in non-x86 container
         id: build
         with:
@@ -122,11 +146,12 @@ jobs:
             CC: ${{ matrix.compiler.cc }}
             CXX: ${{ matrix.compiler.cxx }}
 
-          shell: /bin/sh
+          shell: /bin/bash
 
           install: |
             case "${{ matrix.distro }}" in
-              ubuntu*|jessie|stretch|buster)
+              ubuntu*|jessie|stretch|buster|bullseye|trixie|forky)
+                export DEBIAN_FRONTEND=noninteractive
                 apt-get update -q -y
                 apt-get install -q -y git cmake python3-mako liborc-dev libgtest-dev libfmt-dev ${{ matrix.compiler.name }}
                 ;;
@@ -138,10 +163,21 @@ jobs:
 
           run: |
             cd /volk
+            echo "::group::cmake"
+            cmake \
+              -DCMAKE_C_FLAGS="-Werror" \
+              -DCMAKE_CXX_FLAGS="-Werror" \
+              -DBUILD_EXECUTABLE=ON \
+              ${{ matrix.cmakeargs }} \
+              -S . \
+              -B build
+            echo "::endgroup::"
+            echo "::group::build"
+            echo "Build with $(nproc)+1 thread(s)"
+            cmake --build ./build -j$(( $(nproc) + 1 ))
+            echo "::endgroup::"
+            echo "::group::platform info"
             cd build
-            cmake -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ${{ matrix.cmakeargs }} ..
-            echo "Build with $(nproc) thread(s)"
-            make -j$(nproc)
             if [ -f ./cpu_features/list_cpu_features ]; then
               ./cpu_features/list_cpu_features
             fi
@@ -150,7 +186,10 @@ jobs:
             ./apps/volk-config-info --all-machines
             ./apps/volk-config-info --malloc
             ./apps/volk-config-info --cc
+            echo "::endgroup::"
+            echo "::group::tests"
             ctest -V
+            echo "::endgroup::"
 
   build-ubuntu-static:
     name: Build static on ubuntu-22.04
@@ -161,9 +200,28 @@ jobs:
         with:
           submodules: "recursive"
       - name: dependencies
-        run: sudo apt install python3-mako liborc-dev libgtest-dev libfmt-dev
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update >/dev/null \
+          && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-mako liborc-dev libgtest-dev libfmt-dev
+      - name: Install sccache
+        shell: bash
+        run: sudo scripts/ci/install_sccache.bash "${{ matrix.name }}"
+        continue-on-error: true
+      - name: Prepare sccache usage
+        id: enable_sccache
+        run: scripts/ci/setup_cmake_cache_flags.bash "${{ matrix.name }}"
       - name: configure
-        run: mkdir build && cd build && cmake -DENABLE_STATIC_LIBS=True -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
+        run: |
+          mkdir build \
+          && cmake \
+            -S . \
+            -B build \
+            -DENABLE_STATIC_LIBS=True \
+            -DCMAKE_C_FLAGS="-Werror" \
+            -DCMAKE_CXX_FLAGS="-Werror" \
+            -DBUILD_EXECUTABLE=ON \
+            ${{ steps.enable_sccache.outputs.CXX_LAUNCHER }} \
+            ${{ steps.enable_sccache.outputs.C_LAUNCHER }} \
       - name: build
         run: cmake --build build -j$(nproc)
       - name: Print info
@@ -176,6 +234,11 @@ jobs:
           ./build/apps/volk-config-info --cc
       - name: test
         run: cd build && ctest -V
+      - name: Show final sccache and build directory stats
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: scripts/ci/build-summary.sh "${{ matrix.name }}" "./build/"
 
   build-ubuntu-static-dispatch:
     name: Build static dispatch on ubuntu-24.04

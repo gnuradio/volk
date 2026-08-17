@@ -1,6 +1,12 @@
 name: Publish docs
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+      - maint
+      - master
+
 jobs:
   build-docs:
     name: Build VOLK docs

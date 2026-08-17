@@ -19,35 +19,56 @@ jobs:
           submodules: "recursive"
       - name: Install packages
         run: |
-          sudo apt-get update -q -y
-          sudo apt-get install -y python3-mako cmake qemu-user-static g++-14-riscv64-linux-gnu clang-18
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update -q -y
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-mako cmake qemu-user-static g++-14-riscv64-linux-gnu clang-18 curl
+          sudo scripts/ci/install_sccache.bash
           mkdir build
           cd build
+      - name: Prepare sccache usage
+        id: enable_sccache
+        run: scripts/ci/setup_cmake_cache_flags.bash "RVV tests"
       - name: Test gcc-14 VLEN=128
         run: |
           cd build; rm -rf *
           CXX=riscv64-linux-gnu-g++-14 CC=riscv64-linux-gnu-gcc-14 VLEN=128 \
-          cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake ..
+          cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake \
+            ${{ steps.enable_sccache.outputs.CXX_LAUNCHER }} \
+            ${{ steps.enable_sccache.outputs.C_LAUNCHER }} \
+            ..
           make -j$(nproc)
           ARGS=-V make test
       - name: Test gcc-14 VLEN=256
         run: |
           cd build; rm -rf *
           CXX=riscv64-linux-gnu-g++-14 CC=riscv64-linux-gnu-gcc-14 VLEN=256 \
-          cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake -DCMAKE_BUILD_TYPE=Release \
+            ${{ steps.enable_sccache.outputs.CXX_LAUNCHER }} \
+            ${{ steps.enable_sccache.outputs.C_LAUNCHER }} \
+            ..
           make -j$(nproc)
           ARGS=-V make test
       - name: Test clang-18 VLEN=512
         run: |
           cd build; rm -rf *
           CXX=clang++-18 CC=clang-18 CFLAGS=--target=riscv64-linux-gnu VLEN=512 \
-          cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake ..
+          cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake \
+            ${{ steps.enable_sccache.outputs.CXX_LAUNCHER }} \
+            ${{ steps.enable_sccache.outputs.C_LAUNCHER }} \
+            ..
           make -j$(nproc)
           ARGS=-V make test
       - name: Test clang-18 VLEN=1024
         run: |
           cd build; rm -rf *
           CXX=clang++-18 CC=clang-18 CFLAGS=--target=riscv64-linux-gnu VLEN=1024 \
-          cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchains/rv64gcv-linux-gnu.cmake -DCMAKE_BUILD_TYPE=Release \
+            ${{ steps.enable_sccache.outputs.CXX_LAUNCHER }} \
+            ${{ steps.enable_sccache.outputs.C_LAUNCHER }} \
+            ..
           make -j$(nproc)
           ARGS=-V make test
+      - name: Show final sccache and build directory stats
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: scripts/ci/build-summary.sh "RVV tests" "./build/"

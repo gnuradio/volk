@@ -31,11 +31,20 @@ jobs:
           submodules: "recursive"
 
       - name: Update repositories
-        run: sudo apt update
+        run: sudo DEBIAN_FRONTEND=noninteractive apt-get update > /dev/null
 
       # All dependencies
       - name: Install dependencies
-        run: sudo apt install -y cmake python3-mako
+        run: sudo DEBIAN_FRONTEND=noninteractive apt-get install -y cmake python3-mako curl
+
+      - name: Install sccache
+        shell: bash
+        run: sudo scripts/ci/install_sccache.bash "${{ matrix.arch.name }}"
+        continue-on-error: true
+
+      - name: Prepare sccache usage
+        id: enable_sccache
+        run: scripts/ci/setup_cmake_cache_flags.bash "${{ matrix.name }}"
 
       # Setup Java
       - uses: actions/setup-java@v5
@@ -54,10 +63,24 @@ jobs:
       # Setup build directory
       - name: Setup ${{ matrix.arch.name }}
         shell: bash
-        run: cd $GITHUB_WORKSPACE/ && mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/android-sdk-linux/ndk/27.2.12479018/build/cmake/android.toolchain.cmake -DANDROID_ABI=${{ matrix.arch.name }} -DANDROID_PLATFORM=android-34 ..
+        run: |
+          cd $GITHUB_WORKSPACE/ \
+          && mkdir build \
+          && cmake -S . -B build \
+          -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/android-sdk-linux/ndk/27.2.12479018/build/cmake/android.toolchain.cmake \
+          -DANDROID_ABI=${{ matrix.arch.name }} \
+          -DANDROID_PLATFORM=android-34 \
+          ${{ steps.enable_sccache.outputs.CXX_LAUNCHER }} \
+          ${{ steps.enable_sccache.outputs.C_LAUNCHER }}
 
       # Build
       - name: Build ${{ matrix.arch.name }}
         shell: bash
-        run: cd $GITHUB_WORKSPACE/build && make
+        run: cmake --build build -j $(nproc)
         continue-on-error: ${{ matrix.arch.allow_fail }}
+
+      - name: Show final sccache and build directory stats
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: scripts/ci/build-summary.sh "${{ matrix.arch.name }}" "./build/"
