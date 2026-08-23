@@ -7,6 +7,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
+#include "volk/volk_complex.h"
 #include "volk_test.h"
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -105,9 +106,9 @@ protected:
         for (size_t i = 0; i < vector_length; ++i) {
             result_magnitude[i] = std::abs(result[i]);
         }
-        EXPECT_TRUE(AreFloatingPointArraysEqualWithAbsoluteError(
+        EXPECT_TRUE(AreFloatingPointArraysEqualWithAbsoluteError<float>(
             expected_magnitude, result_magnitude, absolute_magnitue_error));
-        EXPECT_TRUE(AreComplexFloatingPointArraysEqualWithAbsoluteError(
+        EXPECT_TRUE(AreComplexFloatingPointArraysEqualWithAbsoluteError<lv_32fc_t>(
             expected, result, absolute_error));
     }
 
@@ -128,9 +129,9 @@ protected:
         }
         result_magnitude[0] = expected_magnitude[0];
 
-        EXPECT_TRUE(AreFloatingPointArraysEqualWithAbsoluteError(
+        EXPECT_TRUE(AreFloatingPointArraysEqualWithAbsoluteError<float>(
             expected_magnitude, result_magnitude, absolute_magnitue_error));
-        EXPECT_TRUE(AreComplexFloatingPointArraysEqualWithAbsoluteError(
+        EXPECT_TRUE(AreComplexFloatingPointArraysEqualWithAbsoluteError<lv_32fc_t>(
             expected, ua_result, absolute_error));
     }
 
