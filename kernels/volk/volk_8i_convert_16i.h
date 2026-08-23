@@ -41,7 +41,6 @@
 #define INCLUDED_volk_8i_convert_16i_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
@@ -173,7 +172,6 @@ static inline void volk_8i_convert_16i_generic(int16_t* outputVector,
 #define INCLUDED_volk_8i_convert_16i_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
 
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
