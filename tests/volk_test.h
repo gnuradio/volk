@@ -11,11 +11,14 @@
 #include <fmt/ranges.h>
 #include <gtest/gtest.h>
 #include <volk/volk.h>
+#include <algorithm>
 #include <array>
+#include <complex>
+#include <optional>
+#include <span>
 #include <tuple>
 
 static constexpr std::array<size_t, 5> default_vector_sizes{ 7, 32, 128, 1023, 131071 };
-
 std::vector<std::string> get_kernel_implementation_name_list(const volk_func_desc_t desc);
 
 bool is_aligned_implementation_name(const std::string& name);
@@ -36,12 +39,14 @@ struct generate_volk_test_name {
     }
 };
 
-class VolkTest : public ::testing::TestWithParam<std::tuple<std::string, size_t>>
+template <typename Parameter = std::tuple<std::string, size_t>>
+class VolkTestImpl : public ::testing::TestWithParam<Parameter>
 {
 protected:
-    void initialize_test(const std::tuple<std::string, size_t>& param)
+    void initialize_test(const Parameter& param)
     {
-        std::tie(implementation_name, vector_length) = param;
+        implementation_name = std::get<0>(param);
+        vector_length = std::get<1>(param);
         is_aligned_implementation = is_aligned_implementation_name(implementation_name);
     }
 
@@ -50,10 +55,53 @@ protected:
     size_t vector_length;
 };
 
+using VolkTest = VolkTestImpl<>;
 
-template <class T>
-::testing::AssertionResult AreComplexFloatingPointArraysAlmostEqual(const T& expected,
-                                                                    const T& actual)
+template <typename T>
+struct is_complex : std::false_type {
+};
+
+template <typename T>
+struct is_complex<std::complex<T>> : std::true_type {
+};
+
+template <typename T>
+::testing::AssertionResult AreIntegerArraysEqual(std::span<const T> expected,
+                                                 std::span<const T> actual)
+{
+    ::testing::AssertionResult result = ::testing::AssertionFailure();
+    if (expected.size() != actual.size()) {
+        return result << "expected result size=" << expected.size()
+                      << " differs from actual size=" << actual.size();
+    }
+
+    int errors_found = 0;
+    const char* separator = " ";
+    for (size_t index = 0; index < expected.size(); ++index) {
+        if (expected[index] != actual[index]) {
+            if (errors_found == 0) {
+                result << "Differences found:";
+            }
+            if (errors_found < 3) {
+                result << separator << expected[index] << " != " << actual[index] << " @ "
+                       << index;
+                separator = ",\n";
+            }
+            ++errors_found;
+        }
+    }
+    if (errors_found > 0) {
+        result << separator << errors_found << " differences in total";
+        return result;
+    }
+    return ::testing::AssertionSuccess();
+}
+
+
+template <typename T>
+::testing::AssertionResult
+AreComplexFloatingPointArraysAlmostEqual(std::span<const T> expected,
+                                         std::span<const T> actual)
 {
     ::testing::AssertionResult result = ::testing::AssertionFailure();
     if (expected.size() != actual.size()) {
@@ -89,9 +137,11 @@ template <class T>
     return ::testing::AssertionSuccess();
 }
 
-template <class T>
-::testing::AssertionResult AreComplexFloatingPointArraysEqualWithAbsoluteError(
-    const T& expected, const T& actual, const float absolute_error = 1.0e-7)
+template <typename T>
+::testing::AssertionResult
+AreComplexFloatingPointArraysEqualWithAbsoluteError(std::span<const T> expected,
+                                                    std::span<const T> actual,
+                                                    const float absolute_error = 1.0e-7)
 {
     ::testing::AssertionResult result = ::testing::AssertionFailure();
     if (expected.size() != actual.size()) {
@@ -129,9 +179,11 @@ template <class T>
     return ::testing::AssertionSuccess();
 }
 
-template <class T>
-::testing::AssertionResult AreFloatingPointArraysEqualWithAbsoluteError(
-    const T& expected, const T& actual, const float absolute_error = 1.0e-7)
+template <typename T>
+::testing::AssertionResult
+AreFloatingPointArraysEqualWithAbsoluteError(std::span<const T> expected,
+                                             std::span<const T> actual,
+                                             const float absolute_error = 1.0e-7)
 {
     ::testing::AssertionResult result = ::testing::AssertionFailure();
     if (expected.size() != actual.size()) {
