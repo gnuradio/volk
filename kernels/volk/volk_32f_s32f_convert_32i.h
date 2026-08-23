@@ -59,7 +59,6 @@
 
 #include <inttypes.h>
 #include <limits.h>
-#include <stdio.h>
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
@@ -248,7 +247,6 @@ static inline void volk_32f_s32f_convert_32i_generic(int32_t* outputVector,
 #define INCLUDED_volk_32f_s32f_convert_32i_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <volk/volk_common.h>
 
 #ifdef LV_HAVE_AVX
