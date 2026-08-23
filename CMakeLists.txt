@@ -23,6 +23,8 @@ enable_language(C)
 
 enable_testing()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Export compile commands" FORCE)
+
 ########################################################################
 # Common compile flags
 ########################################################################
