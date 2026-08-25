@@ -84,15 +84,48 @@ static inline void volk_32f_s32f_x2_convert_8u_generic(uint8_t* outputVector,
                                                        const float bias,
                                                        unsigned int num_points)
 {
-    const float* inputVectorPtr = inputVector;
-
-    for (unsigned int number = 0; number < num_points; number++) {
-        const float r = *inputVectorPtr++ * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
+    for (unsigned int number = 0; number < num_points; ++number) {
+        volk_32f_s32f_x2_convert_8u_single(outputVector++, *inputVector++ * scale + bias);
     }
 }
 
 #endif /* LV_HAVE_GENERIC */
+
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_s32f_x2_convert_8u_u_avx512f(uint8_t* outputVector,
+                                                         const float* inputVector,
+                                                         const float scale,
+                                                         const float bias,
+                                                         unsigned int num_points)
+{
+    const unsigned int thirtysecondPoints = num_points / 32;
+    const __m512 vScale = _mm512_set1_ps(scale);
+    const __m512 vBias = _mm512_set1_ps(bias);
+    const __m512 vmin_val = _mm512_setzero_ps();
+    const __m512 vmax_val = _mm512_set1_ps(UINT8_MAX);
+
+    for (unsigned int number = 0; number < thirtysecondPoints; ++number) {
+        const __m512 inputVal1 = _mm512_loadu_ps(inputVector);
+        const __m512 inputVal2 = _mm512_loadu_ps(inputVector + 16);
+        inputVector += 32;
+        const __m512 scaledVal1 = _mm512_max_ps(
+            _mm512_min_ps(_mm512_fmadd_ps(inputVal1, vScale, vBias), vmax_val), vmin_val);
+        const __m512 scaledVal2 = _mm512_max_ps(
+            _mm512_min_ps(_mm512_fmadd_ps(inputVal2, vScale, vBias), vmax_val), vmin_val);
+        const __m128i output1 = _mm512_cvtusepi32_epi8(_mm512_cvtps_epi32(scaledVal1));
+        const __m128i output2 = _mm512_cvtusepi32_epi8(_mm512_cvtps_epi32(scaledVal2));
+        _mm_storeu_si128((__m128i*)outputVector, output1);
+        _mm_storeu_si128((__m128i*)(outputVector + 16), output2);
+        outputVector += 32;
+    }
+
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - thirtysecondPoints * 32);
+}
+#endif /* LV_HAVE_AVX512F */
 
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
@@ -106,9 +139,6 @@ static inline void volk_32f_s32f_x2_convert_8u_u_avx2_fma(uint8_t* outputVector,
 {
     const unsigned int thirtysecondPoints = num_points / 32;
 
-    const float* inputVectorPtr = (const float*)inputVector;
-    uint8_t* outputVectorPtr = outputVector;
-
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
     const __m256 vmin_val = _mm256_set1_ps(min_val);
@@ -117,15 +147,15 @@ static inline void volk_32f_s32f_x2_convert_8u_u_avx2_fma(uint8_t* outputVector,
     const __m256 vScale = _mm256_set1_ps(scale);
     const __m256 vBias = _mm256_set1_ps(bias);
 
-    for (unsigned int number = 0; number < thirtysecondPoints; number++) {
-        __m256 inputVal1 = _mm256_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal2 = _mm256_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal3 = _mm256_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal4 = _mm256_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 8;
+    for (unsigned int number = 0; number < thirtysecondPoints; ++number) {
+        __m256 inputVal1 = _mm256_loadu_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal2 = _mm256_loadu_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal3 = _mm256_loadu_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal4 = _mm256_loadu_ps(inputVector);
+        inputVector += 8;
 
         inputVal1 = _mm256_max_ps(
             _mm256_min_ps(_mm256_fmadd_ps(inputVal1, vScale, vBias), vmax_val), vmin_val);
@@ -149,14 +179,12 @@ static inline void volk_32f_s32f_x2_convert_8u_u_avx2_fma(uint8_t* outputVector,
         intInputVal1 = _mm256_packus_epi16(intInputVal1, intInputVal3);
         const __m256i intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
 
-        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal);
-        outputVectorPtr += 32;
+        _mm256_storeu_si256((__m256i*)outputVector, intInputVal);
+        outputVector += 32;
     }
 
-    for (unsigned int number = thirtysecondPoints * 32; number < num_points; number++) {
-        const float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - thirtysecondPoints * 32);
 }
 
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
@@ -173,9 +201,6 @@ static inline void volk_32f_s32f_x2_convert_8u_u_avx2(uint8_t* outputVector,
 {
     const unsigned int thirtysecondPoints = num_points / 32;
 
-    const float* inputVectorPtr = (const float*)inputVector;
-    uint8_t* outputVectorPtr = outputVector;
-
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
     const __m256 vmin_val = _mm256_set1_ps(min_val);
@@ -184,15 +209,15 @@ static inline void volk_32f_s32f_x2_convert_8u_u_avx2(uint8_t* outputVector,
     const __m256 vScale = _mm256_set1_ps(scale);
     const __m256 vBias = _mm256_set1_ps(bias);
 
-    for (unsigned int number = 0; number < thirtysecondPoints; number++) {
-        __m256 inputVal1 = _mm256_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal2 = _mm256_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal3 = _mm256_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal4 = _mm256_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 8;
+    for (unsigned int number = 0; number < thirtysecondPoints; ++number) {
+        __m256 inputVal1 = _mm256_loadu_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal2 = _mm256_loadu_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal3 = _mm256_loadu_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal4 = _mm256_loadu_ps(inputVector);
+        inputVector += 8;
 
         inputVal1 = _mm256_max_ps(
             _mm256_min_ps(_mm256_add_ps(_mm256_mul_ps(inputVal1, vScale), vBias),
@@ -224,14 +249,12 @@ static inline void volk_32f_s32f_x2_convert_8u_u_avx2(uint8_t* outputVector,
         intInputVal1 = _mm256_packus_epi16(intInputVal1, intInputVal3);
         const __m256i intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
 
-        _mm256_storeu_si256((__m256i*)outputVectorPtr, intInputVal);
-        outputVectorPtr += 32;
+        _mm256_storeu_si256((__m256i*)outputVector, intInputVal);
+        outputVector += 32;
     }
 
-    for (unsigned int number = thirtysecondPoints * 32; number < num_points; number++) {
-        float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - thirtysecondPoints * 32);
 }
 
 #endif /* LV_HAVE_AVX2 */
@@ -248,9 +271,6 @@ static inline void volk_32f_s32f_x2_convert_8u_u_sse2(uint8_t* outputVector,
 {
     const unsigned int sixteenthPoints = num_points / 16;
 
-    const float* inputVectorPtr = (const float*)inputVector;
-    uint8_t* outputVectorPtr = outputVector;
-
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
     const __m128 vmin_val = _mm_set_ps1(min_val);
@@ -259,15 +279,15 @@ static inline void volk_32f_s32f_x2_convert_8u_u_sse2(uint8_t* outputVector,
     const __m128 vScale = _mm_set_ps1(scale);
     const __m128 vBias = _mm_set_ps1(bias);
 
-    for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        __m128 inputVal1 = _mm_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 4;
-        __m128 inputVal2 = _mm_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 4;
-        __m128 inputVal3 = _mm_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 4;
-        __m128 inputVal4 = _mm_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 4;
+    for (unsigned int number = 0; number < sixteenthPoints; ++number) {
+        __m128 inputVal1 = _mm_loadu_ps(inputVector);
+        inputVector += 4;
+        __m128 inputVal2 = _mm_loadu_ps(inputVector);
+        inputVector += 4;
+        __m128 inputVal3 = _mm_loadu_ps(inputVector);
+        inputVector += 4;
+        __m128 inputVal4 = _mm_loadu_ps(inputVector);
+        inputVector += 4;
 
         inputVal1 = _mm_max_ps(
             _mm_min_ps(_mm_add_ps(_mm_mul_ps(inputVal1, vScale), vBias), vmax_val),
@@ -292,14 +312,12 @@ static inline void volk_32f_s32f_x2_convert_8u_u_sse2(uint8_t* outputVector,
 
         intInputVal1 = _mm_packus_epi16(intInputVal1, intInputVal3);
 
-        _mm_storeu_si128((__m128i*)outputVectorPtr, intInputVal1);
-        outputVectorPtr += 16;
+        _mm_storeu_si128((__m128i*)outputVector, intInputVal1);
+        outputVector += 16;
     }
 
-    for (unsigned int number = sixteenthPoints * 16; number < num_points; number++) {
-        const float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - sixteenthPoints * 16);
 }
 
 #endif /* LV_HAVE_SSE2 */
@@ -316,9 +334,6 @@ static inline void volk_32f_s32f_x2_convert_8u_u_sse(uint8_t* outputVector,
 {
     const unsigned int quarterPoints = num_points / 4;
 
-    const float* inputVectorPtr = (const float*)inputVector;
-    uint8_t* outputVectorPtr = outputVector;
-
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
     const __m128 vmin_val = _mm_set_ps1(min_val);
@@ -329,23 +344,21 @@ static inline void volk_32f_s32f_x2_convert_8u_u_sse(uint8_t* outputVector,
 
     __VOLK_ATTR_ALIGNED(16) float outputFloatBuffer[4];
 
-    for (unsigned int number = 0; number < quarterPoints; number++) {
-        __m128 ret = _mm_loadu_ps(inputVectorPtr);
-        inputVectorPtr += 4;
+    for (unsigned int number = 0; number < quarterPoints; ++number) {
+        __m128 ret = _mm_loadu_ps(inputVector);
+        inputVector += 4;
 
         ret = _mm_max_ps(_mm_min_ps(_mm_add_ps(_mm_mul_ps(ret, vScale), vBias), vmax_val),
                          vmin_val);
 
         _mm_store_ps(outputFloatBuffer, ret);
-        for (size_t inner_loop = 0; inner_loop < 4; inner_loop++) {
-            *outputVectorPtr++ = (uint8_t)(rintf(outputFloatBuffer[inner_loop]));
+        for (size_t inner_loop = 0; inner_loop < 4; ++inner_loop) {
+            *outputVector++ = (uint8_t)(rintf(outputFloatBuffer[inner_loop]));
         }
     }
 
-    for (unsigned int number = quarterPoints * 4; number < num_points; number++) {
-        const float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - quarterPoints * 4);
 }
 
 #endif /* LV_HAVE_SSE */
@@ -355,8 +368,42 @@ static inline void volk_32f_s32f_x2_convert_8u_u_sse(uint8_t* outputVector,
 #ifndef INCLUDED_volk_32f_s32f_x2_convert_8u_a_H
 #define INCLUDED_volk_32f_s32f_x2_convert_8u_a_H
 
-#include <inttypes.h>
 #include <volk/volk_common.h>
+
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+
+static inline void volk_32f_s32f_x2_convert_8u_a_avx512f(uint8_t* outputVector,
+                                                         const float* inputVector,
+                                                         const float scale,
+                                                         const float bias,
+                                                         unsigned int num_points)
+{
+    const unsigned int thirtysecondPoints = num_points / 32;
+    const __m512 vScale = _mm512_set1_ps(scale);
+    const __m512 vBias = _mm512_set1_ps(bias);
+    const __m512 vmin_val = _mm512_setzero_ps();
+    const __m512 vmax_val = _mm512_set1_ps(UINT8_MAX);
+
+    for (unsigned int number = 0; number < thirtysecondPoints; ++number) {
+        const __m512 inputVal1 = _mm512_load_ps(inputVector);
+        const __m512 inputVal2 = _mm512_load_ps(inputVector + 16);
+        inputVector += 32;
+        const __m512 scaledVal1 = _mm512_max_ps(
+            _mm512_min_ps(_mm512_fmadd_ps(inputVal1, vScale, vBias), vmax_val), vmin_val);
+        const __m512 scaledVal2 = _mm512_max_ps(
+            _mm512_min_ps(_mm512_fmadd_ps(inputVal2, vScale, vBias), vmax_val), vmin_val);
+        const __m128i output1 = _mm512_cvtusepi32_epi8(_mm512_cvtps_epi32(scaledVal1));
+        const __m128i output2 = _mm512_cvtusepi32_epi8(_mm512_cvtps_epi32(scaledVal2));
+        _mm_store_si128((__m128i*)outputVector, output1);
+        _mm_store_si128((__m128i*)(outputVector + 16), output2);
+        outputVector += 32;
+    }
+
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - thirtysecondPoints * 32);
+}
+#endif /* LV_HAVE_AVX512F */
 
 #if LV_HAVE_AVX2 && LV_HAVE_FMA
 #include <immintrin.h>
@@ -369,9 +416,6 @@ static inline void volk_32f_s32f_x2_convert_8u_a_avx2_fma(uint8_t* outputVector,
 {
     const unsigned int thirtysecondPoints = num_points / 32;
 
-    const float* inputVectorPtr = (const float*)inputVector;
-    uint8_t* outputVectorPtr = outputVector;
-
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
     const __m256 vmin_val = _mm256_set1_ps(min_val);
@@ -380,15 +424,15 @@ static inline void volk_32f_s32f_x2_convert_8u_a_avx2_fma(uint8_t* outputVector,
     const __m256 vScale = _mm256_set1_ps(scale);
     const __m256 vBias = _mm256_set1_ps(bias);
 
-    for (unsigned int number = 0; number < thirtysecondPoints; number++) {
-        __m256 inputVal1 = _mm256_load_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal2 = _mm256_load_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal3 = _mm256_load_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal4 = _mm256_load_ps(inputVectorPtr);
-        inputVectorPtr += 8;
+    for (unsigned int number = 0; number < thirtysecondPoints; ++number) {
+        __m256 inputVal1 = _mm256_load_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal2 = _mm256_load_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal3 = _mm256_load_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal4 = _mm256_load_ps(inputVector);
+        inputVector += 8;
 
         inputVal1 = _mm256_max_ps(
             _mm256_min_ps(_mm256_fmadd_ps(inputVal1, vScale, vBias), vmax_val), vmin_val);
@@ -412,14 +456,12 @@ static inline void volk_32f_s32f_x2_convert_8u_a_avx2_fma(uint8_t* outputVector,
         intInputVal1 = _mm256_packus_epi16(intInputVal1, intInputVal3);
         const __m256i intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
 
-        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal);
-        outputVectorPtr += 32;
+        _mm256_store_si256((__m256i*)outputVector, intInputVal);
+        outputVector += 32;
     }
 
-    for (unsigned int number = thirtysecondPoints * 32; number < num_points; number++) {
-        const float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - thirtysecondPoints * 32);
 }
 
 #endif /* LV_HAVE_AVX2 && LV_HAVE_FMA */
@@ -436,9 +478,6 @@ static inline void volk_32f_s32f_x2_convert_8u_a_avx2(uint8_t* outputVector,
 {
     const unsigned int thirtysecondPoints = num_points / 32;
 
-    const float* inputVectorPtr = (const float*)inputVector;
-    uint8_t* outputVectorPtr = outputVector;
-
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
     const __m256 vmin_val = _mm256_set1_ps(min_val);
@@ -447,15 +486,15 @@ static inline void volk_32f_s32f_x2_convert_8u_a_avx2(uint8_t* outputVector,
     const __m256 vScale = _mm256_set1_ps(scale);
     const __m256 vBias = _mm256_set1_ps(bias);
 
-    for (unsigned int number = 0; number < thirtysecondPoints; number++) {
-        __m256 inputVal1 = _mm256_load_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal2 = _mm256_load_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal3 = _mm256_load_ps(inputVectorPtr);
-        inputVectorPtr += 8;
-        __m256 inputVal4 = _mm256_load_ps(inputVectorPtr);
-        inputVectorPtr += 8;
+    for (unsigned int number = 0; number < thirtysecondPoints; ++number) {
+        __m256 inputVal1 = _mm256_load_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal2 = _mm256_load_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal3 = _mm256_load_ps(inputVector);
+        inputVector += 8;
+        __m256 inputVal4 = _mm256_load_ps(inputVector);
+        inputVector += 8;
 
         inputVal1 = _mm256_max_ps(
             _mm256_min_ps(_mm256_add_ps(_mm256_mul_ps(inputVal1, vScale), vBias),
@@ -487,14 +526,12 @@ static inline void volk_32f_s32f_x2_convert_8u_a_avx2(uint8_t* outputVector,
         intInputVal1 = _mm256_packus_epi16(intInputVal1, intInputVal3);
         const __m256i intInputVal = _mm256_permute4x64_epi64(intInputVal1, 0b11011000);
 
-        _mm256_store_si256((__m256i*)outputVectorPtr, intInputVal);
-        outputVectorPtr += 32;
+        _mm256_store_si256((__m256i*)outputVector, intInputVal);
+        outputVector += 32;
     }
 
-    for (unsigned int number = thirtysecondPoints * 32; number < num_points; number++) {
-        const float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - thirtysecondPoints * 32);
 }
 
 #endif /* LV_HAVE_AVX2 */
@@ -511,9 +548,6 @@ static inline void volk_32f_s32f_x2_convert_8u_a_sse2(uint8_t* outputVector,
 {
     const unsigned int sixteenthPoints = num_points / 16;
 
-    const float* inputVectorPtr = (const float*)inputVector;
-    uint8_t* outputVectorPtr = outputVector;
-
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
     const __m128 vmin_val = _mm_set_ps1(min_val);
@@ -522,15 +556,15 @@ static inline void volk_32f_s32f_x2_convert_8u_a_sse2(uint8_t* outputVector,
     const __m128 vScale = _mm_set_ps1(scale);
     const __m128 vBias = _mm_set_ps1(bias);
 
-    for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        __m128 inputVal1 = _mm_load_ps(inputVectorPtr);
-        inputVectorPtr += 4;
-        __m128 inputVal2 = _mm_load_ps(inputVectorPtr);
-        inputVectorPtr += 4;
-        __m128 inputVal3 = _mm_load_ps(inputVectorPtr);
-        inputVectorPtr += 4;
-        __m128 inputVal4 = _mm_load_ps(inputVectorPtr);
-        inputVectorPtr += 4;
+    for (unsigned int number = 0; number < sixteenthPoints; ++number) {
+        __m128 inputVal1 = _mm_load_ps(inputVector);
+        inputVector += 4;
+        __m128 inputVal2 = _mm_load_ps(inputVector);
+        inputVector += 4;
+        __m128 inputVal3 = _mm_load_ps(inputVector);
+        inputVector += 4;
+        __m128 inputVal4 = _mm_load_ps(inputVector);
+        inputVector += 4;
 
         inputVal1 = _mm_max_ps(
             _mm_min_ps(_mm_add_ps(_mm_mul_ps(inputVal1, vScale), vBias), vmax_val),
@@ -555,14 +589,12 @@ static inline void volk_32f_s32f_x2_convert_8u_a_sse2(uint8_t* outputVector,
 
         intInputVal1 = _mm_packus_epi16(intInputVal1, intInputVal3);
 
-        _mm_store_si128((__m128i*)outputVectorPtr, intInputVal1);
-        outputVectorPtr += 16;
+        _mm_store_si128((__m128i*)outputVector, intInputVal1);
+        outputVector += 16;
     }
 
-    for (unsigned int number = sixteenthPoints * 16; number < num_points; number++) {
-        const float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - sixteenthPoints * 16);
 }
 #endif /* LV_HAVE_SSE2 */
 
@@ -578,9 +610,6 @@ static inline void volk_32f_s32f_x2_convert_8u_a_sse(uint8_t* outputVector,
 {
     const unsigned int quarterPoints = num_points / 4;
 
-    const float* inputVectorPtr = (const float*)inputVector;
-    uint8_t* outputVectorPtr = outputVector;
-
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
     const __m128 vmin_val = _mm_set_ps1(min_val);
@@ -591,23 +620,21 @@ static inline void volk_32f_s32f_x2_convert_8u_a_sse(uint8_t* outputVector,
 
     __VOLK_ATTR_ALIGNED(16) float outputFloatBuffer[4];
 
-    for (unsigned int number = 0; number < quarterPoints; number++) {
-        __m128 ret = _mm_load_ps(inputVectorPtr);
-        inputVectorPtr += 4;
+    for (unsigned int number = 0; number < quarterPoints; ++number) {
+        __m128 ret = _mm_load_ps(inputVector);
+        inputVector += 4;
 
         ret = _mm_max_ps(
             _mm_min_ps(_mm_add_ps(_mm_mul_ps(ret, vScalar), vBias), vmax_val), vmin_val);
 
         _mm_store_ps(outputFloatBuffer, ret);
-        for (size_t inner_loop = 0; inner_loop < 4; inner_loop++) {
-            *outputVectorPtr++ = (uint8_t)(rintf(outputFloatBuffer[inner_loop]));
+        for (size_t inner_loop = 0; inner_loop < 4; ++inner_loop) {
+            *outputVector++ = (uint8_t)(rintf(outputFloatBuffer[inner_loop]));
         }
     }
 
-    for (unsigned int number = quarterPoints * 4; number < num_points; number++) {
-        const float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - quarterPoints * 4);
 }
 
 #endif /* LV_HAVE_SSE */
@@ -621,11 +648,7 @@ static inline void volk_32f_s32f_x2_convert_8u_neon(uint8_t* outputVector,
                                                     const float bias,
                                                     unsigned int num_points)
 {
-    unsigned int number = 0;
     const unsigned int sixteenth_points = num_points / 16;
-
-    const float* inputVectorPtr = inputVector;
-    uint8_t* outputVectorPtr = outputVector;
 
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
@@ -634,13 +657,14 @@ static inline void volk_32f_s32f_x2_convert_8u_neon(uint8_t* outputVector,
     float32x4_t vBias = vdupq_n_f32(bias);
     float32x4_t vmin_val = vdupq_n_f32(min_val);
     float32x4_t vmax_val = vdupq_n_f32(max_val);
+    const float32x4_t half = vdupq_n_f32(0.5f);
 
-    for (; number < sixteenth_points; number++) {
-        float32x4_t inputVal0 = vld1q_f32(inputVectorPtr);
-        float32x4_t inputVal1 = vld1q_f32(inputVectorPtr + 4);
-        float32x4_t inputVal2 = vld1q_f32(inputVectorPtr + 8);
-        float32x4_t inputVal3 = vld1q_f32(inputVectorPtr + 12);
-        inputVectorPtr += 16;
+    for (unsigned int number = 0; number < sixteenth_points; ++number) {
+        float32x4_t inputVal0 = vld1q_f32(inputVector);
+        float32x4_t inputVal1 = vld1q_f32(inputVector + 4);
+        float32x4_t inputVal2 = vld1q_f32(inputVector + 8);
+        float32x4_t inputVal3 = vld1q_f32(inputVector + 12);
+        inputVector += 16;
 
         inputVal0 = vmlaq_f32(vBias, inputVal0, vScale);
         inputVal1 = vmlaq_f32(vBias, inputVal1, vScale);
@@ -652,10 +676,10 @@ static inline void volk_32f_s32f_x2_convert_8u_neon(uint8_t* outputVector,
         inputVal2 = vmaxq_f32(vminq_f32(inputVal2, vmax_val), vmin_val);
         inputVal3 = vmaxq_f32(vminq_f32(inputVal3, vmax_val), vmin_val);
 
-        uint32x4_t intVal0 = vcvtq_u32_f32(inputVal0);
-        uint32x4_t intVal1 = vcvtq_u32_f32(inputVal1);
-        uint32x4_t intVal2 = vcvtq_u32_f32(inputVal2);
-        uint32x4_t intVal3 = vcvtq_u32_f32(inputVal3);
+        uint32x4_t intVal0 = vcvtq_u32_f32(vaddq_f32(inputVal0, half));
+        uint32x4_t intVal1 = vcvtq_u32_f32(vaddq_f32(inputVal1, half));
+        uint32x4_t intVal2 = vcvtq_u32_f32(vaddq_f32(inputVal2, half));
+        uint32x4_t intVal3 = vcvtq_u32_f32(vaddq_f32(inputVal3, half));
 
         uint16x4_t shortVal0 = vqmovn_u32(intVal0);
         uint16x4_t shortVal1 = vqmovn_u32(intVal1);
@@ -668,16 +692,13 @@ static inline void volk_32f_s32f_x2_convert_8u_neon(uint8_t* outputVector,
         uint8x8_t byteVal01 = vqmovn_u16(shortVal01);
         uint8x8_t byteVal23 = vqmovn_u16(shortVal23);
 
-        vst1_u8(outputVectorPtr, byteVal01);
-        vst1_u8(outputVectorPtr + 8, byteVal23);
-        outputVectorPtr += 16;
+        vst1_u8(outputVector, byteVal01);
+        vst1_u8(outputVector + 8, byteVal23);
+        outputVector += 16;
     }
 
-    number = sixteenth_points * 16;
-    for (; number < num_points; number++) {
-        const float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - sixteenth_points * 16);
 }
 #endif /* LV_HAVE_NEON */
 
@@ -690,11 +711,7 @@ static inline void volk_32f_s32f_x2_convert_8u_neonv8(uint8_t* outputVector,
                                                       const float bias,
                                                       unsigned int num_points)
 {
-    unsigned int number = 0;
     const unsigned int sixteenth_points = num_points / 16;
-
-    const float* inputVectorPtr = inputVector;
-    uint8_t* outputVectorPtr = outputVector;
 
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
@@ -704,13 +721,13 @@ static inline void volk_32f_s32f_x2_convert_8u_neonv8(uint8_t* outputVector,
     float32x4_t vmin_val = vdupq_n_f32(min_val);
     float32x4_t vmax_val = vdupq_n_f32(max_val);
 
-    for (; number < sixteenth_points; number++) {
-        float32x4_t inputVal0 = vld1q_f32(inputVectorPtr);
-        float32x4_t inputVal1 = vld1q_f32(inputVectorPtr + 4);
-        float32x4_t inputVal2 = vld1q_f32(inputVectorPtr + 8);
-        float32x4_t inputVal3 = vld1q_f32(inputVectorPtr + 12);
-        __VOLK_PREFETCH(inputVectorPtr + 16);
-        inputVectorPtr += 16;
+    for (unsigned int number = 0; number < sixteenth_points; ++number) {
+        float32x4_t inputVal0 = vld1q_f32(inputVector);
+        float32x4_t inputVal1 = vld1q_f32(inputVector + 4);
+        float32x4_t inputVal2 = vld1q_f32(inputVector + 8);
+        float32x4_t inputVal3 = vld1q_f32(inputVector + 12);
+        __VOLK_PREFETCH(inputVector + 16);
+        inputVector += 16;
 
         inputVal0 = vfmaq_f32(vBias, inputVal0, vScale);
         inputVal1 = vfmaq_f32(vBias, inputVal1, vScale);
@@ -722,10 +739,10 @@ static inline void volk_32f_s32f_x2_convert_8u_neonv8(uint8_t* outputVector,
         inputVal2 = vmaxq_f32(vminq_f32(inputVal2, vmax_val), vmin_val);
         inputVal3 = vmaxq_f32(vminq_f32(inputVal3, vmax_val), vmin_val);
 
-        uint32x4_t intVal0 = vcvtnq_u32_f32(inputVal0);
-        uint32x4_t intVal1 = vcvtnq_u32_f32(inputVal1);
-        uint32x4_t intVal2 = vcvtnq_u32_f32(inputVal2);
-        uint32x4_t intVal3 = vcvtnq_u32_f32(inputVal3);
+        uint32x4_t intVal0 = vcvtaq_u32_f32(inputVal0);
+        uint32x4_t intVal1 = vcvtaq_u32_f32(inputVal1);
+        uint32x4_t intVal2 = vcvtaq_u32_f32(inputVal2);
+        uint32x4_t intVal3 = vcvtaq_u32_f32(inputVal3);
 
         uint16x4_t shortVal0 = vqmovn_u32(intVal0);
         uint16x4_t shortVal1 = vqmovn_u32(intVal1);
@@ -738,16 +755,13 @@ static inline void volk_32f_s32f_x2_convert_8u_neonv8(uint8_t* outputVector,
         uint8x8_t byteVal01 = vqmovn_u16(shortVal01);
         uint8x8_t byteVal23 = vqmovn_u16(shortVal23);
 
-        vst1_u8(outputVectorPtr, byteVal01);
-        vst1_u8(outputVectorPtr + 8, byteVal23);
-        outputVectorPtr += 16;
+        vst1_u8(outputVector, byteVal01);
+        vst1_u8(outputVector + 8, byteVal23);
+        outputVector += 16;
     }
 
-    number = sixteenth_points * 16;
-    for (; number < num_points; number++) {
-        const float r = inputVector[number] * scale + bias;
-        volk_32f_s32f_x2_convert_8u_single(&outputVector[number], r);
-    }
+    volk_32f_s32f_x2_convert_8u_generic(
+        outputVector, inputVector, scale, bias, num_points - sixteenth_points * 16);
 }
 #endif /* LV_HAVE_NEONV8 */
 
