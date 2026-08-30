@@ -13,46 +13,6 @@
 #include <tuple>
 
 
-template <class T>
-::testing::AssertionResult AreComplexFloatingPointArraysAlmostEqual(const T& expected,
-                                                                    const T& actual)
-{
-    ::testing::AssertionResult result = ::testing::AssertionFailure();
-    if (expected.size() != actual.size()) {
-        return result << "expected result size=" << expected.size()
-                      << " differs from actual size=" << actual.size();
-    }
-    const unsigned long length = expected.size();
-
-    int errorsFound = 0;
-    const char* separator = " ";
-    for (unsigned long index = 0; index < length; index++) {
-        auto expected_real = ::testing::internal::FloatingPoint(expected[index].real());
-        auto expected_imag = ::testing::internal::FloatingPoint(expected[index].imag());
-        auto actual_real = ::testing::internal::FloatingPoint(actual[index].real());
-        auto actual_imag = ::testing::internal::FloatingPoint(actual[index].imag());
-        if (not expected_real.AlmostEquals(actual_real) or
-            not expected_imag.AlmostEquals(actual_imag))
-
-        {
-            if (errorsFound == 0) {
-                result << "Differences found:";
-            }
-            if (errorsFound < 3) {
-                result << separator << expected[index] << " != " << actual[index] << " @ "
-                       << index;
-                separator = ",\n";
-            }
-            errorsFound++;
-        }
-    }
-    if (errorsFound > 0) {
-        result << separator << errorsFound << " differences in total";
-        return result;
-    }
-    return ::testing::AssertionSuccess();
-}
-
 std::vector<std::string> get_kernel_implementation_name_list(const volk_func_desc_t desc)
 {
     std::vector<std::string> names;
