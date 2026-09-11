@@ -415,45 +415,33 @@ static inline void volk_32f_s32f_convert_32i_neon(int32_t* outputVector,
                                                   const float scalar,
                                                   unsigned int num_points)
 {
-    unsigned int number = 0;
     const unsigned int quarter_points = num_points / 4;
-
-    const float* inputPtr = inputVector;
-    int32_t* outputPtr = outputVector;
 
     const float min_val = (float)INT_MIN;
     const float max_val = (float)((uint32_t)INT_MAX + 1);
 
-    float32x4_t vScalar = vdupq_n_f32(scalar);
-    float32x4_t vmin_val = vdupq_n_f32(min_val);
-    float32x4_t vmax_val = vdupq_n_f32(max_val);
-    float32x4_t half = vdupq_n_f32(0.5f);
-    float32x4_t neg_half = vdupq_n_f32(-0.5f);
-    float32x4_t zero = vdupq_n_f32(0.0f);
+    const float32x4_t vScalar = vdupq_n_f32(scalar);
+    const float32x4_t vmin_val = vdupq_n_f32(min_val);
+    const float32x4_t vmax_val = vdupq_n_f32(max_val);
+    const float32x4_t half = vdupq_n_f32(0.5f);
+    const float32x4_t neg_half = vdupq_n_f32(-0.5f);
+    const float32x4_t zero = vdupq_n_f32(0.0f);
 
-    for (; number < quarter_points; number++) {
-        float32x4_t inputVal = vld1q_f32(inputPtr);
-        inputVal = vmulq_f32(inputVal, vScalar);
-        inputVal = vmaxq_f32(vminq_f32(inputVal, vmax_val), vmin_val);
+    for (unsigned int number = 0; number < quarter_points; ++number) {
+        const float32x4_t inputVal = vld1q_f32(inputVector);
+        const float32x4_t scaled = vmulq_f32(inputVal, vScalar);
+        const float32x4_t clamped = vmaxq_f32(vminq_f32(scaled, vmax_val), vmin_val);
         // Round to nearest: add copysign(0.5, x) before truncating
-        uint32x4_t neg = vcltq_f32(inputVal, zero);
-        inputVal = vaddq_f32(inputVal, vbslq_f32(neg, neg_half, half));
-        int32x4_t intVal = vcvtq_s32_f32(inputVal);
-        vst1q_s32(outputPtr, intVal);
-        inputPtr += 4;
-        outputPtr += 4;
+        const uint32x4_t neg = vcltq_f32(clamped, zero);
+        const float32x4_t rounded = vaddq_f32(clamped, vbslq_f32(neg, neg_half, half));
+        const int32x4_t intVal = vcvtq_s32_f32(rounded);
+        vst1q_s32(outputVector, intVal);
+        inputVector += 4;
+        outputVector += 4;
     }
 
-    number = quarter_points * 4;
-    for (; number < num_points; number++) {
-        float r = *inputPtr++ * scalar;
-        if (r >= max_val)
-            *outputPtr++ = INT_MAX;
-        else if (r < min_val)
-            *outputPtr++ = INT_MIN;
-        else
-            *outputPtr++ = (int32_t)rintf(r);
-    }
+    volk_32f_s32f_convert_32i_generic(
+        outputVector, inputVector, scalar, num_points - quarter_points * 4);
 }
 #endif /* LV_HAVE_NEON */
 
@@ -465,48 +453,36 @@ static inline void volk_32f_s32f_convert_32i_neonv8(int32_t* outputVector,
                                                     const float scalar,
                                                     unsigned int num_points)
 {
-    unsigned int number = 0;
     const unsigned int eighth_points = num_points / 8;
-
-    const float* inputPtr = inputVector;
-    int32_t* outputPtr = outputVector;
 
     const float min_val = (float)INT_MIN;
     const float max_val = (float)((uint32_t)INT_MAX + 1);
 
-    float32x4_t vScalar = vdupq_n_f32(scalar);
-    float32x4_t vmin_val = vdupq_n_f32(min_val);
-    float32x4_t vmax_val = vdupq_n_f32(max_val);
+    const float32x4_t vScalar = vdupq_n_f32(scalar);
+    const float32x4_t vmin_val = vdupq_n_f32(min_val);
+    const float32x4_t vmax_val = vdupq_n_f32(max_val);
 
-    for (; number < eighth_points; number++) {
-        float32x4_t inputVal0 = vld1q_f32(inputPtr);
-        float32x4_t inputVal1 = vld1q_f32(inputPtr + 4);
-        __VOLK_PREFETCH(inputPtr + 8);
+    for (unsigned int number = 0; number < eighth_points; ++number) {
+        const float32x4_t inputVal0 = vld1q_f32(inputVector);
+        const float32x4_t inputVal1 = vld1q_f32(inputVector + 4);
+        __VOLK_PREFETCH(inputVector + 8);
 
-        inputVal0 = vmulq_f32(inputVal0, vScalar);
-        inputVal1 = vmulq_f32(inputVal1, vScalar);
-        inputVal0 = vmaxq_f32(vminq_f32(inputVal0, vmax_val), vmin_val);
-        inputVal1 = vmaxq_f32(vminq_f32(inputVal1, vmax_val), vmin_val);
+        const float32x4_t scaled0 = vmulq_f32(inputVal0, vScalar);
+        const float32x4_t scaled1 = vmulq_f32(inputVal1, vScalar);
+        const float32x4_t clamped0 = vmaxq_f32(vminq_f32(scaled0, vmax_val), vmin_val);
+        const float32x4_t clamped1 = vmaxq_f32(vminq_f32(scaled1, vmax_val), vmin_val);
 
-        int32x4_t intVal0 = vcvtnq_s32_f32(inputVal0);
-        int32x4_t intVal1 = vcvtnq_s32_f32(inputVal1);
+        const int32x4_t intVal0 = vcvtnq_s32_f32(clamped0);
+        const int32x4_t intVal1 = vcvtnq_s32_f32(clamped1);
 
-        vst1q_s32(outputPtr, intVal0);
-        vst1q_s32(outputPtr + 4, intVal1);
-        inputPtr += 8;
-        outputPtr += 8;
+        vst1q_s32(outputVector, intVal0);
+        vst1q_s32(outputVector + 4, intVal1);
+        inputVector += 8;
+        outputVector += 8;
     }
 
-    number = eighth_points * 8;
-    for (; number < num_points; number++) {
-        float r = *inputPtr++ * scalar;
-        if (r >= max_val)
-            *outputPtr++ = INT_MAX;
-        else if (r < min_val)
-            *outputPtr++ = INT_MIN;
-        else
-            *outputPtr++ = (int32_t)rintf(r);
-    }
+    volk_32f_s32f_convert_32i_generic(
+        outputVector, inputVector, scalar, num_points - eighth_points * 8);
 }
 #endif /* LV_HAVE_NEONV8 */
 
