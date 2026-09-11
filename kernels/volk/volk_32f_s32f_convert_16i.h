@@ -456,10 +456,6 @@ static inline void volk_32f_s32f_convert_16i_neon(int16_t* outputVector,
     const float32x4_t vScalar = vdupq_n_f32(scalar);
     const float32x4_t vmin_val = vdupq_n_f32((float)SHRT_MIN);
     const float32x4_t vmax_val = vdupq_n_f32((float)SHRT_MAX);
-    const float32x4_t half = vdupq_n_f32(0.5f);
-    const float32x4_t neg_half = vdupq_n_f32(-0.5f);
-    const float32x4_t zero = vdupq_n_f32(0.0f);
-
     for (unsigned int number = 0; number < eighthPoints; ++number) {
         const float32x4_t inputVal1 = vld1q_f32(inputVector);
         const float32x4_t inputVal2 = vld1q_f32(inputVector + 4);
@@ -470,15 +466,31 @@ static inline void volk_32f_s32f_convert_16i_neon(int16_t* outputVector,
         float32x4_t ret2 =
             vmaxq_f32(vminq_f32(vmulq_f32(inputVal2, vScalar), vmax_val), vmin_val);
 
-        // Round to nearest: add copysign(0.5, x) before truncating
-        const uint32x4_t neg1 = vcltq_f32(ret1, zero);
-        const uint32x4_t neg2 = vcltq_f32(ret2, zero);
-        ret1 = vaddq_f32(ret1, vbslq_f32(neg1, neg_half, half));
-        ret2 = vaddq_f32(ret2, vbslq_f32(neg2, neg_half, half));
-
-        // Convert to int32 (truncates towards zero, but we pre-rounded)
-        const int32x4_t intVal1 = vcvtq_s32_f32(ret1);
-        const int32x4_t intVal2 = vcvtq_s32_f32(ret2);
+        // Round to nearest, matching rintf's ties-to-even behavior.
+        const float32x4_t half = vdupq_n_f32(0.5f);
+        const float32x4_t negative_half = vdupq_n_f32(-0.5f);
+        const float32x4_t zero = vdupq_n_f32(0.0f);
+        const int32x4_t rounded1 = vcvtq_s32_f32(
+            vaddq_f32(ret1, vbslq_f32(vcltq_f32(ret1, zero), negative_half, half)));
+        const int32x4_t rounded2 = vcvtq_s32_f32(
+            vaddq_f32(ret2, vbslq_f32(vcltq_f32(ret2, zero), negative_half, half)));
+        const int32x4_t one = vdupq_n_s32(1);
+        const uint32x4_t correction_mask1 = vandq_u32(
+            vceqq_f32(vabsq_f32(vsubq_f32(ret1, vcvtq_f32_s32(rounded1))), half),
+            vtstq_s32(rounded1, one));
+        const uint32x4_t correction_mask2 = vandq_u32(
+            vceqq_f32(vabsq_f32(vsubq_f32(ret2, vcvtq_f32_s32(rounded2))), half),
+            vtstq_s32(rounded2, one));
+        const int32x4_t correction1 =
+            vbslq_s32(correction_mask1,
+                      vbslq_s32(vcltq_f32(ret1, zero), vdupq_n_s32(-1), one),
+                      vdupq_n_s32(0));
+        const int32x4_t correction2 =
+            vbslq_s32(correction_mask2,
+                      vbslq_s32(vcltq_f32(ret2, zero), vdupq_n_s32(-1), one),
+                      vdupq_n_s32(0));
+        const int32x4_t intVal1 = vsubq_s32(rounded1, correction1);
+        const int32x4_t intVal2 = vsubq_s32(rounded2, correction2);
 
         // Narrow to int16 with saturation
         const int16x4_t narrow1 = vqmovn_s32(intVal1);
@@ -509,7 +521,7 @@ static inline void volk_32f_s32f_convert_16i_neonv8(int16_t* outputVector,
     const float32x4_t vmin_val = vdupq_n_f32((float)SHRT_MIN);
     const float32x4_t vmax_val = vdupq_n_f32((float)SHRT_MAX);
 
-    for (unsigned int number = 0; number < sixteenthPoints; ++number) {
+    for (unsigned int number = 0; number < sixteenthPoints; number++) {
         const float32x4_t inputVal0 = vld1q_f32(inputVector);
         const float32x4_t inputVal1 = vld1q_f32(inputVector + 4);
         const float32x4_t inputVal2 = vld1q_f32(inputVector + 8);
@@ -517,13 +529,13 @@ static inline void volk_32f_s32f_convert_16i_neonv8(int16_t* outputVector,
         __VOLK_PREFETCH(inputVector + 16);
 
         // Scale and clip
-        float32x4_t ret0 =
+        const float32x4_t ret0 =
             vmaxq_f32(vminq_f32(vmulq_f32(inputVal0, vScalar), vmax_val), vmin_val);
-        float32x4_t ret1 =
+        const float32x4_t ret1 =
             vmaxq_f32(vminq_f32(vmulq_f32(inputVal1, vScalar), vmax_val), vmin_val);
-        float32x4_t ret2 =
+        const float32x4_t ret2 =
             vmaxq_f32(vminq_f32(vmulq_f32(inputVal2, vScalar), vmax_val), vmin_val);
-        float32x4_t ret3 =
+        const float32x4_t ret3 =
             vmaxq_f32(vminq_f32(vmulq_f32(inputVal3, vScalar), vmax_val), vmin_val);
 
         // Convert to int32 using round-to-nearest (ARMv8)

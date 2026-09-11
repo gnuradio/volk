@@ -653,12 +653,12 @@ static inline void volk_32f_s32f_x2_convert_8u_neon(uint8_t* outputVector,
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
 
-    float32x4_t vScale = vdupq_n_f32(scale);
-    float32x4_t vBias = vdupq_n_f32(bias);
-    float32x4_t vmin_val = vdupq_n_f32(min_val);
-    float32x4_t vmax_val = vdupq_n_f32(max_val);
+    const float32x4_t vScale = vdupq_n_f32(scale);
+    const float32x4_t vBias = vdupq_n_f32(bias);
+    const float32x4_t vmin_val = vdupq_n_f32(min_val);
+    const float32x4_t vmax_val = vdupq_n_f32(max_val);
     const float32x4_t half = vdupq_n_f32(0.5f);
-
+    const uint32x4_t one = vdupq_n_u32(1);
     for (unsigned int number = 0; number < sixteenth_points; ++number) {
         float32x4_t inputVal0 = vld1q_f32(inputVector);
         float32x4_t inputVal1 = vld1q_f32(inputVector + 4);
@@ -676,10 +676,42 @@ static inline void volk_32f_s32f_x2_convert_8u_neon(uint8_t* outputVector,
         inputVal2 = vmaxq_f32(vminq_f32(inputVal2, vmax_val), vmin_val);
         inputVal3 = vmaxq_f32(vminq_f32(inputVal3, vmax_val), vmin_val);
 
-        uint32x4_t intVal0 = vcvtq_u32_f32(vaddq_f32(inputVal0, half));
-        uint32x4_t intVal1 = vcvtq_u32_f32(vaddq_f32(inputVal1, half));
-        uint32x4_t intVal2 = vcvtq_u32_f32(vaddq_f32(inputVal2, half));
-        uint32x4_t intVal3 = vcvtq_u32_f32(vaddq_f32(inputVal3, half));
+        uint32x4_t intVal0;
+        uint32x4_t intVal1;
+        uint32x4_t intVal2;
+        uint32x4_t intVal3;
+        {
+            const uint32x4_t truncated = vcvtq_u32_f32(inputVal0);
+            const float32x4_t fraction = vsubq_f32(inputVal0, vcvtq_f32_u32(truncated));
+            const uint32x4_t increment = vorrq_u32(
+                vcgtq_f32(fraction, half),
+                vandq_u32(vceqq_f32(fraction, half), vtstq_u32(truncated, one)));
+            intVal0 = vaddq_u32(truncated, vandq_u32(increment, one));
+        }
+        {
+            const uint32x4_t truncated = vcvtq_u32_f32(inputVal1);
+            const float32x4_t fraction = vsubq_f32(inputVal1, vcvtq_f32_u32(truncated));
+            const uint32x4_t increment = vorrq_u32(
+                vcgtq_f32(fraction, half),
+                vandq_u32(vceqq_f32(fraction, half), vtstq_u32(truncated, one)));
+            intVal1 = vaddq_u32(truncated, vandq_u32(increment, one));
+        }
+        {
+            const uint32x4_t truncated = vcvtq_u32_f32(inputVal2);
+            const float32x4_t fraction = vsubq_f32(inputVal2, vcvtq_f32_u32(truncated));
+            const uint32x4_t increment = vorrq_u32(
+                vcgtq_f32(fraction, half),
+                vandq_u32(vceqq_f32(fraction, half), vtstq_u32(truncated, one)));
+            intVal2 = vaddq_u32(truncated, vandq_u32(increment, one));
+        }
+        {
+            const uint32x4_t truncated = vcvtq_u32_f32(inputVal3);
+            const float32x4_t fraction = vsubq_f32(inputVal3, vcvtq_f32_u32(truncated));
+            const uint32x4_t increment = vorrq_u32(
+                vcgtq_f32(fraction, half),
+                vandq_u32(vceqq_f32(fraction, half), vtstq_u32(truncated, one)));
+            intVal3 = vaddq_u32(truncated, vandq_u32(increment, one));
+        }
 
         uint16x4_t shortVal0 = vqmovn_u32(intVal0);
         uint16x4_t shortVal1 = vqmovn_u32(intVal1);
@@ -716,10 +748,10 @@ static inline void volk_32f_s32f_x2_convert_8u_neonv8(uint8_t* outputVector,
     const float min_val = 0.0f;
     const float max_val = UINT8_MAX;
 
-    float32x4_t vScale = vdupq_n_f32(scale);
-    float32x4_t vBias = vdupq_n_f32(bias);
-    float32x4_t vmin_val = vdupq_n_f32(min_val);
-    float32x4_t vmax_val = vdupq_n_f32(max_val);
+    const float32x4_t vScale = vdupq_n_f32(scale);
+    const float32x4_t vBias = vdupq_n_f32(bias);
+    const float32x4_t vmin_val = vdupq_n_f32(min_val);
+    const float32x4_t vmax_val = vdupq_n_f32(max_val);
 
     for (unsigned int number = 0; number < sixteenth_points; ++number) {
         float32x4_t inputVal0 = vld1q_f32(inputVector);
@@ -739,21 +771,21 @@ static inline void volk_32f_s32f_x2_convert_8u_neonv8(uint8_t* outputVector,
         inputVal2 = vmaxq_f32(vminq_f32(inputVal2, vmax_val), vmin_val);
         inputVal3 = vmaxq_f32(vminq_f32(inputVal3, vmax_val), vmin_val);
 
-        uint32x4_t intVal0 = vcvtaq_u32_f32(inputVal0);
-        uint32x4_t intVal1 = vcvtaq_u32_f32(inputVal1);
-        uint32x4_t intVal2 = vcvtaq_u32_f32(inputVal2);
-        uint32x4_t intVal3 = vcvtaq_u32_f32(inputVal3);
+        const uint32x4_t intVal0 = vcvtnq_u32_f32(inputVal0);
+        const uint32x4_t intVal1 = vcvtnq_u32_f32(inputVal1);
+        const uint32x4_t intVal2 = vcvtnq_u32_f32(inputVal2);
+        const uint32x4_t intVal3 = vcvtnq_u32_f32(inputVal3);
 
-        uint16x4_t shortVal0 = vqmovn_u32(intVal0);
-        uint16x4_t shortVal1 = vqmovn_u32(intVal1);
-        uint16x4_t shortVal2 = vqmovn_u32(intVal2);
-        uint16x4_t shortVal3 = vqmovn_u32(intVal3);
+        const uint16x4_t shortVal0 = vqmovn_u32(intVal0);
+        const uint16x4_t shortVal1 = vqmovn_u32(intVal1);
+        const uint16x4_t shortVal2 = vqmovn_u32(intVal2);
+        const uint16x4_t shortVal3 = vqmovn_u32(intVal3);
 
-        uint16x8_t shortVal01 = vcombine_u16(shortVal0, shortVal1);
-        uint16x8_t shortVal23 = vcombine_u16(shortVal2, shortVal3);
+        const uint16x8_t shortVal01 = vcombine_u16(shortVal0, shortVal1);
+        const uint16x8_t shortVal23 = vcombine_u16(shortVal2, shortVal3);
 
-        uint8x8_t byteVal01 = vqmovn_u16(shortVal01);
-        uint8x8_t byteVal23 = vqmovn_u16(shortVal23);
+        const uint8x8_t byteVal01 = vqmovn_u16(shortVal01);
+        const uint8x8_t byteVal23 = vqmovn_u16(shortVal23);
 
         vst1_u8(outputVector, byteVal01);
         vst1_u8(outputVector + 8, byteVal23);
