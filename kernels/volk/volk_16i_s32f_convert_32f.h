@@ -239,8 +239,8 @@ static inline void volk_16i_s32f_convert_32f_neon(float* outputVector,
         // convert 32-bit int to float with scale
         const float32x4_t input_float_0 = vcvtq_f32_s32(input32_0);
         const float32x4_t input_float_1 = vcvtq_f32_s32(input32_1);
-        const float32x4x2_t output_float = { vmulq_f32(input_float_0, inv_scale),
-                                             vmulq_f32(input_float_1, inv_scale) };
+        const float32x4x2_t output_float = { { vmulq_f32(input_float_0, inv_scale),
+                                               vmulq_f32(input_float_1, inv_scale) } };
         vst2q_f32(outputVector, output_float);
         inputVector += 8;
         outputVector += 8;
