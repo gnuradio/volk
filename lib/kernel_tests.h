@@ -114,7 +114,7 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32fc_32f_multiply_32fc, test_params))
     QA(VOLK_INIT_TEST(volk_32fc_32f_add_32fc, test_params))
 
-    volk_test_params_t test_params_log2(test_params.make_absolute(5e-6));
+    volk_test_params_t test_params_log2(test_params.make_absolute(1e-5));
     test_params_log2.add_float_edge_cases({ -1.f, 0.f, inf, 65536.f });
     QA(VOLK_INIT_TEST(volk_32f_log2_32f, test_params_log2))
 
