@@ -322,7 +322,7 @@ jobs:
         with:
           submodules: "recursive"
       - name: dependencies
-        run: pip3 install --break-system-packages mako && brew install orc
+        run: pip3 install --break-system-packages mako && brew install orc fmt
       - name: configure
         run: mkdir build && cd build && cmake -DCMAKE_C_FLAGS="-Werror" -DCMAKE_CXX_FLAGS="-Werror" -DBUILD_EXECUTABLE=ON ..
       - name: build
