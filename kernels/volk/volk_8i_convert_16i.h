@@ -48,7 +48,7 @@ static inline void volk_8i_convert_16i_generic(int16_t* outputVector,
                                                const int8_t* inputVector,
                                                unsigned int num_points)
 {
-    for (unsigned number = 0; number < num_points; number++) {
+    for (unsigned int number = 0; number < num_points; ++number) {
         *outputVector++ = ((int16_t)(*inputVector++)) * 256;
     }
 }
@@ -63,24 +63,16 @@ static inline void volk_8i_convert_16i_u_avx2(int16_t* outputVector,
 {
     const unsigned int sixteenthPoints = num_points / 16;
 
-    const __m128i* inputVectorPtr = (const __m128i*)inputVector;
-    __m256i* outputVectorPtr = (__m256i*)outputVector;
-    __m128i inputVal;
-    __m256i ret;
-
-    for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        inputVal = _mm_loadu_si128(inputVectorPtr);
-        ret = _mm256_cvtepi8_epi16(inputVal);
-        ret = _mm256_slli_epi16(ret, 8); // Multiply by 256
-        _mm256_storeu_si256(outputVectorPtr, ret);
-
-        outputVectorPtr++;
-        inputVectorPtr++;
+    for (unsigned int number = 0; number < sixteenthPoints; ++number) {
+        const __m128i input = _mm_loadu_si128((const __m128i*)inputVector);
+        const __m256i output = _mm256_slli_epi16(_mm256_cvtepi8_epi16(input), 8);
+        _mm256_storeu_si256((__m256i*)outputVector, output);
+        inputVector += 16;
+        outputVector += 16;
     }
 
-    const unsigned offset = sixteenthPoints * 16;
     volk_8i_convert_16i_generic(
-        outputVector + offset, inputVector + offset, num_points - offset);
+        outputVector, inputVector, num_points - sixteenthPoints * 16);
 }
 #endif /* LV_HAVE_AVX2 */
 
@@ -93,24 +85,16 @@ static inline void volk_8i_convert_16i_u_avx512bw(int16_t* outputVector,
 {
     const unsigned int thirtysecondPoints = num_points / 32;
 
-    const __m256i* inputVectorPtr = (const __m256i*)inputVector;
-    __m512i* outputVectorPtr = (__m512i*)outputVector;
-    __m256i inputVal;
-    __m512i ret;
-
-    for (unsigned int number = 0; number < thirtysecondPoints; number++) {
-        inputVal = _mm256_loadu_si256(inputVectorPtr);
-        ret = _mm512_cvtepi8_epi16(inputVal);
-        ret = _mm512_slli_epi16(ret, 8); // Multiply by 256
-        _mm512_storeu_si512(outputVectorPtr, ret);
-
-        outputVectorPtr++;
-        inputVectorPtr++;
+    for (unsigned int number = 0; number < thirtysecondPoints; ++number) {
+        const __m256i input = _mm256_loadu_si256((const __m256i*)inputVector);
+        const __m512i output = _mm512_slli_epi16(_mm512_cvtepi8_epi16(input), 8);
+        _mm512_storeu_si512((__m512i*)outputVector, output);
+        inputVector += 32;
+        outputVector += 32;
     }
 
-    const unsigned offset = thirtysecondPoints * 32;
     volk_8i_convert_16i_generic(
-        outputVector + offset, inputVector + offset, num_points - offset);
+        outputVector, inputVector, num_points - thirtysecondPoints * 32);
 }
 #endif /* LV_HAVE_AVX512BW */
 
@@ -124,32 +108,19 @@ static inline void volk_8i_convert_16i_u_sse4_1(int16_t* outputVector,
 {
     const unsigned int sixteenthPoints = num_points / 16;
 
-    const __m128i* inputVectorPtr = (const __m128i*)inputVector;
-    __m128i* outputVectorPtr = (__m128i*)outputVector;
-    __m128i inputVal;
-    __m128i ret;
-
-    for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        inputVal = _mm_loadu_si128(inputVectorPtr);
-        ret = _mm_cvtepi8_epi16(inputVal);
-        ret = _mm_slli_epi16(ret, 8); // Multiply by 256
-        _mm_storeu_si128(outputVectorPtr, ret);
-
-        outputVectorPtr++;
-
-        inputVal = _mm_srli_si128(inputVal, 8);
-        ret = _mm_cvtepi8_epi16(inputVal);
-        ret = _mm_slli_epi16(ret, 8); // Multiply by 256
-        _mm_storeu_si128(outputVectorPtr, ret);
-
-        outputVectorPtr++;
-
-        inputVectorPtr++;
+    for (unsigned int number = 0; number < sixteenthPoints; ++number) {
+        const __m128i input = _mm_loadu_si128((const __m128i*)inputVector);
+        const __m128i output0 = _mm_slli_epi16(_mm_cvtepi8_epi16(input), 8);
+        const __m128i output1 =
+            _mm_slli_epi16(_mm_cvtepi8_epi16(_mm_srli_si128(input, 8)), 8);
+        _mm_storeu_si128((__m128i*)outputVector, output0);
+        _mm_storeu_si128((__m128i*)(outputVector + 8), output1);
+        inputVector += 16;
+        outputVector += 16;
     }
 
-    const unsigned offset = sixteenthPoints * 16;
     volk_8i_convert_16i_generic(
-        outputVector + offset, inputVector + offset, num_points - offset);
+        outputVector, inputVector, num_points - sixteenthPoints * 16);
 }
 #endif /* LV_HAVE_SSE4_1 */
 
@@ -170,24 +141,16 @@ static inline void volk_8i_convert_16i_a_avx2(int16_t* outputVector,
 {
     const unsigned int sixteenthPoints = num_points / 16;
 
-    const __m128i* inputVectorPtr = (const __m128i*)inputVector;
-    __m256i* outputVectorPtr = (__m256i*)outputVector;
-    __m128i inputVal;
-    __m256i ret;
-
-    for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        inputVal = _mm_load_si128(inputVectorPtr);
-        ret = _mm256_cvtepi8_epi16(inputVal);
-        ret = _mm256_slli_epi16(ret, 8); // Multiply by 256
-        _mm256_store_si256(outputVectorPtr, ret);
-
-        outputVectorPtr++;
-        inputVectorPtr++;
+    for (unsigned int number = 0; number < sixteenthPoints; ++number) {
+        const __m128i input = _mm_load_si128((const __m128i*)inputVector);
+        const __m256i output = _mm256_slli_epi16(_mm256_cvtepi8_epi16(input), 8);
+        _mm256_store_si256((__m256i*)outputVector, output);
+        inputVector += 16;
+        outputVector += 16;
     }
 
-    const unsigned offset = sixteenthPoints * 16;
     volk_8i_convert_16i_generic(
-        outputVector + offset, inputVector + offset, num_points - offset);
+        outputVector, inputVector, num_points - sixteenthPoints * 16);
 }
 #endif /* LV_HAVE_AVX2 */
 
@@ -200,24 +163,16 @@ static inline void volk_8i_convert_16i_a_avx512bw(int16_t* outputVector,
 {
     const unsigned int thirtysecondPoints = num_points / 32;
 
-    const __m256i* inputVectorPtr = (const __m256i*)inputVector;
-    __m512i* outputVectorPtr = (__m512i*)outputVector;
-    __m256i inputVal;
-    __m512i ret;
-
-    for (unsigned int number = 0; number < thirtysecondPoints; number++) {
-        inputVal = _mm256_load_si256(inputVectorPtr);
-        ret = _mm512_cvtepi8_epi16(inputVal);
-        ret = _mm512_slli_epi16(ret, 8); // Multiply by 256
-        _mm512_store_si512(outputVectorPtr, ret);
-
-        outputVectorPtr++;
-        inputVectorPtr++;
+    for (unsigned int number = 0; number < thirtysecondPoints; ++number) {
+        const __m256i input = _mm256_load_si256((const __m256i*)inputVector);
+        const __m512i output = _mm512_slli_epi16(_mm512_cvtepi8_epi16(input), 8);
+        _mm512_store_si512((__m512i*)outputVector, output);
+        inputVector += 32;
+        outputVector += 32;
     }
 
-    const unsigned offset = thirtysecondPoints * 32;
     volk_8i_convert_16i_generic(
-        outputVector + offset, inputVector + offset, num_points - offset);
+        outputVector, inputVector, num_points - thirtysecondPoints * 32);
 }
 #endif /* LV_HAVE_AVX512BW */
 
@@ -231,32 +186,19 @@ static inline void volk_8i_convert_16i_a_sse4_1(int16_t* outputVector,
 {
     const unsigned int sixteenthPoints = num_points / 16;
 
-    const __m128i* inputVectorPtr = (const __m128i*)inputVector;
-    __m128i* outputVectorPtr = (__m128i*)outputVector;
-    __m128i inputVal;
-    __m128i ret;
-
-    for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        inputVal = _mm_load_si128(inputVectorPtr);
-        ret = _mm_cvtepi8_epi16(inputVal);
-        ret = _mm_slli_epi16(ret, 8); // Multiply by 256
-        _mm_store_si128(outputVectorPtr, ret);
-
-        outputVectorPtr++;
-
-        inputVal = _mm_srli_si128(inputVal, 8);
-        ret = _mm_cvtepi8_epi16(inputVal);
-        ret = _mm_slli_epi16(ret, 8); // Multiply by 256
-        _mm_store_si128(outputVectorPtr, ret);
-
-        outputVectorPtr++;
-
-        inputVectorPtr++;
+    for (unsigned int number = 0; number < sixteenthPoints; ++number) {
+        const __m128i input = _mm_load_si128((const __m128i*)inputVector);
+        const __m128i output0 = _mm_slli_epi16(_mm_cvtepi8_epi16(input), 8);
+        const __m128i output1 =
+            _mm_slli_epi16(_mm_cvtepi8_epi16(_mm_srli_si128(input, 8)), 8);
+        _mm_store_si128((__m128i*)outputVector, output0);
+        _mm_store_si128((__m128i*)(outputVector + 8), output1);
+        inputVector += 16;
+        outputVector += 16;
     }
 
-    const unsigned offset = sixteenthPoints * 16;
     volk_8i_convert_16i_generic(
-        outputVector + offset, inputVector + offset, num_points - offset);
+        outputVector, inputVector, num_points - sixteenthPoints * 16);
 }
 #endif /* LV_HAVE_SSE4_1 */
 
@@ -268,31 +210,21 @@ static inline void volk_8i_convert_16i_neon(int16_t* outputVector,
                                             const int8_t* inputVector,
                                             unsigned int num_points)
 {
-    int16_t* outputVectorPtr = outputVector;
-    const int8_t* inputVectorPtr = inputVector;
-    unsigned int number;
     const unsigned int eighth_points = num_points / 8;
-
-    int8x8_t input_vec;
-    int16x8_t converted_vec;
 
     // NEON doesn't have a concept of 8 bit registers, so we are really
     // dealing with the low half of 16-bit registers. Since this requires
     // a move instruction we likely do better with ASM here.
-    for (number = 0; number < eighth_points; ++number) {
-        input_vec = vld1_s8(inputVectorPtr);
-        converted_vec = vmovl_s8(input_vec);
-        // converted_vec = vmulq_s16(converted_vec, scale_factor);
-        converted_vec = vshlq_n_s16(converted_vec, 8);
-        vst1q_s16(outputVectorPtr, converted_vec);
-
-        inputVectorPtr += 8;
-        outputVectorPtr += 8;
+    for (unsigned int number = 0; number < eighth_points; ++number) {
+        const int8x8_t input = vld1_s8(inputVector);
+        const int16x8_t output = vshlq_n_s16(vmovl_s8(input), 8);
+        vst1q_s16(outputVector, output);
+        inputVector += 8;
+        outputVector += 8;
     }
 
-    const unsigned offset = eighth_points * 8;
     volk_8i_convert_16i_generic(
-        outputVector + offset, inputVector + offset, num_points - offset);
+        outputVector, inputVector, num_points - eighth_points * 8);
 }
 #endif /* LV_HAVE_NEON */
 
@@ -303,27 +235,21 @@ static inline void volk_8i_convert_16i_neonv8(int16_t* outputVector,
                                               const int8_t* inputVector,
                                               unsigned int num_points)
 {
-    int16_t* outputVectorPtr = outputVector;
-    const int8_t* inputVectorPtr = inputVector;
     const unsigned int sixteenthPoints = num_points / 16;
 
-    for (unsigned int number = 0; number < sixteenthPoints; number++) {
-        int8x16_t in = vld1q_s8(inputVectorPtr);
-        __VOLK_PREFETCH(inputVectorPtr + 32);
-
-        int16x8_t out_lo = vshll_n_s8(vget_low_s8(in), 8);
-        int16x8_t out_hi = vshll_n_s8(vget_high_s8(in), 8);
-
-        vst1q_s16(outputVectorPtr, out_lo);
-        vst1q_s16(outputVectorPtr + 8, out_hi);
-
-        inputVectorPtr += 16;
-        outputVectorPtr += 16;
+    for (unsigned int number = 0; number < sixteenthPoints; ++number) {
+        const int8x16_t input = vld1q_s8(inputVector);
+        __VOLK_PREFETCH(inputVector + 32);
+        const int16x8_t output0 = vshll_n_s8(vget_low_s8(input), 8);
+        const int16x8_t output1 = vshll_n_s8(vget_high_s8(input), 8);
+        vst1q_s16(outputVector, output0);
+        vst1q_s16(outputVector + 8, output1);
+        inputVector += 16;
+        outputVector += 16;
     }
 
-    const unsigned offset = sixteenthPoints * 16;
     volk_8i_convert_16i_generic(
-        outputVector + offset, inputVector + offset, num_points - offset);
+        outputVector, inputVector, num_points - sixteenthPoints * 16);
 }
 #endif /* LV_HAVE_NEONV8 */
 
