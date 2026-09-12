@@ -77,9 +77,6 @@ jobs:
           cmake --build build -j$(( $(nproc) + 1 ))
       - name: Print info
         run: |
-          if [ -f ./build/cpu_features/list_cpu_features ]; then
-            ./build/cpu_features/list_cpu_features
-          fi
           ./build/apps/volk-config-info --alignment
           ./build/apps/volk-config-info --avail-machines
           ./build/apps/volk-config-info --all-machines
@@ -125,7 +122,7 @@ jobs:
         with:
           submodules: "recursive"
       - uses: uraimo/run-on-arch-action@v3
-        # Wish I gotten sccache to work in this, but the environment provided by this 
+        # Wish I gotten sccache to work in this, but the environment provided by this
         # action is so cursed that practically nothing works in there.
         name: Build in non-x86 container
         id: build
@@ -178,9 +175,6 @@ jobs:
             echo "::endgroup::"
             echo "::group::platform info"
             cd build
-            if [ -f ./cpu_features/list_cpu_features ]; then
-              ./cpu_features/list_cpu_features
-            fi
             ./apps/volk-config-info --alignment
             ./apps/volk-config-info --avail-machines
             ./apps/volk-config-info --all-machines
@@ -226,7 +220,6 @@ jobs:
         run: cmake --build build -j$(nproc)
       - name: Print info
         run: |
-          ./build/cpu_features/list_cpu_features
           ./build/apps/volk-config-info --alignment
           ./build/apps/volk-config-info --avail-machines
           ./build/apps/volk-config-info --all-machines
@@ -318,6 +311,7 @@ jobs:
 
   build-macos:
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-15-intel, macos-latest]
 
@@ -335,7 +329,6 @@ jobs:
         run: cmake --build build --config Debug -j4
       - name: Print info
         run: |
-          ./build/cpu_features/list_cpu_features
           # ./build/apps/volk-config-info --alignment
           # ./build/apps/volk-config-info --avail-machines
           # ./build/apps/volk-config-info --all-machines
