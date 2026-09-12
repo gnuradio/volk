@@ -7,6 +7,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
+#include "volk/volk_complex.h"
 #include "volk_test.h"
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -51,7 +52,8 @@ protected:
     {
         volk_32fc_x2_multiply_32fc_manual(
             result.data(), vec0.data(), vec1.data(), vector_length, impl_name.c_str());
-        EXPECT_TRUE(AreComplexFloatingPointArraysAlmostEqual(expected, result));
+        EXPECT_TRUE(
+            AreComplexFloatingPointArraysAlmostEqual<lv_32fc_t>(expected, result));
     }
 
     void execute_unaligned(const std::string impl_name)
@@ -61,7 +63,8 @@ protected:
                                           vec1.data() + 1,
                                           vector_length - 1,
                                           impl_name.c_str());
-        EXPECT_TRUE(AreComplexFloatingPointArraysAlmostEqual(expected, ua_result));
+        EXPECT_TRUE(
+            AreComplexFloatingPointArraysAlmostEqual<lv_32fc_t>(expected, ua_result));
     }
 
     volk::vector<lv_32fc_t> vec0;
