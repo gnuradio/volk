@@ -12,8 +12,14 @@
  *
  * \b Overview
  *
- * Multiplies two input complex vectors, point-by-point, storing the result in the third
- * vector. WARNING: Saturation is not checked.
+ * Multiplies two input complex vectors, point-by-point, storing the result
+ * in the third vector.
+ *
+ * \b WARNING: This kernel does not perform saturation. Since multiplying
+ * two 16-bit complex values can produce intermediate results exceeding the
+ * int16_t range (-32768 to +32767), users should ensure that input values
+ * are small enough to avoid overflow. Different protokernels may produce
+ * inconsistent results on overflow.
  *
  * <b>Dispatcher Prototype</b>
  * \code
