@@ -16,6 +16,7 @@
 #ifndef INCLUDE_VOLK_VOLK_AVX_INTRINSICS_H_
 #define INCLUDE_VOLK_VOLK_AVX_INTRINSICS_H_
 #include <immintrin.h>
+#include <volk/volk_common.h>
 
 /*
  * Newton-Raphson refined reciprocal square root: 1/sqrt(a)
@@ -194,39 +195,21 @@ static inline __m256 _mm256_polar_sign_mask(__m128i fbits)
 {
     __m256 sign_mask_dummy = _mm256_setzero_ps();
     const __m128i zeros = _mm_set1_epi8(0x00);
-    const __m128i sign_extract = _mm_set1_epi8(0x80);
-    const __m128i shuffle_mask0 = _mm_setr_epi8(0xff,
-                                                0xff,
-                                                0xff,
-                                                0x00,
-                                                0xff,
-                                                0xff,
-                                                0xff,
-                                                0x01,
-                                                0xff,
-                                                0xff,
-                                                0xff,
-                                                0x02,
-                                                0xff,
-                                                0xff,
-                                                0xff,
-                                                0x03);
-    const __m128i shuffle_mask1 = _mm_setr_epi8(0xff,
-                                                0xff,
-                                                0xff,
-                                                0x04,
-                                                0xff,
-                                                0xff,
-                                                0xff,
-                                                0x05,
-                                                0xff,
-                                                0xff,
-                                                0xff,
-                                                0x06,
-                                                0xff,
-                                                0xff,
-                                                0xff,
-                                                0x07);
+    const __m128i sign_extract = _mm_set1_epi8('\x80');
+    // clang-format off
+    const __m128i shuffle_mask0 = _mm_setr_epi8(
+        '\xFF', '\xFF', '\xFF', 0x00,
+        '\xFF', '\xFF', '\xFF', 0x01,
+        '\xFF', '\xFF', '\xFF', 0x02,
+        '\xFF', '\xFF', '\xFF', 0x03);
+    // clang-format on
+    // clang-format off
+    const __m128i shuffle_mask1 = _mm_setr_epi8(
+        '\xFF', '\xFF', '\xFF', 0x04,
+        '\xFF', '\xFF', '\xFF', 0x05,
+        '\xFF', '\xFF', '\xFF', 0x06,
+        '\xFF', '\xFF', '\xFF', 0x07);
+    // clang-format on
 
     fbits = _mm_cmpgt_epi8(fbits, zeros);
     fbits = _mm_and_si128(fbits, sign_extract);
@@ -256,7 +239,7 @@ static inline __m256 _mm256_polar_minsum_llrs(__m256 src0, __m256 src1)
 {
     const __m256 sign_mask = _mm256_set1_ps(-0.0f);
     const __m256 abs_mask =
-        _mm256_andnot_ps(sign_mask, _mm256_castsi256_ps(_mm256_set1_epi8(0xff)));
+        _mm256_andnot_ps(sign_mask, _mm256_castsi256_ps(_mm256_set1_epi8('\xFF')));
 
     __m256 llr0, llr1;
     _mm256_polar_deinterleave(&llr0, &llr1, src0, src1);

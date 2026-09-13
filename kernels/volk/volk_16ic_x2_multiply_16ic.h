@@ -71,10 +71,38 @@ static inline void volk_16ic_x2_multiply_16ic_a_sse2(lv_16sc_t* out,
     __m128i a, b, c, c_sr, mask_imag, mask_real, real, imag, imag1, imag2, b_sl, a_sl,
         result;
 
-    mask_imag = _mm_set_epi8(
-        0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0);
-    mask_real = _mm_set_epi8(
-        0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF);
+    mask_imag = _mm_set_epi8('\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0);
+    mask_real = _mm_set_epi8(0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF');
 
     const lv_16sc_t* _in_a = in_a;
     const lv_16sc_t* _in_b = in_b;
@@ -130,10 +158,38 @@ static inline void volk_16ic_x2_multiply_16ic_u_sse2(lv_16sc_t* out,
     __m128i a, b, c, c_sr, mask_imag, mask_real, real, imag, imag1, imag2, b_sl, a_sl,
         result;
 
-    mask_imag = _mm_set_epi8(
-        0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0);
-    mask_real = _mm_set_epi8(
-        0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF, 0, 0, 0xFF, 0xFF);
+    mask_imag = _mm_set_epi8('\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0);
+    mask_real = _mm_set_epi8(0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF',
+                             0,
+                             0,
+                             '\xFF',
+                             '\xFF');
 
     const lv_16sc_t* _in_a = in_a;
     const lv_16sc_t* _in_b = in_b;
@@ -194,70 +250,28 @@ static inline void volk_16ic_x2_multiply_16ic_u_avx2(lv_16sc_t* out,
 
     __m256i a, b, c, c_sr, real, imag, imag1, imag2, b_sl, a_sl, result;
 
-    const __m256i mask_imag = _mm256_set_epi8(0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0);
-    const __m256i mask_real = _mm256_set_epi8(0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF);
+    // clang-format off
+    const __m256i mask_imag = _mm256_set_epi8(
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0);
+    // clang-format on
+    // clang-format off
+    const __m256i mask_real = _mm256_set_epi8(
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF');
+    // clang-format on
 
     for (; number < avx2_points; number++) {
         a = _mm256_loadu_si256(
@@ -315,70 +329,28 @@ static inline void volk_16ic_x2_multiply_16ic_a_avx2(lv_16sc_t* out,
 
     __m256i a, b, c, c_sr, real, imag, imag1, imag2, b_sl, a_sl, result;
 
-    const __m256i mask_imag = _mm256_set_epi8(0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0);
-    const __m256i mask_real = _mm256_set_epi8(0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF,
-                                              0,
-                                              0,
-                                              0xFF,
-                                              0xFF);
+    // clang-format off
+    const __m256i mask_imag = _mm256_set_epi8(
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0,
+        '\xFF', '\xFF', 0     , 0);
+    // clang-format on
+    // clang-format off
+    const __m256i mask_real = _mm256_set_epi8(
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF',
+        0     , 0     , '\xFF', '\xFF');
+    // clang-format on
 
     for (; number < avx2_points; number++) {
         a = _mm256_load_si256(

@@ -521,6 +521,10 @@ if(ORC_FOUND AND NOT VOLK_STATIC_DISPATCH)
             DEPENDS ${orc_file}
             OUTPUT ${orcc_gen})
         list(APPEND volk_sources ${orcc_gen})
+        set_source_files_properties(
+            ${orcc_gen}
+            PROPERTIES COMPILE_OPTIONS
+                       "-Wno-pedantic;-Wno-conversion;-Wno-sign-conversion")
 
     endforeach(orc_file)
 elseif(NOT ORC_FOUND)

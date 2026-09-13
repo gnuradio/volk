@@ -139,15 +139,35 @@ static inline void volk_16ic_deinterleave_16i_x2_a_ssse3(int16_t* iBuffer,
     int16_t* iBufferPtr = iBuffer;
     int16_t* qBufferPtr = qBuffer;
 
+    // clang-format off
     __m128i iMoveMask1 = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 13, 12, 9, 8, 5, 4, 1, 0);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0);
+    // clang-format on
+    // clang-format off
     __m128i iMoveMask2 = _mm_set_epi8(
-        13, 12, 9, 8, 5, 4, 1, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80');
+    // clang-format on
 
+    // clang-format off
     __m128i qMoveMask1 = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 14, 11, 10, 7, 6, 3, 2);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        15    , 14    , 11    , 10,
+        7     , 6     , 3     , 2);
+    // clang-format on
+    // clang-format off
     __m128i qMoveMask2 = _mm_set_epi8(
-        15, 14, 11, 10, 7, 6, 3, 2, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+        15    , 14    , 11    , 10,
+        7     , 6     , 3     , 2,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80');
+    // clang-format on
 
     __m128i complexVal1, complexVal2, iOutputVal, qOutputVal;
 

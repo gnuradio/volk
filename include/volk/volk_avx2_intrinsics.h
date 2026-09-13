@@ -62,39 +62,18 @@ static inline __m256 _mm256_imag(const __m256 z1, const __m256 z2)
 static inline __m256 _mm256_polar_sign_mask_avx2(__m128i fbits)
 {
     const __m128i zeros = _mm_set1_epi8(0x00);
-    const __m128i sign_extract = _mm_set1_epi8(0x80);
-    const __m256i shuffle_mask = _mm256_setr_epi8(0xff,
-                                                  0xff,
-                                                  0xff,
-                                                  0x00,
-                                                  0xff,
-                                                  0xff,
-                                                  0xff,
-                                                  0x01,
-                                                  0xff,
-                                                  0xff,
-                                                  0xff,
-                                                  0x02,
-                                                  0xff,
-                                                  0xff,
-                                                  0xff,
-                                                  0x03,
-                                                  0xff,
-                                                  0xff,
-                                                  0xff,
-                                                  0x04,
-                                                  0xff,
-                                                  0xff,
-                                                  0xff,
-                                                  0x05,
-                                                  0xff,
-                                                  0xff,
-                                                  0xff,
-                                                  0x06,
-                                                  0xff,
-                                                  0xff,
-                                                  0xff,
-                                                  0x07);
+    const __m128i sign_extract = _mm_set1_epi8('\x80');
+    // clang-format off
+    const __m256i shuffle_mask = _mm256_setr_epi8(
+        '\xFF', '\xFF', '\xFF', 0x00,
+        '\xFF', '\xFF', '\xFF', 0x01,
+        '\xFF', '\xFF', '\xFF', 0x02,
+        '\xFF', '\xFF', '\xFF', 0x03,
+        '\xFF', '\xFF', '\xFF', 0x04,
+        '\xFF', '\xFF', '\xFF', 0x05,
+        '\xFF', '\xFF', '\xFF', 0x06,
+        '\xFF', '\xFF', '\xFF', 0x07);
+    // clang-format on
     __m256i sign_bits = _mm256_setzero_si256();
 
     fbits = _mm_cmpgt_epi8(fbits, zeros);

@@ -66,38 +66,17 @@ volk_8ic_s32f_deinterleave_real_32f_a_avx2(float* iBuffer,
     __m256i complexVal, iIntVal;
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
-    __m256i moveMask = _mm256_set_epi8(0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0);
+    // clang-format off
+    __m256i moveMask = _mm256_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on
     for (; number < sixteenthPoints; number++) {
         complexVal = _mm256_load_si256((__m256i*)complexVectorPtr);
         complexVectorPtr += 32;
@@ -146,8 +125,13 @@ volk_8ic_s32f_deinterleave_real_32f_a_sse4_1(float* iBuffer,
     __m128i complexVal, iIntVal;
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
+    // clang-format off
     __m128i moveMask = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on
 
     for (; number < eighthPoints; number++) {
         complexVal = _mm_load_si128((__m128i*)complexVectorPtr);
@@ -282,38 +266,17 @@ volk_8ic_s32f_deinterleave_real_32f_u_avx2(float* iBuffer,
     __m128i hcomplexVal;
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
-    __m256i moveMask = _mm256_set_epi8(0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0);
+    // clang-format off
+    __m256i moveMask = _mm256_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on
 
     for (; number < sixteenthPoints; number++) {
         complexVal = _mm256_loadu_si256((__m256i*)complexVectorPtr);
