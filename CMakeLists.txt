@@ -48,7 +48,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 endif()
 
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules
-) #location for custom "Modules"
+)#location for custom "Modules"
 
 include(CMakeDependentOption)
 include(VolkBuildTypes)
@@ -94,7 +94,7 @@ set(CROSSCOMPILE_MULTILIB
 
 if(MSVC)
     add_definitions(-D_USE_MATH_DEFINES
-    ) #enables math constants on all supported versions of MSVC
+    )#enables math constants on all supported versions of MSVC
     add_compile_options(/W1) #reduce warnings
     add_compile_options(/wo4309)
     add_compile_options(/wd4752)
@@ -105,17 +105,22 @@ endif(MSVC)
 ########################################################################
 # Build options
 ########################################################################
-set(VOLK_STATIC_DISPATCH "" CACHE STRING
-    "Static dispatch to a specific machine (e.g. neonv8). Empty means dynamic dispatch.")
+set(VOLK_STATIC_DISPATCH
+    ""
+    CACHE
+        STRING
+        "Static dispatch to a specific machine (e.g. neonv8). Empty means dynamic dispatch."
+)
 option(ENABLE_UTILITY_APPS "Enable utility apps" ON)
 option(ENABLE_TESTING "Enable QA testing" ON)
 option(ENABLE_MODTOOL "Enable volk_modtool python utility" ON)
-cmake_dependent_option(ENABLE_PROFILING "Launch system profiler after build" OFF "ENABLE_UTILITY_APPS;NOT CMAKE_CROSSCOMPILING" OFF)
+cmake_dependent_option(ENABLE_PROFILING "Launch system profiler after build" OFF
+                       "ENABLE_UTILITY_APPS;NOT CMAKE_CROSSCOMPILING" OFF)
 
 ########################################################################
 # Print summary of options
 ########################################################################
-if (VOLK_STATIC_DISPATCH)
+if(VOLK_STATIC_DISPATCH)
     message(STATUS "Using static dispatch for: ${VOLK_STATIC_DISPATCH}")
 else()
     message(STATUS "Using dynamic dispatch.")
@@ -125,15 +130,15 @@ if(ENABLE_UTILITY_APPS)
     message(STATUS "Utility apps enabled.")
 endif()
 
-if (ENABLE_TESTING)
+if(ENABLE_TESTING)
     message(STATUS "Testing enabled.")
 endif()
 
-if (ENABLE_MODTOOL)
+if(ENABLE_MODTOOL)
     message(STATUS "volk_modtool python utility enabled.")
 endif()
 
-if (ENABLE_PROFILING)
+if(ENABLE_PROFILING)
     message(STATUS "Launch system profiler after build enabled.")
 endif()
 
@@ -143,8 +148,10 @@ endif()
 
 # cpu_features - only needed for dynamic dispatch (runtime CPU detection)
 if(NOT VOLK_STATIC_DISPATCH)
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES
-       "(^mips)|(^arm)|(^aarch64)|(x86_64)|(AMD64|amd64)|(^i.86$)|(^powerpc)|(^ppc)|(^riscv)")
+    if(CMAKE_SYSTEM_PROCESSOR
+       MATCHES
+       "(^mips)|(^arm)|(^aarch64)|(x86_64)|(AMD64|amd64)|(^i.86$)|(^powerpc)|(^ppc)|(^riscv)"
+    )
         option(VOLK_CPU_FEATURES "Volk uses cpu_features" ON)
     else()
         option(VOLK_CPU_FEATURES "Volk uses cpu_features" OFF)
@@ -243,11 +250,8 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Coverage")
     # modifications as done in the past for GNU Radio.
     include(CodeCoverage)
     append_coverage_compiler_flags()
-    setup_target_for_coverage_gcovr_html(
-        NAME coverage
-        EXECUTABLE "ctest"  
-        DEPENDENCIES volk_profile
-        )
+    setup_target_for_coverage_gcovr_html(NAME coverage EXECUTABLE "ctest" DEPENDENCIES
+                                         volk_profile)
 endif()
 
 ########################################################################
@@ -303,8 +307,8 @@ set(VOLK_INSTALL_HEADERS
 
 if(NOT VOLK_STATIC_DISPATCH)
     list(APPEND VOLK_INSTALL_HEADERS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_prefs.h
-        ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_cpu.h)
+         ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_prefs.h
+         ${CMAKE_CURRENT_BINARY_DIR}/include/volk/volk_cpu.h)
 endif()
 
 install(
@@ -384,12 +388,10 @@ if(ENABLE_TESTING OR ENABLE_UTILITY_APPS)
     if(NOT ENABLE_STATIC_LIBS)
         find_package(fmt QUIET)
     endif()
-    if(NOT fmt_FOUND)
-        if(ENABLE_STATIC_LIBS)
-            message(STATUS "Static build: using FetchContent to build fmt as static library ...")
-        else()
-            message(STATUS "fmt package not found. Using FetchContent to download ...")
-        endif()
+    if(ENABLE_STATIC_LIBS AND NOT fmt_FOUND)
+        message(
+            STATUS "Static build: using FetchContent to build fmt as static library ...")
+
         include(FetchContent)
         FetchContent_Declare(
             fmt

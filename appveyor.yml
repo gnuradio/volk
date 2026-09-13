@@ -5,15 +5,15 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 #
-image: Visual Studio 2022
+image: Visual Studio 2026
 cache:
   - packages -> appveyor.yml
 environment:
   environment:
   matrix:
-    - job_name: VS 17 2022 / python 3.12
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-      CMAKE_GENERATOR: Visual Studio 17 2022
+    - job_name: VS 2026 / python 3.12
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2026
+      CMAKE_GENERATOR: Ninja
       PYTHON: "C:\\Python312"
 
 install:
@@ -25,11 +25,12 @@ install:
       print(sys.platform, platform.machine(), struct.calcsize('P')*8)"
     - pip --version
     - pip install mako
+    - C:\Tools\vcpkg\vcpkg.exe install fmt:x64-windows gtest:x64-windows
 before_build:
     - git submodule update --init --recursive
-    - cmake -G "%CMAKE_GENERATOR%" -A x64 -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=ON -DPython3_FIND_REGISTRY=NEVER .
+    - cmake -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE:STRING=Release -DENABLE_ORC:BOOL=OFF -DENABLE_TESTING:BOOL=ON -DPython3_FIND_REGISTRY=NEVER -DCMAKE_TOOLCHAIN_FILE=C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows .
 build_script:
-    - cmake --build . --config Release --target INSTALL
+    - cmake --build . --config Release --target install
 test_script:
     - ctest -V --output-on-failure -C Release
 after_test:

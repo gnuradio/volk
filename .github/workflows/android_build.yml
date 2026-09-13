@@ -35,7 +35,7 @@ jobs:
 
       # All dependencies
       - name: Install dependencies
-        run: sudo DEBIAN_FRONTEND=noninteractive apt-get install -y cmake python3-mako curl
+        run: sudo DEBIAN_FRONTEND=noninteractive apt-get install -y cmake python3-mako libgtest-dev libfmt-dev curl
 
       - name: Install sccache
         shell: bash
@@ -60,6 +60,33 @@ jobs:
       - name: Install Android NDK
         run: $GITHUB_WORKSPACE/android-sdk-linux/cmdline-tools/bin/sdkmanager --sdk_root=$GITHUB_WORKSPACE/android-sdk-linux --install "ndk;27.2.12479018" --channel=3
 
+      # Build fmt for the Android target. The host libfmt-dev package cannot
+      # be used by the Android toolchain.
+      - name: Install fmt and GoogleTest for Android
+        shell: bash
+        run: |
+          git clone --depth 1 --branch 12.1.0 https://github.com/fmtlib/fmt.git fmt-src
+          cmake -S fmt-src -B fmt-build \
+            -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/android-sdk-linux/ndk/27.2.12479018/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.arch.name }} \
+            -DANDROID_PLATFORM=android-34 \
+            -DFMT_TEST=OFF \
+            -DFMT_DOC=OFF \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/android-fmt
+          cmake --build fmt-build -j $(nproc)
+          cmake --install fmt-build
+
+          git clone --depth 1 --branch v1.18.0 https://github.com/google/googletest.git gtest-src
+          cmake -S gtest-src -B gtest-build \
+            -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/android-sdk-linux/ndk/27.2.12479018/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.arch.name }} \
+            -DANDROID_PLATFORM=android-34 \
+            -DBUILD_GMOCK=OFF \
+            -DINSTALL_GTEST=ON \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/android-gtest
+          cmake --build gtest-build -j $(nproc)
+          cmake --install gtest-build
+
       # Setup build directory
       - name: Setup ${{ matrix.arch.name }}
         shell: bash
@@ -70,6 +97,7 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/android-sdk-linux/ndk/27.2.12479018/build/cmake/android.toolchain.cmake \
           -DANDROID_ABI=${{ matrix.arch.name }} \
           -DANDROID_PLATFORM=android-34 \
+          -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/android-fmt;$GITHUB_WORKSPACE/android-gtest" \
           ${{ steps.enable_sccache.outputs.CXX_LAUNCHER }} \
           ${{ steps.enable_sccache.outputs.C_LAUNCHER }}
 

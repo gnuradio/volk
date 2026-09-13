@@ -19,8 +19,14 @@ jobs:
           submodules: "recursive"
       - name: Install packages
         run: |
+          sudo dpkg --add-architecture riscv64
+          sudo tee /etc/apt/sources.list.d/riscv64.list > /dev/null <<'EOF'
+          deb [arch=riscv64] http://ports.ubuntu.com/ubuntu-ports noble main universe
+          deb [arch=riscv64] http://ports.ubuntu.com/ubuntu-ports noble-updates main universe
+          deb [arch=riscv64] http://ports.ubuntu.com/ubuntu-ports noble-security main universe
+          EOF
           sudo DEBIAN_FRONTEND=noninteractive apt-get update -q -y
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-mako cmake qemu-user-static g++-14-riscv64-linux-gnu clang-18 curl
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-mako libgtest-dev:riscv64 libfmt-dev:riscv64 cmake qemu-user-static g++-14-riscv64-linux-gnu clang-18 curl
           sudo scripts/ci/install_sccache.bash
           mkdir build
           cd build
