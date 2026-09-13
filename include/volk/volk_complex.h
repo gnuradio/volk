@@ -85,7 +85,7 @@ typedef double complex lv_64fc_t;
 
 #define lv_cimag(x) (__imag__(x))
 
-#define lv_conj(x) (~(x))
+#define lv_conj(x) (conj(x))
 
 // When not available, use the c99 complex function family,
 // which always returns double regardless of the input type,
