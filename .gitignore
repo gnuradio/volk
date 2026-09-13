@@ -2,4 +2,5 @@
 *.pyc
 *.pyo
 *build*/
+bin/
 archives/
