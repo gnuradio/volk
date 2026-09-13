@@ -21,6 +21,13 @@
       "inherits": [".base-config", ".debug-config", ".component-config"]
     },
     {
+      "name": "aarch64",
+      "displayName": "AArch64 Configuration",
+      "description": "Debug AArch64 build and tests under QEMU user emulation",
+      "inherits": [".base-config", ".debug-config", ".component-config"],
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/aarch64-linux-gnu.cmake"
+    },
+    {
       "name": "native",
       "displayName": "Native Optimization Configuration",
       "description": "Release build with native architecture optimizations",
@@ -111,6 +118,12 @@
       "inherits": [".build-base"]
     },
     {
+      "name": "aarch64",
+      "displayName": "AArch64 Build",
+      "configurePreset": "aarch64",
+      "inherits": [".build-base"]
+    },
+    {
       "name": "native",
       "displayName": "Native Build",
       "configurePreset": "native",
@@ -141,6 +154,12 @@
       "name": "dev",
       "displayName": "Development Tests",
       "configurePreset": "dev",
+      "inherits": [".test-base"]
+    },
+    {
+      "name": "aarch64",
+      "displayName": "AArch64 Tests",
+      "configurePreset": "aarch64",
       "inherits": [".test-base"]
     },
     {
@@ -175,6 +194,16 @@
       "steps": [
         { "type": "configure", "name": "dev" },
         { "type": "build", "name": "dev" }
+      ]
+    },
+    {
+      "name": "aarch64",
+      "displayName": "AArch64 Workflow",
+      "description": "Cross-compile and test AArch64 under QEMU user emulation",
+      "steps": [
+        { "type": "configure", "name": "aarch64" },
+        { "type": "build", "name": "aarch64" },
+        { "type": "test", "name": "aarch64" }
       ]
     },
     {

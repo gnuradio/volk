@@ -12,6 +12,31 @@ name: Run VOLK tests
 on: [push, pull_request]
 
 jobs:
+  ubuntu-cmake-presets:
+    name: Build with CMake presets on ${{ matrix.compiler.distro }} ${{ matrix.compiler.cc }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - { cc: gcc-15, cxx: g++-15, distro: ubuntu-26.04 }
+
+    runs-on: ${{ matrix.compiler.distro }}
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install dependencies
+        run: sudo apt install python3-mako liborc-dev libgtest-dev libfmt-dev ${{ matrix.compiler.cxx }} ${{ matrix.compiler.cc }}
+      - name: Configure
+        env:
+          CC: ${{ matrix.compiler.cc }}
+          CXX: ${{ matrix.compiler.cxx }}
+        run: cmake --preset ci
+      - name: Build
+        run: cmake --build --preset ci -j $(( $(nproc) + 1 ))
+      - name: Test
+        run: ctest --preset ci
+
   build-ubuntu:
     name: Build on ${{ matrix.compiler.distro }} ${{ matrix.compiler.name }}
 
