@@ -12,9 +12,18 @@
  *
  * \b Overview
  *
- * Multiplies two input complex vectors (16-bit integer each component) and accumulates
- * them, storing the result. Results are saturated so never go beyond the limits of the
- * data type.
+ * Multiplies two input complex vectors (16-bit integer each component)
+ * element-wise and accumulates them, storing the result. The accumulation
+ * is performed using saturating addition.
+ *
+ * \b WARNING: The intermediate element-wise multiplication uses
+ * non-saturating arithmetic as a performance trade-off, since
+ * saturating 16-bit complex multiplication would require widening to
+ * 32-bit integers, adding significant overhead. This may cause overflow
+ * if input values span the full int16_t range. Different protokernels
+ * may produce inconsistent results in this case. To avoid overflow,
+ * ensure that input values are small enough that their products fit
+ * within the int16_t range.
  *
  * <b>Dispatcher Prototype</b>
  * \code
