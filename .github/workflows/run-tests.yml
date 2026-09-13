@@ -268,9 +268,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: dependencies
-        run: pip install mako
+        run: |
+          pip install mako
+          vcpkg install fmt:x64-windows gtest:x64-windows
       - name: configure
-        run: mkdir build && cd build && cmake -DPython3_FIND_REGISTRY=NEVER ..
+        run: mkdir build && cd build && cmake -DPython3_FIND_REGISTRY=NEVER -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows ..
       - name: build
         run: cmake --build build --config Release --target INSTALL -j4
       - name: test
