@@ -85,9 +85,10 @@ template <class T>
     }
     if (errorsFound > 0) {
         result << separator << errorsFound << " differences in total";
-        return result;
+    } else {
+        result = ::testing::AssertionSuccess();
     }
-    return ::testing::AssertionSuccess();
+    return result;
 }
 
 template <class T>

@@ -13,13 +13,7 @@
 # We use `IS_64BIT now: https://cmake.org/cmake/help/latest/command/cmake_host_system_information.html
 cmake_minimum_required(VERSION 3.22)
 
-set(CMAKE_BUILD_TYPE
-    ${CMAKE_BUILD_TYPE}
-    CACHE STRING "Choose build type: None Debug Release RelWithDebInfo MinSizeRel")
-project(volk)
-
-enable_language(CXX)
-enable_language(C)
+project(volk VERSION 3.3.0 LANGUAGES C CXX)
 
 enable_testing()
 
@@ -29,8 +23,8 @@ enable_testing()
 
 # Disable complex math NaN/INFO range checking for performance
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
@@ -67,9 +61,9 @@ message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}.")
 # Version setup
 ########################################################################
 
-set(VERSION_INFO_MAJOR_VERSION 3)
-set(VERSION_INFO_MINOR_VERSION 3)
-set(VERSION_INFO_MAINT_VERSION 0)
+set(VERSION_INFO_MAJOR_VERSION ${volk_VERSION_MAJOR})
+set(VERSION_INFO_MINOR_VERSION ${volk_VERSION_MINOR})
+set(VERSION_INFO_MAINT_VERSION ${volk_VERSION_PATCH})
 include(VolkVersion) #setup version info
 
 math(EXPR VOLK_VERSION_DECIMAL "${VERSION_INFO_MAJOR_VERSION} * 10000
@@ -202,9 +196,6 @@ volk_python_check_module("mako >= 0.4.2" mako "mako.__version__ >= '0.4.2'" MAKO
 if(NOT MAKO_FOUND)
     message(FATAL_ERROR "Mako templates required to build VOLK")
 endif()
-
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ########################################################################
 # check for aligned_alloc, since some compilers lack this C11 feature.

@@ -1,0 +1,16 @@
+{
+  "version": 10,
+  "cmakeMinimumRequired": {
+    "major": 4,
+    "minor": 2,
+    "patch": 0
+  },
+  "vendor": {
+    "volk": {
+      "description": "VOLK CMake Presets"
+    }
+  },
+  "configurePresets": [],
+  "buildPresets": [],
+  "testPresets": []
+}
