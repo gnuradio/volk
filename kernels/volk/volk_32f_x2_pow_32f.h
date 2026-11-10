@@ -101,21 +101,21 @@ static inline void volk_32f_x2_pow_32f_a_avx2_fma(float* cVector,
     __m256i bias, exp, emm0, pi32_0x7f;
 
     one = _mm256_set1_ps(1.0);
-    exp_hi = _mm256_set1_ps(88.3762626647949);
-    exp_lo = _mm256_set1_ps(-88.3762626647949);
-    ln2 = _mm256_set1_ps(0.6931471805);
-    log2EF = _mm256_set1_ps(1.44269504088896341);
+    exp_hi = _mm256_set1_ps(88.3762626647949f);
+    exp_lo = _mm256_set1_ps(-88.3762626647949f);
+    ln2 = _mm256_set1_ps(0.6931471805f);
+    log2EF = _mm256_set1_ps(1.44269504088896341f);
     half = _mm256_set1_ps(0.5);
     exp_C1 = _mm256_set1_ps(0.693359375);
-    exp_C2 = _mm256_set1_ps(-2.12194440e-4);
+    exp_C2 = _mm256_set1_ps(-2.12194440e-4f);
     pi32_0x7f = _mm256_set1_epi32(0x7f);
 
-    exp_p0 = _mm256_set1_ps(1.9875691500e-4);
-    exp_p1 = _mm256_set1_ps(1.3981999507e-3);
-    exp_p2 = _mm256_set1_ps(8.3334519073e-3);
-    exp_p3 = _mm256_set1_ps(4.1665795894e-2);
-    exp_p4 = _mm256_set1_ps(1.6666665459e-1);
-    exp_p5 = _mm256_set1_ps(5.0000001201e-1);
+    exp_p0 = _mm256_set1_ps(1.9875691500e-4f);
+    exp_p1 = _mm256_set1_ps(1.3981999507e-3f);
+    exp_p2 = _mm256_set1_ps(8.3334519073e-3f);
+    exp_p3 = _mm256_set1_ps(4.1665795894e-2f);
+    exp_p4 = _mm256_set1_ps(1.6666665459e-1f);
+    exp_p5 = _mm256_set1_ps(5.0000001201e-1f);
 
     for (; number < eighthPoints; number++) {
         // First compute the logarithm
@@ -248,21 +248,21 @@ static inline void volk_32f_x2_pow_32f_a_avx2(float* cVector,
     __m256i bias, exp, emm0, pi32_0x7f;
 
     one = _mm256_set1_ps(1.0);
-    exp_hi = _mm256_set1_ps(88.3762626647949);
-    exp_lo = _mm256_set1_ps(-88.3762626647949);
-    ln2 = _mm256_set1_ps(0.6931471805);
-    log2EF = _mm256_set1_ps(1.44269504088896341);
+    exp_hi = _mm256_set1_ps(88.3762626647949f);
+    exp_lo = _mm256_set1_ps(-88.3762626647949f);
+    ln2 = _mm256_set1_ps(0.6931471805f);
+    log2EF = _mm256_set1_ps(1.44269504088896341f);
     half = _mm256_set1_ps(0.5);
     exp_C1 = _mm256_set1_ps(0.693359375);
-    exp_C2 = _mm256_set1_ps(-2.12194440e-4);
+    exp_C2 = _mm256_set1_ps(-2.12194440e-4f);
     pi32_0x7f = _mm256_set1_epi32(0x7f);
 
-    exp_p0 = _mm256_set1_ps(1.9875691500e-4);
-    exp_p1 = _mm256_set1_ps(1.3981999507e-3);
-    exp_p2 = _mm256_set1_ps(8.3334519073e-3);
-    exp_p3 = _mm256_set1_ps(4.1665795894e-2);
-    exp_p4 = _mm256_set1_ps(1.6666665459e-1);
-    exp_p5 = _mm256_set1_ps(5.0000001201e-1);
+    exp_p0 = _mm256_set1_ps(1.9875691500e-4f);
+    exp_p1 = _mm256_set1_ps(1.3981999507e-3f);
+    exp_p2 = _mm256_set1_ps(8.3334519073e-3f);
+    exp_p3 = _mm256_set1_ps(4.1665795894e-2f);
+    exp_p4 = _mm256_set1_ps(1.6666665459e-1f);
+    exp_p5 = _mm256_set1_ps(5.0000001201e-1f);
 
     for (; number < eighthPoints; number++) {
         // First compute the logarithm
@@ -395,21 +395,21 @@ static inline void volk_32f_x2_pow_32f_a_sse4_1(float* cVector,
     __m128i bias, exp, emm0, pi32_0x7f;
 
     one = _mm_set1_ps(1.0);
-    exp_hi = _mm_set1_ps(88.3762626647949);
-    exp_lo = _mm_set1_ps(-88.3762626647949);
-    ln2 = _mm_set1_ps(0.6931471805);
-    log2EF = _mm_set1_ps(1.44269504088896341);
+    exp_hi = _mm_set1_ps(88.3762626647949f);
+    exp_lo = _mm_set1_ps(-88.3762626647949f);
+    ln2 = _mm_set1_ps(0.6931471805f);
+    log2EF = _mm_set1_ps(1.44269504088896341f);
     half = _mm_set1_ps(0.5);
     exp_C1 = _mm_set1_ps(0.693359375);
-    exp_C2 = _mm_set1_ps(-2.12194440e-4);
+    exp_C2 = _mm_set1_ps(-2.12194440e-4f);
     pi32_0x7f = _mm_set1_epi32(0x7f);
 
-    exp_p0 = _mm_set1_ps(1.9875691500e-4);
-    exp_p1 = _mm_set1_ps(1.3981999507e-3);
-    exp_p2 = _mm_set1_ps(8.3334519073e-3);
-    exp_p3 = _mm_set1_ps(4.1665795894e-2);
-    exp_p4 = _mm_set1_ps(1.6666665459e-1);
-    exp_p5 = _mm_set1_ps(5.0000001201e-1);
+    exp_p0 = _mm_set1_ps(1.9875691500e-4f);
+    exp_p1 = _mm_set1_ps(1.3981999507e-3f);
+    exp_p2 = _mm_set1_ps(8.3334519073e-3f);
+    exp_p3 = _mm_set1_ps(4.1665795894e-2f);
+    exp_p4 = _mm_set1_ps(1.6666665459e-1f);
+    exp_p5 = _mm_set1_ps(5.0000001201e-1f);
 
     for (; number < quarterPoints; number++) {
         // First compute the logarithm
@@ -801,21 +801,21 @@ static inline void volk_32f_x2_pow_32f_u_sse4_1(float* cVector,
     __m128i bias, exp, emm0, pi32_0x7f;
 
     one = _mm_set1_ps(1.0);
-    exp_hi = _mm_set1_ps(88.3762626647949);
-    exp_lo = _mm_set1_ps(-88.3762626647949);
-    ln2 = _mm_set1_ps(0.6931471805);
-    log2EF = _mm_set1_ps(1.44269504088896341);
+    exp_hi = _mm_set1_ps(88.3762626647949f);
+    exp_lo = _mm_set1_ps(-88.3762626647949f);
+    ln2 = _mm_set1_ps(0.6931471805f);
+    log2EF = _mm_set1_ps(1.44269504088896341f);
     half = _mm_set1_ps(0.5);
     exp_C1 = _mm_set1_ps(0.693359375);
-    exp_C2 = _mm_set1_ps(-2.12194440e-4);
+    exp_C2 = _mm_set1_ps(-2.12194440e-4f);
     pi32_0x7f = _mm_set1_epi32(0x7f);
 
-    exp_p0 = _mm_set1_ps(1.9875691500e-4);
-    exp_p1 = _mm_set1_ps(1.3981999507e-3);
-    exp_p2 = _mm_set1_ps(8.3334519073e-3);
-    exp_p3 = _mm_set1_ps(4.1665795894e-2);
-    exp_p4 = _mm_set1_ps(1.6666665459e-1);
-    exp_p5 = _mm_set1_ps(5.0000001201e-1);
+    exp_p0 = _mm_set1_ps(1.9875691500e-4f);
+    exp_p1 = _mm_set1_ps(1.3981999507e-3f);
+    exp_p2 = _mm_set1_ps(8.3334519073e-3f);
+    exp_p3 = _mm_set1_ps(4.1665795894e-2f);
+    exp_p4 = _mm_set1_ps(1.6666665459e-1f);
+    exp_p5 = _mm_set1_ps(5.0000001201e-1f);
 
     for (; number < quarterPoints; number++) {
         // First compute the logarithm
@@ -946,21 +946,21 @@ static inline void volk_32f_x2_pow_32f_u_avx2_fma(float* cVector,
     __m256i bias, exp, emm0, pi32_0x7f;
 
     one = _mm256_set1_ps(1.0);
-    exp_hi = _mm256_set1_ps(88.3762626647949);
-    exp_lo = _mm256_set1_ps(-88.3762626647949);
-    ln2 = _mm256_set1_ps(0.6931471805);
-    log2EF = _mm256_set1_ps(1.44269504088896341);
+    exp_hi = _mm256_set1_ps(88.3762626647949f);
+    exp_lo = _mm256_set1_ps(-88.3762626647949f);
+    ln2 = _mm256_set1_ps(0.6931471805f);
+    log2EF = _mm256_set1_ps(1.44269504088896341f);
     half = _mm256_set1_ps(0.5);
     exp_C1 = _mm256_set1_ps(0.693359375);
-    exp_C2 = _mm256_set1_ps(-2.12194440e-4);
+    exp_C2 = _mm256_set1_ps(-2.12194440e-4f);
     pi32_0x7f = _mm256_set1_epi32(0x7f);
 
-    exp_p0 = _mm256_set1_ps(1.9875691500e-4);
-    exp_p1 = _mm256_set1_ps(1.3981999507e-3);
-    exp_p2 = _mm256_set1_ps(8.3334519073e-3);
-    exp_p3 = _mm256_set1_ps(4.1665795894e-2);
-    exp_p4 = _mm256_set1_ps(1.6666665459e-1);
-    exp_p5 = _mm256_set1_ps(5.0000001201e-1);
+    exp_p0 = _mm256_set1_ps(1.9875691500e-4f);
+    exp_p1 = _mm256_set1_ps(1.3981999507e-3f);
+    exp_p2 = _mm256_set1_ps(8.3334519073e-3f);
+    exp_p3 = _mm256_set1_ps(4.1665795894e-2f);
+    exp_p4 = _mm256_set1_ps(1.6666665459e-1f);
+    exp_p5 = _mm256_set1_ps(5.0000001201e-1f);
 
     for (; number < eighthPoints; number++) {
         // First compute the logarithm
@@ -1094,21 +1094,21 @@ static inline void volk_32f_x2_pow_32f_u_avx2(float* cVector,
     __m256i bias, exp, emm0, pi32_0x7f;
 
     one = _mm256_set1_ps(1.0);
-    exp_hi = _mm256_set1_ps(88.3762626647949);
-    exp_lo = _mm256_set1_ps(-88.3762626647949);
-    ln2 = _mm256_set1_ps(0.6931471805);
-    log2EF = _mm256_set1_ps(1.44269504088896341);
+    exp_hi = _mm256_set1_ps(88.3762626647949f);
+    exp_lo = _mm256_set1_ps(-88.3762626647949f);
+    ln2 = _mm256_set1_ps(0.6931471805f);
+    log2EF = _mm256_set1_ps(1.44269504088896341f);
     half = _mm256_set1_ps(0.5);
     exp_C1 = _mm256_set1_ps(0.693359375);
-    exp_C2 = _mm256_set1_ps(-2.12194440e-4);
+    exp_C2 = _mm256_set1_ps(-2.12194440e-4f);
     pi32_0x7f = _mm256_set1_epi32(0x7f);
 
-    exp_p0 = _mm256_set1_ps(1.9875691500e-4);
-    exp_p1 = _mm256_set1_ps(1.3981999507e-3);
-    exp_p2 = _mm256_set1_ps(8.3334519073e-3);
-    exp_p3 = _mm256_set1_ps(4.1665795894e-2);
-    exp_p4 = _mm256_set1_ps(1.6666665459e-1);
-    exp_p5 = _mm256_set1_ps(5.0000001201e-1);
+    exp_p0 = _mm256_set1_ps(1.9875691500e-4f);
+    exp_p1 = _mm256_set1_ps(1.3981999507e-3f);
+    exp_p2 = _mm256_set1_ps(8.3334519073e-3f);
+    exp_p3 = _mm256_set1_ps(4.1665795894e-2f);
+    exp_p4 = _mm256_set1_ps(1.6666665459e-1f);
+    exp_p5 = _mm256_set1_ps(5.0000001201e-1f);
 
     for (; number < eighthPoints; number++) {
         // First compute the logarithm
