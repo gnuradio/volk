@@ -169,14 +169,14 @@ void load_random_data(void* data,
                     std::numeric_limits<int8_t>::min(),
                     std::numeric_limits<int8_t>::max());
                 for (unsigned int i = 0; i < n; i++) {
-                    ((int8_t*)data)[i] = uniform_dist(rnd_engine);
+                    ((int8_t*)data)[i] = static_cast<int8_t>(uniform_dist(rnd_engine));
                 }
             } else {
                 std::uniform_int_distribution<uint16_t> uniform_dist(
                     std::numeric_limits<uint8_t>::min(),
                     std::numeric_limits<uint8_t>::max());
                 for (unsigned int i = 0; i < n; i++) {
-                    ((uint8_t*)data)[i] = uniform_dist(rnd_engine);
+                    ((uint8_t*)data)[i] = static_cast<uint8_t>(uniform_dist(rnd_engine));
                 }
             }
             break;
@@ -657,7 +657,8 @@ unsigned int max_column_width(const T& columns)
     unsigned col_len = 0;
     for (const auto& col : columns) {
         auto this_col_len = fmt::formatted_size("{}", col);
-        col_len = col_len > this_col_len ? col_len : this_col_len;
+        col_len =
+            static_cast<unsigned int>(col_len > this_col_len ? col_len : this_col_len);
     }
     return col_len;
 }
@@ -677,7 +678,8 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
     constexpr std::array<const char*, 5> columns{
         "index", "expected", "actual", "rel_err", "tol"
     };
-    unsigned int index_len = fmt::formatted_size("{}", columns[0]) + 1;
+    unsigned int index_len =
+        static_cast<unsigned int>(fmt::formatted_size("{}", columns[0]) + 1);
     unsigned int col_len = max_column_width(columns);
     /* choose enough digits to represent tolerance */
     const auto [tol_length, value_prec] = tol_precision(tol, col_len);
@@ -1491,7 +1493,8 @@ bool run_volk_tests(volk_func_desc_t desc,
     for (auto& j : inputsig) {
         bytes_per_call += j.size * (j.is_complex ? 2 : 1) * vlen;
     }
-    double total_mb = (bytes_per_call * iter) / 1e6; // Total megabytes transferred
+    double total_mb =
+        static_cast<double>(bytes_per_call * iter) / 1e6; // Total megabytes transferred
 
     // Get generic timing for speedup calculation
     double generic_time = 0.0;

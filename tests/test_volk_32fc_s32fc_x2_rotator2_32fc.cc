@@ -61,9 +61,12 @@ protected:
         phase = std::polar(1.0f, initial_phase);
 
         for (size_t i = 0; i < length; ++i) {
-            input[i] =
-                std::complex<float>(static_cast<float>(2.0f * std::cos(2.0f * M_PI * i / length)),
-                                    static_cast<float>(2.0f * std::sin(0.3f + 2.0f * M_PI * i / length)));
+            input[i] = std::complex<float>(
+                static_cast<float>(2.0f * std::cos(2.0f * M_PI * static_cast<double>(i) /
+                                                   static_cast<double>(length))),
+                static_cast<float>(2.0f *
+                                   std::sin(0.3f + 2.0f * M_PI * static_cast<double>(i) /
+                                                       static_cast<double>(length))));
         }
 
         // Calculate expected results using double precision for angle computation
@@ -99,7 +102,7 @@ protected:
                                                 input.data(),
                                                 &phase_increment,
                                                 &phase,
-                                                vector_length,
+                                                static_cast<unsigned int>(vector_length),
                                                 impl_name.c_str());
 
         for (size_t i = 0; i < vector_length; ++i) {
@@ -117,12 +120,13 @@ protected:
         double unaligned_angle = static_cast<double>(initial_phase_steps + 1.0f) *
                                  static_cast<double>(increment);
         lv_32fc_t unaligned_phase = std::polar(1.0f, static_cast<float>(unaligned_angle));
-        volk_32fc_s32fc_x2_rotator2_32fc_manual(ua_result.data() + 1,
-                                                input.data() + 1,
-                                                &phase_increment,
-                                                &unaligned_phase,
-                                                vector_length - 1,
-                                                impl_name.c_str());
+        volk_32fc_s32fc_x2_rotator2_32fc_manual(
+            ua_result.data() + 1,
+            input.data() + 1,
+            &phase_increment,
+            &unaligned_phase,
+            static_cast<unsigned int>(vector_length - 1),
+            impl_name.c_str());
         for (size_t i = 0; i < vector_length; ++i) {
             result_magnitude[i] = std::abs(ua_result[i]);
         }

@@ -117,8 +117,8 @@ int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
 
     // when align and we found a best aligned, use it
     if (align && best_value_a != -1)
-        return best_index_a;
+        return (int)best_index_a;
 
     // otherwise return the best unaligned
-    return best_index_u;
+    return (int)best_index_u;
 }

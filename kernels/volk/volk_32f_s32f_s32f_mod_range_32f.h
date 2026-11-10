@@ -49,11 +49,11 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_generic(float* outputVector,
         if (val < lower_bound) {
             float excess = lower_bound - val;
             signed int count = (int)(excess / distance);
-            *outPtr = val + (count + 1) * distance;
+            *outPtr = val + ((float)count + 1.0f) * distance;
         } else if (val > upper_bound) {
             float excess = val - upper_bound;
             signed int count = (int)(excess / distance);
-            *outPtr = val - (count + 1) * distance;
+            *outPtr = val - ((float)count + 1.0f) * distance;
         } else
             *outPtr = val;
         outPtr++;
@@ -110,8 +110,11 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_avx(float* outputVector,
         outPtr += 8;
     }
 
-    volk_32f_s32f_s32f_mod_range_32f_generic(
-        outPtr, inPtr, lower_bound, upper_bound, num_points - eight_points * 8);
+    volk_32f_s32f_s32f_mod_range_32f_generic(outPtr,
+                                             inPtr,
+                                             lower_bound,
+                                             upper_bound,
+                                             num_points - (unsigned int)eight_points * 8);
 }
 #endif /* LV_HAVE_AVX */
 
@@ -162,8 +165,11 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_avx(float* outputVector,
         outPtr += 8;
     }
 
-    volk_32f_s32f_s32f_mod_range_32f_generic(
-        outPtr, inPtr, lower_bound, upper_bound, num_points - eight_points * 8);
+    volk_32f_s32f_s32f_mod_range_32f_generic(outPtr,
+                                             inPtr,
+                                             lower_bound,
+                                             upper_bound,
+                                             num_points - (unsigned int)eight_points * 8);
 }
 #endif /* LV_HAVE_AVX */
 
@@ -213,8 +219,12 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse2(float* outputVector,
         outPtr += 4;
     }
 
-    volk_32f_s32f_s32f_mod_range_32f_generic(
-        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
+    volk_32f_s32f_s32f_mod_range_32f_generic(outPtr,
+                                             inPtr,
+                                             lower_bound,
+                                             upper_bound,
+                                             num_points -
+                                                 (unsigned int)quarter_points * 4);
 }
 #endif /* LV_HAVE_SSE2 */
 
@@ -263,8 +273,12 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse2(float* outputVector,
         outPtr += 4;
     }
 
-    volk_32f_s32f_s32f_mod_range_32f_generic(
-        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
+    volk_32f_s32f_s32f_mod_range_32f_generic(outPtr,
+                                             inPtr,
+                                             lower_bound,
+                                             upper_bound,
+                                             num_points -
+                                                 (unsigned int)quarter_points * 4);
 }
 #endif /* LV_HAVE_SSE2 */
 
@@ -315,8 +329,12 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_u_sse(float* outputVector,
         outPtr += 4;
     }
 
-    volk_32f_s32f_s32f_mod_range_32f_generic(
-        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
+    volk_32f_s32f_s32f_mod_range_32f_generic(outPtr,
+                                             inPtr,
+                                             lower_bound,
+                                             upper_bound,
+                                             num_points -
+                                                 (unsigned int)quarter_points * 4);
 }
 #endif /* LV_HAVE_SSE */
 
@@ -367,8 +385,12 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_a_sse(float* outputVector,
         outPtr += 4;
     }
 
-    volk_32f_s32f_s32f_mod_range_32f_generic(
-        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
+    volk_32f_s32f_s32f_mod_range_32f_generic(outPtr,
+                                             inPtr,
+                                             lower_bound,
+                                             upper_bound,
+                                             num_points -
+                                                 (unsigned int)quarter_points * 4);
 }
 #endif /* LV_HAVE_SSE */
 
@@ -429,8 +451,12 @@ static inline void volk_32f_s32f_s32f_mod_range_32f_neon(float* outputVector,
         outPtr += 4;
     }
 
-    volk_32f_s32f_s32f_mod_range_32f_generic(
-        outPtr, inPtr, lower_bound, upper_bound, num_points - quarter_points * 4);
+    volk_32f_s32f_s32f_mod_range_32f_generic(outPtr,
+                                             inPtr,
+                                             lower_bound,
+                                             upper_bound,
+                                             num_points -
+                                                 (unsigned int)quarter_points * 4);
 }
 
 #endif /* LV_HAVE_NEON */

@@ -104,7 +104,7 @@ static inline void volk_32f_stddev_and_mean_32f_x2_generic(float* stddev,
         SquareSum[1] += r * powf(n_plus_one * Val1 - Sum[1], 2);
     }
 
-    SquareSum[0] = (float)(SquareSum[0] + SquareSum[1] + .5f / half_points * pow(Sum[0] - Sum[1], 2));
+    SquareSum[0] += SquareSum[1] + .5f / (float)half_points * powf(Sum[0] - Sum[1], 2);
     Sum[0] += Sum[1];
 
     uint32_t points_done = half_points * 2;
@@ -117,8 +117,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_generic(float* stddev,
         Sum[0] += Val;
         SquareSum[0] += r * powf(n_plus_one * Val - Sum[0], 2);
     }
-    *stddev = sqrtf(SquareSum[0] / num_points);
-    *mean = Sum[0] / num_points;
+    *stddev = sqrtf(SquareSum[0] / (float)num_points);
+    *mean = Sum[0] / (float)num_points;
 }
 #endif /* LV_HAVE_GENERIC */
 
@@ -256,8 +256,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_neon(float* stddev,
             update_square_sum_1_val(SquareSumLocal[0], SumLocal[0], points_done, val);
     }
 
-    *stddev = sqrtf(SquareSumLocal[0] / num_points);
-    *mean = SumLocal[0] / num_points;
+    *stddev = sqrtf(SquareSumLocal[0] / (float)num_points);
+    *mean = SumLocal[0] / (float)num_points;
 }
 #endif /* LV_HAVE_NEON */
 
@@ -333,8 +333,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_u_sse(float* stddev,
             update_square_sum_1_val(SquareSumLocal[0], SumLocal[0], points_done, val);
     }
 
-    *stddev = sqrtf(SquareSumLocal[0] / num_points);
-    *mean = SumLocal[0] / num_points;
+    *stddev = sqrtf(SquareSumLocal[0] / (float)num_points);
+    *mean = SumLocal[0] / (float)num_points;
 }
 #endif /* LV_HAVE_SSE */
 
@@ -411,8 +411,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_u_avx(float* stddev,
             update_square_sum_1_val(SquareSumLocal[0], SumLocal[0], points_done, val);
     }
 
-    *stddev = sqrtf(SquareSumLocal[0] / num_points);
-    *mean = SumLocal[0] / num_points;
+    *stddev = sqrtf(SquareSumLocal[0] / (float)num_points);
+    *mean = SumLocal[0] / (float)num_points;
 }
 #endif /* LV_HAVE_AVX */
 
@@ -487,8 +487,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_a_sse(float* stddev,
             update_square_sum_1_val(SquareSumLocal[0], SumLocal[0], points_done, val);
     }
 
-    *stddev = sqrtf(SquareSumLocal[0] / num_points);
-    *mean = SumLocal[0] / num_points;
+    *stddev = sqrtf(SquareSumLocal[0] / (float)num_points);
+    *mean = SumLocal[0] / (float)num_points;
 }
 #endif /* LV_HAVE_SSE */
 
@@ -564,8 +564,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_a_avx(float* stddev,
             update_square_sum_1_val(SquareSumLocal[0], SumLocal[0], points_done, val);
     }
 
-    *stddev = sqrtf(SquareSumLocal[0] / num_points);
-    *mean = SumLocal[0] / num_points;
+    *stddev = sqrtf(SquareSumLocal[0] / (float)num_points);
+    *mean = SumLocal[0] / (float)num_points;
 }
 #endif /* LV_HAVE_AVX */
 
@@ -635,8 +635,8 @@ static inline void volk_32f_stddev_and_mean_32f_x2_rvv(float* stddev,
         sumsq = update_square_sum_1_val(sumsq, sum, i, in);
     }
 
-    *stddev = sqrtf(sumsq / num_points);
-    *mean = sum / num_points;
+    *stddev = sqrtf(sumsq / (float)num_points);
+    *mean = sum / (float)num_points;
 }
 #endif /*LV_HAVE_RVV*/
 

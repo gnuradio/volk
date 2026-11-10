@@ -32,7 +32,7 @@ protected:
 
         vec0 = volk::vector<float>(length);
         for (size_t i = 0; i < length; ++i) {
-            vec0[i] = float(2.8f + i * 0.14f);
+            vec0[i] = float(2.8f + static_cast<float>(i) * 0.14f);
         }
 
         ua_vec0 = volk::vector<float>({ 0.0f });
@@ -75,7 +75,7 @@ protected:
                                            vec0.data(),
                                            center_points.data(),
                                            cutoff.data(),
-                                           vector_length,
+                                           static_cast<unsigned int>(vector_length),
                                            impl_name.c_str());
         EXPECT_NEAR(result.at(0), expected, tolerance);
     }
@@ -86,7 +86,7 @@ protected:
                                            ua_vec0.data() + 1,
                                            ua_center_points.data() + 1,
                                            ua_cutoff.data() + 1,
-                                           vector_length,
+                                           static_cast<unsigned int>(vector_length),
                                            impl_name.c_str());
         EXPECT_NEAR(ua_result.at(1), expected, tolerance);
     }

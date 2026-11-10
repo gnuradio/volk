@@ -33,8 +33,12 @@ protected:
         vec1 = volk::vector<lv_32fc_t>(length);
         result = volk::vector<lv_32fc_t>(length);
         for (size_t i = 0; i < length; ++i) {
-            vec0[i] = std::complex<float>(static_cast<float>(i * 3.14), static_cast<float>(i * 0.45));
-            vec1[i] = std::complex<float>(static_cast<float>(i * -2.78), static_cast<float>(i * 5.44));
+            vec0[i] =
+                std::complex<float>(static_cast<float>(static_cast<double>(i) * 3.14),
+                                    static_cast<float>(static_cast<double>(i) * 0.45));
+            vec1[i] =
+                std::complex<float>(static_cast<float>(static_cast<double>(i) * -2.78),
+                                    static_cast<float>(static_cast<double>(i) * 5.44));
         }
 
         expected = volk::vector<lv_32fc_t>(length);
@@ -49,8 +53,11 @@ protected:
 
     void execute_aligned(const std::string impl_name)
     {
-        volk_32fc_x2_multiply_32fc_manual(
-            result.data(), vec0.data(), vec1.data(), vector_length, impl_name.c_str());
+        volk_32fc_x2_multiply_32fc_manual(result.data(),
+                                          vec0.data(),
+                                          vec1.data(),
+                                          static_cast<unsigned int>(vector_length),
+                                          impl_name.c_str());
         EXPECT_TRUE(AreComplexFloatingPointArraysAlmostEqual(expected, result));
     }
 
@@ -59,7 +66,7 @@ protected:
         volk_32fc_x2_multiply_32fc_manual(ua_result.data() + 1,
                                           vec0.data() + 1,
                                           vec1.data() + 1,
-                                          vector_length - 1,
+                                          static_cast<unsigned int>(vector_length - 1),
                                           impl_name.c_str());
         EXPECT_TRUE(AreComplexFloatingPointArraysAlmostEqual(expected, ua_result));
     }
