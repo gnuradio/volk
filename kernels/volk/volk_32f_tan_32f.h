@@ -83,9 +83,9 @@ volk_32f_tan_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int n
     __m256 sine, cosine, tangent, condition1, condition2, condition3;
     __m256i q, r, ones, twos, fours;
 
-    m4pi = _mm256_set1_ps(1.273239545);
+    m4pi = _mm256_set1_ps(1.273239545f);
     pio4A = _mm256_set1_ps(0.78515625);
-    pio4B = _mm256_set1_ps(0.241876e-3);
+    pio4B = _mm256_set1_ps(0.241876e-3f);
     ffours = _mm256_set1_ps(4.0);
     ftwos = _mm256_set1_ps(2.0);
     fones = _mm256_set1_ps(1.0);
@@ -95,10 +95,10 @@ volk_32f_tan_32f_a_avx2_fma(float* bVector, const float* aVector, unsigned int n
     fours = _mm256_set1_epi32(4);
 
     cp1 = _mm256_set1_ps(1.0);
-    cp2 = _mm256_set1_ps(0.83333333e-1);
-    cp3 = _mm256_set1_ps(0.2777778e-2);
-    cp4 = _mm256_set1_ps(0.49603e-4);
-    cp5 = _mm256_set1_ps(0.551e-6);
+    cp2 = _mm256_set1_ps(0.83333333e-1f);
+    cp3 = _mm256_set1_ps(0.2777778e-2f);
+    cp4 = _mm256_set1_ps(0.49603e-4f);
+    cp5 = _mm256_set1_ps(0.551e-6f);
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_load_ps(aPtr);
@@ -187,9 +187,9 @@ volk_32f_tan_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_p
     __m256 sine, cosine, tangent, condition1, condition2, condition3;
     __m256i q, r, ones, twos, fours;
 
-    m4pi = _mm256_set1_ps(1.273239545);
+    m4pi = _mm256_set1_ps(1.273239545f);
     pio4A = _mm256_set1_ps(0.78515625);
-    pio4B = _mm256_set1_ps(0.241876e-3);
+    pio4B = _mm256_set1_ps(0.241876e-3f);
     ffours = _mm256_set1_ps(4.0);
     ftwos = _mm256_set1_ps(2.0);
     fones = _mm256_set1_ps(1.0);
@@ -199,10 +199,10 @@ volk_32f_tan_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_p
     fours = _mm256_set1_epi32(4);
 
     cp1 = _mm256_set1_ps(1.0);
-    cp2 = _mm256_set1_ps(0.83333333e-1);
-    cp3 = _mm256_set1_ps(0.2777778e-2);
-    cp4 = _mm256_set1_ps(0.49603e-4);
-    cp5 = _mm256_set1_ps(0.551e-6);
+    cp2 = _mm256_set1_ps(0.83333333e-1f);
+    cp3 = _mm256_set1_ps(0.2777778e-2f);
+    cp4 = _mm256_set1_ps(0.49603e-4f);
+    cp5 = _mm256_set1_ps(0.551e-6f);
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_load_ps(aPtr);
@@ -298,9 +298,9 @@ volk_32f_tan_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num
     __m128 sine, cosine, tangent, condition1, condition2, condition3;
     __m128i q, r, ones, twos, fours;
 
-    m4pi = _mm_set1_ps(1.273239545);
+    m4pi = _mm_set1_ps(1.273239545f);
     pio4A = _mm_set1_ps(0.78515625);
-    pio4B = _mm_set1_ps(0.241876e-3);
+    pio4B = _mm_set1_ps(0.241876e-3f);
     ffours = _mm_set1_ps(4.0);
     ftwos = _mm_set1_ps(2.0);
     fones = _mm_set1_ps(1.0);
@@ -310,10 +310,10 @@ volk_32f_tan_32f_a_sse4_1(float* bVector, const float* aVector, unsigned int num
     fours = _mm_set1_epi32(4);
 
     cp1 = _mm_set1_ps(1.0);
-    cp2 = _mm_set1_ps(0.83333333e-1);
-    cp3 = _mm_set1_ps(0.2777778e-2);
-    cp4 = _mm_set1_ps(0.49603e-4);
-    cp5 = _mm_set1_ps(0.551e-6);
+    cp2 = _mm_set1_ps(0.83333333e-1f);
+    cp3 = _mm_set1_ps(0.2777778e-2f);
+    cp4 = _mm_set1_ps(0.49603e-4f);
+    cp5 = _mm_set1_ps(0.551e-6f);
 
     for (; number < quarterPoints; number++) {
         aVal = _mm_load_ps(aPtr);
@@ -403,9 +403,9 @@ volk_32f_tan_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int n
     __m256 sine, cosine, tangent, condition1, condition2, condition3;
     __m256i q, r, ones, twos, fours;
 
-    m4pi = _mm256_set1_ps(1.273239545);
+    m4pi = _mm256_set1_ps(1.273239545f);
     pio4A = _mm256_set1_ps(0.78515625);
-    pio4B = _mm256_set1_ps(0.241876e-3);
+    pio4B = _mm256_set1_ps(0.241876e-3f);
     ffours = _mm256_set1_ps(4.0);
     ftwos = _mm256_set1_ps(2.0);
     fones = _mm256_set1_ps(1.0);
@@ -415,10 +415,10 @@ volk_32f_tan_32f_u_avx2_fma(float* bVector, const float* aVector, unsigned int n
     fours = _mm256_set1_epi32(4);
 
     cp1 = _mm256_set1_ps(1.0);
-    cp2 = _mm256_set1_ps(0.83333333e-1);
-    cp3 = _mm256_set1_ps(0.2777778e-2);
-    cp4 = _mm256_set1_ps(0.49603e-4);
-    cp5 = _mm256_set1_ps(0.551e-6);
+    cp2 = _mm256_set1_ps(0.83333333e-1f);
+    cp3 = _mm256_set1_ps(0.2777778e-2f);
+    cp4 = _mm256_set1_ps(0.49603e-4f);
+    cp5 = _mm256_set1_ps(0.551e-6f);
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_loadu_ps(aPtr);
@@ -507,9 +507,9 @@ volk_32f_tan_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_p
     __m256 sine, cosine, tangent, condition1, condition2, condition3;
     __m256i q, r, ones, twos, fours;
 
-    m4pi = _mm256_set1_ps(1.273239545);
+    m4pi = _mm256_set1_ps(1.273239545f);
     pio4A = _mm256_set1_ps(0.78515625);
-    pio4B = _mm256_set1_ps(0.241876e-3);
+    pio4B = _mm256_set1_ps(0.241876e-3f);
     ffours = _mm256_set1_ps(4.0);
     ftwos = _mm256_set1_ps(2.0);
     fones = _mm256_set1_ps(1.0);
@@ -519,10 +519,10 @@ volk_32f_tan_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_p
     fours = _mm256_set1_epi32(4);
 
     cp1 = _mm256_set1_ps(1.0);
-    cp2 = _mm256_set1_ps(0.83333333e-1);
-    cp3 = _mm256_set1_ps(0.2777778e-2);
-    cp4 = _mm256_set1_ps(0.49603e-4);
-    cp5 = _mm256_set1_ps(0.551e-6);
+    cp2 = _mm256_set1_ps(0.83333333e-1f);
+    cp3 = _mm256_set1_ps(0.2777778e-2f);
+    cp4 = _mm256_set1_ps(0.49603e-4f);
+    cp5 = _mm256_set1_ps(0.551e-6f);
 
     for (; number < eighthPoints; number++) {
         aVal = _mm256_loadu_ps(aPtr);
@@ -619,9 +619,9 @@ volk_32f_tan_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num
     __m128 sine, cosine, tangent, condition1, condition2, condition3;
     __m128i q, r, ones, twos, fours;
 
-    m4pi = _mm_set1_ps(1.273239545);
+    m4pi = _mm_set1_ps(1.273239545f);
     pio4A = _mm_set1_ps(0.78515625);
-    pio4B = _mm_set1_ps(0.241876e-3);
+    pio4B = _mm_set1_ps(0.241876e-3f);
     ffours = _mm_set1_ps(4.0);
     ftwos = _mm_set1_ps(2.0);
     fones = _mm_set1_ps(1.0);
@@ -631,10 +631,10 @@ volk_32f_tan_32f_u_sse4_1(float* bVector, const float* aVector, unsigned int num
     fours = _mm_set1_epi32(4);
 
     cp1 = _mm_set1_ps(1.0);
-    cp2 = _mm_set1_ps(0.83333333e-1);
-    cp3 = _mm_set1_ps(0.2777778e-2);
-    cp4 = _mm_set1_ps(0.49603e-4);
-    cp5 = _mm_set1_ps(0.551e-6);
+    cp2 = _mm_set1_ps(0.83333333e-1f);
+    cp3 = _mm_set1_ps(0.2777778e-2f);
+    cp4 = _mm_set1_ps(0.49603e-4f);
+    cp5 = _mm_set1_ps(0.551e-6f);
 
     for (; number < quarterPoints; number++) {
         aVal = _mm_loadu_ps(aPtr);

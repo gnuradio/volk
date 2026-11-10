@@ -66,7 +66,7 @@ static inline void volk_16i_s32f_convert_32f_u_avx2(float* outputVector,
 {
     const unsigned int eighthPoints = num_points / 8;
 
-    const __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    const __m256 invScalar = _mm256_set1_ps(1.0f / scalar);
 
     for (unsigned int number = 0; number < eighthPoints; ++number) {
         const __m128i inputVal = _mm_loadu_si128((__m128i*)inputVector);
@@ -95,7 +95,7 @@ static inline void volk_16i_s32f_convert_32f_u_avx512(float* outputVector,
 {
     const unsigned int sixteenthPoints = num_points / 16;
 
-    const __m512 invScalar = _mm512_set1_ps(1.0 / scalar);
+    const __m512 invScalar = _mm512_set1_ps(1.0f / scalar);
 
     for (unsigned int number = 0; number < sixteenthPoints; ++number) {
         const __m256i inputVal = _mm256_loadu_si256((__m256i*)inputVector);
@@ -123,7 +123,7 @@ static inline void volk_16i_s32f_convert_32f_u_avx(float* outputVector,
 {
     const unsigned int eighthPoints = num_points / 8;
 
-    const __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    const __m128 invScalar = _mm_set_ps1(1.0f / scalar);
 
     for (unsigned int number = 0; number < eighthPoints; ++number) {
         const __m128i inputVal = _mm_loadu_si128((__m128i*)inputVector);
@@ -159,7 +159,7 @@ static inline void volk_16i_s32f_convert_32f_u_sse4_1(float* outputVector,
 {
     const unsigned int eighthPoints = num_points / 8;
 
-    const __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    const __m128 invScalar = _mm_set_ps1(1.0f / scalar);
 
     for (unsigned int number = 0; number < eighthPoints; ++number) {
         const __m128i inputVal = _mm_loadu_si128((__m128i*)inputVector);
@@ -196,7 +196,7 @@ static inline void volk_16i_s32f_convert_32f_u_sse(float* outputVector,
 {
     const unsigned int quarterPoints = num_points / 4;
 
-    const __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    const __m128 invScalar = _mm_set_ps1(1.0f / scalar);
 
     for (unsigned int number = 0; number < quarterPoints; ++number) {
         const __m128 ret = _mm_mul_ps(_mm_set_ps((float)(inputVector[3]),
@@ -225,7 +225,7 @@ static inline void volk_16i_s32f_convert_32f_neon(float* outputVector,
                                                   unsigned int num_points)
 {
     const unsigned int eighth_points = num_points / 8;
-    const float32x4_t inv_scale = vdupq_n_f32(1.0 / scalar);
+    const float32x4_t inv_scale = vdupq_n_f32(1.0f / scalar);
 
     // the generic disassembles to a 128-bit load
     // and duplicates every instruction to operate on 64-bits
@@ -303,7 +303,7 @@ static inline void volk_16i_s32f_convert_32f_a_avx2(float* outputVector,
 {
     const unsigned int eighthPoints = num_points / 8;
 
-    const __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    const __m256 invScalar = _mm256_set1_ps(1.0f / scalar);
 
     for (unsigned int number = 0; number < eighthPoints; ++number) {
         const __m128i inputVal = _mm_load_si128((__m128i*)inputVector);
@@ -332,7 +332,7 @@ static inline void volk_16i_s32f_convert_32f_a_avx512(float* outputVector,
 {
     const unsigned int sixteenthPoints = num_points / 16;
 
-    const __m512 invScalar = _mm512_set1_ps(1.0 / scalar);
+    const __m512 invScalar = _mm512_set1_ps(1.0f / scalar);
 
     for (unsigned int number = 0; number < sixteenthPoints; ++number) {
         const __m256i inputVal = _mm256_load_si256((__m256i*)inputVector);
@@ -360,7 +360,7 @@ static inline void volk_16i_s32f_convert_32f_a_avx(float* outputVector,
 {
     const unsigned int eighthPoints = num_points / 8;
 
-    const __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    const __m128 invScalar = _mm_set_ps1(1.0f / scalar);
 
     for (unsigned int number = 0; number < eighthPoints; ++number) {
         const __m128i inputVal = _mm_load_si128((__m128i*)inputVector);
@@ -396,7 +396,7 @@ static inline void volk_16i_s32f_convert_32f_a_sse4_1(float* outputVector,
 {
     const unsigned int eighthPoints = num_points / 8;
 
-    const __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    const __m128 invScalar = _mm_set_ps1(1.0f / scalar);
 
     for (unsigned int number = 0; number < eighthPoints; ++number) {
         const __m128i inputVal = _mm_loadu_si128((__m128i*)inputVector);
@@ -433,7 +433,7 @@ static inline void volk_16i_s32f_convert_32f_a_sse(float* outputVector,
 {
     const unsigned int quarterPoints = num_points / 4;
 
-    const __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    const __m128 invScalar = _mm_set_ps1(1.0f / scalar);
 
     for (unsigned int number = 0; number < quarterPoints; ++number) {
         const __m128 ret = _mm_mul_ps(_mm_set_ps((float)(inputVector[3]),

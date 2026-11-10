@@ -56,12 +56,12 @@ static inline void volk_16ic_x2_dot_prod_16ic_generic(lv_16sc_t* result,
                                                       const lv_16sc_t* in_b,
                                                       unsigned int num_points)
 {
-    result[0] = lv_cmake((int16_t)0, (int16_t)0);
+    result[0] = (lv_16sc_t)lv_cmake((int16_t)0, (int16_t)0);
     unsigned int n;
     for (n = 0; n < num_points; n++) {
         lv_16sc_t tmp = in_a[n] * in_b[n];
-        result[0] = lv_cmake(sat_adds16i(lv_creal(result[0]), lv_creal(tmp)),
-                             sat_adds16i(lv_cimag(result[0]), lv_cimag(tmp)));
+        result[0] = (lv_16sc_t)lv_cmake(sat_adds16i(lv_creal(result[0]), lv_creal(tmp)),
+                                        sat_adds16i(lv_cimag(result[0]), lv_cimag(tmp)));
     }
 }
 
@@ -76,7 +76,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_sse2(lv_16sc_t* out,
                                                      const lv_16sc_t* in_b,
                                                      unsigned int num_points)
 {
-    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
+    lv_16sc_t dotProduct = (lv_16sc_t)lv_cmake((int16_t)0, (int16_t)0);
 
     const unsigned int sse_iters = num_points / 4;
     unsigned int number;
@@ -163,7 +163,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_sse2(lv_16sc_t* out,
                         a); // Store the results back into the dot product vector
 
         for (number = 0; number < 4; ++number) {
-            dotProduct = lv_cmake(
+            dotProduct = (lv_16sc_t)lv_cmake(
                 sat_adds16i(lv_creal(dotProduct), lv_creal(dotProductVector[number])),
                 sat_adds16i(lv_cimag(dotProduct), lv_cimag(dotProductVector[number])));
         }
@@ -171,8 +171,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_sse2(lv_16sc_t* out,
 
     for (number = 0; number < (num_points % 4); ++number) {
         lv_16sc_t tmp = (*_in_a++) * (*_in_b++);
-        dotProduct = lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
-                              sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
+        dotProduct =
+            (lv_16sc_t)lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
+                                sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
     }
 
     *_out = dotProduct;
@@ -189,7 +190,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_sse2(lv_16sc_t* out,
                                                      const lv_16sc_t* in_b,
                                                      unsigned int num_points)
 {
-    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
+    lv_16sc_t dotProduct = (lv_16sc_t)lv_cmake((int16_t)0, (int16_t)0);
 
     const unsigned int sse_iters = num_points / 4;
 
@@ -276,7 +277,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_sse2(lv_16sc_t* out,
                          result); // Store the results back into the dot product vector
 
         for (number = 0; number < 4; ++number) {
-            dotProduct = lv_cmake(
+            dotProduct = (lv_16sc_t)lv_cmake(
                 sat_adds16i(lv_creal(dotProduct), lv_creal(dotProductVector[number])),
                 sat_adds16i(lv_cimag(dotProduct), lv_cimag(dotProductVector[number])));
         }
@@ -284,8 +285,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_sse2(lv_16sc_t* out,
 
     for (number = 0; number < (num_points % 4); ++number) {
         lv_16sc_t tmp = (*_in_a++) * (*_in_b++);
-        dotProduct = lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
-                              sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
+        dotProduct =
+            (lv_16sc_t)lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
+                                sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
     }
 
     *_out = dotProduct;
@@ -301,7 +303,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_avx2(lv_16sc_t* out,
                                                      const lv_16sc_t* in_b,
                                                      unsigned int num_points)
 {
-    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
+    lv_16sc_t dotProduct = (lv_16sc_t)lv_cmake((int16_t)0, (int16_t)0);
 
     const unsigned int avx_iters = num_points / 8;
 
@@ -418,7 +420,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_avx2(lv_16sc_t* out,
                             result); // Store the results back into the dot product vector
 
         for (number = 0; number < 8; ++number) {
-            dotProduct = lv_cmake(
+            dotProduct = (lv_16sc_t)lv_cmake(
                 sat_adds16i(lv_creal(dotProduct), lv_creal(dotProductVector[number])),
                 sat_adds16i(lv_cimag(dotProduct), lv_cimag(dotProductVector[number])));
         }
@@ -426,8 +428,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_u_avx2(lv_16sc_t* out,
 
     for (number = 0; number < (num_points % 8); ++number) {
         lv_16sc_t tmp = (*_in_a++) * (*_in_b++);
-        dotProduct = lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
-                              sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
+        dotProduct =
+            (lv_16sc_t)lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
+                                sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
     }
 
     *_out = dotProduct;
@@ -443,7 +446,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_avx2(lv_16sc_t* out,
                                                      const lv_16sc_t* in_b,
                                                      unsigned int num_points)
 {
-    lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
+    lv_16sc_t dotProduct = (lv_16sc_t)lv_cmake((int16_t)0, (int16_t)0);
 
     const unsigned int avx_iters = num_points / 8;
 
@@ -560,7 +563,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_avx2(lv_16sc_t* out,
                            result); // Store the results back into the dot product vector
 
         for (number = 0; number < 8; ++number) {
-            dotProduct = lv_cmake(
+            dotProduct = (lv_16sc_t)lv_cmake(
                 sat_adds16i(lv_creal(dotProduct), lv_creal(dotProductVector[number])),
                 sat_adds16i(lv_cimag(dotProduct), lv_cimag(dotProductVector[number])));
         }
@@ -568,8 +571,9 @@ static inline void volk_16ic_x2_dot_prod_16ic_a_avx2(lv_16sc_t* out,
 
     for (number = 0; number < (num_points % 8); ++number) {
         lv_16sc_t tmp = (*_in_a++) * (*_in_b++);
-        dotProduct = lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
-                              sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
+        dotProduct =
+            (lv_16sc_t)lv_cmake(sat_adds16i(lv_creal(dotProduct), lv_creal(tmp)),
+                                sat_adds16i(lv_cimag(dotProduct), lv_cimag(tmp)));
     }
 
     *_out = dotProduct;
@@ -590,7 +594,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon(lv_16sc_t* out,
 
     lv_16sc_t* a_ptr = (lv_16sc_t*)in_a;
     lv_16sc_t* b_ptr = (lv_16sc_t*)in_b;
-    *out = lv_cmake((int16_t)0, (int16_t)0);
+    *out = (lv_16sc_t)lv_cmake((int16_t)0, (int16_t)0);
 
     if (quarter_points > 0) {
         // for 2-lane vectors, 1st lane holds the real part,
@@ -600,7 +604,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon(lv_16sc_t* out,
         __VOLK_ATTR_ALIGNED(16) lv_16sc_t accum_result[4];
         accumulator.val[0] = vdup_n_s16(0);
         accumulator.val[1] = vdup_n_s16(0);
-        lv_16sc_t dotProduct = lv_cmake((int16_t)0, (int16_t)0);
+        lv_16sc_t dotProduct = (lv_16sc_t)lv_cmake((int16_t)0, (int16_t)0);
 
         for (number = 0; number < quarter_points; ++number) {
             a_val = vld2_s16((int16_t*)a_ptr); // a0r|a1r|a2r|a3r || a0i|a1i|a2i|a3i
@@ -632,7 +636,7 @@ static inline void volk_16ic_x2_dot_prod_16ic_neon(lv_16sc_t* out,
 
         vst2_s16((int16_t*)accum_result, accumulator);
         for (number = 0; number < 4; ++number) {
-            dotProduct = lv_cmake(
+            dotProduct = (lv_16sc_t)lv_cmake(
                 sat_adds16i(lv_creal(dotProduct), lv_creal(accum_result[number])),
                 sat_adds16i(lv_cimag(dotProduct), lv_cimag(accum_result[number])));
         }
@@ -803,13 +807,13 @@ static inline void volk_16ic_x2_dot_prod_16ic_neonv8(lv_16sc_t* out,
     int16_t sum_real = vaddvq_s16(acc_real);
     int16_t sum_imag = vaddvq_s16(acc_imag);
 
-    *out = lv_cmake(sum_real, sum_imag);
+    *out = (lv_16sc_t)lv_cmake(sum_real, sum_imag);
 
     /* Tail case */
     for (number = eighth_points * 8; number < num_points; ++number) {
         lv_16sc_t tmp = in_a[number] * in_b[number];
-        *out = lv_cmake(sat_adds16i(lv_creal(*out), lv_creal(tmp)),
-                        sat_adds16i(lv_cimag(*out), lv_cimag(tmp)));
+        *out = (lv_16sc_t)lv_cmake(sat_adds16i(lv_creal(*out), lv_creal(tmp)),
+                                   sat_adds16i(lv_cimag(*out), lv_cimag(tmp)));
     }
 }
 
@@ -842,8 +846,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result,
     vint16m1_t vr = RISCV_SHRINK4(vadd, i, 16, vsumr);
     vint16m1_t vi = RISCV_SHRINK4(vadd, i, 16, vsumi);
     vint16m1_t z = __riscv_vmv_s_x_i16m1(0, vl);
-    *result = lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
-                       __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
+    *result = (lv_16sc_t)lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
+                                  __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
 }
 #endif /*LV_HAVE_RVV*/
 
@@ -874,8 +878,8 @@ static inline void volk_16ic_x2_dot_prod_16ic_rvvseg(lv_16sc_t* result,
     vint16m1_t vr = RISCV_SHRINK4(vadd, i, 16, vsumr);
     vint16m1_t vi = RISCV_SHRINK4(vadd, i, 16, vsumi);
     vint16m1_t z = __riscv_vmv_s_x_i16m1(0, vl);
-    *result = lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
-                       __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
+    *result = (lv_16sc_t)lv_cmake(__riscv_vmv_x(__riscv_vredsum(vr, z, vl)),
+                                  __riscv_vmv_x(__riscv_vredsum(vi, z, vl)));
 }
 #endif /*LV_HAVE_RVVSEG*/
 

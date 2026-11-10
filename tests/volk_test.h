@@ -57,10 +57,12 @@ protected:
 using VolkTest = VolkTestImpl<>;
 
 template <typename T>
-struct is_complex : std::false_type {};
+struct is_complex : std::false_type {
+};
 
 template <typename T>
-struct is_complex<std::complex<T>> : std::true_type {};
+struct is_complex<std::complex<T>> : std::true_type {
+};
 
 template <typename T>
 ::testing::AssertionResult AreIntegerArraysEqual(std::span<const T> expected,
@@ -139,7 +141,7 @@ template <typename T>
 ::testing::AssertionResult
 AreComplexFloatingPointArraysEqualWithAbsoluteError(std::span<const T> expected,
                                                     std::span<const T> actual,
-                                                    const float absolute_error = 1.0e-7)
+                                                    const float absolute_error = 1.0e-7f)
 {
     ::testing::AssertionResult result = ::testing::AssertionFailure();
     if (expected.size() != actual.size()) {
@@ -181,7 +183,7 @@ template <typename T>
 ::testing::AssertionResult
 AreFloatingPointArraysEqualWithAbsoluteError(std::span<const T> expected,
                                              std::span<const T> actual,
-                                             const float absolute_error = 1.0e-7)
+                                             const float absolute_error = 1.0e-7f)
 {
     ::testing::AssertionResult result = ::testing::AssertionFailure();
     if (expected.size() != actual.size()) {

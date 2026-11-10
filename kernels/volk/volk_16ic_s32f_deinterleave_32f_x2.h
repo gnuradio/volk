@@ -66,7 +66,7 @@ volk_16ic_s32f_deinterleave_32f_x2_a_avx2(float* iBuffer,
     __m256i cplxValueA, cplxValueB;
     __m128i cplxValue128;
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    __m256 invScalar = _mm256_set1_ps(1.0f / scalar);
     int16_t* complexVectorPtr = (int16_t*)complexVector;
     __m256i idx = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
 
@@ -126,7 +126,7 @@ volk_16ic_s32f_deinterleave_32f_x2_a_sse(float* iBuffer,
     const uint64_t quarterPoints = num_points / 4;
     __m128 cplxValue1, cplxValue2, iValue, qValue;
 
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    __m128 invScalar = _mm_set_ps1(1.0f / scalar);
     int16_t* complexVectorPtr = (int16_t*)complexVector;
 
     __VOLK_ATTR_ALIGNED(16) float floatBuffer[8];
@@ -333,7 +333,7 @@ volk_16ic_s32f_deinterleave_32f_x2_u_avx2(float* iBuffer,
     __m256i cplxValueA, cplxValueB;
     __m128i cplxValue128;
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    __m256 invScalar = _mm256_set1_ps(1.0f / scalar);
     int16_t* complexVectorPtr = (int16_t*)complexVector;
     __m256i idx = _mm256_set_epi32(7, 6, 3, 2, 5, 4, 1, 0);
 

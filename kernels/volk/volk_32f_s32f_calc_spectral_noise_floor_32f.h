@@ -161,7 +161,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_a_avx(float* noiseFloorAmplitude,
     for (; number < num_points; number++) {
         if (realDataPoints[number] <= meanAmplitude) {
             sumMean += realDataPoints[number];
-            validBinCount += 1.0;
+            validBinCount += 1.0f;
         }
     }
 
@@ -270,7 +270,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_a_sse(float* noiseFloorAmplitude,
     for (; number < num_points; number++) {
         if (realDataPoints[number] <= meanAmplitude) {
             sumMean += realDataPoints[number];
-            validBinCount += 1.0;
+            validBinCount += 1.0f;
         }
     }
 
@@ -628,7 +628,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_u_avx(float* noiseFloorAmplitude,
     for (; number < num_points; number++) {
         if (realDataPoints[number] <= meanAmplitude) {
             sumMean += realDataPoints[number];
-            validBinCount += 1.0;
+            validBinCount += 1.0f;
         }
     }
 
