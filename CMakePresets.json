@@ -74,8 +74,8 @@
       "graphviz": "${sourceDir}/bin/${presetName}/graph-${presetName}.dot",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wpedantic -Wfloat-conversion -Wswitch -Wshadow -Wunsafe-loop-optimizations",
-        "CMAKE_C_FLAGS": "-Wall -Wextra -Werror -Wpedantic -Wfloat-conversion -Wswitch -Wshadow -Wunsafe-loop-optimizations -Werror=incompatible-pointer-types -Werror=pointer-sign"
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wpedantic -Wconversion -Wno-sign-conversion -Wswitch -Wshadow -Wunsafe-loop-optimizations",
+        "CMAKE_C_FLAGS": "-Wall -Wextra -Werror -Wpedantic -Wconversion -Wno-sign-conversion -Wswitch -Wshadow -Wunsafe-loop-optimizations -Werror=incompatible-pointer-types -Werror=pointer-sign"
       }
     },
     {

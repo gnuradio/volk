@@ -123,7 +123,8 @@ struct Volk8iConvert16i : KernelSpec<int8_t, int16_t> {
                     std::span<const input_type> in,
                     const std::string_view impl)
     {
-        volk_8i_convert_16i_manual(out.data(), in.data(), in.size(), impl.data());
+        volk_8i_convert_16i_manual(
+            out.data(), in.data(), static_cast<unsigned int>(in.size()), impl.data());
     }
     static volk_func_desc_t descriptor() { return volk_8i_convert_16i_get_func_desc(); }
 };
@@ -137,7 +138,8 @@ struct Volk16iConvert8i : KernelSpec<int16_t, int8_t> {
                     std::span<const input_type> in,
                     const std::string_view impl)
     {
-        volk_16i_convert_8i_manual(out.data(), in.data(), in.size(), impl.data());
+        volk_16i_convert_8i_manual(
+            out.data(), in.data(), static_cast<unsigned int>(in.size()), impl.data());
     }
     static volk_func_desc_t descriptor() { return volk_16i_convert_8i_get_func_desc(); }
 };
@@ -151,7 +153,8 @@ struct Volk16icConvert32fc : KernelSpec<lv_16sc_t, lv_32fc_t> {
                     std::span<const input_type> in,
                     const std::string_view impl)
     {
-        volk_16ic_convert_32fc_manual(out.data(), in.data(), in.size(), impl.data());
+        volk_16ic_convert_32fc_manual(
+            out.data(), in.data(), static_cast<unsigned int>(in.size()), impl.data());
     }
     static volk_func_desc_t descriptor()
     {
@@ -165,7 +168,8 @@ struct Volk32fConvert64f : KernelSpec<float, double> {
                     std::span<const input_type> in,
                     const std::string_view impl)
     {
-        volk_32f_convert_64f_manual(out.data(), in.data(), in.size(), impl.data());
+        volk_32f_convert_64f_manual(
+            out.data(), in.data(), static_cast<unsigned int>(in.size()), impl.data());
     }
     static volk_func_desc_t descriptor() { return volk_32f_convert_64f_get_func_desc(); }
 };
@@ -179,7 +183,8 @@ struct Volk64fConvert32f : KernelSpec<double, float> {
                     std::span<const input_type> in,
                     const std::string_view impl)
     {
-        volk_64f_convert_32f_manual(out.data(), in.data(), in.size(), impl.data());
+        volk_64f_convert_32f_manual(
+            out.data(), in.data(), static_cast<unsigned int>(in.size()), impl.data());
     }
     static volk_func_desc_t descriptor() { return volk_64f_convert_32f_get_func_desc(); }
 };
@@ -199,8 +204,11 @@ struct Volk32fS32fConvert16i : KernelSpec<float, int16_t> {
                     const std::string_view impl,
                     const float scale)
     {
-        volk_32f_s32f_convert_16i_manual(
-            out.data(), in.data(), scale, in.size(), impl.data());
+        volk_32f_s32f_convert_16i_manual(out.data(),
+                                         in.data(),
+                                         scale,
+                                         static_cast<unsigned int>(in.size()),
+                                         impl.data());
     }
     static volk_func_desc_t descriptor()
     {
@@ -223,8 +231,11 @@ struct Volk32fS32fConvert32i : KernelSpec<float, int32_t> {
                     const std::string_view impl,
                     const float scale)
     {
-        volk_32f_s32f_convert_32i_manual(
-            out.data(), in.data(), scale, in.size(), impl.data());
+        volk_32f_s32f_convert_32i_manual(out.data(),
+                                         in.data(),
+                                         scale,
+                                         static_cast<unsigned int>(in.size()),
+                                         impl.data());
     }
     static volk_func_desc_t descriptor()
     {
@@ -247,8 +258,11 @@ struct Volk32fS32fConvert8i : KernelSpec<float, int8_t> {
                     const std::string_view impl,
                     const float scale)
     {
-        volk_32f_s32f_convert_8i_manual(
-            out.data(), in.data(), scale, in.size(), impl.data());
+        volk_32f_s32f_convert_8i_manual(out.data(),
+                                        in.data(),
+                                        scale,
+                                        static_cast<unsigned int>(in.size()),
+                                        impl.data());
     }
     static volk_func_desc_t descriptor()
     {
@@ -266,8 +280,11 @@ struct Volk32iS32fConvert32f : KernelSpec<int32_t, float> {
                     const std::string_view impl,
                     const float scale)
     {
-        volk_32i_s32f_convert_32f_manual(
-            out.data(), in.data(), scale, in.size(), impl.data());
+        volk_32i_s32f_convert_32f_manual(out.data(),
+                                         in.data(),
+                                         scale,
+                                         static_cast<unsigned int>(in.size()),
+                                         impl.data());
     }
     static volk_func_desc_t descriptor()
     {
@@ -285,8 +302,11 @@ struct Volk8iS32fConvert32f : KernelSpec<int8_t, float> {
                     const std::string_view impl,
                     const float scale)
     {
-        volk_8i_s32f_convert_32f_manual(
-            out.data(), in.data(), scale, in.size(), impl.data());
+        volk_8i_s32f_convert_32f_manual(out.data(),
+                                        in.data(),
+                                        scale,
+                                        static_cast<unsigned int>(in.size()),
+                                        impl.data());
     }
     static volk_func_desc_t descriptor()
     {
@@ -309,7 +329,8 @@ struct Volk32fcConvert16ic : KernelSpec<lv_32fc_t, lv_16sc_t> {
                     std::span<const input_type> in,
                     const std::string_view impl)
     {
-        volk_32fc_convert_16ic_manual(out.data(), in.data(), in.size(), impl.data());
+        volk_32fc_convert_16ic_manual(
+            out.data(), in.data(), static_cast<unsigned int>(in.size()), impl.data());
     }
     static volk_func_desc_t descriptor()
     {
@@ -327,8 +348,11 @@ struct Volk16iS32fConvert32f : KernelSpec<int16_t, float> {
                     const std::string_view impl,
                     const float scale)
     {
-        volk_16i_s32f_convert_32f_manual(
-            out.data(), in.data(), scale, in.size(), impl.data());
+        volk_16i_s32f_convert_32f_manual(out.data(),
+                                         in.data(),
+                                         scale,
+                                         static_cast<unsigned int>(in.size()),
+                                         impl.data());
     }
     static volk_func_desc_t descriptor()
     {
@@ -353,8 +377,12 @@ struct Volk32fS32fX2Convert8u : KernelSpec<float, uint8_t> {
                     const float scale,
                     const float bias)
     {
-        volk_32f_s32f_x2_convert_8u_manual(
-            out.data(), in.data(), scale, bias, in.size(), impl.data());
+        volk_32f_s32f_x2_convert_8u_manual(out.data(),
+                                           in.data(),
+                                           scale,
+                                           bias,
+                                           static_cast<unsigned int>(in.size()),
+                                           impl.data());
     }
     static volk_func_desc_t descriptor()
     {

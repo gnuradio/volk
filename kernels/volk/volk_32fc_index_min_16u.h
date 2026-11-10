@@ -124,7 +124,7 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_0(uint16_t* target,
         ++source;
     }
 
-    *target = index;
+    *target = (uint16_t)(index);
 }
 
 #endif /*LV_HAVE_AVX2*/
@@ -184,7 +184,7 @@ static inline void volk_32fc_index_min_16u_a_avx2_variant_1(uint16_t* target,
         ++source;
     }
 
-    *target = index;
+    *target = (uint16_t)(index);
 }
 
 #endif /*LV_HAVE_AVX2*/
@@ -294,13 +294,13 @@ static inline void volk_32fc_index_min_16u_a_sse3(uint16_t* target,
     _mm_store_ps((float*)&(holderf.f), xmm3);
     _mm_store_si128(&(holderi.int_vec), xmm9);
 
-    target[0] = holderi.i[0];
+    target[0] = (uint16_t)(holderi.i[0]);
     sq_dist = holderf.f[0];
-    target[0] = (holderf.f[1] < sq_dist) ? holderi.i[1] : target[0];
+    target[0] = (uint16_t)((holderf.f[1] < sq_dist) ? holderi.i[1] : target[0]);
     sq_dist = (holderf.f[1] < sq_dist) ? holderf.f[1] : sq_dist;
-    target[0] = (holderf.f[2] < sq_dist) ? holderi.i[2] : target[0];
+    target[0] = (uint16_t)((holderf.f[2] < sq_dist) ? holderi.i[2] : target[0]);
     sq_dist = (holderf.f[2] < sq_dist) ? holderf.f[2] : sq_dist;
-    target[0] = (holderf.f[3] < sq_dist) ? holderi.i[3] : target[0];
+    target[0] = (uint16_t)((holderf.f[3] < sq_dist) ? holderi.i[3] : target[0]);
     sq_dist = (holderf.f[3] < sq_dist) ? holderf.f[3] : sq_dist;
 }
 
@@ -467,7 +467,7 @@ static inline void volk_32fc_index_min_16u_generic(uint16_t* target,
                   lv_cimag(source[i]) * lv_cimag(source[i]);
 
         if (sq_dist < min) {
-            index = i;
+            index = (uint16_t)(i);
             min = sq_dist;
         }
     }
@@ -627,7 +627,7 @@ static inline void volk_32fc_index_min_16u_u_avx2_variant_0(uint16_t* target,
         ++source;
     }
 
-    *target = index;
+    *target = (uint16_t)(index);
 }
 
 #endif /*LV_HAVE_AVX2*/
@@ -687,7 +687,7 @@ static inline void volk_32fc_index_min_16u_u_avx2_variant_1(uint16_t* target,
         ++source;
     }
 
-    *target = index;
+    *target = (uint16_t)(index);
 }
 
 #endif /*LV_HAVE_AVX2*/

@@ -63,7 +63,7 @@ static inline void volk_16u_byteswap_generic(uint16_t* intsToSwap,
 static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int num_points)
 {
     const unsigned int nPerSet = 16;
-    const uint64_t nSets = num_points / nPerSet;
+    const unsigned int nSets = num_points / nPerSet;
 
     uint16_t* inputPtr = (uint16_t*)intsToSwap;
 
@@ -99,7 +99,7 @@ static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int n
 static inline void volk_16u_byteswap_u_avx2(uint16_t* intsToSwap, unsigned int num_points)
 {
     const unsigned int nPerSet = 16;
-    const uint64_t nSets = num_points / nPerSet;
+    const unsigned int nSets = num_points / nPerSet;
 
     uint16_t* inputPtr = (uint16_t*)intsToSwap;
 

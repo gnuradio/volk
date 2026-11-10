@@ -72,7 +72,6 @@ volk_32f_index_max_32u_a_sse4_1(uint32_t* target, const float* src0, uint32_t nu
         __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
         float max = src0[0];
-        float index = 0;
         __m128 maxValues = _mm_set1_ps(max);
         __m128 maxValuesIndex = _mm_setzero_ps();
         __m128 compareResults;
@@ -98,6 +97,7 @@ volk_32f_index_max_32u_a_sse4_1(uint32_t* target, const float* src0, uint32_t nu
         _mm_store_ps(maxValuesBuffer, maxValues);
         _mm_store_ps(maxIndexesBuffer, maxValuesIndex);
 
+        float index = 0;
         for (number = 0; number < 4; number++) {
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
@@ -111,7 +111,7 @@ volk_32f_index_max_32u_a_sse4_1(uint32_t* target, const float* src0, uint32_t nu
         number = quarterPoints * 4;
         for (; number < num_points; number++) {
             if (src0[number] > max) {
-                index = number;
+                index = (float)(number);
                 max = src0[number];
             }
         }
@@ -139,7 +139,6 @@ volk_32f_index_max_32u_a_sse(uint32_t* target, const float* src0, uint32_t num_p
         __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
         float max = src0[0];
-        float index = 0;
         __m128 maxValues = _mm_set1_ps(max);
         __m128 maxValuesIndex = _mm_setzero_ps();
         __m128 compareResults;
@@ -167,6 +166,7 @@ volk_32f_index_max_32u_a_sse(uint32_t* target, const float* src0, uint32_t num_p
         _mm_store_ps(maxValuesBuffer, maxValues);
         _mm_store_ps(maxIndexesBuffer, maxValuesIndex);
 
+        float index = 0;
         for (number = 0; number < 4; number++) {
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
@@ -180,7 +180,7 @@ volk_32f_index_max_32u_a_sse(uint32_t* target, const float* src0, uint32_t num_p
         number = quarterPoints * 4;
         for (; number < num_points; number++) {
             if (src0[number] > max) {
-                index = number;
+                index = (float)(number);
                 max = src0[number];
             }
         }
@@ -207,7 +207,6 @@ volk_32f_index_max_32u_a_avx(uint32_t* target, const float* src0, uint32_t num_p
         __m256 currentIndexes = _mm256_set_ps(-1, -2, -3, -4, -5, -6, -7, -8);
 
         float max = src0[0];
-        float index = 0;
         __m256 maxValues = _mm256_set1_ps(max);
         __m256 maxValuesIndex = _mm256_setzero_ps();
         __m256 compareResults;
@@ -230,6 +229,7 @@ volk_32f_index_max_32u_a_avx(uint32_t* target, const float* src0, uint32_t num_p
         _mm256_store_ps(maxValuesBuffer, maxValues);
         _mm256_store_ps(maxIndexesBuffer, maxValuesIndex);
 
+        float index = 0;
         for (number = 0; number < 8; number++) {
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
@@ -243,7 +243,7 @@ volk_32f_index_max_32u_a_avx(uint32_t* target, const float* src0, uint32_t num_p
         number = quarterPoints * 8;
         for (; number < num_points; number++) {
             if (src0[number] > max) {
-                index = number;
+                index = (float)(number);
                 max = src0[number];
             }
         }
@@ -271,7 +271,6 @@ volk_32f_index_max_32u_neon(uint32_t* target, const float* src0, uint32_t num_po
         float32x4_t currentIndexes = vld1q_f32(currentIndexes_float);
 
         float max = src0[0];
-        float index = 0;
         float32x4_t maxValues = vdupq_n_f32(max);
         uint32x4_t maxValuesIndex = vmovq_n_u32(0);
         uint32x4_t compareResults;
@@ -295,6 +294,8 @@ volk_32f_index_max_32u_neon(uint32_t* target, const float* src0, uint32_t num_po
         // Calculate the largest value from the remaining 4 points
         vst1q_f32(maxValuesBuffer, maxValues);
         vst1q_f32(maxIndexesBuffer, vcvtq_f32_u32(maxValuesIndex));
+
+        float index = 0;
         for (number = 0; number < 4; number++) {
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
@@ -308,7 +309,7 @@ volk_32f_index_max_32u_neon(uint32_t* target, const float* src0, uint32_t num_po
         number = quarterPoints * 4;
         for (; number < num_points; number++) {
             if (src0[number] > max) {
-                index = number;
+                index = (float)(number);
                 max = src0[number];
             }
         }
@@ -415,7 +416,6 @@ volk_32f_index_max_32u_a_avx512f(uint32_t* target, const float* src0, uint32_t n
             -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16);
 
         float max = src0[0];
-        float index = 0;
         __m512 maxValues = _mm512_set1_ps(max);
         __m512 maxValuesIndex = _mm512_setzero_ps();
         __mmask16 compareResults;
@@ -438,6 +438,7 @@ volk_32f_index_max_32u_a_avx512f(uint32_t* target, const float* src0, uint32_t n
         _mm512_store_ps(maxValuesBuffer, maxValues);
         _mm512_store_ps(maxIndexesBuffer, maxValuesIndex);
 
+        float index = 0;
         for (number = 0; number < 16; number++) {
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
@@ -451,7 +452,7 @@ volk_32f_index_max_32u_a_avx512f(uint32_t* target, const float* src0, uint32_t n
         number = sixteenthPoints * 16;
         for (; number < num_points; number++) {
             if (src0[number] > max) {
-                index = number;
+                index = (float)(number);
                 max = src0[number];
             }
         }
@@ -488,7 +489,6 @@ volk_32f_index_max_32u_u_avx(uint32_t* target, const float* src0, uint32_t num_p
         __m256 currentIndexes = _mm256_set_ps(-1, -2, -3, -4, -5, -6, -7, -8);
 
         float max = src0[0];
-        float index = 0;
         __m256 maxValues = _mm256_set1_ps(max);
         __m256 maxValuesIndex = _mm256_setzero_ps();
         __m256 compareResults;
@@ -511,6 +511,7 @@ volk_32f_index_max_32u_u_avx(uint32_t* target, const float* src0, uint32_t num_p
         _mm256_store_ps(maxValuesBuffer, maxValues);
         _mm256_store_ps(maxIndexesBuffer, maxValuesIndex);
 
+        float index = 0;
         for (number = 0; number < 8; number++) {
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
@@ -524,7 +525,7 @@ volk_32f_index_max_32u_u_avx(uint32_t* target, const float* src0, uint32_t num_p
         number = quarterPoints * 8;
         for (; number < num_points; number++) {
             if (src0[number] > max) {
-                index = number;
+                index = (float)(number);
                 max = src0[number];
             }
         }
@@ -551,7 +552,6 @@ volk_32f_index_max_32u_u_sse4_1(uint32_t* target, const float* src0, uint32_t nu
         __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
         float max = src0[0];
-        float index = 0;
         __m128 maxValues = _mm_set1_ps(max);
         __m128 maxValuesIndex = _mm_setzero_ps();
         __m128 compareResults;
@@ -574,6 +574,7 @@ volk_32f_index_max_32u_u_sse4_1(uint32_t* target, const float* src0, uint32_t nu
         _mm_store_ps(maxValuesBuffer, maxValues);
         _mm_store_ps(maxIndexesBuffer, maxValuesIndex);
 
+        float index = 0;
         for (number = 0; number < 4; number++) {
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
@@ -587,7 +588,7 @@ volk_32f_index_max_32u_u_sse4_1(uint32_t* target, const float* src0, uint32_t nu
         number = quarterPoints * 4;
         for (; number < num_points; number++) {
             if (src0[number] > max) {
-                index = number;
+                index = (float)(number);
                 max = src0[number];
             }
         }
@@ -613,7 +614,6 @@ volk_32f_index_max_32u_u_sse(uint32_t* target, const float* src0, uint32_t num_p
         __m128 currentIndexes = _mm_set_ps(-1, -2, -3, -4);
 
         float max = src0[0];
-        float index = 0;
         __m128 maxValues = _mm_set1_ps(max);
         __m128 maxValuesIndex = _mm_setzero_ps();
         __m128 compareResults;
@@ -637,6 +637,7 @@ volk_32f_index_max_32u_u_sse(uint32_t* target, const float* src0, uint32_t num_p
         _mm_store_ps(maxValuesBuffer, maxValues);
         _mm_store_ps(maxIndexesBuffer, maxValuesIndex);
 
+        float index = 0;
         for (number = 0; number < 4; number++) {
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
@@ -650,7 +651,7 @@ volk_32f_index_max_32u_u_sse(uint32_t* target, const float* src0, uint32_t num_p
         number = quarterPoints * 4;
         for (; number < num_points; number++) {
             if (src0[number] > max) {
-                index = number;
+                index = (float)(number);
                 max = src0[number];
             }
         }
@@ -677,7 +678,6 @@ volk_32f_index_max_32u_u_avx512f(uint32_t* target, const float* src0, uint32_t n
             -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -16);
 
         float max = src0[0];
-        float index = 0;
         __m512 maxValues = _mm512_set1_ps(max);
         __m512 maxValuesIndex = _mm512_setzero_ps();
         __mmask16 compareResults;
@@ -700,6 +700,7 @@ volk_32f_index_max_32u_u_avx512f(uint32_t* target, const float* src0, uint32_t n
         _mm512_store_ps(maxValuesBuffer, maxValues);
         _mm512_store_ps(maxIndexesBuffer, maxValuesIndex);
 
+        float index = 0;
         for (number = 0; number < 16; number++) {
             if (maxValuesBuffer[number] > max) {
                 index = maxIndexesBuffer[number];
@@ -713,7 +714,7 @@ volk_32f_index_max_32u_u_avx512f(uint32_t* target, const float* src0, uint32_t n
         number = sixteenthPoints * 16;
         for (; number < num_points; number++) {
             if (src0[number] > max) {
-                index = number;
+                index = (float)(number);
                 max = src0[number];
             }
         }

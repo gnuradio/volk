@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
         }
 
         // Generate XML results
-        print_qa_xml(results, qa_failures.size());
+        print_qa_xml(results, static_cast<unsigned int>(qa_failures.size()));
 
         // Summarize QA results
         std::cerr << "Kernel QA finished: " << qa_failures.size() << " failures out of "
