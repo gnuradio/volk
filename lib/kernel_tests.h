@@ -87,9 +87,12 @@ std::vector<volk_test_case_t> init_test_list(volk_test_params_t test_params)
     QA(VOLK_INIT_TEST(volk_32f_accumulator_s32f, test_params.make_absolute(2e-2)))
     QA(VOLK_INIT_TEST(volk_32f_x2_add_32f, test_params))
 
-    // Index kernels need identical values to test tie-breaking (first index wins)
+    // Index kernels need identical values to test tie-breaking (first index wins).
+    // The leading 0.0f puts the first maximum at index 1 rather than 0, so a
+    // kernel that tracks indices in the wrong lanes reports the wrong one.
     volk_test_params_t test_params_index(test_params.make_tol(0));
     test_params_index.add_float_edge_cases({
+        0.0f,
         1.0f,
         1.0f,
         1.0f,

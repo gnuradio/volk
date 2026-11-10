@@ -269,7 +269,10 @@ volk_32f_index_min_16u_neon(uint16_t* target, const float* source, uint32_t num_
     const float* inputPtr = source;
 
     // Use integer indices directly
-    uint32x4_t vec_indices = { 0, 1, 2, 3 };
+    // Load from an array to avoid GCC filling a brace-initialized vector like
+    // { 0, 1, 2, 3 } in reverse lane order on big-endian targets
+    static const uint32_t init_indices[4] = { 0, 1, 2, 3 };
+    uint32x4_t vec_indices = vld1q_u32(init_indices);
     const uint32x4_t vec_incr = vdupq_n_u32(4);
 
     float32x4_t vec_min = vdupq_n_f32(FLT_MAX);
@@ -337,7 +340,10 @@ volk_32f_index_min_16u_neonv8(uint16_t* target, const float* source, uint32_t nu
     const float* inputPtr = source;
 
     // Use integer indices directly (no float conversion overhead)
-    uint32x4_t vec_indices = { 0, 1, 2, 3 };
+    // Load from an array to avoid GCC filling a brace-initialized vector like
+    // { 0, 1, 2, 3 } in reverse lane order on big-endian targets
+    static const uint32_t init_indices[4] = { 0, 1, 2, 3 };
+    uint32x4_t vec_indices = vld1q_u32(init_indices);
     const uint32x4_t vec_incr = vdupq_n_u32(4);
 
     float32x4_t vec_min = vdupq_n_f32(FLT_MAX);

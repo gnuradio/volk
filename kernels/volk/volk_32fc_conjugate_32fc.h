@@ -271,9 +271,10 @@ static inline void volk_32fc_conjugate_32fc_neonv8(lv_32fc_t* cVector,
     lv_32fc_t* c = cVector;
     const lv_32fc_t* a = aVector;
 
-    /* Sign mask to flip imaginary parts: [0, -0, 0, -0] */
-    const uint32x4_t sign_mask =
-        vreinterpretq_u32_f32((float32x4_t){ 0.0f, -0.0f, 0.0f, -0.0f });
+    /* Sign mask to flip imaginary parts: [0, -0, 0, -0], loaded from memory
+     * because a brace-initialized vector is lane-reversed on big-endian GCC */
+    static const float sign_bits[4] = { 0.0f, -0.0f, 0.0f, -0.0f };
+    const uint32x4_t sign_mask = vreinterpretq_u32_f32(vld1q_f32(sign_bits));
 
     /* Process 4 complex numbers per iteration (2x unroll) */
     while (n >= 4) {

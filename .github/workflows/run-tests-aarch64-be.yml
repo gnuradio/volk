@@ -1,0 +1,80 @@
+#
+# Copyright 2026 Zetier Inc
+#
+# This file is part of VOLK
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+
+name: Run VOLK tests on big-endian AArch64
+
+on: [push, pull_request]
+
+env:
+  # Ubuntu has no big-endian AArch64 cross toolchain, so use Arm's.
+  ARM_TOOLCHAIN: arm-gnu-toolchain-15.3.rel2-x86_64-aarch64_be-none-linux-gnu
+  ARM_TOOLCHAIN_URL: https://gitlab.arm.com/api/v4/projects/tooling%2Fgnu-toolchains-for-arm/packages/generic/gnu-toolchain/15.3.rel2
+  ARM_TOOLCHAIN_SHA256: bdf8e9b4c62791c5c3aeeb8ba3791421d73c7d147dd04f0da502716885bcc1d2
+
+jobs:
+  Tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: "recursive"
+      - name: Install packages
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update -q -y
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-mako cmake qemu-user curl
+      - name: Install sccache
+        shell: bash
+        run: sudo scripts/ci/install_sccache.bash "aarch64_be tests"
+        continue-on-error: true
+      - name: Cache toolchain
+        id: cache_toolchain
+        uses: actions/cache@v5
+        with:
+          path: ~/${{ env.ARM_TOOLCHAIN }}
+          key: ${{ env.ARM_TOOLCHAIN }}
+      - name: Download toolchain
+        if: steps.cache_toolchain.outputs.cache-hit != 'true'
+        run: |
+          cd ~
+          curl -fsSL -o "$ARM_TOOLCHAIN.tar.xz" "$ARM_TOOLCHAIN_URL/$ARM_TOOLCHAIN.tar.xz"
+          echo "$ARM_TOOLCHAIN_SHA256  $ARM_TOOLCHAIN.tar.xz" | sha256sum -c -
+          tar -xJf "$ARM_TOOLCHAIN.tar.xz"
+          rm "$ARM_TOOLCHAIN.tar.xz"
+      - name: Add toolchain to PATH
+        run: echo "$HOME/$ARM_TOOLCHAIN/bin" >> "$GITHUB_PATH"
+      - name: Prepare sccache usage
+        id: enable_sccache
+        run: scripts/ci/setup_cmake_cache_flags.bash "aarch64_be tests"
+      - name: Configure
+        run: >
+          cmake
+          -S .
+          -B build
+          -DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/aarch64_be-none-linux-gnu.cmake
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_C_FLAGS="-Werror"
+          -DCMAKE_CXX_FLAGS="-Werror"
+          -DBUILD_EXECUTABLE=ON
+          ${{ steps.enable_sccache.outputs.CXX_LAUNCHER }}
+          ${{ steps.enable_sccache.outputs.C_LAUNCHER }}
+      - name: Build
+        run: cmake --build build -j$(nproc)
+      - name: Print info
+        run: |
+          sysroot=$(aarch64_be-none-linux-gnu-gcc -print-sysroot)
+          for opt in --alignment --avail-machines --all-machines --malloc --cc; do
+            qemu-aarch64_be -L "$sysroot" -E LD_LIBRARY_PATH="$(dirname "$sysroot")/lib64" \
+              build/apps/volk-config-info $opt
+          done
+      - name: Test
+        run: cd build && ctest -V
+      - name: Show final sccache and build directory stats
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: scripts/ci/build-summary.sh "aarch64_be tests" "./build/"
