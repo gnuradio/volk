@@ -306,7 +306,7 @@ volk_32f_s32f_calc_spectral_noise_floor_32f_generic(float* noiseFloorAmplitude,
     // calculate the spectral mean
     // +20 because for the comparison below we only want to throw out bins
     // that are significantly higher (and would, thus, affect the mean more)
-    const float meanAmplitude = (sumMean / num_points) + spectralExclusionValue;
+    const float meanAmplitude = (sumMean / (float)num_points) + spectralExclusionValue;
 
     // now throw out any bins higher than the mean
     sumMean = 0.0;

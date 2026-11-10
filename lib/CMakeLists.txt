@@ -543,6 +543,10 @@ string(REPLACE "${PROJECT_SOURCE_DIR}" "$BUILD_DIR" COMPILER_INFO "${COMPILER_IN
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/constants.c.in
                ${CMAKE_CURRENT_BINARY_DIR}/constants.c @ONLY)
 
+if(NOT MSVC)
+    set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/constants.c
+                                PROPERTIES COMPILE_OPTIONS "-Wno-overlength-strings")
+endif()
 list(APPEND volk_sources ${CMAKE_CURRENT_BINARY_DIR}/constants.c)
 
 ########################################################################

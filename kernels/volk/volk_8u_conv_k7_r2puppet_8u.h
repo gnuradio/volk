@@ -68,7 +68,7 @@ static inline int chainback_viterbi(unsigned char* data,
         endstate = (endstate >> 1) | (k << (d_k - 2 + d_ADDSHIFT));
         // data[((nbits+dif)%nbits)>>3] = endstate>>d_SUBSHIFT;
         // printf("%d, %d\n", k, (nbits+dif)%d_framebits);
-        data[((nbits + dif) % d_framebits)] = k;
+        data[((nbits + dif) % d_framebits)] = (unsigned char)(k);
 
         retval = endstate;
     }
@@ -82,7 +82,7 @@ static inline int chainback_viterbi(unsigned char* data,
         k = (dec.w[(endstate >> d_ADDSHIFT) / 32] >> ((endstate >> d_ADDSHIFT) % 32)) & 1;
 
         endstate = (endstate >> 1) | (k << (d_k - 2 + d_ADDSHIFT));
-        data[((nbits + dif) % d_framebits)] = k;
+        data[((nbits + dif) % d_framebits)] = (unsigned char)(k);
     }
     // printf("%d, %d, %d, %d, %d, %d, %d, %d\n",
     // data[4095],data[4094],data[4093],data[4092],data[4091],data[4090],data[4089],data[4088]);
