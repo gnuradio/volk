@@ -33,8 +33,8 @@ protected:
         vec1 = volk::vector<lv_32fc_t>(length);
         result = volk::vector<lv_32fc_t>(length);
         for (size_t i = 0; i < length; ++i) {
-            vec0[i] = std::complex<float>(i * 3.14, i * 0.45);
-            vec1[i] = std::complex<float>(i * -2.78, i * 5.44);
+            vec0[i] = std::complex<float>(static_cast<float>(i * 3.14), static_cast<float>(i * 0.45));
+            vec1[i] = std::complex<float>(static_cast<float>(i * -2.78), static_cast<float>(i * 5.44));
         }
 
         expected = volk::vector<lv_32fc_t>(length);

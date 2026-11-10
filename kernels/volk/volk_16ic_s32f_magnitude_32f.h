@@ -61,7 +61,7 @@ static inline void volk_16ic_s32f_magnitude_32f_a_avx2(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    __m256 invScalar = _mm256_set1_ps(1.0f / scalar);
 
     __m256 cplxValue1, cplxValue2, result;
     __m256i int1, int2;
@@ -122,7 +122,7 @@ static inline void volk_16ic_s32f_magnitude_32f_a_sse3(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    __m128 invScalar = _mm_set_ps1(1.0f / scalar);
 
     __m128 cplxValue1, cplxValue2, result;
 
@@ -185,7 +185,7 @@ static inline void volk_16ic_s32f_magnitude_32f_a_sse(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
 
     __m128 cplxValue1, cplxValue2, result, re, im;
@@ -249,7 +249,7 @@ static inline void volk_16ic_s32f_magnitude_32f_generic(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
     unsigned int number = 0;
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     for (number = 0; number < num_points; number++) {
         float real = ((float)(*complexVectorPtr++)) * invScalar;
         float imag = ((float)(*complexVectorPtr++)) * invScalar;
@@ -283,7 +283,7 @@ static inline void volk_16ic_s32f_magnitude_32f_u_avx2(float* magnitudeVector,
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* magnitudeVectorPtr = magnitudeVector;
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    __m256 invScalar = _mm256_set1_ps(1.0f / scalar);
 
     __m256 cplxValue1, cplxValue2, result;
     __m256i int1, int2;

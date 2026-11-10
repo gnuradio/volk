@@ -54,7 +54,7 @@ volk_32fc_s32f_power_spectrum_32f_generic(float* logPowerOutput,
                                           unsigned int num_points)
 {
     // Calculate the Power of the complex point
-    const float normFactSq = 1.0 / (normalizationFactor * normalizationFactor);
+    const float normFactSq = 1.0f / (normalizationFactor * normalizationFactor);
 
     // Calculate dBm
     // 50 ohm load assumption

@@ -34,21 +34,21 @@ protected:
         // For implementations using inc^K (K=2 for SSE, K=4 for AVX, K=8 for AVX512),
         // the error per step is larger, leading to faster divergence.
         if (length < 16) {
-            absolute_error = 1.e-6;
+            absolute_error = 1.e-6f;
         } else if (length < 128) {
-            absolute_error = 1.e-5;
+            absolute_error = 1.e-5f;
         } else if (length < 65536) {
-            absolute_error = 1.e-4;
+            absolute_error = 1.e-4f;
         } else if (length < 1000000) {
-            absolute_error = 2.e-3;
+            absolute_error = 2.e-3f;
         } else if (length < 10000000) {
             // 1M-10M samples: relax tolerance for accumulated error
-            absolute_error = 2.e-2;
+            absolute_error = 2.e-2f;
         } else {
             // 10M+ samples: At this scale, error exceeds useful tolerance
             // Applications requiring accuracy at this scale should use
             // implementations with periodic angle-based resync
-            absolute_error = 5.e-2;
+            absolute_error = 5.e-2f;
         }
 
         vector_length = length;
@@ -62,8 +62,8 @@ protected:
 
         for (size_t i = 0; i < length; ++i) {
             input[i] =
-                std::complex<float>(2.0f * std::cos(2.0f * M_PI * i / length),
-                                    2.0f * std::sin(0.3f + 2.0f * M_PI * i / length));
+                std::complex<float>(static_cast<float>(2.0f * std::cos(2.0f * M_PI * i / length)),
+                                    static_cast<float>(2.0f * std::sin(0.3f + 2.0f * M_PI * i / length)));
         }
 
         // Calculate expected results using double precision for angle computation
@@ -136,7 +136,7 @@ protected:
 
     static constexpr float increment = 0.07f;
     static constexpr float initial_phase_steps = 0.0f;
-    static constexpr float absolute_magnitue_error = 1.0e-4;
+    static constexpr float absolute_magnitue_error = 1.0e-4f;
     float absolute_error{};
     volk::vector<lv_32fc_t> input;
     volk::vector<lv_32fc_t> result;

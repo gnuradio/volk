@@ -56,7 +56,7 @@ static inline void volk_8i_s32f_convert_32f_u_avx2(float* outputVector,
     const unsigned int sixteenthPoints = num_points / 16;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     const int8_t* inputVectorPtr = inputVector;
     __m256 ret;
@@ -101,7 +101,7 @@ static inline void volk_8i_s32f_convert_32f_u_avx512(float* outputVector,
     const unsigned int sixteenthPoints = num_points / 16;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m512 invScalar = _mm512_set1_ps(iScalar);
     const int8_t* inputVectorPtr = inputVector;
     __m512 ret;
@@ -140,7 +140,7 @@ static inline void volk_8i_s32f_convert_32f_u_sse4_1(float* outputVector,
     const unsigned int sixteenthPoints = num_points / 16;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
     const int8_t* inputVectorPtr = inputVector;
     __m128 ret;
@@ -197,7 +197,7 @@ static inline void volk_8i_s32f_convert_32f_generic(float* outputVector,
     float* outputVectorPtr = outputVector;
     const int8_t* inputVectorPtr = inputVector;
     unsigned int number = 0;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
 
     for (number = 0; number < num_points; number++) {
         *outputVectorPtr++ = ((float)(*inputVectorPtr++)) * iScalar;
@@ -226,7 +226,7 @@ static inline void volk_8i_s32f_convert_32f_a_avx2(float* outputVector,
     const unsigned int sixteenthPoints = num_points / 16;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     const int8_t* inputVectorPtr = inputVector;
     __m256 ret;
@@ -271,7 +271,7 @@ static inline void volk_8i_s32f_convert_32f_a_avx512(float* outputVector,
     const unsigned int sixteenthPoints = num_points / 16;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m512 invScalar = _mm512_set1_ps(iScalar);
     const int8_t* inputVectorPtr = inputVector;
     __m512 ret;
@@ -309,7 +309,7 @@ static inline void volk_8i_s32f_convert_32f_a_sse4_1(float* outputVector,
     const unsigned int sixteenthPoints = num_points / 16;
 
     float* outputVectorPtr = outputVector;
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
     const int8_t* inputVectorPtr = inputVector;
     __m128 ret;
@@ -473,7 +473,7 @@ static inline void volk_8i_s32f_convert_32f_u_orc(float* outputVector,
                                                   const float scalar,
                                                   unsigned int num_points)
 {
-    float invscalar = 1.0 / scalar;
+    float invscalar = 1.0f / scalar;
     volk_8i_s32f_convert_32f_a_orc_impl(outputVector, inputVector, invscalar, num_points);
 }
 #endif /* LV_HAVE_ORC */

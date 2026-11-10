@@ -66,7 +66,7 @@ protected:
         result = volk::vector<float>(1, 0.0);
         ua_result.push_back(result.at(0));
         ua_result.push_back(result.at(0));
-        tolerance = std::max(expected * 1e-5, 1e-5);
+        tolerance = std::max(expected * 1e-5f, 1e-5f);
     }
 
     void execute_aligned(const std::string impl_name)
@@ -101,7 +101,7 @@ protected:
     volk::vector<float> result;
     volk::vector<float> ua_result;
     float expected = 0.0f;
-    float tolerance = 1.0e-5;
+    float tolerance = 1.0e-5f;
 };
 
 TEST_P(volk_32f_x3_sum_of_poly_32f_test, run)

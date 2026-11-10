@@ -647,7 +647,8 @@ std::tuple<unsigned int, unsigned int> tol_precision(float tol, unsigned int col
     }
     const float log10 = std::log10(tol);
     return { tol_length,
-             std::min<unsigned int>(tol_length - dot_length, -std::floor(log10)) };
+             std::min<unsigned int>(tol_length - dot_length,
+                                    static_cast<unsigned int>(-std::floor(log10))) };
 }
 
 template <class T>
