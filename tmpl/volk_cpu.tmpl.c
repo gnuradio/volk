@@ -45,6 +45,10 @@ static int i_can_has_${arch.name} (void) {
 #if defined(CPU_FEATURES_ARCH_ARM)
     if (GetArmInfo().features.${check} == 0){ return 0; }
 #endif
+        %elif "neon" in arch.name or "sve" in arch.name:
+#if defined(CPU_FEATURES_ARCH_AARCH64)
+    if (GetAarch64Info().features.${check} == 0){ return 0; }
+#endif
         %elif "mips" in arch.name:
 #if defined(CPU_FEATURES_ARCH_MIPS)
     if (GetMipsInfo().features.${check} == 0){ return 0; }
