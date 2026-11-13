@@ -105,20 +105,20 @@ volk_32f_exp_32f_a_sse2(float* bVector, const float* aVector, unsigned int num_p
     __m128i emm0, pi32_0x7f;
 
     one = _mm_set1_ps(1.0);
-    exp_hi = _mm_set1_ps(88.3762626647949);
-    exp_lo = _mm_set1_ps(-88.3762626647949);
-    log2EF = _mm_set1_ps(1.44269504088896341);
+    exp_hi = _mm_set1_ps(88.3762626647949f);
+    exp_lo = _mm_set1_ps(-88.3762626647949f);
+    log2EF = _mm_set1_ps(1.44269504088896341f);
     half = _mm_set1_ps(0.5);
     exp_C1 = _mm_set1_ps(0.693359375);
-    exp_C2 = _mm_set1_ps(-2.12194440e-4);
+    exp_C2 = _mm_set1_ps(-2.12194440e-4f);
     pi32_0x7f = _mm_set1_epi32(0x7f);
 
-    exp_p0 = _mm_set1_ps(1.9875691500e-4);
-    exp_p1 = _mm_set1_ps(1.3981999507e-3);
-    exp_p2 = _mm_set1_ps(8.3334519073e-3);
-    exp_p3 = _mm_set1_ps(4.1665795894e-2);
-    exp_p4 = _mm_set1_ps(1.6666665459e-1);
-    exp_p5 = _mm_set1_ps(5.0000001201e-1);
+    exp_p0 = _mm_set1_ps(1.9875691500e-4f);
+    exp_p1 = _mm_set1_ps(1.3981999507e-3f);
+    exp_p2 = _mm_set1_ps(8.3334519073e-3f);
+    exp_p3 = _mm_set1_ps(4.1665795894e-2f);
+    exp_p4 = _mm_set1_ps(1.6666665459e-1f);
+    exp_p5 = _mm_set1_ps(5.0000001201e-1f);
 
     for (; number < quarterPoints; number++) {
         aVal = _mm_load_ps(aPtr);
@@ -173,20 +173,20 @@ volk_32f_exp_32f_a_avx2(float* bVector, const float* aVector, unsigned int num_p
     const unsigned int eighthPoints = num_points / 8;
 
     const __m256 one = _mm256_set1_ps(1.0);
-    const __m256 exp_hi = _mm256_set1_ps(88.3762626647949);
-    const __m256 exp_lo = _mm256_set1_ps(-88.3762626647949);
-    const __m256 log2EF = _mm256_set1_ps(1.44269504088896341);
+    const __m256 exp_hi = _mm256_set1_ps(88.3762626647949f);
+    const __m256 exp_lo = _mm256_set1_ps(-88.3762626647949f);
+    const __m256 log2EF = _mm256_set1_ps(1.44269504088896341f);
     const __m256 half = _mm256_set1_ps(0.5);
     const __m256 exp_C1 = _mm256_set1_ps(0.693359375);
-    const __m256 exp_C2 = _mm256_set1_ps(-2.12194440e-4);
+    const __m256 exp_C2 = _mm256_set1_ps(-2.12194440e-4f);
     const __m256i pi32_0x7f = _mm256_set1_epi32(0x7f);
 
-    const __m256 exp_p0 = _mm256_set1_ps(1.9875691500e-4);
-    const __m256 exp_p1 = _mm256_set1_ps(1.3981999507e-3);
-    const __m256 exp_p2 = _mm256_set1_ps(8.3334519073e-3);
-    const __m256 exp_p3 = _mm256_set1_ps(4.1665795894e-2);
-    const __m256 exp_p4 = _mm256_set1_ps(1.6666665459e-1);
-    const __m256 exp_p5 = _mm256_set1_ps(5.0000001201e-1);
+    const __m256 exp_p0 = _mm256_set1_ps(1.9875691500e-4f);
+    const __m256 exp_p1 = _mm256_set1_ps(1.3981999507e-3f);
+    const __m256 exp_p2 = _mm256_set1_ps(8.3334519073e-3f);
+    const __m256 exp_p3 = _mm256_set1_ps(4.1665795894e-2f);
+    const __m256 exp_p4 = _mm256_set1_ps(1.6666665459e-1f);
+    const __m256 exp_p5 = _mm256_set1_ps(5.0000001201e-1f);
 
     for (unsigned int number = 0; number < eighthPoints; number++) {
         __m256 aVal = _mm256_load_ps(aVector);
@@ -257,20 +257,20 @@ volk_32f_exp_32f_u_sse2(float* bVector, const float* aVector, unsigned int num_p
     __m128i emm0, pi32_0x7f;
 
     one = _mm_set1_ps(1.0);
-    exp_hi = _mm_set1_ps(88.3762626647949);
-    exp_lo = _mm_set1_ps(-88.3762626647949);
-    log2EF = _mm_set1_ps(1.44269504088896341);
+    exp_hi = _mm_set1_ps(88.3762626647949f);
+    exp_lo = _mm_set1_ps(-88.3762626647949f);
+    log2EF = _mm_set1_ps(1.44269504088896341f);
     half = _mm_set1_ps(0.5);
     exp_C1 = _mm_set1_ps(0.693359375);
-    exp_C2 = _mm_set1_ps(-2.12194440e-4);
+    exp_C2 = _mm_set1_ps(-2.12194440e-4f);
     pi32_0x7f = _mm_set1_epi32(0x7f);
 
-    exp_p0 = _mm_set1_ps(1.9875691500e-4);
-    exp_p1 = _mm_set1_ps(1.3981999507e-3);
-    exp_p2 = _mm_set1_ps(8.3334519073e-3);
-    exp_p3 = _mm_set1_ps(4.1665795894e-2);
-    exp_p4 = _mm_set1_ps(1.6666665459e-1);
-    exp_p5 = _mm_set1_ps(5.0000001201e-1);
+    exp_p0 = _mm_set1_ps(1.9875691500e-4f);
+    exp_p1 = _mm_set1_ps(1.3981999507e-3f);
+    exp_p2 = _mm_set1_ps(8.3334519073e-3f);
+    exp_p3 = _mm_set1_ps(4.1665795894e-2f);
+    exp_p4 = _mm_set1_ps(1.6666665459e-1f);
+    exp_p5 = _mm_set1_ps(5.0000001201e-1f);
 
 
     for (; number < quarterPoints; number++) {
@@ -326,20 +326,20 @@ volk_32f_exp_32f_u_avx2(float* bVector, const float* aVector, unsigned int num_p
     const unsigned int eighthPoints = num_points / 8;
 
     const __m256 one = _mm256_set1_ps(1.0);
-    const __m256 exp_hi = _mm256_set1_ps(88.3762626647949);
-    const __m256 exp_lo = _mm256_set1_ps(-88.3762626647949);
-    const __m256 log2EF = _mm256_set1_ps(1.44269504088896341);
+    const __m256 exp_hi = _mm256_set1_ps(88.3762626647949f);
+    const __m256 exp_lo = _mm256_set1_ps(-88.3762626647949f);
+    const __m256 log2EF = _mm256_set1_ps(1.44269504088896341f);
     const __m256 half = _mm256_set1_ps(0.5);
     const __m256 exp_C1 = _mm256_set1_ps(0.693359375);
-    const __m256 exp_C2 = _mm256_set1_ps(-2.12194440e-4);
+    const __m256 exp_C2 = _mm256_set1_ps(-2.12194440e-4f);
     const __m256i pi32_0x7f = _mm256_set1_epi32(0x7f);
 
-    const __m256 exp_p0 = _mm256_set1_ps(1.9875691500e-4);
-    const __m256 exp_p1 = _mm256_set1_ps(1.3981999507e-3);
-    const __m256 exp_p2 = _mm256_set1_ps(8.3334519073e-3);
-    const __m256 exp_p3 = _mm256_set1_ps(4.1665795894e-2);
-    const __m256 exp_p4 = _mm256_set1_ps(1.6666665459e-1);
-    const __m256 exp_p5 = _mm256_set1_ps(5.0000001201e-1);
+    const __m256 exp_p0 = _mm256_set1_ps(1.9875691500e-4f);
+    const __m256 exp_p1 = _mm256_set1_ps(1.3981999507e-3f);
+    const __m256 exp_p2 = _mm256_set1_ps(8.3334519073e-3f);
+    const __m256 exp_p3 = _mm256_set1_ps(4.1665795894e-2f);
+    const __m256 exp_p4 = _mm256_set1_ps(1.6666665459e-1f);
+    const __m256 exp_p5 = _mm256_set1_ps(5.0000001201e-1f);
 
     for (unsigned int number = 0; number < eighthPoints; number++) {
         __m256 aVal = _mm256_loadu_ps(aVector);

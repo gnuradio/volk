@@ -62,8 +62,8 @@ static inline void volk_8u_x2_add_saturated_8u_generic(uint8_t* outVector,
                                                        unsigned int num_points)
 {
     for (unsigned int i = 0; i < num_points; i++) {
-        uint8_t sum = inVectorA[i] + inVectorB[i];
-        outVector[i] = sum | -(uint8_t)(sum < inVectorA[i]);
+        const uint16_t sum = inVectorA[i] + inVectorB[i];
+        outVector[i] = (uint8_t)(sum > UINT8_MAX ? UINT8_MAX : sum);
     }
 }
 

@@ -153,10 +153,18 @@ volk_32u_reverse_32u_2001magic(uint32_t* out, const uint32_t* in, unsigned int n
     for (; number < num_points; ++number) {
         in8 = (const uint8_t*)in_ptr;
         out8 = (uint8_t*)out_ptr;
-        out8[3] = ((in8[0] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32;
-        out8[2] = ((in8[1] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32;
-        out8[1] = ((in8[2] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32;
-        out8[0] = ((in8[3] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32;
+        out8[3] =
+            (uint8_t)(((in8[0] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >>
+                      32);
+        out8[2] =
+            (uint8_t)(((in8[1] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >>
+                      32);
+        out8[1] =
+            (uint8_t)(((in8[2] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >>
+                      32);
+        out8[0] =
+            (uint8_t)(((in8[3] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >>
+                      32);
         ++in_ptr;
         ++out_ptr;
     }
@@ -176,10 +184,10 @@ volk_32u_reverse_32u_1972magic(uint32_t* out, const uint32_t* in, unsigned int n
     for (; number < num_points; ++number) {
         in8 = (const uint8_t*)in_ptr;
         out8 = (uint8_t*)out_ptr;
-        out8[3] = (in8[0] * 0x0202020202ULL & 0x010884422010ULL) % 1023;
-        out8[2] = (in8[1] * 0x0202020202ULL & 0x010884422010ULL) % 1023;
-        out8[1] = (in8[2] * 0x0202020202ULL & 0x010884422010ULL) % 1023;
-        out8[0] = (in8[3] * 0x0202020202ULL & 0x010884422010ULL) % 1023;
+        out8[3] = (uint8_t)((in8[0] * 0x0202020202ULL & 0x010884422010ULL) % 1023);
+        out8[2] = (uint8_t)((in8[1] * 0x0202020202ULL & 0x010884422010ULL) % 1023);
+        out8[1] = (uint8_t)((in8[2] * 0x0202020202ULL & 0x010884422010ULL) % 1023);
+        out8[0] = (uint8_t)((in8[3] * 0x0202020202ULL & 0x010884422010ULL) % 1023);
         ++in_ptr;
         ++out_ptr;
     }
@@ -292,20 +300,16 @@ volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_
 #include <arm_neon.h>
 
 #if defined(__aarch64__)
-#define DO_RBIT                             \
-    __VOLK_ASM("rbit %w[result], %w[value]" \
-               : [result] "=r"(*out_ptr)    \
-               : [value] "r"(*in_ptr)       \
-               :);                          \
-    in_ptr++;                               \
+#define DO_RBIT                                                                      \
+    __VOLK_ASM("rbit %w[result], %w[value]" : [result] "=r"(*out_ptr) : [value] "r"( \
+        *in_ptr) :);                                                                 \
+    in_ptr++;                                                                        \
     out_ptr++;
 #else
-#define DO_RBIT                           \
-    __VOLK_ASM("rbit %[result], %[value]" \
-               : [result] "=r"(*out_ptr)  \
-               : [value] "r"(*in_ptr)     \
-               :);                        \
-    in_ptr++;                             \
+#define DO_RBIT                                                                         \
+    __VOLK_ASM(                                                                         \
+        "rbit %[result], %[value]" : [result] "=r"(*out_ptr) : [value] "r"(*in_ptr) :); \
+    in_ptr++;                                                                           \
     out_ptr++;
 #endif
 

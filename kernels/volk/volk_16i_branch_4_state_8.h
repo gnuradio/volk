@@ -168,37 +168,38 @@ static inline void volk_16i_branch_4_state_8_generic(short* target,
     int bound = 4;
 
     for (; i < bound; ++i) {
-        target[i * 8] = src0[((char)permuters[i][0]) / 2] + ((i + 1) % 2 * scalars[0]) +
-                        (((i >> 1) ^ 1) * scalars[1]) + (cntl2[i * 8] & scalars[2]) +
-                        (cntl3[i * 8] & scalars[3]);
-        target[i * 8 + 1] = src0[((char)permuters[i][1 * 2]) / 2] +
-                            ((i + 1) % 2 * scalars[0]) + (((i >> 1) ^ 1) * scalars[1]) +
-                            (cntl2[i * 8 + 1] & scalars[2]) +
-                            (cntl3[i * 8 + 1] & scalars[3]);
-        target[i * 8 + 2] = src0[((char)permuters[i][2 * 2]) / 2] +
-                            ((i + 1) % 2 * scalars[0]) + (((i >> 1) ^ 1) * scalars[1]) +
-                            (cntl2[i * 8 + 2] & scalars[2]) +
-                            (cntl3[i * 8 + 2] & scalars[3]);
-        target[i * 8 + 3] = src0[((char)permuters[i][3 * 2]) / 2] +
-                            ((i + 1) % 2 * scalars[0]) + (((i >> 1) ^ 1) * scalars[1]) +
-                            (cntl2[i * 8 + 3] & scalars[2]) +
-                            (cntl3[i * 8 + 3] & scalars[3]);
-        target[i * 8 + 4] = src0[((char)permuters[i][4 * 2]) / 2] +
-                            ((i + 1) % 2 * scalars[0]) + (((i >> 1) ^ 1) * scalars[1]) +
-                            (cntl2[i * 8 + 4] & scalars[2]) +
-                            (cntl3[i * 8 + 4] & scalars[3]);
-        target[i * 8 + 5] = src0[((char)permuters[i][5 * 2]) / 2] +
-                            ((i + 1) % 2 * scalars[0]) + (((i >> 1) ^ 1) * scalars[1]) +
-                            (cntl2[i * 8 + 5] & scalars[2]) +
-                            (cntl3[i * 8 + 5] & scalars[3]);
-        target[i * 8 + 6] = src0[((char)permuters[i][6 * 2]) / 2] +
-                            ((i + 1) % 2 * scalars[0]) + (((i >> 1) ^ 1) * scalars[1]) +
-                            (cntl2[i * 8 + 6] & scalars[2]) +
-                            (cntl3[i * 8 + 6] & scalars[3]);
-        target[i * 8 + 7] = src0[((char)permuters[i][7 * 2]) / 2] +
-                            ((i + 1) % 2 * scalars[0]) + (((i >> 1) ^ 1) * scalars[1]) +
-                            (cntl2[i * 8 + 7] & scalars[2]) +
-                            (cntl3[i * 8 + 7] & scalars[3]);
+        target[i * 8] =
+            (short)(src0[((char)permuters[i][0]) / 2] + ((i + 1) % 2 * scalars[0]) +
+                    (((i >> 1) ^ 1) * scalars[1]) + (cntl2[i * 8] & scalars[2]) +
+                    (cntl3[i * 8] & scalars[3]));
+        target[i * 8 + 1] =
+            (short)(src0[((char)permuters[i][1 * 2]) / 2] + ((i + 1) % 2 * scalars[0]) +
+                    (((i >> 1) ^ 1) * scalars[1]) + (cntl2[i * 8 + 1] & scalars[2]) +
+                    (cntl3[i * 8 + 1] & scalars[3]));
+        target[i * 8 + 2] =
+            (short)(src0[((char)permuters[i][2 * 2]) / 2] + ((i + 1) % 2 * scalars[0]) +
+                    (((i >> 1) ^ 1) * scalars[1]) + (cntl2[i * 8 + 2] & scalars[2]) +
+                    (cntl3[i * 8 + 2] & scalars[3]));
+        target[i * 8 + 3] =
+            (short)(src0[((char)permuters[i][3 * 2]) / 2] + ((i + 1) % 2 * scalars[0]) +
+                    (((i >> 1) ^ 1) * scalars[1]) + (cntl2[i * 8 + 3] & scalars[2]) +
+                    (cntl3[i * 8 + 3] & scalars[3]));
+        target[i * 8 + 4] =
+            (short)(src0[((char)permuters[i][4 * 2]) / 2] + ((i + 1) % 2 * scalars[0]) +
+                    (((i >> 1) ^ 1) * scalars[1]) + (cntl2[i * 8 + 4] & scalars[2]) +
+                    (cntl3[i * 8 + 4] & scalars[3]));
+        target[i * 8 + 5] =
+            (short)(src0[((char)permuters[i][5 * 2]) / 2] + ((i + 1) % 2 * scalars[0]) +
+                    (((i >> 1) ^ 1) * scalars[1]) + (cntl2[i * 8 + 5] & scalars[2]) +
+                    (cntl3[i * 8 + 5] & scalars[3]));
+        target[i * 8 + 6] =
+            (short)(src0[((char)permuters[i][6 * 2]) / 2] + ((i + 1) % 2 * scalars[0]) +
+                    (((i >> 1) ^ 1) * scalars[1]) + (cntl2[i * 8 + 6] & scalars[2]) +
+                    (cntl3[i * 8 + 6] & scalars[3]));
+        target[i * 8 + 7] =
+            (short)(src0[((char)permuters[i][7 * 2]) / 2] + ((i + 1) % 2 * scalars[0]) +
+                    (((i >> 1) ^ 1) * scalars[1]) + (cntl2[i * 8 + 7] & scalars[2]) +
+                    (cntl3[i * 8 + 7] & scalars[3]));
     }
 }
 

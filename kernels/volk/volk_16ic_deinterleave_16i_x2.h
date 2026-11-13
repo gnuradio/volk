@@ -139,15 +139,71 @@ static inline void volk_16ic_deinterleave_16i_x2_a_ssse3(int16_t* iBuffer,
     int16_t* iBufferPtr = iBuffer;
     int16_t* qBufferPtr = qBuffer;
 
-    __m128i iMoveMask1 = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 13, 12, 9, 8, 5, 4, 1, 0);
-    __m128i iMoveMask2 = _mm_set_epi8(
-        13, 12, 9, 8, 5, 4, 1, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+    __m128i iMoveMask1 = _mm_set_epi8(CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      13,
+                                      12,
+                                      9,
+                                      8,
+                                      5,
+                                      4,
+                                      1,
+                                      0);
+    __m128i iMoveMask2 = _mm_set_epi8(13,
+                                      12,
+                                      9,
+                                      8,
+                                      5,
+                                      4,
+                                      1,
+                                      0,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80);
 
-    __m128i qMoveMask1 = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 14, 11, 10, 7, 6, 3, 2);
-    __m128i qMoveMask2 = _mm_set_epi8(
-        15, 14, 11, 10, 7, 6, 3, 2, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+    __m128i qMoveMask1 = _mm_set_epi8(CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      15,
+                                      14,
+                                      11,
+                                      10,
+                                      7,
+                                      6,
+                                      3,
+                                      2);
+    __m128i qMoveMask2 = _mm_set_epi8(15,
+                                      14,
+                                      11,
+                                      10,
+                                      7,
+                                      6,
+                                      3,
+                                      2,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80,
+                                      CHAR0X80);
 
     __m128i complexVal1, complexVal2, iOutputVal, qOutputVal;
 

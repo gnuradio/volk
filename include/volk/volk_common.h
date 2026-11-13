@@ -104,6 +104,9 @@
 ////////////////////////////////////////////////////////////////////////
 #include <stdint.h>
 
+#define CHAR0X80 ((int8_t)0x80)
+#define CHAR0XFF ((int8_t)0xff)
+
 #ifdef LV_HAVE_SSE
 #ifdef _WIN32
 #include <intrin.h>

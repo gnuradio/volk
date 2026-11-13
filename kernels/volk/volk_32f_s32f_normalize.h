@@ -60,6 +60,20 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_32f_s32f_normalize_generic(float* vecBuffer,
+                                                   const float scalar,
+                                                   unsigned int num_points)
+{
+    const float invScalar = 1.0f / scalar;
+    for (unsigned int number = 0; number < num_points; number++) {
+        *vecBuffer++ *= invScalar;
+    }
+}
+#endif /* LV_HAVE_GENERIC */
+
+
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
 
@@ -67,31 +81,18 @@ static inline void volk_32f_s32f_normalize_a_avx(float* vecBuffer,
                                                  const float scalar,
                                                  unsigned int num_points)
 {
-    unsigned int number = 0;
-    float* inputPtr = vecBuffer;
+    const unsigned int eighthPoints = num_points / 8;
+    const float invScalar = 1.0f / scalar;
 
-    const float invScalar = 1.0 / scalar;
-    __m256 vecScalar = _mm256_set1_ps(invScalar);
-
-    __m256 input1;
-
-    const uint64_t eighthPoints = num_points / 8;
-    for (; number < eighthPoints; number++) {
-
-        input1 = _mm256_load_ps(inputPtr);
-
-        input1 = _mm256_mul_ps(input1, vecScalar);
-
-        _mm256_store_ps(inputPtr, input1);
-
-        inputPtr += 8;
+    const __m256 vecScalar = _mm256_set1_ps(invScalar);
+    for (unsigned int number = 0; number < eighthPoints; number++) {
+        const __m256 input = _mm256_load_ps(vecBuffer);
+        const __m256 result = _mm256_mul_ps(input, vecScalar);
+        _mm256_store_ps(vecBuffer, result);
+        vecBuffer += 8;
     }
 
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *inputPtr *= invScalar;
-        inputPtr++;
-    }
+    volk_32f_s32f_normalize_generic(vecBuffer, scalar, num_points - 8 * eighthPoints);
 }
 #endif /* LV_HAVE_AVX */
 
@@ -102,49 +103,19 @@ static inline void volk_32f_s32f_normalize_a_sse(float* vecBuffer,
                                                  const float scalar,
                                                  unsigned int num_points)
 {
-    unsigned int number = 0;
-    float* inputPtr = vecBuffer;
-
-    const float invScalar = 1.0 / scalar;
-    __m128 vecScalar = _mm_set_ps1(invScalar);
-
-    __m128 input1;
-
-    const uint64_t quarterPoints = num_points / 4;
-    for (; number < quarterPoints; number++) {
-
-        input1 = _mm_load_ps(inputPtr);
-
-        input1 = _mm_mul_ps(input1, vecScalar);
-
-        _mm_store_ps(inputPtr, input1);
-
-        inputPtr += 4;
+    const unsigned int blocks = num_points / 4;
+    const float invScalar = 1.0f / scalar;
+    const __m128 vecScalar = _mm_set_ps1(invScalar);
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const __m128 input = _mm_load_ps(vecBuffer);
+        const __m128 result = _mm_mul_ps(input, vecScalar);
+        _mm_store_ps(vecBuffer, result);
+        vecBuffer += 4;
     }
-
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        *inputPtr *= invScalar;
-        inputPtr++;
-    }
+    volk_32f_s32f_normalize_generic(vecBuffer, scalar, num_points - 4 * blocks);
 }
 #endif /* LV_HAVE_SSE */
 
-#ifdef LV_HAVE_GENERIC
-
-static inline void volk_32f_s32f_normalize_generic(float* vecBuffer,
-                                                   const float scalar,
-                                                   unsigned int num_points)
-{
-    unsigned int number = 0;
-    float* inputPtr = vecBuffer;
-    const float invScalar = 1.0 / scalar;
-    for (number = 0; number < num_points; number++) {
-        *inputPtr *= invScalar;
-        inputPtr++;
-    }
-}
-#endif /* LV_HAVE_GENERIC */
 
 #ifdef LV_HAVE_ORC
 
@@ -156,7 +127,7 @@ static inline void volk_32f_s32f_normalize_u_orc(float* vecBuffer,
                                                  const float scalar,
                                                  unsigned int num_points)
 {
-    float invscalar = 1.0 / scalar;
+    float invscalar = 1.0f / scalar;
     volk_32f_s32f_normalize_a_orc_impl(vecBuffer, vecBuffer, invscalar, num_points);
 }
 #endif /* LV_HAVE_GENERIC */
@@ -175,31 +146,16 @@ static inline void volk_32f_s32f_normalize_u_avx(float* vecBuffer,
                                                  const float scalar,
                                                  unsigned int num_points)
 {
-    unsigned int number = 0;
-    float* inputPtr = vecBuffer;
-
-    const float invScalar = 1.0 / scalar;
-    __m256 vecScalar = _mm256_set1_ps(invScalar);
-
-    __m256 input1;
-
-    const uint64_t eighthPoints = num_points / 8;
-    for (; number < eighthPoints; number++) {
-
-        input1 = _mm256_loadu_ps(inputPtr);
-
-        input1 = _mm256_mul_ps(input1, vecScalar);
-
-        _mm256_storeu_ps(inputPtr, input1);
-
-        inputPtr += 8;
+    const unsigned int blocks = num_points / 8;
+    const float invScalar = 1.0f / scalar;
+    const __m256 vecScalar = _mm256_set1_ps(invScalar);
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const __m256 input = _mm256_loadu_ps(vecBuffer);
+        const __m256 result = _mm256_mul_ps(input, vecScalar);
+        _mm256_storeu_ps(vecBuffer, result);
+        vecBuffer += 8;
     }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *inputPtr *= invScalar;
-        inputPtr++;
-    }
+    volk_32f_s32f_normalize_generic(vecBuffer, scalar, num_points - 8 * blocks);
 }
 #endif /* LV_HAVE_AVX */
 
@@ -210,23 +166,16 @@ static inline void volk_32f_s32f_normalize_neon(float* vecBuffer,
                                                 const float scalar,
                                                 unsigned int num_points)
 {
-    unsigned int number = 0;
-    float* inputPtr = vecBuffer;
+    const unsigned int blocks = num_points / 4;
     const float invScalar = 1.0f / scalar;
-    float32x4_t vInvScalar = vdupq_n_f32(invScalar);
-    const unsigned int quarter_points = num_points / 4;
-
-    for (; number < quarter_points; number++) {
-        float32x4_t input = vld1q_f32(inputPtr);
-        input = vmulq_f32(input, vInvScalar);
-        vst1q_f32(inputPtr, input);
-        inputPtr += 4;
+    const float32x4_t vecScalar = vdupq_n_f32(invScalar);
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const float32x4_t input = vld1q_f32(vecBuffer);
+        const float32x4_t result = vmulq_f32(input, vecScalar);
+        vst1q_f32(vecBuffer, result);
+        vecBuffer += 4;
     }
-
-    number = quarter_points * 4;
-    for (; number < num_points; number++) {
-        *inputPtr++ *= invScalar;
-    }
+    volk_32f_s32f_normalize_generic(vecBuffer, scalar, num_points - 4 * blocks);
 }
 #endif /* LV_HAVE_NEON */
 
@@ -237,29 +186,20 @@ static inline void volk_32f_s32f_normalize_neonv8(float* vecBuffer,
                                                   const float scalar,
                                                   unsigned int num_points)
 {
-    unsigned int number = 0;
-    float* inputPtr = vecBuffer;
+    const unsigned int blocks = num_points / 8;
     const float invScalar = 1.0f / scalar;
-    float32x4_t vInvScalar = vdupq_n_f32(invScalar);
-    const unsigned int eighth_points = num_points / 8;
-
-    for (; number < eighth_points; number++) {
-        float32x4_t input0 = vld1q_f32(inputPtr);
-        float32x4_t input1 = vld1q_f32(inputPtr + 4);
-        __VOLK_PREFETCH(inputPtr + 8);
-
-        input0 = vmulq_f32(input0, vInvScalar);
-        input1 = vmulq_f32(input1, vInvScalar);
-
-        vst1q_f32(inputPtr, input0);
-        vst1q_f32(inputPtr + 4, input1);
-        inputPtr += 8;
+    const float32x4_t vecScalar = vdupq_n_f32(invScalar);
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const float32x4_t input = vld1q_f32(vecBuffer);
+        const float32x4_t input1 = vld1q_f32(vecBuffer + 4);
+        __VOLK_PREFETCH(vecBuffer + 8);
+        const float32x4_t result = vmulq_f32(input, vecScalar);
+        const float32x4_t result1 = vmulq_f32(input1, vecScalar);
+        vst1q_f32(vecBuffer, result);
+        vst1q_f32(vecBuffer + 4, result1);
+        vecBuffer += 8;
     }
-
-    number = eighth_points * 8;
-    for (; number < num_points; number++) {
-        *inputPtr++ *= invScalar;
-    }
+    volk_32f_s32f_normalize_generic(vecBuffer, scalar, num_points - 8 * blocks);
 }
 #endif /* LV_HAVE_NEONV8 */
 

@@ -28,6 +28,7 @@
 #include <limits>   // for numeric_limits
 #include <map>      // for map, map<>::mappe...
 #include <random>
+#include <stdexcept>
 #include <tuple>
 #include <vector> // for vector, _Bit_refe...
 
@@ -47,6 +48,20 @@ void random_floats(void* buf, unsigned int n, std::default_random_engine& rnd_en
     for (unsigned int i = 0; i < n; i++) {
         array[i] = uniform_dist(rnd_engine);
     }
+}
+
+template <typename T, typename DistributionT = T>
+void random_integers(void* const data,
+                     const unsigned int n,
+                     std::default_random_engine& rnd_engine,
+                     const DistributionT min = std::numeric_limits<T>::min(),
+                     const DistributionT max = std::numeric_limits<T>::max())
+{
+    std::uniform_int_distribution<DistributionT> distribution(min, max);
+    auto* const output = static_cast<T*>(data);
+    std::generate_n(output, n, [&distribution, &rnd_engine]() {
+        return static_cast<T>(distribution(rnd_engine));
+    });
 }
 
 void load_random_data(void* data,
@@ -115,70 +130,28 @@ void load_random_data(void* data,
         }
         switch (type.size) {
         case 8:
-            if (type.is_signed) {
-                std::uniform_int_distribution<int64_t> uniform_dist(
-                    std::numeric_limits<int64_t>::min(),
-                    std::numeric_limits<int64_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((int64_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            } else {
-                std::uniform_int_distribution<uint64_t> uniform_dist(
-                    std::numeric_limits<uint64_t>::min(),
-                    std::numeric_limits<uint64_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((uint64_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            }
+            if (type.is_signed)
+                random_integers<int64_t>(data, n, rnd_engine);
+            else
+                random_integers<uint64_t>(data, n, rnd_engine);
             break;
         case 4:
-            if (type.is_signed) {
-                std::uniform_int_distribution<int32_t> uniform_dist(
-                    std::numeric_limits<int32_t>::min(),
-                    std::numeric_limits<int32_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((int32_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            } else {
-                std::uniform_int_distribution<uint32_t> uniform_dist(
-                    std::numeric_limits<uint32_t>::min(),
-                    std::numeric_limits<uint32_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((uint32_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            }
+            if (type.is_signed)
+                random_integers<int32_t>(data, n, rnd_engine);
+            else
+                random_integers<uint32_t>(data, n, rnd_engine);
             break;
         case 2:
-            if (type.is_signed) {
-                std::uniform_int_distribution<int16_t> uniform_dist(-6, 6);
-                for (unsigned int i = 0; i < n; i++) {
-                    ((int16_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            } else {
-                std::uniform_int_distribution<uint16_t> uniform_dist(
-                    std::numeric_limits<uint16_t>::min(),
-                    std::numeric_limits<uint16_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((uint16_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            }
+            if (type.is_signed)
+                random_integers<int16_t, int16_t>(data, n, rnd_engine, -6, 6);
+            else
+                random_integers<uint16_t>(data, n, rnd_engine);
             break;
         case 1:
-            if (type.is_signed) {
-                std::uniform_int_distribution<int16_t> uniform_dist(
-                    std::numeric_limits<int8_t>::min(),
-                    std::numeric_limits<int8_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((int8_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            } else {
-                std::uniform_int_distribution<uint16_t> uniform_dist(
-                    std::numeric_limits<uint8_t>::min(),
-                    std::numeric_limits<uint8_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((uint8_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            }
+            if (type.is_signed)
+                random_integers<int8_t, int16_t>(data, n, rnd_engine);
+            else
+                random_integers<uint8_t, uint16_t>(data, n, rnd_engine);
             break;
         default:
             throw "load_random_data: no support for data size > 8 or < 1"; // no
@@ -465,20 +438,18 @@ inline void run_cast_test3_s32fc(volk_fn_3arg_s32fc func,
     }
 }
 
-template <class t>
-bool fcompare(t* expected,
-              t* actual,
-              unsigned int vlen,
-              float tol,
-              bool absolute_mode,
-              std::vector<unsigned int>& fail_indices,
-              double& max_err)
+template <class T>
+std::tuple<double, std::vector<unsigned int>> fcompare(const T* const expected,
+                                                       const T* const actual,
+                                                       const unsigned int vlen,
+                                                       const float tol,
+                                                       const bool absolute_mode)
 {
-    bool fail = false;
-    max_err = 0.0;
+    double max_err = 0.0;
+    std::vector<unsigned int> fail_indices;
     for (unsigned int i = 0; i < vlen; i++) {
-        t exp_val = expected[i];
-        t act_val = actual[i];
+        T exp_val = expected[i];
+        T act_val = actual[i];
 
         // Check for special values (NaN, inf)
         bool exp_special = std::isnan(exp_val) || std::isinf(exp_val);
@@ -521,30 +492,27 @@ bool fcompare(t* expected,
             max_err = cmp_err;
         }
         if (this_fail) {
-            fail = true;
             fail_indices.push_back(i);
         }
     }
 
-    return fail;
+    return { max_err, std::move(fail_indices) };
 }
 
-template <class t>
-bool ccompare(t* expected,
-              t* actual,
-              unsigned int vlen,
-              float tol,
-              bool absolute_mode,
-              std::vector<unsigned int>& fail_indices,
-              double& max_err)
+template <class T>
+std::tuple<double, std::vector<unsigned int>> ccompare(const T* const expected,
+                                                       const T* const actual,
+                                                       const unsigned int vlen,
+                                                       const float tol,
+                                                       const bool absolute_mode)
 {
-    bool fail = false;
-    max_err = 0.0;
+    double max_err = 0.0;
+    std::vector<unsigned int> fail_indices;
     for (unsigned int i = 0; i < 2 * vlen; i += 2) {
-        t exp_re = expected[i];
-        t exp_im = expected[i + 1];
-        t act_re = actual[i];
-        t act_im = actual[i + 1];
+        T exp_re = expected[i];
+        T exp_im = expected[i + 1];
+        T act_re = actual[i];
+        T act_im = actual[i + 1];
 
         // Check for special values (NaN, inf) and verify they match
         bool exp_has_special = std::isnan(exp_re) || std::isnan(exp_im) ||
@@ -567,9 +535,9 @@ bool ccompare(t* expected,
                 cmp_err = std::numeric_limits<double>::infinity();
             }
         } else {
-            t diff[2] = { exp_re - act_re, exp_im - act_im };
-            t err = std::sqrt(diff[0] * diff[0] + diff[1] * diff[1]);
-            t norm = std::sqrt(exp_re * exp_re + exp_im * exp_im);
+            T diff[2] = { exp_re - act_re, exp_im - act_im };
+            T err = std::sqrt(diff[0] * diff[0] + diff[1] * diff[1]);
+            T norm = std::sqrt(exp_re * exp_re + exp_im * exp_im);
 
             if (absolute_mode) {
                 cmp_err = err;
@@ -598,38 +566,105 @@ bool ccompare(t* expected,
             max_err = cmp_err;
         }
         if (this_fail) {
-            fail = true;
             fail_indices.push_back(i / 2);
         }
     }
 
-    return fail;
+    return { max_err, std::move(fail_indices) };
 }
 
-template <class t>
-bool icompare(t* expected,
-              t* actual,
-              unsigned int vlen,
-              unsigned int tol,
-              std::vector<unsigned int>& fail_indices,
-              double& max_err)
+std::tuple<double, std::vector<unsigned int>> compare_floats(const void* const expected,
+                                                             const void* const actual,
+                                                             const volk_type_t& type,
+                                                             const unsigned int vlen,
+                                                             const float tol,
+                                                             const bool absolute_mode)
 {
-    bool fail = false;
-    max_err = 0.0;
+    if (type.size == 8) {
+        const auto* const exp = static_cast<const double*>(expected);
+        const auto* const act = static_cast<const double*>(actual);
+        return type.is_complex ? ccompare(exp, act, vlen, tol, absolute_mode)
+                               : fcompare(exp, act, vlen, tol, absolute_mode);
+    }
+    const auto* const exp = static_cast<const float*>(expected);
+    const auto* const act = static_cast<const float*>(actual);
+    return type.is_complex ? ccompare(exp, act, vlen, tol, absolute_mode)
+                           : fcompare(exp, act, vlen, tol, absolute_mode);
+}
+
+template <class T>
+std::tuple<double, std::vector<unsigned int>> icompare(const T* const expected,
+                                                       const T* const actual,
+                                                       const unsigned int vlen,
+                                                       const unsigned int tol)
+{
+    double max_err = 0.0;
+    std::vector<unsigned int> fail_indices;
     for (unsigned int i = 0; i < vlen; i++) {
-        t exp_val = expected[i];
-        t act_val = actual[i];
-        uint64_t abs_err = (uint64_t)abs(int64_t(exp_val) - int64_t(act_val));
-        if ((double)abs_err > max_err) {
-            max_err = (double)abs_err;
-        }
+        const T exp_val = expected[i];
+        const T act_val = actual[i];
+        const uint64_t abs_err = exp_val >= act_val
+                                     ? uint64_t(exp_val) - uint64_t(act_val)
+                                     : uint64_t(act_val) - uint64_t(exp_val);
+        max_err = std::max(max_err, static_cast<double>(abs_err));
+
         if (abs_err > tol) {
-            fail = true;
             fail_indices.push_back(i);
         }
     }
 
-    return fail;
+    return { max_err, std::move(fail_indices) };
+}
+
+template <class T>
+std::tuple<double, std::vector<unsigned int>> icompare_as(const void* const expected,
+                                                          const void* const actual,
+                                                          const unsigned int count,
+                                                          const unsigned int tol)
+{
+    return icompare(
+        static_cast<const T*>(expected), static_cast<const T*>(actual), count, tol);
+}
+
+std::tuple<double, std::vector<unsigned int>> compare_integers(const void* const expected,
+                                                               const void* const actual,
+                                                               const volk_type_t& type,
+                                                               const unsigned int vlen,
+                                                               const unsigned int tol)
+{
+    const unsigned int count = vlen * (type.is_complex ? 2 : 1);
+    switch (type.size) {
+    case 8:
+        return type.is_signed ? icompare_as<int64_t>(expected, actual, count, tol)
+                              : icompare_as<uint64_t>(expected, actual, count, tol);
+    case 4:
+        if (!type.is_complex)
+            return type.is_signed ? icompare_as<int32_t>(expected, actual, count, tol)
+                                  : icompare_as<uint32_t>(expected, actual, count, tol);
+        [[fallthrough]];
+    case 2:
+        return type.is_signed ? icompare_as<int16_t>(expected, actual, count, tol)
+                              : icompare_as<uint16_t>(expected, actual, count, tol);
+    case 1:
+        return type.is_signed ? icompare_as<int8_t>(expected, actual, count, tol)
+                              : icompare_as<uint8_t>(expected, actual, count, tol);
+    default:
+        throw std::invalid_argument("unsupported integer element size");
+    }
+}
+
+std::tuple<double, std::vector<unsigned int>> compare_vectors(const void* const expected,
+                                                              const void* const actual,
+                                                              const volk_type_t& type,
+                                                              const unsigned int vlen,
+                                                              const float tol_f,
+                                                              const unsigned int tol_i,
+                                                              const bool absolute_mode)
+{
+    if (type.is_float) {
+        return compare_floats(expected, actual, type, vlen, tol_f, absolute_mode);
+    }
+    return compare_integers(expected, actual, type, vlen, tol_i);
 }
 
 namespace {
@@ -647,7 +682,8 @@ std::tuple<unsigned int, unsigned int> tol_precision(float tol, unsigned int col
     }
     const float log10 = std::log10(tol);
     return { tol_length,
-             std::min<unsigned int>(tol_length - dot_length, -std::floor(log10)) };
+             std::min<unsigned int>(tol_length - dot_length,
+                                    static_cast<unsigned int>(-std::floor(log10))) };
 }
 
 template <class T>
@@ -656,7 +692,8 @@ unsigned int max_column_width(const T& columns)
     unsigned col_len = 0;
     for (const auto& col : columns) {
         auto this_col_len = fmt::formatted_size("{}", col);
-        col_len = col_len > this_col_len ? col_len : this_col_len;
+        col_len =
+            static_cast<unsigned int>(col_len > this_col_len ? col_len : this_col_len);
     }
     return col_len;
 }
@@ -676,7 +713,8 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
     constexpr std::array<const char*, 5> columns{
         "index", "expected", "actual", "rel_err", "tol"
     };
-    unsigned int index_len = fmt::formatted_size("{}", columns[0]) + 1;
+    unsigned int index_len =
+        static_cast<unsigned int>(fmt::formatted_size("{}", columns[0]) + 1);
     unsigned int col_len = max_column_width(columns);
     /* choose enough digits to represent tolerance */
     const auto [tol_length, value_prec] = tol_precision(tol, col_len);
@@ -1300,144 +1338,18 @@ bool run_volk_tests(volk_func_desc_t desc,
         fail = false;
         if (i != generic_offset) {
             for (size_t j = 0; j < outputsig.size(); j++) {
-                std::vector<unsigned int> fail_indices;
-                double max_err = 0.0;
-                if (both_sigs[j].is_float) {
-                    if (both_sigs[j].size == 8) {
-                        if (both_sigs[j].is_complex) {
-                            fail = ccompare((double*)test_data[generic_offset][j],
-                                            (double*)test_data[i][j],
-                                            vlen,
-                                            tol_f,
-                                            absolute_mode,
-                                            fail_indices,
-                                            max_err);
-                        } else {
-                            fail = fcompare((double*)test_data[generic_offset][j],
-                                            (double*)test_data[i][j],
-                                            vlen,
-                                            tol_f,
-                                            absolute_mode,
-                                            fail_indices,
-                                            max_err);
-                        }
-                    } else {
-                        if (both_sigs[j].is_complex) {
-                            fail = ccompare((float*)test_data[generic_offset][j],
-                                            (float*)test_data[i][j],
-                                            vlen,
-                                            tol_f,
-                                            absolute_mode,
-                                            fail_indices,
-                                            max_err);
-                        } else {
-                            fail = fcompare((float*)test_data[generic_offset][j],
-                                            (float*)test_data[i][j],
-                                            vlen,
-                                            tol_f,
-                                            absolute_mode,
-                                            fail_indices,
-                                            max_err);
-                        }
-                    }
-                } else {
-                    // i could replace this whole switch statement with a memcmp if i
-                    // wasn't interested in printing the outputs where they differ
-                    switch (both_sigs[j].size) {
-                    case 8:
-                        if (both_sigs[j].is_signed) {
-                            fail = icompare((int64_t*)test_data[generic_offset][j],
-                                            (int64_t*)test_data[i][j],
-                                            vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            fail_indices,
-                                            max_err);
-                        } else {
-                            fail = icompare((uint64_t*)test_data[generic_offset][j],
-                                            (uint64_t*)test_data[i][j],
-                                            vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            fail_indices,
-                                            max_err);
-                        }
-                        break;
-                    case 4:
-                        if (both_sigs[j].is_complex) {
-                            if (both_sigs[j].is_signed) {
-                                fail = icompare((int16_t*)test_data[generic_offset][j],
-                                                (int16_t*)test_data[i][j],
-                                                vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                fail_indices,
-                                                max_err);
-                            } else {
-                                fail = icompare((uint16_t*)test_data[generic_offset][j],
-                                                (uint16_t*)test_data[i][j],
-                                                vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                fail_indices,
-                                                max_err);
-                            }
-                        } else {
-                            if (both_sigs[j].is_signed) {
-                                fail = icompare((int32_t*)test_data[generic_offset][j],
-                                                (int32_t*)test_data[i][j],
-                                                vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                fail_indices,
-                                                max_err);
-                            } else {
-                                fail = icompare((uint32_t*)test_data[generic_offset][j],
-                                                (uint32_t*)test_data[i][j],
-                                                vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                                tol_i,
-                                                fail_indices,
-                                                max_err);
-                            }
-                        }
-                        break;
-                    case 2:
-                        if (both_sigs[j].is_signed) {
-                            fail = icompare((int16_t*)test_data[generic_offset][j],
-                                            (int16_t*)test_data[i][j],
-                                            vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            fail_indices,
-                                            max_err);
-                        } else {
-                            fail = icompare((uint16_t*)test_data[generic_offset][j],
-                                            (uint16_t*)test_data[i][j],
-                                            vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            fail_indices,
-                                            max_err);
-                        }
-                        break;
-                    case 1:
-                        if (both_sigs[j].is_signed) {
-                            fail = icompare((int8_t*)test_data[generic_offset][j],
-                                            (int8_t*)test_data[i][j],
-                                            vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            fail_indices,
-                                            max_err);
-                        } else {
-                            fail = icompare((uint8_t*)test_data[generic_offset][j],
-                                            (uint8_t*)test_data[i][j],
-                                            vlen * (both_sigs[j].is_complex ? 2 : 1),
-                                            tol_i,
-                                            fail_indices,
-                                            max_err);
-                        }
-                        break;
-                    default:
-                        fail = 1;
-                    }
-                }
+                auto [max_err, fail_indices] =
+                    compare_vectors(test_data[generic_offset][j],
+                                    test_data[i][j],
+                                    both_sigs[j],
+                                    vlen,
+                                    tol_f,
+                                    tol_i,
+                                    absolute_mode);
+                fail = !fail_indices.empty();
                 // Track max error for this arch across all outputs
-                if (max_err > arch_max_err[i]) {
-                    arch_max_err[i] = max_err;
-                }
+                arch_max_err[i] = std::max(arch_max_err[i], max_err);
+
                 if (fail) {
                     volk_test_time_t* result = &results->back().results[arch_list[i]];
                     result->pass = false;
@@ -1453,6 +1365,7 @@ bool run_volk_tests(volk_func_desc_t desc,
                 }
             }
         }
+
         arch_results.push_back(!fail);
     }
 
@@ -1490,7 +1403,8 @@ bool run_volk_tests(volk_func_desc_t desc,
     for (auto& j : inputsig) {
         bytes_per_call += j.size * (j.is_complex ? 2 : 1) * vlen;
     }
-    double total_mb = (bytes_per_call * iter) / 1e6; // Total megabytes transferred
+    double total_mb =
+        static_cast<double>(bytes_per_call * iter) / 1e6; // Total megabytes transferred
 
     // Get generic timing for speedup calculation
     double generic_time = 0.0;

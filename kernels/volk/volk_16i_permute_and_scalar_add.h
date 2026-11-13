@@ -157,9 +157,9 @@ static inline void volk_16i_permute_and_scalar_add_a_sse2(short* target,
     }
 
     for (i = bound * 8; i < (bound * 8) + leftovers; ++i) {
-        target[i] = src0[permute_indexes[i]] + (cntl0[i] & scalars[0]) +
-                    (cntl1[i] & scalars[1]) + (cntl2[i] & scalars[2]) +
-                    (cntl3[i] & scalars[3]);
+        target[i] = (short)(src0[permute_indexes[i]] + (cntl0[i] & scalars[0]) +
+                            (cntl1[i] & scalars[1]) + (cntl2[i] & scalars[2]) +
+                            (cntl3[i] & scalars[3]));
     }
 }
 #endif /*LV_HAVE_SSE*/
@@ -183,9 +183,9 @@ static inline void volk_16i_permute_and_scalar_add_generic(short* target,
     int bound = num_bytes >> 1;
 
     for (i = 0; i < bound; ++i) {
-        target[i] = src0[permute_indexes[i]] + (cntl0[i] & scalars[0]) +
-                    (cntl1[i] & scalars[1]) + (cntl2[i] & scalars[2]) +
-                    (cntl3[i] & scalars[3]);
+        target[i] = (short)(src0[permute_indexes[i]] + (cntl0[i] & scalars[0]) +
+                            (cntl1[i] & scalars[1]) + (cntl2[i] & scalars[2]) +
+                            (cntl3[i] & scalars[3]));
     }
 }
 

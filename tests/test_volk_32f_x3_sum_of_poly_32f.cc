@@ -32,7 +32,7 @@ protected:
 
         vec0 = volk::vector<float>(length);
         for (size_t i = 0; i < length; ++i) {
-            vec0[i] = float(2.8f + i * 0.14f);
+            vec0[i] = float(2.8f + static_cast<float>(i) * 0.14f);
         }
 
         ua_vec0 = volk::vector<float>({ 0.0f });
@@ -66,7 +66,7 @@ protected:
         result = volk::vector<float>(1, 0.0);
         ua_result.push_back(result.at(0));
         ua_result.push_back(result.at(0));
-        tolerance = std::max(expected * 1e-5, 1e-5);
+        tolerance = std::max(expected * 1e-5f, 1e-5f);
     }
 
     void execute_aligned(const std::string impl_name)
@@ -75,7 +75,7 @@ protected:
                                            vec0.data(),
                                            center_points.data(),
                                            cutoff.data(),
-                                           vector_length,
+                                           static_cast<unsigned int>(vector_length),
                                            impl_name.c_str());
         EXPECT_NEAR(result.at(0), expected, tolerance);
     }
@@ -86,7 +86,7 @@ protected:
                                            ua_vec0.data() + 1,
                                            ua_center_points.data() + 1,
                                            ua_cutoff.data() + 1,
-                                           vector_length,
+                                           static_cast<unsigned int>(vector_length),
                                            impl_name.c_str());
         EXPECT_NEAR(ua_result.at(1), expected, tolerance);
     }
@@ -101,7 +101,7 @@ protected:
     volk::vector<float> result;
     volk::vector<float> ua_result;
     float expected = 0.0f;
-    float tolerance = 1.0e-5;
+    float tolerance = 1.0e-5f;
 };
 
 TEST_P(volk_32f_x3_sum_of_poly_32f_test, run)

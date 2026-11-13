@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 {
     bool qa_ret_val = 0;
 
-    float def_tol = 1e-6;
+    float def_tol = 1e-6f;
     lv_32fc_t def_scalar = 327.0;
     int def_iter = 1;
     int def_vlen = 131071;
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
         }
 
         // Generate XML results
-        print_qa_xml(results, qa_failures.size());
+        print_qa_xml(results, static_cast<unsigned int>(qa_failures.size()));
 
         // Summarize QA results
         std::cerr << "Kernel QA finished: " << qa_failures.size() << " failures out of "

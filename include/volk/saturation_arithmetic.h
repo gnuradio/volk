@@ -17,24 +17,28 @@ static inline int16_t sat_adds16i(int16_t x, int16_t y)
 {
     int32_t res = (int32_t)x + (int32_t)y;
 
-    if (res < SHRT_MIN)
+    if (res < SHRT_MIN) {
         res = SHRT_MIN;
-    if (res > SHRT_MAX)
+    }
+    if (res > SHRT_MAX) {
         res = SHRT_MAX;
+    }
 
-    return res;
+    return (int16_t)res;
 }
 
 static inline int16_t sat_muls16i(int16_t x, int16_t y)
 {
     int32_t res = (int32_t)x * (int32_t)y;
 
-    if (res < SHRT_MIN)
+    if (res < SHRT_MIN) {
         res = SHRT_MIN;
-    if (res > SHRT_MAX)
+    }
+    if (res > SHRT_MAX) {
         res = SHRT_MAX;
+    }
 
-    return res;
+    return (int16_t)res;
 }
 
 #endif /* INCLUDED_volk_saturation_arithmetic_H_ */

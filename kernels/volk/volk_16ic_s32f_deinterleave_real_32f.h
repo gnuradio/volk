@@ -63,20 +63,20 @@ volk_16ic_s32f_deinterleave_real_32f_a_avx2(float* iBuffer,
 
     __m256 iFloatValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     __m256i complexVal, iIntVal;
     __m128i complexVal128;
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
-    __m256i moveMask = _mm256_set_epi8(0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
+    __m256i moveMask = _mm256_set_epi8(CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
                                        13,
                                        12,
                                        9,
@@ -85,14 +85,14 @@ volk_16ic_s32f_deinterleave_real_32f_a_avx2(float* iBuffer,
                                        4,
                                        1,
                                        0,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
                                        13,
                                        12,
                                        9,
@@ -144,13 +144,27 @@ volk_16ic_s32f_deinterleave_real_32f_a_sse4_1(float* iBuffer,
 
     __m128 iFloatValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
     __m128i complexVal, iIntVal;
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
-    __m128i moveMask = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 13, 12, 9, 8, 5, 4, 1, 0);
+    __m128i moveMask = _mm_set_epi8(CHAR0X80,
+                                    CHAR0X80,
+                                    CHAR0X80,
+                                    CHAR0X80,
+                                    CHAR0X80,
+                                    CHAR0X80,
+                                    CHAR0X80,
+                                    CHAR0X80,
+                                    13,
+                                    12,
+                                    9,
+                                    8,
+                                    5,
+                                    4,
+                                    1,
+                                    0);
 
     for (; number < quarterPoints; number++) {
         complexVal = _mm_load_si128((__m128i*)complexVectorPtr);
@@ -191,7 +205,7 @@ volk_16ic_s32f_deinterleave_real_32f_a_sse(float* iBuffer,
     const unsigned int quarterPoints = num_points / 4;
     __m128 iValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
     int16_t* complexVectorPtr = (int16_t*)complexVector;
 
@@ -235,7 +249,7 @@ volk_16ic_s32f_deinterleave_real_32f_generic(float* iBuffer,
     unsigned int number = 0;
     const int16_t* complexVectorPtr = (const int16_t*)complexVector;
     float* iBufferPtr = iBuffer;
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     for (number = 0; number < num_points; number++) {
         *iBufferPtr++ = ((float)(*complexVectorPtr++)) * invScalar;
         complexVectorPtr++;
@@ -269,20 +283,20 @@ volk_16ic_s32f_deinterleave_real_32f_u_avx2(float* iBuffer,
 
     __m256 iFloatValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     __m256i complexVal, iIntVal;
     __m128i complexVal128;
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
-    __m256i moveMask = _mm256_set_epi8(0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
+    __m256i moveMask = _mm256_set_epi8(CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
                                        13,
                                        12,
                                        9,
@@ -291,14 +305,14 @@ volk_16ic_s32f_deinterleave_real_32f_u_avx2(float* iBuffer,
                                        4,
                                        1,
                                        0,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
-                                       0x80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
+                                       CHAR0X80,
                                        13,
                                        12,
                                        9,

@@ -97,13 +97,14 @@ static inline void BFLY(int i,
     for (j = 0; j < RATE; j++) {
         metricsum += (Branchtab[i + j * NUMSTATES / 2] ^ syms[s * RATE + j]);
     }
-    metric = (metricsum >> METRICSHIFT) >> PRECISIONSHIFT;
+    metric = (unsigned char)((metricsum >> METRICSHIFT) >> PRECISIONSHIFT);
 
-    unsigned char max = ((RATE * ((256 - 1) >> METRICSHIFT)) >> PRECISIONSHIFT);
+    unsigned char max =
+        (unsigned char)(((RATE * ((256 - 1) >> METRICSHIFT)) >> PRECISIONSHIFT));
 
     m0 = X[i] + metric;
-    m1 = X[i + NUMSTATES / 2] + (max - metric);
-    m2 = X[i] + (max - metric);
+    m1 = (unsigned char)(X[i + NUMSTATES / 2] + (max - metric));
+    m2 = (unsigned char)(X[i] + (max - metric));
     m3 = X[i + NUMSTATES / 2] + metric;
 
     decision0 = (signed int)(m0 - m1) >= 0;
@@ -246,8 +247,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         d9 = _mm_cmpeq_epi8(a89, m24);
         a90 = _mm_min_epu8(m26, m25);
         d10 = _mm_cmpeq_epi8(a90, m26);
-        dec_short[4 * i] = _mm_movemask_epi8(_mm_unpacklo_epi8(d9, d10));
-        dec_short[4 * i + 1] = _mm_movemask_epi8(_mm_unpackhi_epi8(d9, d10));
+        dec_short[4 * i] =
+            (short unsigned int)(_mm_movemask_epi8(_mm_unpacklo_epi8(d9, d10)));
+        dec_short[4 * i + 1] =
+            (short unsigned int)(_mm_movemask_epi8(_mm_unpackhi_epi8(d9, d10)));
         ((__m128i*)Y)[0] = _mm_unpacklo_epi8(a89, a90);
         ((__m128i*)Y)[1] = _mm_unpackhi_epi8(a89, a90);
 
@@ -270,8 +273,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         d11 = _mm_cmpeq_epi8(a108, m28);
         a109 = _mm_min_epu8(m30, m29);
         d12 = _mm_cmpeq_epi8(a109, m30);
-        dec_short[4 * i + 2] = _mm_movemask_epi8(_mm_unpacklo_epi8(d11, d12));
-        dec_short[4 * i + 3] = _mm_movemask_epi8(_mm_unpackhi_epi8(d11, d12));
+        dec_short[4 * i + 2] =
+            (short unsigned int)(_mm_movemask_epi8(_mm_unpacklo_epi8(d11, d12)));
+        dec_short[4 * i + 3] =
+            (short unsigned int)(_mm_movemask_epi8(_mm_unpackhi_epi8(d11, d12)));
         ((__m128i*)Y)[2] = _mm_unpacklo_epi8(a108, a109);
         ((__m128i*)Y)[3] = _mm_unpackhi_epi8(a108, a109);
 
