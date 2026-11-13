@@ -50,6 +50,20 @@ void random_floats(void* buf, unsigned int n, std::default_random_engine& rnd_en
     }
 }
 
+template <typename T, typename DistributionT = T>
+void random_integers(void* const data,
+                     const unsigned int n,
+                     std::default_random_engine& rnd_engine,
+                     const DistributionT min = std::numeric_limits<T>::min(),
+                     const DistributionT max = std::numeric_limits<T>::max())
+{
+    std::uniform_int_distribution<DistributionT> distribution(min, max);
+    auto* const output = static_cast<T*>(data);
+    std::generate_n(output, n, [&distribution, &rnd_engine]() {
+        return static_cast<T>(distribution(rnd_engine));
+    });
+}
+
 void load_random_data(void* data,
                       volk_type_t type,
                       unsigned int n,
@@ -116,70 +130,28 @@ void load_random_data(void* data,
         }
         switch (type.size) {
         case 8:
-            if (type.is_signed) {
-                std::uniform_int_distribution<int64_t> uniform_dist(
-                    std::numeric_limits<int64_t>::min(),
-                    std::numeric_limits<int64_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((int64_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            } else {
-                std::uniform_int_distribution<uint64_t> uniform_dist(
-                    std::numeric_limits<uint64_t>::min(),
-                    std::numeric_limits<uint64_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((uint64_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            }
+            if (type.is_signed)
+                random_integers<int64_t>(data, n, rnd_engine);
+            else
+                random_integers<uint64_t>(data, n, rnd_engine);
             break;
         case 4:
-            if (type.is_signed) {
-                std::uniform_int_distribution<int32_t> uniform_dist(
-                    std::numeric_limits<int32_t>::min(),
-                    std::numeric_limits<int32_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((int32_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            } else {
-                std::uniform_int_distribution<uint32_t> uniform_dist(
-                    std::numeric_limits<uint32_t>::min(),
-                    std::numeric_limits<uint32_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((uint32_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            }
+            if (type.is_signed)
+                random_integers<int32_t>(data, n, rnd_engine);
+            else
+                random_integers<uint32_t>(data, n, rnd_engine);
             break;
         case 2:
-            if (type.is_signed) {
-                std::uniform_int_distribution<int16_t> uniform_dist(-6, 6);
-                for (unsigned int i = 0; i < n; i++) {
-                    ((int16_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            } else {
-                std::uniform_int_distribution<uint16_t> uniform_dist(
-                    std::numeric_limits<uint16_t>::min(),
-                    std::numeric_limits<uint16_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((uint16_t*)data)[i] = uniform_dist(rnd_engine);
-                }
-            }
+            if (type.is_signed)
+                random_integers<int16_t, int16_t>(data, n, rnd_engine, -6, 6);
+            else
+                random_integers<uint16_t>(data, n, rnd_engine);
             break;
         case 1:
-            if (type.is_signed) {
-                std::uniform_int_distribution<int16_t> uniform_dist(
-                    std::numeric_limits<int8_t>::min(),
-                    std::numeric_limits<int8_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((int8_t*)data)[i] = static_cast<int8_t>(uniform_dist(rnd_engine));
-                }
-            } else {
-                std::uniform_int_distribution<uint16_t> uniform_dist(
-                    std::numeric_limits<uint8_t>::min(),
-                    std::numeric_limits<uint8_t>::max());
-                for (unsigned int i = 0; i < n; i++) {
-                    ((uint8_t*)data)[i] = static_cast<uint8_t>(uniform_dist(rnd_engine));
-                }
-            }
+            if (type.is_signed)
+                random_integers<int8_t, int16_t>(data, n, rnd_engine);
+            else
+                random_integers<uint8_t, uint16_t>(data, n, rnd_engine);
             break;
         default:
             throw "load_random_data: no support for data size > 8 or < 1"; // no
@@ -634,9 +606,8 @@ std::tuple<double, std::vector<unsigned int>> icompare(const T* const expected,
         const uint64_t abs_err = exp_val >= act_val
                                      ? uint64_t(exp_val) - uint64_t(act_val)
                                      : uint64_t(act_val) - uint64_t(exp_val);
-        if ((double)abs_err > max_err) {
-            max_err = (double)abs_err;
-        }
+        max_err = std::max(max_err, static_cast<double>(abs_err));
+
         if (abs_err > tol) {
             fail_indices.push_back(i);
         }
