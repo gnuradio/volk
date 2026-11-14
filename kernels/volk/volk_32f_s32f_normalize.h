@@ -128,7 +128,7 @@ static inline void volk_32f_s32f_normalize_u_orc(float* vecBuffer,
                                                  unsigned int num_points)
 {
     float invscalar = 1.0f / scalar;
-    volk_32f_s32f_normalize_a_orc_impl(vecBuffer, vecBuffer, invscalar, num_points);
+    volk_32f_s32f_normalize_a_orc_impl(vecBuffer, vecBuffer, invscalar, (int)num_points);
 }
 #endif /* LV_HAVE_GENERIC */
 

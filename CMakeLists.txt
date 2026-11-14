@@ -282,6 +282,7 @@ set(VOLK_INSTALL_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_common.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_mathematical_functions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/saturation_arithmetic.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/polar_helpers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_fma_intrinsics.h

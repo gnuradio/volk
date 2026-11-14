@@ -245,7 +245,7 @@ volk_32f_acos_32f_a_avx512(float* bVector, const float* aVector, unsigned int nu
     const __m512 half = _mm512_set1_ps(0.5f);
     const __m512 one = _mm512_set1_ps(1.0f);
     const __m512 two = _mm512_set1_ps(2.0f);
-    const __m512i sign_mask = _mm512_set1_epi32(0x80000000);
+    const __m512i sign_mask = _mm512_set1_epi32((-0x7fffffff - 1));
 
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
@@ -457,7 +457,7 @@ volk_32f_acos_32f_u_avx512(float* bVector, const float* aVector, unsigned int nu
     const __m512 half = _mm512_set1_ps(0.5f);
     const __m512 one = _mm512_set1_ps(1.0f);
     const __m512 two = _mm512_set1_ps(2.0f);
-    const __m512i sign_mask = _mm512_set1_epi32(0x80000000);
+    const __m512i sign_mask = _mm512_set1_epi32((-0x7fffffff - 1));
 
     unsigned int number = 0;
     const unsigned int sixteenthPoints = num_points / 16;
@@ -519,7 +519,7 @@ volk_32f_acos_32f_neon(float* bVector, const float* aVector, unsigned int num_po
 
         float32x4_t ax = vabsq_f32(aVal);
         uint32x4_t sign_bits =
-            vandq_u32(vreinterpretq_u32_f32(aVal), vdupq_n_u32(0x80000000));
+            vandq_u32(vreinterpretq_u32_f32(aVal), vdupq_n_u32((-0x7fffffff - 1)));
 
         float32x4_t t = vmulq_f32(vsubq_f32(one, ax), half);
         float32x4_t s = _vsqrtq_f32(t);
@@ -571,7 +571,7 @@ volk_32f_acos_32f_neonv8(float* bVector, const float* aVector, unsigned int num_
 
         float32x4_t ax = vabsq_f32(aVal);
         uint32x4_t sign_bits =
-            vandq_u32(vreinterpretq_u32_f32(aVal), vdupq_n_u32(0x80000000));
+            vandq_u32(vreinterpretq_u32_f32(aVal), vdupq_n_u32((-0x7fffffff - 1)));
 
         float32x4_t t = vmulq_f32(vsubq_f32(one, ax), half);
         float32x4_t s = vsqrtq_f32(t);

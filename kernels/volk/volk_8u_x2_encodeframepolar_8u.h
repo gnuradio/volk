@@ -13,39 +13,7 @@
 
 #ifndef VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_
 #define VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_
-#include <string.h>
-
-static inline unsigned int log2_of_power_of_2(unsigned int val)
-{
-    // algorithm from: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
-    static const unsigned int b[] = {
-        0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000
-    };
-
-    unsigned int res = (val & b[0]) != 0;
-    res |= ((val & b[4]) != 0) << 4;
-    res |= ((val & b[3]) != 0) << 3;
-    res |= ((val & b[2]) != 0) << 2;
-    res |= ((val & b[1]) != 0) << 1;
-    return res;
-}
-
-static inline void encodepolar_single_stage(unsigned char* frame_ptr,
-                                            const unsigned char* temp_ptr,
-                                            const unsigned int num_branches,
-                                            const unsigned int frame_half)
-{
-    unsigned int branch, bit;
-    for (branch = 0; branch < num_branches; ++branch) {
-        for (bit = 0; bit < frame_half; ++bit) {
-            *frame_ptr = *temp_ptr ^ *(temp_ptr + 1);
-            *(frame_ptr + frame_half) = *(temp_ptr + 1);
-            ++frame_ptr;
-            temp_ptr += 2;
-        }
-        frame_ptr += frame_half;
-    }
-}
+#include <volk/polar_helpers.h>
 
 #ifdef LV_HAVE_GENERIC
 
@@ -107,8 +75,13 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
 
     {
         __m128i r_frame1, r_temp1;
-        const __m128i shuffle_separate =
-            _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15);
+        // clang-format off
+        const __m128i shuffle_separate = _mm_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
 
         while (stage > 4) {
             frame_ptr = frame;
@@ -272,40 +245,24 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
     {
         __m256i r_frame1, r_temp1;
         __m128i r_frame3, r_temp3;
-        const __m256i shuffle_separate = _mm256_setr_epi8(0,
-                                                          2,
-                                                          4,
-                                                          6,
-                                                          8,
-                                                          10,
-                                                          12,
-                                                          14,
-                                                          1,
-                                                          3,
-                                                          5,
-                                                          7,
-                                                          9,
-                                                          11,
-                                                          13,
-                                                          15,
-                                                          0,
-                                                          2,
-                                                          4,
-                                                          6,
-                                                          8,
-                                                          10,
-                                                          12,
-                                                          14,
-                                                          1,
-                                                          3,
-                                                          5,
-                                                          7,
-                                                          9,
-                                                          11,
-                                                          13,
-                                                          15);
-        const __m128i shuffle_separate128 =
-            _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15);
+        // clang-format off
+        const __m256i shuffle_separate = _mm256_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15,
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
+        // clang-format off
+        const __m128i shuffle_separate128 = _mm_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
 
         while (stage > 4) {
             frame_ptr = frame;
@@ -507,8 +464,13 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
 
     {
         __m128i r_frame1, r_temp1;
-        const __m128i shuffle_separate =
-            _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15);
+        // clang-format off
+        const __m128i shuffle_separate = _mm_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
 
         while (stage > 4) {
             frame_ptr = frame;
@@ -671,40 +633,24 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
     {
         __m256i r_frame1, r_temp1;
         __m128i r_frame3, r_temp3;
-        const __m256i shuffle_separate = _mm256_setr_epi8(0,
-                                                          2,
-                                                          4,
-                                                          6,
-                                                          8,
-                                                          10,
-                                                          12,
-                                                          14,
-                                                          1,
-                                                          3,
-                                                          5,
-                                                          7,
-                                                          9,
-                                                          11,
-                                                          13,
-                                                          15,
-                                                          0,
-                                                          2,
-                                                          4,
-                                                          6,
-                                                          8,
-                                                          10,
-                                                          12,
-                                                          14,
-                                                          1,
-                                                          3,
-                                                          5,
-                                                          7,
-                                                          9,
-                                                          11,
-                                                          13,
-                                                          15);
-        const __m128i shuffle_separate128 =
-            _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15);
+        // clang-format off
+        const __m256i shuffle_separate = _mm256_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15,
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
+        // clang-format off
+        const __m128i shuffle_separate128 = _mm_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
 
         while (stage > 4) {
             frame_ptr = frame;

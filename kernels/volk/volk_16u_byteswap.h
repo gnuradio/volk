@@ -295,7 +295,7 @@ static inline void volk_16u_byteswap_neonv8(uint16_t* intsToSwap, unsigned int n
 extern void volk_16u_byteswap_a_orc_impl(uint16_t* intsToSwap, int num_points);
 static inline void volk_16u_byteswap_u_orc(uint16_t* intsToSwap, unsigned int num_points)
 {
-    volk_16u_byteswap_a_orc_impl(intsToSwap, num_points);
+    volk_16u_byteswap_a_orc_impl(intsToSwap, (int)num_points);
 }
 #endif /* LV_HAVE_ORC */
 

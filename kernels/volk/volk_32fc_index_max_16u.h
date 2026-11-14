@@ -213,7 +213,7 @@ static inline void volk_32fc_index_max_16u_a_sse3(uint16_t* target,
     holderf.int_vec = _mm_setzero_si128();
     holderi.int_vec = _mm_setzero_si128();
 
-    int bound = num_bytes >> 5;
+    int bound = (int)(num_bytes >> 5);
     int i = 0;
 
     xmm8 = _mm_setr_epi32(0, 1, 2, 3);

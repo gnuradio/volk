@@ -172,8 +172,9 @@ static inline void volk_16ic_deinterleave_real_16i_a_sse2(int16_t* iBuffer,
     const int16_t* complexVectorPtr = (int16_t*)complexVector;
     int16_t* iBufferPtr = iBuffer;
     __m128i complexVal1, complexVal2, iOutputVal;
-    __m128i lowMask = _mm_set_epi32(0x0, 0x0, 0xFFFFFFFF, 0xFFFFFFFF);
-    __m128i highMask = _mm_set_epi32(0xFFFFFFFF, 0xFFFFFFFF, 0x0, 0x0);
+    const int32_t INT32_0xFFFFFFFF = -1;
+    __m128i lowMask = _mm_set_epi32(0x0, 0x0, INT32_0xFFFFFFFF, INT32_0xFFFFFFFF);
+    __m128i highMask = _mm_set_epi32(INT32_0xFFFFFFFF, INT32_0xFFFFFFFF, 0x0, 0x0);
 
     unsigned int eighthPoints = num_points / 8;
 

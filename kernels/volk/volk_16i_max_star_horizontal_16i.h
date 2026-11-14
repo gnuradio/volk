@@ -93,7 +93,7 @@ static inline void volk_16i_max_star_horizontal_16i_a_ssse3(int16_t* target,
     p_target = (__m128i*)target;
     p_src0 = (__m128i*)src0;
 
-    int bound = num_bytes >> 5;
+    int bound = (int)(num_bytes >> 5);
     int intermediate = (num_bytes >> 4) & 1;
     int leftovers = (num_bytes >> 1) & 7;
 
@@ -209,7 +209,7 @@ static inline void volk_16i_max_star_horizontal_16i_generic(int16_t* target,
 
     int i = 0;
 
-    int bound = num_bytes >> 1;
+    int bound = (int)(num_bytes >> 1);
 
     for (i = 0; i < bound; i += 2) {
         target[i >> 1] = ((int16_t)(src0[i] - src0[i + 1]) > 0) ? src0[i] : src0[i + 1];

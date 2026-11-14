@@ -708,7 +708,7 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
                        void* actual,
                        const volk_type_t& output_sig,
                        float tol,
-                       int max_errors = 10)
+                       size_t max_errors = 10)
 {
     constexpr std::array<const char*, 5> columns{
         "index", "expected", "actual", "rel_err", "tol"
@@ -741,7 +741,7 @@ void print_error_table(const std::vector<unsigned int>& fail_indices,
     }
     fmt::print("-+-{0:-<{1}}-+-{0:-<{1}}-+-{0:-<{1}}-+-{0:-<{1}}\n", "", col_len);
 
-    int print_count = 0;
+    size_t print_count = 0;
     for (unsigned int idx : fail_indices) {
         if (print_count++ >= max_errors) {
             fmt::print("... and {} more errors\n", fail_indices.size() - max_errors);
@@ -964,18 +964,19 @@ bool run_volk_tests(volk_func_desc_t desc,
 
     // pull the input scalars into their own vector
     std::vector<volk_type_t> inputsc;
-    for (size_t i = 0; i < inputsig.size(); i++) {
-        if (inputsig[i].is_scalar) {
-            inputsc.push_back(inputsig[i]);
-            inputsig.erase(inputsig.begin() + i);
-            i -= 1;
+    for (auto it = inputsig.begin(); it != inputsig.end();) {
+        if (it->is_scalar) {
+            inputsc.push_back(*it);
+            it = inputsig.erase(it);
+        } else {
+            ++it;
         }
     }
     std::vector<void*> inbuffs;
     for (const auto& sig : inputsig) {
         if (!sig.is_scalar) { // we don't make buffers for scalars
-            inbuffs.push_back(
-                mem_pool.get_new(vlen * sig.size * (sig.is_complex ? 2 : 1)));
+            inbuffs.push_back(mem_pool.get_new(vlen * static_cast<size_t>(sig.size) *
+                                               (sig.is_complex ? 2 : 1)));
         }
     }
     for (size_t i = 0; i < inbuffs.size(); i++) {
@@ -989,15 +990,17 @@ bool run_volk_tests(volk_func_desc_t desc,
     for (size_t i = 0; i < arch_list.size(); i++) {
         std::vector<void*> arch_buffs;
         for (auto& j : outputsig) {
-            arch_buffs.push_back(
-                mem_pool.get_new(vlen * j.size * (j.is_complex ? 2 : 1)));
+            arch_buffs.push_back(mem_pool.get_new(vlen * static_cast<size_t>(j.size) *
+                                                  (j.is_complex ? 2 : 1)));
         }
         for (size_t j = 0; j < inputsig.size(); j++) {
-            void* arch_inbuff = mem_pool.get_new(vlen * inputsig[j].size *
-                                                 (inputsig[j].is_complex ? 2 : 1));
+            void* arch_inbuff =
+                mem_pool.get_new(vlen * static_cast<size_t>(inputsig[j].size) *
+                                 (inputsig[j].is_complex ? 2 : 1));
             memcpy(arch_inbuff,
                    inbuffs[j],
-                   vlen * inputsig[j].size * (inputsig[j].is_complex ? 2 : 1));
+                   vlen * static_cast<size_t>(inputsig[j].size) *
+                       (inputsig[j].is_complex ? 2 : 1));
             arch_buffs.push_back(arch_inbuff);
         }
         test_data.push_back(arch_buffs);
@@ -1198,13 +1201,15 @@ bool run_volk_tests(volk_func_desc_t desc,
         for (size_t j = 0; j < outputsig.size(); j++) {
             memset(test_data[i][j],
                    0,
-                   vlen * outputsig[j].size * (outputsig[j].is_complex ? 2 : 1));
+                   vlen * static_cast<size_t>(outputsig[j].size) *
+                       (outputsig[j].is_complex ? 2 : 1));
         }
         // Reload input buffers from original data
         for (size_t j = 0; j < inputsig.size(); j++) {
             memcpy(test_data[i][outputsig.size() + j],
                    inbuffs[j],
-                   vlen * inputsig[j].size * (inputsig[j].is_complex ? 2 : 1));
+                   vlen * static_cast<size_t>(inputsig[j].size) *
+                       (inputsig[j].is_complex ? 2 : 1));
         }
     }
 
@@ -1398,10 +1403,10 @@ bool run_volk_tests(volk_func_desc_t desc,
     // Calculate total data transferred (bytes read + written) for throughput display
     size_t bytes_per_call = 0;
     for (auto& j : outputsig) {
-        bytes_per_call += j.size * (j.is_complex ? 2 : 1) * vlen;
+        bytes_per_call += static_cast<size_t>(j.size) * (j.is_complex ? 2 : 1) * vlen;
     }
     for (auto& j : inputsig) {
-        bytes_per_call += j.size * (j.is_complex ? 2 : 1) * vlen;
+        bytes_per_call += static_cast<size_t>(j.size) * (j.is_complex ? 2 : 1) * vlen;
     }
     double total_mb =
         static_cast<double>(bytes_per_call * iter) / 1e6; // Total megabytes transferred

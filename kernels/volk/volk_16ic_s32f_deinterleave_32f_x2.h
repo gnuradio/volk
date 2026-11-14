@@ -44,7 +44,6 @@
 #define INCLUDED_volk_16ic_s32f_deinterleave_32f_x2_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <volk/volk_common.h>
 
 #ifdef LV_HAVE_AVX2
@@ -299,7 +298,7 @@ volk_16ic_s32f_deinterleave_32f_x2_u_orc(float* iBuffer,
                                          unsigned int num_points)
 {
     volk_16ic_s32f_deinterleave_32f_x2_a_orc_impl(
-        iBuffer, qBuffer, complexVector, scalar, num_points);
+        iBuffer, qBuffer, complexVector, scalar, (int)num_points);
 }
 #endif /* LV_HAVE_ORC */
 
@@ -311,7 +310,6 @@ volk_16ic_s32f_deinterleave_32f_x2_u_orc(float* iBuffer,
 #define INCLUDED_volk_16ic_s32f_deinterleave_32f_x2_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <volk/volk_common.h>
 
 #ifdef LV_HAVE_AVX2

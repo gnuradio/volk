@@ -86,7 +86,7 @@ static inline void volk_16i_permute_and_scalar_add_a_sse2(short* target,
 
     int i = 0;
 
-    int bound = (num_bytes >> 4);
+    int bound = (int)((num_bytes >> 4));
     int leftovers = (num_bytes >> 1) & 7;
 
     xmm0 = _mm_load_si128(p_scalars);
@@ -180,7 +180,7 @@ static inline void volk_16i_permute_and_scalar_add_generic(short* target,
 
     int i = 0;
 
-    int bound = num_bytes >> 1;
+    int bound = (int)(num_bytes >> 1);
 
     for (i = 0; i < bound; ++i) {
         target[i] = (short)(src0[permute_indexes[i]] + (cntl0[i] & scalars[0]) +
