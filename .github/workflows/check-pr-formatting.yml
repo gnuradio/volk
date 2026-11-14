@@ -23,9 +23,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
-      - uses: gnuradio/clang-format-lint-action@v0.5-4
+      - uses: actions/checkout@v7
+      - uses: jidicula/clang-format-action@v4.18.0
         with:
-          source: "."
-          exclude: "./tmpl,./include/volk/sse2neon.h"
-          extensions: "c,cc,cpp,cxx,h,hh"
+          check-path: "."
+          exclude-regex: '(^|/)(tmpl/|include/volk/sse2neon[.]h$)'
+          include-regex: '[.](c|cc|cpp|cxx|h|hh)$'
+          clang-format-version: 21
