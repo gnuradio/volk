@@ -90,7 +90,7 @@ static inline void volk_32u_popcnt_neon(uint32_t* ret, const uint32_t value)
 
 static inline void volk_32u_popcnt_a_sse4_2(uint32_t* ret, const uint32_t value)
 {
-    *ret = _mm_popcnt_u32(value);
+    *ret = (uint32_t)_mm_popcnt_u32(value);
 }
 
 #endif /*LV_HAVE_SSE4_2*/

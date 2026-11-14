@@ -99,15 +99,17 @@ static inline void volk_32f_sin_32f_a_avx512f(float* sinVector,
 
     const __m512i ones = _mm512_set1_epi32(1);
     const __m512i twos = _mm512_set1_epi32(2);
-    const __m512i sign_bit = _mm512_set1_epi32(0x80000000);
+    const __m512i sign_bit = _mm512_set1_epi32((-0x7fffffff - 1));
 
     for (; number < sixteenPoints; number++) {
         __m512 x = _mm512_load_ps(inPtr);
 
         // Argument reduction: n = round(x * 2/pi)
-        __m512 n_f = _mm512_roundscale_ps(_mm512_mul_ps(x, two_over_pi),
-                                          _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
-        __m512i n = _mm512_cvtps_epi32(n_f);
+        _Pragma("GCC diagnostic push")
+            _Pragma("GCC diagnostic ignored \"-Wsign-conversion\"") __m512 n_f =
+                _mm512_roundscale_ps(_mm512_mul_ps(x, two_over_pi),
+                                     _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+        _Pragma("GCC diagnostic pop") __m512i n = _mm512_cvtps_epi32(n_f);
 
         // r = x - n * (pi/2), using extended precision
         __m512 r = _mm512_fnmadd_ps(n_f, pi_over_2_hi, x);
@@ -372,15 +374,17 @@ static inline void volk_32f_sin_32f_u_avx512f(float* sinVector,
 
     const __m512i ones = _mm512_set1_epi32(1);
     const __m512i twos = _mm512_set1_epi32(2);
-    const __m512i sign_bit = _mm512_set1_epi32(0x80000000);
+    const __m512i sign_bit = _mm512_set1_epi32((-0x7fffffff - 1));
 
     for (; number < sixteenPoints; number++) {
         __m512 x = _mm512_loadu_ps(inPtr);
 
         // Argument reduction: n = round(x * 2/pi)
-        __m512 n_f = _mm512_roundscale_ps(_mm512_mul_ps(x, two_over_pi),
-                                          _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
-        __m512i n = _mm512_cvtps_epi32(n_f);
+        _Pragma("GCC diagnostic push")
+            _Pragma("GCC diagnostic ignored \"-Wsign-conversion\"") __m512 n_f =
+                _mm512_roundscale_ps(_mm512_mul_ps(x, two_over_pi),
+                                     _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+        _Pragma("GCC diagnostic pop") __m512i n = _mm512_cvtps_epi32(n_f);
 
         // r = x - n * (pi/2), using extended precision
         __m512 r = _mm512_fnmadd_ps(n_f, pi_over_2_hi, x);

@@ -83,7 +83,7 @@ static inline void volk_32fc_x2_square_dist_32f_a_avx2(float* target,
 
     lv_32fc_t diff;
     float sq_dist;
-    int bound = num_bytes >> 6;
+    int bound = (int)(num_bytes >> 6);
     int leftovers0 = (num_bytes >> 5) & 1;
     int leftovers1 = (num_bytes >> 4) & 1;
     int leftovers2 = (num_bytes >> 3) & 1;
@@ -176,7 +176,7 @@ static inline void volk_32fc_x2_square_dist_32f_a_sse3(float* target,
 
     lv_32fc_t diff;
     float sq_dist;
-    int bound = num_bytes >> 5;
+    int bound = (int)(num_bytes >> 5);
     int i = 0;
 
     xmm1 = _mm_setzero_ps();
@@ -350,7 +350,7 @@ static inline void volk_32fc_x2_square_dist_32f_u_avx2(float* target,
 
     lv_32fc_t diff;
     float sq_dist;
-    int bound = num_bytes >> 6;
+    int bound = (int)(num_bytes >> 6);
     int leftovers1 = (num_bytes >> 3) & 0b11;
     int i = 0;
 

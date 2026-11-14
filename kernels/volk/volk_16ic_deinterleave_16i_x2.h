@@ -250,8 +250,9 @@ static inline void volk_16ic_deinterleave_16i_x2_a_sse2(int16_t* iBuffer,
     int16_t* qBufferPtr = qBuffer;
     __m128i complexVal1, complexVal2, iComplexVal1, iComplexVal2, qComplexVal1,
         qComplexVal2, iOutputVal, qOutputVal;
-    __m128i lowMask = _mm_set_epi32(0x0, 0x0, 0xFFFFFFFF, 0xFFFFFFFF);
-    __m128i highMask = _mm_set_epi32(0xFFFFFFFF, 0xFFFFFFFF, 0x0, 0x0);
+    const int INT_0xFFFFFFFF = -1;
+    __m128i lowMask = _mm_set_epi32(0x0, 0x0, INT_0xFFFFFFFF, INT_0xFFFFFFFF);
+    __m128i highMask = _mm_set_epi32(INT_0xFFFFFFFF, INT_0xFFFFFFFF, 0x0, 0x0);
 
     unsigned int eighthPoints = num_points / 8;
 
@@ -411,7 +412,8 @@ static inline void volk_16ic_deinterleave_16i_x2_u_orc(int16_t* iBuffer,
                                                        const lv_16sc_t* complexVector,
                                                        unsigned int num_points)
 {
-    volk_16ic_deinterleave_16i_x2_a_orc_impl(iBuffer, qBuffer, complexVector, num_points);
+    volk_16ic_deinterleave_16i_x2_a_orc_impl(
+        iBuffer, qBuffer, complexVector, (int)num_points);
 }
 #endif /* LV_HAVE_ORC */
 
@@ -422,7 +424,6 @@ static inline void volk_16ic_deinterleave_16i_x2_u_orc(int16_t* iBuffer,
 #define INCLUDED_volk_16ic_deinterleave_16i_x2_u_H
 
 #include <inttypes.h>
-#include <stdio.h>
 #ifdef LV_HAVE_AVX2
 #include <immintrin.h>
 

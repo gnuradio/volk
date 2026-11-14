@@ -118,7 +118,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx512dq(float* outputVector,
     const __m512 pi = _mm512_set1_ps(0x1.921fb6p1f);
     const __m512 pi_2 = _mm512_set1_ps(0x1.921fb6p0f);
     const __m512 abs_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x7FFFFFFF));
-    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x80000000));
+    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32((-0x7fffffff - 1)));
 
     unsigned int number = 0;
     const unsigned int sixteenth_points = num_points / 16;
@@ -222,7 +222,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2_fma(float* outputVector,
     const __m256 pi = _mm256_set1_ps(0x1.921fb6p1f);
     const __m256 pi_2 = _mm256_set1_ps(0x1.921fb6p0f);
     const __m256 abs_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x80000000));
+    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32((-0x7fffffff - 1)));
 
     unsigned int number = 0;
     const unsigned int eighth_points = num_points / 8;
@@ -329,7 +329,7 @@ static inline void volk_32fc_s32f_atan2_32f_a_avx2(float* outputVector,
     const __m256 pi = _mm256_set1_ps(0x1.921fb6p1f);
     const __m256 pi_2 = _mm256_set1_ps(0x1.921fb6p0f);
     const __m256 abs_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x80000000));
+    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32((-0x7fffffff - 1)));
 
     unsigned int number = 0;
     const unsigned int eighth_points = num_points / 8;
@@ -439,7 +439,7 @@ static inline void volk_32fc_s32f_atan2_32f_neon(float* outputVector,
     const float32x4_t three_pi_4 = vdupq_n_f32(0x1.2d97c8p1f);
     const float32x4_t zero = vdupq_n_f32(0.f);
     const float32x4_t inf = vdupq_n_f32(__builtin_huge_valf());
-    const uint32x4_t sign_mask = vdupq_n_u32(0x80000000);
+    const uint32x4_t sign_mask = vdupq_n_u32((-0x7fffffff - 1));
 
     const unsigned int quarter_points = num_points / 4;
 
@@ -543,7 +543,7 @@ static inline void volk_32fc_s32f_atan2_32f_neonv8(float* outputVector,
     const float32x4_t three_pi_4 = vdupq_n_f32(0x1.2d97c8p1f);
     const float32x4_t zero = vdupq_n_f32(0.f);
     const float32x4_t inf = vdupq_n_f32(__builtin_huge_valf());
-    const uint32x4_t sign_mask = vdupq_n_u32(0x80000000);
+    const uint32x4_t sign_mask = vdupq_n_u32((-0x7fffffff - 1));
 
     const unsigned int eighth_points = num_points / 8;
 
@@ -705,7 +705,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx512dq(float* outputVector,
     const __m512 pi = _mm512_set1_ps(0x1.921fb6p1f);
     const __m512 pi_2 = _mm512_set1_ps(0x1.921fb6p0f);
     const __m512 abs_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x7FFFFFFF));
-    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x80000000));
+    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32((-0x7fffffff - 1)));
 
     const unsigned int sixteenth_points = num_points / 16;
 
@@ -809,7 +809,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2_fma(float* outputVector,
     const __m256 pi = _mm256_set1_ps(0x1.921fb6p1f);
     const __m256 pi_2 = _mm256_set1_ps(0x1.921fb6p0f);
     const __m256 abs_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x80000000));
+    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32((-0x7fffffff - 1)));
 
     unsigned int number = 0;
     const unsigned int eighth_points = num_points / 8;
@@ -916,7 +916,7 @@ static inline void volk_32fc_s32f_atan2_32f_u_avx2(float* outputVector,
     const __m256 pi = _mm256_set1_ps(0x1.921fb6p1f);
     const __m256 pi_2 = _mm256_set1_ps(0x1.921fb6p0f);
     const __m256 abs_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x80000000));
+    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32((-0x7fffffff - 1)));
 
     unsigned int number = 0;
     const unsigned int eighth_points = num_points / 8;

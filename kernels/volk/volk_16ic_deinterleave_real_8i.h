@@ -342,7 +342,7 @@ static inline void volk_16ic_deinterleave_real_8i_u_orc(int8_t* iBuffer,
                                                         const lv_16sc_t* complexVector,
                                                         unsigned int num_points)
 {
-    volk_16ic_deinterleave_real_8i_a_orc_impl(iBuffer, complexVector, num_points);
+    volk_16ic_deinterleave_real_8i_a_orc_impl(iBuffer, complexVector, (int)num_points);
 }
 #endif /* LV_HAVE_ORC */
 

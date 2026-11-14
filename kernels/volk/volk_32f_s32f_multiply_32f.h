@@ -284,7 +284,7 @@ static inline void volk_32f_s32f_multiply_32f_u_orc(float* cVector,
                                                     const float scalar,
                                                     unsigned int num_points)
 {
-    volk_32f_s32f_multiply_32f_a_orc_impl(cVector, aVector, scalar, num_points);
+    volk_32f_s32f_multiply_32f_a_orc_impl(cVector, aVector, scalar, (int)num_points);
 }
 
 #endif /* LV_HAVE_ORC */

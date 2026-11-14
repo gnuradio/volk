@@ -11,6 +11,7 @@
 #define INCLUDED_VOLK_TYPEDEFS
 
 #include <inttypes.h>
+#include <stddef.h>
 #include <volk/volk_complex.h>
 
 %for kern in kernels:

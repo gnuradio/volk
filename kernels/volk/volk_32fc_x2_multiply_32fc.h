@@ -481,7 +481,7 @@ static inline void volk_32fc_x2_multiply_32fc_u_orc(lv_32fc_t* cVector,
                                                     const lv_32fc_t* bVector,
                                                     unsigned int num_points)
 {
-    volk_32fc_x2_multiply_32fc_a_orc_impl(cVector, aVector, bVector, num_points);
+    volk_32fc_x2_multiply_32fc_a_orc_impl(cVector, aVector, bVector, (int)num_points);
 }
 
 #endif /* LV_HAVE_ORC */

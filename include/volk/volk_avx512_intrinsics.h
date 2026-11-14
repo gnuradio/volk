@@ -151,22 +151,23 @@ static inline __m512 _mm512_complexconjugatemul_ps(const __m512 x, const __m512 
     const __m512 dimag = _mm512_movehdup_ps(y);      // ci, ci, di, di, ...
 
     // Use integer xor for conjugation (AVX512F compatible)
+    const int INT_0x80000000 = (-0x7fffffff - 1);
     const __m512i conjugator_i = _mm512_setr_epi32(0,
-                                                   0x80000000,
+                                                   INT_0x80000000,
                                                    0,
-                                                   0x80000000,
+                                                   INT_0x80000000,
                                                    0,
-                                                   0x80000000,
+                                                   INT_0x80000000,
                                                    0,
-                                                   0x80000000,
+                                                   INT_0x80000000,
                                                    0,
-                                                   0x80000000,
+                                                   INT_0x80000000,
                                                    0,
-                                                   0x80000000,
+                                                   INT_0x80000000,
                                                    0,
-                                                   0x80000000,
+                                                   INT_0x80000000,
                                                    0,
-                                                   0x80000000);
+                                                   INT_0x80000000);
     const __m512 dimagconj = _mm512_castsi512_ps(_mm512_xor_epi32(
         _mm512_castps_si512(dimag), conjugator_i)); // ci, -ci, di, -di, ...
 

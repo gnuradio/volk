@@ -105,10 +105,9 @@ static inline void volk_32f_x3_sum_of_poly_32f_a_sse3(float* target,
     xmm8 = _mm_load1_ps(&center_point_array[3]);
     xmm10 = _mm_load1_ps(cutoff);
 
-    int bound = num_points / 8;
-    int leftovers = num_points - 8 * bound;
-    int i = 0;
-    for (; i < bound; ++i) {
+    unsigned int bound = num_points / 8;
+    unsigned int leftovers = num_points - 8 * bound;
+    for (unsigned int i = 0; i < bound; ++i) {
         // 1st
         xmm2 = _mm_load_ps(src0);
         xmm2 = _mm_max_ps(xmm10, xmm2);
@@ -154,7 +153,7 @@ static inline void volk_32f_x3_sum_of_poly_32f_a_sse3(float* target,
     xmm4 = _mm_hadd_ps(xmm3, xmm3);
     _mm_store_ss(&result, xmm4);
 
-    for (i = 0; i < leftovers; ++i) {
+    for (unsigned int i = 0; i < leftovers; ++i) {
         fst = *src0++;
         fst = MAX(fst, *cutoff);
         sq = fst * fst;

@@ -183,8 +183,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(float* target,
                                                     float scalar,
                                                     unsigned int num_points)
 {
-    const int eightsPoints = num_points / 8;
-    const int remainder = num_points - 8 * eightsPoints;
+    const unsigned int eightsPoints = num_points / 8;
+    const unsigned int remainder = num_points - 8 * eightsPoints;
 
     __m256 xmm_points0, xmm_points1, xmm_result;
 
@@ -194,7 +194,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_avx(float* target,
     // Load scalar into all 8 parts of the register
     const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
 
-    for (int i = 0; i < eightsPoints; ++i) {
+    for (unsigned int i = 0; i < eightsPoints; ++i) {
         xmm_points0 = _mm256_load_ps((float*)points);
         xmm_points1 = _mm256_load_ps((float*)(points + 4));
         points += 8;
@@ -232,9 +232,9 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target,
      * leftovers0 indicates if at least 2 more are available for SSE execution.
      * leftovers1 indicates if there is a single element left.
      */
-    const int quarterPoints = num_points / 4;
-    const int leftovers0 = (num_points / 2) - 2 * quarterPoints;
-    const int leftovers1 = num_points % 2;
+    const unsigned int quarterPoints = num_points / 4;
+    const unsigned int leftovers0 = (num_points / 2) - 2 * quarterPoints;
+    const unsigned int leftovers1 = num_points % 2;
 
     // load complex value into both parts of the register.
     const __m128 xmm_symbol = _mm_castpd_ps(_mm_load1_pd((const double*)src0));
@@ -242,7 +242,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target,
     // Load scalar into all 4 parts of the register
     const __m128 xmm_scalar = _mm_load1_ps(&scalar);
 
-    for (int i = 0; i < quarterPoints; ++i) {
+    for (unsigned int i = 0; i < quarterPoints; ++i) {
         xmm_points0 = _mm_load_ps((float*)points);
         xmm_points1 = _mm_load_ps((float*)(points + 2));
         points += 4;
@@ -255,7 +255,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_a_sse3(float* target,
         target += 4;
     }
 
-    for (int i = 0; i < leftovers0; ++i) {
+    for (unsigned int i = 0; i < leftovers0; ++i) {
         xmm_points0 = _mm_load_ps((float*)points);
         points += 2;
 
@@ -514,8 +514,8 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx(float* target,
                                                     float scalar,
                                                     unsigned int num_points)
 {
-    const int eightsPoints = num_points / 8;
-    const int remainder = num_points - 8 * eightsPoints;
+    const unsigned int eightsPoints = num_points / 8;
+    const unsigned int remainder = num_points - 8 * eightsPoints;
 
     __m256 xmm_points0, xmm_points1, xmm_result;
 
@@ -525,7 +525,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_avx(float* target,
     // Load scalar into all 8 parts of the register
     const __m256 xmm_scalar = _mm256_broadcast_ss(&scalar);
 
-    for (int i = 0; i < eightsPoints; ++i) {
+    for (unsigned int i = 0; i < eightsPoints; ++i) {
         xmm_points0 = _mm256_loadu_ps((float*)points);
         xmm_points1 = _mm256_loadu_ps((float*)(points + 4));
         points += 8;
@@ -563,9 +563,9 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse3(float* target,
      * leftovers0 indicates if at least 2 more are available for SSE execution.
      * leftovers1 indicates if there is a single element left.
      */
-    const int quarterPoints = num_points / 4;
-    const int leftovers0 = (num_points / 2) - 2 * quarterPoints;
-    const int leftovers1 = num_points % 2;
+    const unsigned int quarterPoints = num_points / 4;
+    const unsigned int leftovers0 = (num_points / 2) - 2 * quarterPoints;
+    const unsigned int leftovers1 = num_points % 2;
 
     // load complex value into both parts of the register.
     const __m128 xmm_symbol = _mm_castpd_ps(_mm_load1_pd((const double*)src0));
@@ -573,7 +573,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse3(float* target,
     // Load scalar into all 4 parts of the register
     const __m128 xmm_scalar = _mm_load1_ps(&scalar);
 
-    for (int i = 0; i < quarterPoints; ++i) {
+    for (unsigned int i = 0; i < quarterPoints; ++i) {
         xmm_points0 = _mm_loadu_ps((float*)points);
         xmm_points1 = _mm_loadu_ps((float*)(points + 2));
         points += 4;
@@ -586,7 +586,7 @@ volk_32fc_x2_s32f_square_dist_scalar_mult_32f_u_sse3(float* target,
         target += 4;
     }
 
-    for (int i = 0; i < leftovers0; ++i) {
+    for (unsigned int i = 0; i < leftovers0; ++i) {
         xmm_points0 = _mm_loadu_ps((float*)points);
         points += 2;
 

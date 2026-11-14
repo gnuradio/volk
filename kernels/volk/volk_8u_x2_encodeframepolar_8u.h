@@ -13,21 +13,21 @@
 
 #ifndef VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_
 #define VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_
-#include <string.h>
 
-static inline unsigned int log2_of_power_of_2(unsigned int val)
+static inline unsigned int log2_of_power_of_2(const size_t value)
 {
     // algorithm from: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
+    unsigned int val = (unsigned int)value;
     static const unsigned int b[] = {
         0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000
     };
 
     unsigned int res = (val & b[0]) != 0;
-    res |= ((val & b[4]) != 0) << 4;
-    res |= ((val & b[3]) != 0) << 3;
-    res |= ((val & b[2]) != 0) << 2;
-    res |= ((val & b[1]) != 0) << 1;
-    return res;
+    res |= (unsigned int)((val & b[4]) != 0) << 4;
+    res |= (unsigned int)((val & b[3]) != 0) << 3;
+    res |= (unsigned int)((val & b[2]) != 0) << 2;
+    res |= (unsigned int)((val & b[1]) != 0) << 1;
+    return (size_t)res;
 }
 
 static inline void encodepolar_single_stage(unsigned char* frame_ptr,

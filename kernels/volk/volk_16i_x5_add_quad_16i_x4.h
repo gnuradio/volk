@@ -87,7 +87,7 @@ static inline void volk_16i_x5_add_quad_16i_x4_a_sse2(short* target0,
 
     int i = 0;
 
-    int bound = (num_bytes >> 4);
+    int bound = (int)((num_bytes >> 4));
     int leftovers = (num_bytes >> 1) & 7;
 
     for (; i < bound; ++i) {
@@ -203,7 +203,7 @@ static inline void volk_16i_x5_add_quad_16i_x4_generic(short* target0,
 
     int i = 0;
 
-    int bound = num_bytes >> 1;
+    int bound = (int)(num_bytes >> 1);
 
     for (i = 0; i < bound; ++i) {
         target0[i] = src0[i] + src1[i];

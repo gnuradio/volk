@@ -217,7 +217,7 @@ static inline void volk_32fc_index_min_16u_a_sse3(uint16_t* target,
     xmm10 = _mm_setr_epi32(4, 4, 4, 4);
     xmm3 = _mm_set_ps1(FLT_MAX);
 
-    int bound = num_points >> 2;
+    int bound = (int)(num_points >> 2);
 
     for (int i = 0; i < bound; ++i) {
         xmm1 = _mm_load_ps((float*)source);
