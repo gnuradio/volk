@@ -109,7 +109,7 @@ protected:
 TEST_P(volk_32f_log2_32f_test, run)
 {
     run(result, input, implementation_name);
-    EXPECT_TRUE(AreFloatingPointArraysEqualWithAbsoluteError(
+    EXPECT_TRUE(AreFloatingPointArraysEqualWithAbsoluteError<float>(
         expected, result, ABSOLUTE_LOG_TEST_ERROR));
 }
 
