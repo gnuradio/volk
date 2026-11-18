@@ -100,7 +100,9 @@ static inline float32x4_t _vinvsqrtq_f32(float32x4_t x)
 }
 
 /* Square root for ARMv7 NEON (no vsqrtq_f32)
- * Uses sqrt(x) = x * rsqrt(x) with refined rsqrt
+ * Uses sqrt(x) = x * rsqrt(x) with rsqrt refined by two Newton-Raphson steps
+ * in _vinvsqrtq_f32. Don't use the bare vrsqrteq_f32/vrecpeq_f32 estimates
+ * for sqrt: they are only accurate to about 8 bits.
  * Handles x=0 and x=+Inf, where x * rsqrt(x) is 0 * Inf or Inf * 0 = NaN:
  * sqrt(x) = x for both */
 static inline float32x4_t _vsqrtq_f32(float32x4_t x)
