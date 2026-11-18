@@ -101,13 +101,14 @@ static inline float32x4_t _vinvsqrtq_f32(float32x4_t x)
 
 /* Square root for ARMv7 NEON (no vsqrtq_f32)
  * Uses sqrt(x) = x * rsqrt(x) with refined rsqrt
- * Handles x=0 case to avoid NaN from 0 * inf */
+ * Handles x=0 and x=+Inf, where x * rsqrt(x) is 0 * Inf or Inf * 0 = NaN:
+ * sqrt(x) = x for both */
 static inline float32x4_t _vsqrtq_f32(float32x4_t x)
 {
-    const float32x4_t zero = vdupq_n_f32(0.0f);
-    uint32x4_t zero_mask = vceqq_f32(x, zero);
+    uint32x4_t zero_mask = vceqq_f32(x, vdupq_n_f32(0.0f));
+    uint32x4_t inf_mask = vceqq_u32(vreinterpretq_u32_f32(x), vdupq_n_u32(0x7F800000));
     float32x4_t result = vmulq_f32(x, _vinvsqrtq_f32(x));
-    return vbslq_f32(zero_mask, zero, result);
+    return vbslq_f32(vorrq_u32(zero_mask, inf_mask), x, result);
 }
 
 /* Inverse */
