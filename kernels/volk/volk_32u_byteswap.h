@@ -201,18 +201,17 @@ static inline void volk_32u_byteswap_neonv8(uint32_t* intsToSwap, unsigned int n
     uint32_t* inputPtr = (uint32_t*)intsToSwap;
     const unsigned int n8points = num_points / 8;
     uint8x16_t input;
-    uint8x16_t idx = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
 
     unsigned int number = 0;
     for (number = 0; number < n8points; ++number) {
         __VOLK_PREFETCH(inputPtr + 8);
         input = vld1q_u8((uint8_t*)inputPtr);
-        input = vqtbl1q_u8(input, idx);
+        input = vrev32q_u8(input);
         vst1q_u8((uint8_t*)inputPtr, input);
         inputPtr += 4;
 
         input = vld1q_u8((uint8_t*)inputPtr);
-        input = vqtbl1q_u8(input, idx);
+        input = vrev32q_u8(input);
         vst1q_u8((uint8_t*)inputPtr, input);
         inputPtr += 4;
     }

@@ -262,15 +262,13 @@ volk_32u_reverse_32u_neonv8(uint32_t* out, const uint32_t* in, unsigned int num_
     const uint32_t* in_ptr = in;
     uint32_t* out_ptr = out;
 
-    const uint8x16_t idx = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
-
     const unsigned int quarterPoints = num_points / 4;
     unsigned int number = 0;
     for (; number < quarterPoints; ++number) {
         __VOLK_PREFETCH(in_ptr + 4);
         uint32x4_t x = vld1q_u32(in_ptr);
         uint32x4_t z =
-            vreinterpretq_u32_u8(vqtbl1q_u8(vrbitq_u8(vreinterpretq_u8_u32(x)), idx));
+            vreinterpretq_u32_u8(vrev32q_u8(vrbitq_u8(vreinterpretq_u8_u32(x))));
         vst1q_u32(out_ptr, z);
         in_ptr += 4;
         out_ptr += 4;

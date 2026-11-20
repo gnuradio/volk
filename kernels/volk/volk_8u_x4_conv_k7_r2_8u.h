@@ -307,6 +307,17 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
 
 #include <arm_neon.h>
 
+// Vector pointer casts move lanes in reverse NEON order on big-endian GCC, so
+// use vld1q/vst1q there. On little-endian keep the casts: unlike vld1 they let
+// 32-bit ARM use offset addressing for the loads and stores below.
+#ifdef __ARM_BIG_ENDIAN
+#define NEONSPIRAL_LOAD(p) vld1q_u8(p)
+#define NEONSPIRAL_STORE(p, v) vst1q_u8((p), (v))
+#else
+#define NEONSPIRAL_LOAD(p) (*(uint8x16_t*)(p))
+#define NEONSPIRAL_STORE(p, v) (*(uint8x16_t*)(p) = (v))
+#endif
+
 static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
                                                        unsigned char* X,
                                                        unsigned char* syms,
@@ -329,13 +340,13 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         uint8x8x2_t both;
 
         // First half of butterfly
-        s18 = ((uint8x16_t*)X)[0];
-        s19 = ((uint8x16_t*)X)[2];
+        s18 = NEONSPIRAL_LOAD(X);
+        s19 = NEONSPIRAL_LOAD(X + 2 * 16);
         a76 = vdupq_n_u8(syms[2 * i]);
-        a78 = ((uint8x16_t*)Branchtab)[0];
+        a78 = NEONSPIRAL_LOAD(Branchtab);
         a79 = veorq_u8(a76, a78);
         a82 = vdupq_n_u8(syms[2 * i + 1]);
-        a84 = ((uint8x16_t*)Branchtab)[2];
+        a84 = NEONSPIRAL_LOAD(Branchtab + 2 * 16);
         a85 = veorq_u8(a82, a84);
         a86 = vrhaddq_u8(a79, a85);
         t14 = vshrq_n_u8(a86, 2);
@@ -365,18 +376,18 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         left = vget_low_u8(a89);
         right = vget_low_u8(a90);
         both = vzip_u8(left, right);
-        ((uint8x16_t*)Y)[0] = vcombine_u8(both.val[0], both.val[1]);
+        NEONSPIRAL_STORE(Y, vcombine_u8(both.val[0], both.val[1]));
         left = vget_high_u8(a89);
         right = vget_high_u8(a90);
         both = vzip_u8(left, right);
-        ((uint8x16_t*)Y)[1] = vcombine_u8(both.val[0], both.val[1]);
+        NEONSPIRAL_STORE(Y + 1 * 16, vcombine_u8(both.val[0], both.val[1]));
 
         // Second half of butterfly
-        s24 = ((uint8x16_t*)X)[1];
-        s25 = ((uint8x16_t*)X)[3];
-        a100 = ((uint8x16_t*)Branchtab)[1];
+        s24 = NEONSPIRAL_LOAD(X + 1 * 16);
+        s25 = NEONSPIRAL_LOAD(X + 3 * 16);
+        a100 = NEONSPIRAL_LOAD(Branchtab + 1 * 16);
         a101 = veorq_u8(a76, a100);
-        a103 = ((uint8x16_t*)Branchtab)[3];
+        a103 = NEONSPIRAL_LOAD(Branchtab + 3 * 16);
         a104 = veorq_u8(a82, a103);
         a105 = vrhaddq_u8(a101, a104);
         t17 = vshrq_n_u8(a105, 2);
@@ -406,28 +417,28 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         left = vget_low_u8(a108);
         right = vget_low_u8(a109);
         both = vzip_u8(left, right);
-        ((uint8x16_t*)Y)[2] = vcombine_u8(both.val[0], both.val[1]);
+        NEONSPIRAL_STORE(Y + 2 * 16, vcombine_u8(both.val[0], both.val[1]));
         left = vget_high_u8(a108);
         right = vget_high_u8(a109);
         both = vzip_u8(left, right);
-        ((uint8x16_t*)Y)[3] = vcombine_u8(both.val[0], both.val[1]);
+        NEONSPIRAL_STORE(Y + 3 * 16, vcombine_u8(both.val[0], both.val[1]));
 
         // Renormalize
         uint8x16_t m5, m6;
-        m5 = ((uint8x16_t*)Y)[0];
-        m5 = vminq_u8(m5, ((uint8x16_t*)Y)[1]);
-        m5 = vminq_u8(m5, ((uint8x16_t*)Y)[2]);
-        m5 = vminq_u8(m5, ((uint8x16_t*)Y)[3]);
+        m5 = NEONSPIRAL_LOAD(Y);
+        m5 = vminq_u8(m5, NEONSPIRAL_LOAD(Y + 1 * 16));
+        m5 = vminq_u8(m5, NEONSPIRAL_LOAD(Y + 2 * 16));
+        m5 = vminq_u8(m5, NEONSPIRAL_LOAD(Y + 3 * 16));
         uint8x8_t m7;
         m7 = vpmin_u8(vget_low_u8(m5), vget_high_u8(m5));
         m7 = vpmin_u8(m7, m7);
         m7 = vpmin_u8(m7, m7);
         m7 = vpmin_u8(m7, m7);
         m6 = vcombine_u8(m7, m7);
-        ((uint8x16_t*)Y)[0] = vqsubq_u8(((uint8x16_t*)Y)[0], m6);
-        ((uint8x16_t*)Y)[1] = vqsubq_u8(((uint8x16_t*)Y)[1], m6);
-        ((uint8x16_t*)Y)[2] = vqsubq_u8(((uint8x16_t*)Y)[2], m6);
-        ((uint8x16_t*)Y)[3] = vqsubq_u8(((uint8x16_t*)Y)[3], m6);
+        NEONSPIRAL_STORE(Y, vqsubq_u8(NEONSPIRAL_LOAD(Y), m6));
+        NEONSPIRAL_STORE(Y + 1 * 16, vqsubq_u8(NEONSPIRAL_LOAD(Y + 1 * 16), m6));
+        NEONSPIRAL_STORE(Y + 2 * 16, vqsubq_u8(NEONSPIRAL_LOAD(Y + 2 * 16), m6));
+        NEONSPIRAL_STORE(Y + 3 * 16, vqsubq_u8(NEONSPIRAL_LOAD(Y + 3 * 16), m6));
 
         // Swap pointers to old and new metrics
         tmp = X;
@@ -435,6 +446,9 @@ static inline void volk_8u_x4_conv_k7_r2_8u_neonspiral(unsigned char* Y,
         Y = tmp;
     }
 }
+
+#undef NEONSPIRAL_LOAD
+#undef NEONSPIRAL_STORE
 
 #endif /*LV_HAVE_NEON*/
 
