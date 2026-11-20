@@ -57,7 +57,7 @@ static inline void volk_16i_32fc_dot_prod_32fc_generic(lv_32fc_t* result,
                                                        unsigned int num_points)
 {
 
-    static const int N_UNROLL = 4;
+    static const unsigned int N_UNROLL = 4;
 
     lv_32fc_t acc0 = 0;
     lv_32fc_t acc1 = 0;

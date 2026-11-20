@@ -8,6 +8,7 @@
  */
 
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,8 +21,6 @@ int volk_get_index(const char* impl_names[], // list of implementations by name
                    const char* impl_name     // the implementation name to find
 )
 {
-    unsigned int i;
-
     if (n_impls == 0) {
         // uuuh so we're picking an implementation out of 0 available ones?
         fprintf(stderr,
@@ -32,9 +31,9 @@ int volk_get_index(const char* impl_names[], // list of implementations by name
     }
 
     // Find the implementation whose name matches (in the first 20 characters)
-    for (i = 0; i < n_impls; i++) {
+    for (size_t i = 0; i < n_impls; i++) {
         if (!strncmp(impl_names[i], impl_name, 20)) {
-            return i;
+            return i <= INT_MAX ? (int)i : -1;
         }
     }
 
@@ -117,8 +116,8 @@ int volk_rank_archs(const char* kern_name,    // name of the kernel to rank
 
     // when align and we found a best aligned, use it
     if (align && best_value_a != -1)
-        return best_index_a;
+        return (int)best_index_a;
 
     // otherwise return the best unaligned
-    return best_index_u;
+    return (int)best_index_u;
 }

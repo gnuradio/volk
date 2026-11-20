@@ -100,7 +100,7 @@ unsigned int volk_get_lvarch() {
     unsigned int retval = 0;
     volk_cpu_init();
     %for arch in archs:
-    retval += volk_cpu.has_${arch.name}() << LV_${arch.name.upper()};
+    retval += (unsigned int)volk_cpu.has_${arch.name}() << LV_${arch.name.upper()};
     %endfor
     return retval;
 }

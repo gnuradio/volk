@@ -281,7 +281,7 @@ static inline void volk_32fc_32f_multiply_32fc_u_orc(lv_32fc_t* cVector,
                                                      const float* bVector,
                                                      unsigned int num_points)
 {
-    volk_32fc_32f_multiply_32fc_a_orc_impl(cVector, aVector, bVector, num_points);
+    volk_32fc_32f_multiply_32fc_a_orc_impl(cVector, aVector, bVector, (int)num_points);
 }
 
 #endif /* LV_HAVE_GENERIC */

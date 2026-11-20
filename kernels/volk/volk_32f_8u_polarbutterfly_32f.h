@@ -218,7 +218,7 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs,
     }
 
     int loop_stage = max_stage_depth;
-    int stage_size = 0x01 << loop_stage;
+    size_t stage_size = 0x01 << loop_stage;
 
     float* src_llr_ptr;
     float* dst_llr_ptr;
@@ -232,16 +232,14 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs,
         unsigned char* u_temp = u + 2 * frame_size;
         memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
 
-        volk_8u_x2_encodeframepolar_8u_u_ssse3(u_target, u_temp, stage_size);
+        volk_8u_x2_encodeframepolar_8u_u_ssse3(
+            u_target, u_temp, (unsigned int)stage_size);
 
         src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
         dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
 
-        __m128i fbits;
-
-        int p;
-        for (p = 0; p < stage_size; p += 8) {
-            fbits = _mm_loadu_si128((__m128i*)u_target);
+        for (size_t p = 0; p < stage_size; p += 8) {
+            __m128i fbits = _mm_loadu_si128((__m128i*)u_target);
             u_target += 8;
 
             src0 = _mm256_loadu_ps(src_llr_ptr);
@@ -262,11 +260,10 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx(float* llrs,
 
     _mm256_zeroall(); // Important to clear cache!
 
-    int el;
     while (min_stage < loop_stage) {
         dst_llr_ptr = llrs + loop_stage * frame_size + row;
         src_llr_ptr = dst_llr_ptr + frame_size;
-        for (el = 0; el < stage_size; el += 8) {
+        for (size_t el = 0; el < stage_size; el += 8) {
             src0 = _mm256_loadu_ps(src_llr_ptr);
             src_llr_ptr += 8;
             src1 = _mm256_loadu_ps(src_llr_ptr);
@@ -313,7 +310,7 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs,
     }
 
     int loop_stage = max_stage_depth;
-    int stage_size = 0x01 << loop_stage;
+    size_t stage_size = 0x01 << loop_stage;
 
     float* src_llr_ptr;
     float* dst_llr_ptr;
@@ -327,16 +324,13 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs,
         unsigned char* u_temp = u + 2 * frame_size;
         memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
 
-        volk_8u_x2_encodeframepolar_8u_u_avx2(u_target, u_temp, stage_size);
+        volk_8u_x2_encodeframepolar_8u_u_avx2(u_target, u_temp, (unsigned int)stage_size);
 
         src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
         dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
 
-        __m128i fbits;
-
-        int p;
-        for (p = 0; p < stage_size; p += 8) {
-            fbits = _mm_loadu_si128((__m128i*)u_target);
+        for (size_t p = 0; p < stage_size; p += 8) {
+            __m128i fbits = _mm_loadu_si128((__m128i*)u_target);
             u_target += 8;
 
             src0 = _mm256_loadu_ps(src_llr_ptr);
@@ -357,11 +351,10 @@ static inline void volk_32f_8u_polarbutterfly_32f_u_avx2(float* llrs,
 
     _mm256_zeroall(); // Important to clear cache!
 
-    int el;
     while (min_stage < loop_stage) {
         dst_llr_ptr = llrs + loop_stage * frame_size + row;
         src_llr_ptr = dst_llr_ptr + frame_size;
-        for (el = 0; el < stage_size; el += 8) {
+        for (size_t el = 0; el < stage_size; el += 8) {
             src0 = _mm256_loadu_ps(src_llr_ptr);
             src_llr_ptr += 8;
             src1 = _mm256_loadu_ps(src_llr_ptr);
@@ -407,7 +400,7 @@ static inline void volk_32f_8u_polarbutterfly_32f_rvv(float* llrs,
     }
 
     int loop_stage = max_stage_depth;
-    int stage_size = 0x01 << loop_stage;
+    size_t stage_size = 0x01 << loop_stage;
 
     float* src_llr_ptr;
     float* dst_llr_ptr;
@@ -419,7 +412,7 @@ static inline void volk_32f_8u_polarbutterfly_32f_rvv(float* llrs,
         unsigned char* u_temp = u + 2 * frame_size;
         memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
 
-        volk_8u_x2_encodeframepolar_8u_rvv(u_target, u_temp, stage_size);
+        volk_8u_x2_encodeframepolar_8u_rvv(u_target, u_temp, (unsigned int)stage_size);
 
         src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
         dst_llr_ptr = llrs + max_stage_depth * frame_size + row;
@@ -504,7 +497,7 @@ static inline void volk_32f_8u_polarbutterfly_32f_rvvseg(float* llrs,
         unsigned char* u_temp = u + 2 * frame_size;
         memcpy(u_temp, u + u_num - stage_size, sizeof(unsigned char) * stage_size);
 
-        volk_8u_x2_encodeframepolar_8u_rvv(u_target, u_temp, stage_size);
+        volk_8u_x2_encodeframepolar_8u_rvv(u_target, u_temp, (unsigned int)stage_size);
 
         src_llr_ptr = llrs + (max_stage_depth + 1) * frame_size + row - stage_size;
         dst_llr_ptr = llrs + max_stage_depth * frame_size + row;

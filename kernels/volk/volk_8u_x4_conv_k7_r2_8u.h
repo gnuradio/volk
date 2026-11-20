@@ -59,8 +59,8 @@ typedef union {
 
 static inline void renormalize(unsigned char* X)
 {
-    int NUMSTATES = 64;
-    int i;
+    const unsigned int NUMSTATES = 64;
+    unsigned int i;
 
     unsigned char min = X[0];
     for (i = 0; i < NUMSTATES; i++) {
@@ -75,21 +75,21 @@ static inline void renormalize(unsigned char* X)
 
 
 // helper BFLY for GENERIC version
-static inline void BFLY(int i,
-                        int s,
+static inline void BFLY(unsigned int i,
+                        unsigned int s,
                         unsigned char* syms,
                         unsigned char* Y,
                         unsigned char* X,
                         decision_t* d,
                         unsigned char* Branchtab)
 {
-    int j;
+    unsigned int j;
     unsigned int decision0, decision1;
     unsigned char metric, m0, m1, m2, m3;
     unsigned short metricsum;
 
-    int NUMSTATES = 64;
-    int RATE = 2;
+    const unsigned int NUMSTATES = 64;
+    const unsigned int RATE = 2;
     int METRICSHIFT = 1;
     int PRECISIONSHIFT = 2;
 
@@ -97,13 +97,14 @@ static inline void BFLY(int i,
     for (j = 0; j < RATE; j++) {
         metricsum += (Branchtab[i + j * NUMSTATES / 2] ^ syms[s * RATE + j]);
     }
-    metric = (metricsum >> METRICSHIFT) >> PRECISIONSHIFT;
+    metric = (unsigned char)((metricsum >> METRICSHIFT) >> PRECISIONSHIFT);
 
-    unsigned char max = ((RATE * ((256 - 1) >> METRICSHIFT)) >> PRECISIONSHIFT);
+    unsigned char max =
+        (unsigned char)(((RATE * ((256 - 1) >> METRICSHIFT)) >> PRECISIONSHIFT));
 
     m0 = X[i] + metric;
-    m1 = X[i + NUMSTATES / 2] + (max - metric);
-    m2 = X[i] + (max - metric);
+    m1 = (unsigned char)(X[i + NUMSTATES / 2] + (max - metric));
+    m2 = (unsigned char)(X[i] + (max - metric));
     m3 = X[i + NUMSTATES / 2] + metric;
 
     decision0 = (signed int)(m0 - m1) >= 0;
@@ -141,10 +142,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         // Butterfly
         s18 = ((__m256i*)X)[0];
         s19 = ((__m256i*)X)[1];
-        a76 = _mm256_set1_epi8(syms[2 * i]);
+        a76 = _mm256_set1_epi8((char)syms[2 * i]);
         a78 = ((__m256i*)Branchtab)[0];
         a79 = _mm256_xor_si256(a76, a78);
-        a82 = _mm256_set1_epi8(syms[2 * i + 1]);
+        a82 = _mm256_set1_epi8((char)syms[2 * i + 1]);
         a84 = ((__m256i*)Branchtab)[1];
         a85 = _mm256_xor_si256(a82, a84);
         a86 = _mm256_avg_epu8(a79, a85);
@@ -161,9 +162,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_avx2(unsigned char* Y,
         d10 = _mm256_cmpeq_epi8(a90, m26);
         s22 = _mm256_unpacklo_epi8(d9, d10);
         s23 = _mm256_unpackhi_epi8(d9, d10);
-        dec_int[2 * i] = _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x20));
+        dec_int[2 * i] =
+            (unsigned int)_mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x20));
         dec_int[2 * i + 1] =
-            _mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x31));
+            (unsigned int)_mm256_movemask_epi8(_mm256_permute2x128_si256(s22, s23, 0x31));
         s22 = _mm256_unpacklo_epi8(a89, a90);
         s23 = _mm256_unpackhi_epi8(a89, a90);
         ((__m256i*)Y)[0] = _mm256_permute2x128_si256(s22, s23, 0x20);
@@ -228,10 +230,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         // First half of butterfly
         s18 = ((__m128i*)X)[0];
         s19 = ((__m128i*)X)[2];
-        a76 = _mm_set1_epi8(syms[2 * i]);
+        a76 = _mm_set1_epi8((char)syms[2 * i]);
         a78 = ((__m128i*)Branchtab)[0];
         a79 = _mm_xor_si128(a76, a78);
-        a82 = _mm_set1_epi8(syms[2 * i + 1]);
+        a82 = _mm_set1_epi8((char)syms[2 * i + 1]);
         a84 = ((__m128i*)Branchtab)[2];
         a85 = _mm_xor_si128(a82, a84);
         a86 = _mm_avg_epu8(a79, a85);
@@ -246,8 +248,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         d9 = _mm_cmpeq_epi8(a89, m24);
         a90 = _mm_min_epu8(m26, m25);
         d10 = _mm_cmpeq_epi8(a90, m26);
-        dec_short[4 * i] = _mm_movemask_epi8(_mm_unpacklo_epi8(d9, d10));
-        dec_short[4 * i + 1] = _mm_movemask_epi8(_mm_unpackhi_epi8(d9, d10));
+        dec_short[4 * i] =
+            (short unsigned int)(_mm_movemask_epi8(_mm_unpacklo_epi8(d9, d10)));
+        dec_short[4 * i + 1] =
+            (short unsigned int)(_mm_movemask_epi8(_mm_unpackhi_epi8(d9, d10)));
         ((__m128i*)Y)[0] = _mm_unpacklo_epi8(a89, a90);
         ((__m128i*)Y)[1] = _mm_unpackhi_epi8(a89, a90);
 
@@ -270,8 +274,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_spiral(unsigned char* Y,
         d11 = _mm_cmpeq_epi8(a108, m28);
         a109 = _mm_min_epu8(m30, m29);
         d12 = _mm_cmpeq_epi8(a109, m30);
-        dec_short[4 * i + 2] = _mm_movemask_epi8(_mm_unpacklo_epi8(d11, d12));
-        dec_short[4 * i + 3] = _mm_movemask_epi8(_mm_unpackhi_epi8(d11, d12));
+        dec_short[4 * i + 2] =
+            (short unsigned int)(_mm_movemask_epi8(_mm_unpacklo_epi8(d11, d12)));
+        dec_short[4 * i + 3] =
+            (short unsigned int)(_mm_movemask_epi8(_mm_unpackhi_epi8(d11, d12)));
         ((__m128i*)Y)[2] = _mm_unpacklo_epi8(a108, a109);
         ((__m128i*)Y)[3] = _mm_unpackhi_epi8(a108, a109);
 
@@ -462,10 +468,10 @@ static inline void volk_8u_x4_conv_k7_r2_8u_generic(unsigned char* Y,
                                                     unsigned int excess,
                                                     unsigned char* Branchtab)
 {
-    int nbits = framebits + excess;
-    int NUMSTATES = 64;
+    unsigned int nbits = framebits + excess;
+    const unsigned int NUMSTATES = 64;
 
-    int s, i;
+    unsigned int s, i;
     for (s = 0; s < nbits; s++) {
         void* tmp;
         for (i = 0; i < NUMSTATES / 2; i++) {

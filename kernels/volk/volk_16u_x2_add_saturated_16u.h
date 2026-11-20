@@ -63,7 +63,7 @@ static inline void volk_16u_x2_add_saturated_16u_generic(uint16_t* outVector,
 {
     for (unsigned int i = 0; i < num_points; i++) {
         uint16_t sum = inVectorA[i] + inVectorB[i];
-        outVector[i] = sum | -(uint16_t)(sum < inVectorA[i]);
+        outVector[i] = (uint16_t)((uint16_t)(sum | -(uint16_t)(sum < inVectorA[i])));
     }
 }
 

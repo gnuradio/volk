@@ -90,7 +90,7 @@ volk_32f_atan_32f_a_avx512dq(float* out, const float* in, unsigned int num_point
     const __m512 one = _mm512_set1_ps(1.f);
     const __m512 pi_over_2 = _mm512_set1_ps(0x1.921fb6p0f);
     const __m512 abs_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x7FFFFFFF));
-    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x80000000));
+    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32((-0x7fffffff - 1)));
 
     const unsigned int sixteenth_points = num_points / 16;
 
@@ -124,7 +124,7 @@ volk_32f_atan_32f_a_avx2_fma(float* out, const float* in, unsigned int num_point
     const __m256 one = _mm256_set1_ps(1.f);
     const __m256 pi_over_2 = _mm256_set1_ps(0x1.921fb6p0f);
     const __m256 abs_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x80000000));
+    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32((-0x7fffffff - 1)));
 
     const unsigned int eighth_points = num_points / 8;
 
@@ -157,7 +157,7 @@ volk_32f_atan_32f_a_avx2(float* out, const float* in, unsigned int num_points)
     const __m256 one = _mm256_set1_ps(1.f);
     const __m256 pi_over_2 = _mm256_set1_ps(0x1.921fb6p0f);
     const __m256 abs_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x80000000));
+    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32((-0x7fffffff - 1)));
 
     const unsigned int eighth_points = num_points / 8;
 
@@ -190,7 +190,7 @@ volk_32f_atan_32f_a_sse4_1(float* out, const float* in, unsigned int num_points)
     const __m128 one = _mm_set1_ps(1.f);
     const __m128 pi_over_2 = _mm_set1_ps(0x1.921fb6p0f);
     const __m128 abs_mask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
-    const __m128 sign_mask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+    const __m128 sign_mask = _mm_castsi128_ps(_mm_set1_epi32((-0x7fffffff - 1)));
 
     const unsigned int quarter_points = num_points / 4;
 
@@ -222,7 +222,7 @@ volk_32f_atan_32f_neon(float* out, const float* in, unsigned int num_points)
 {
     const float32x4_t one = vdupq_n_f32(1.f);
     const float32x4_t pi_over_2 = vdupq_n_f32(0x1.921fb6p0f);
-    const uint32x4_t sign_mask = vdupq_n_u32(0x80000000);
+    const uint32x4_t sign_mask = vdupq_n_u32((-0x7fffffff - 1));
 
     const unsigned int quarter_points = num_points / 4;
 
@@ -266,7 +266,7 @@ volk_32f_atan_32f_neonv8(float* out, const float* in, unsigned int num_points)
 {
     const float32x4_t one = vdupq_n_f32(1.f);
     const float32x4_t pi_over_2 = vdupq_n_f32(0x1.921fb6p0f);
-    const uint32x4_t sign_mask = vdupq_n_u32(0x80000000);
+    const uint32x4_t sign_mask = vdupq_n_u32((-0x7fffffff - 1));
 
     const unsigned int eighth_points = num_points / 8;
 
@@ -323,7 +323,7 @@ volk_32f_atan_32f_u_avx512dq(float* out, const float* in, unsigned int num_point
     const __m512 one = _mm512_set1_ps(1.f);
     const __m512 pi_over_2 = _mm512_set1_ps(0x1.921fb6p0f);
     const __m512 abs_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x7FFFFFFF));
-    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32(0x80000000));
+    const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set1_epi32((-0x7fffffff - 1)));
 
     const unsigned int sixteenth_points = num_points / 16;
 
@@ -356,7 +356,7 @@ volk_32f_atan_32f_u_avx2_fma(float* out, const float* in, unsigned int num_point
     const __m256 one = _mm256_set1_ps(1.f);
     const __m256 pi_over_2 = _mm256_set1_ps(0x1.921fb6p0f);
     const __m256 abs_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x80000000));
+    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32((-0x7fffffff - 1)));
 
     const unsigned int eighth_points = num_points / 8;
 
@@ -388,7 +388,7 @@ volk_32f_atan_32f_u_avx2(float* out, const float* in, unsigned int num_points)
     const __m256 one = _mm256_set1_ps(1.f);
     const __m256 pi_over_2 = _mm256_set1_ps(0x1.921fb6p0f);
     const __m256 abs_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
-    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x80000000));
+    const __m256 sign_mask = _mm256_castsi256_ps(_mm256_set1_epi32((-0x7fffffff - 1)));
 
     const unsigned int eighth_points = num_points / 8;
 
@@ -421,7 +421,7 @@ volk_32f_atan_32f_u_sse4_1(float* out, const float* in, unsigned int num_points)
     const __m128 one = _mm_set1_ps(1.f);
     const __m128 pi_over_2 = _mm_set1_ps(0x1.921fb6p0f);
     const __m128 abs_mask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
-    const __m128 sign_mask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+    const __m128 sign_mask = _mm_castsi128_ps(_mm_set1_epi32((-0x7fffffff - 1)));
 
     const unsigned int quarter_points = num_points / 4;
 

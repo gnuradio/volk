@@ -137,7 +137,7 @@ void option_list::parse(int argc, char** argv)
                     break;
                 case FLOAT_CALLBACK:
                     try {
-                        double double_val = atof(argv[++arg_number]);
+                        float double_val = strtof(argv[++arg_number], nullptr);
                         ((void (*)(float))this_option->callback)(double_val);
                     } catch (std::exception& exc) {
                         std::cout << "A float option can only receive a number"

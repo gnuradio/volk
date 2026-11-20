@@ -116,7 +116,7 @@ static inline void volk_32f_s32f_stddev_32f_a_sse4_1(float* stddev,
             returnValue += (*aPtr) * (*aPtr);
             aPtr++;
         }
-        returnValue /= num_points;
+        returnValue /= (float)num_points;
         returnValue -= (mean * mean);
         returnValue = sqrtf(returnValue);
     }
@@ -162,7 +162,7 @@ static inline void volk_32f_s32f_stddev_32f_a_sse(float* stddev,
             returnValue += (*aPtr) * (*aPtr);
             aPtr++;
         }
-        returnValue /= num_points;
+        returnValue /= (float)num_points;
         returnValue -= (mean * mean);
         returnValue = sqrtf(returnValue);
     }
@@ -230,7 +230,7 @@ static inline void volk_32f_s32f_stddev_32f_a_avx(float* stddev,
             stdDev += (*aPtr) * (*aPtr);
             aPtr++;
         }
-        stdDev /= num_points;
+        stdDev /= (float)num_points;
         stdDev -= (mean * mean);
         stdDev = sqrtf(stdDev);
     }
@@ -256,7 +256,7 @@ static inline void volk_32f_s32f_stddev_32f_generic(float* stddev,
             aPtr++;
         }
 
-        returnValue /= num_points;
+        returnValue /= (float)num_points;
         returnValue -= (mean * mean);
         returnValue = sqrtf(returnValue);
     }
@@ -424,7 +424,7 @@ static inline void volk_32f_s32f_stddev_32f_u_avx(float* stddev,
             stdDev += (*aPtr) * (*aPtr);
             aPtr++;
         }
-        stdDev /= num_points;
+        stdDev /= (float)num_points;
         stdDev -= (mean * mean);
         stdDev = sqrtf(stdDev);
     }
