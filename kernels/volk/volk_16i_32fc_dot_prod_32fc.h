@@ -18,6 +18,13 @@
  * vectors. The result is a single value stored in the \p result
  * address and will be complex.
  *
+ * \b WARNING: When input values span the full int16_t range, different
+ * protokernels may produce slightly inconsistent results due to
+ * differences in intermediate precision and accumulation order (e.g.,
+ * the generic kernel uses four separate accumulators while SIMD
+ * variants accumulate in wider lanes). The observed error is within an
+ * absolute tolerance of 1e-1.
+ *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_16i_32fc_dot_prod_32fc(lv_32fc_t* result, const short* input, const lv_32fc_t
