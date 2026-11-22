@@ -66,7 +66,7 @@ volk_16i_max_star_16i_a_ssse3(short* target, short* src0, unsigned int num_point
 
     p_src0 = (__m128i*)src0;
 
-    int bound = num_bytes >> 4;
+    int bound = (int)(num_bytes >> 4);
     int leftovers = (num_bytes >> 1) & 7;
 
     int i = 0;
@@ -120,7 +120,7 @@ volk_16i_max_star_16i_generic(short* target, short* src0, unsigned int num_point
 
     int i = 0;
 
-    int bound = num_bytes >> 1;
+    int bound = (int)(num_bytes >> 1);
 
     short candidate = src0[0];
     for (i = 1; i < bound; ++i) {

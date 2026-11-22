@@ -65,15 +65,25 @@ volk_8ic_s32f_deinterleave_32f_x2_a_sse4_1(float* iBuffer,
     const unsigned int eighthPoints = num_points / 8;
     __m128 iFloatValue, qFloatValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m128 invScalar = _mm_set_ps1(iScalar);
     __m128i complexVal, iIntVal, qIntVal, iComplexVal, qComplexVal;
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
+    // clang-format off
     __m128i iMoveMask = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on
+    // clang-format off
     __m128i qMoveMask = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 13, 11, 9, 7, 5, 3, 1);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        15    , 13    , 11    , 9,
+        7     , 5     , 3     , 1);
+    // clang-format on
 
     for (; number < eighthPoints; number++) {
         complexVal = _mm_load_si128((__m128i*)complexVectorPtr);
@@ -136,7 +146,7 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_a_sse(float* iBuffer,
     const unsigned int quarterPoints = num_points / 4;
     __m128 cplxValue1, cplxValue2, iValue, qValue;
 
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    __m128 invScalar = _mm_set_ps1(1.0f / scalar);
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
     __VOLK_ATTR_ALIGNED(16) float floatBuffer[8];
@@ -197,75 +207,33 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_a_avx2(float* iBuffer,
     const unsigned int sixteenthPoints = num_points / 16;
     __m256 iFloatValue, qFloatValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     __m256i complexVal, iIntVal, qIntVal, iComplexVal, qComplexVal;
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
-    __m256i iMoveMask = _mm256_set_epi8(0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0);
-    __m256i qMoveMask = _mm256_set_epi8(0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        15,
-                                        13,
-                                        11,
-                                        9,
-                                        7,
-                                        5,
-                                        3,
-                                        1,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        15,
-                                        13,
-                                        11,
-                                        9,
-                                        7,
-                                        5,
-                                        3,
-                                        1);
+    // clang-format off
+    __m256i iMoveMask = _mm256_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on
+    // clang-format off
+    __m256i qMoveMask = _mm256_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        15    , 13    , 11    , 9,
+        7     , 5     , 3     , 1,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        15    , 13    , 11    , 9,
+        7     , 5     , 3     , 1);
+    // clang-format on
 
     for (; number < sixteenthPoints; number++) {
         complexVal = _mm256_load_si256((__m256i*)complexVectorPtr);
@@ -322,7 +290,7 @@ volk_8ic_s32f_deinterleave_32f_x2_generic(float* iBuffer,
     float* iBufferPtr = iBuffer;
     float* qBufferPtr = qBuffer;
     unsigned int number;
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     for (number = 0; number < num_points; number++) {
         *iBufferPtr++ = (float)(*complexVectorPtr++) * invScalar;
         *qBufferPtr++ = (float)(*complexVectorPtr++) * invScalar;
@@ -357,44 +325,23 @@ static inline void volk_8ic_s32f_deinterleave_32f_x2_u_avx2(float* iBuffer,
     const unsigned int sixteenthPoints = num_points / 16;
     __m256 iFloatValue, qFloatValue;
 
-    const float iScalar = 1.0 / scalar;
+    const float iScalar = 1.0f / scalar;
     __m256 invScalar = _mm256_set1_ps(iScalar);
     __m256i complexVal, iIntVal, qIntVal;
     __m128i iComplexVal, qComplexVal;
     int8_t* complexVectorPtr = (int8_t*)complexVector;
 
-    __m256i MoveMask = _mm256_set_epi8(15,
-                                       13,
-                                       11,
-                                       9,
-                                       7,
-                                       5,
-                                       3,
-                                       1,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0,
-                                       15,
-                                       13,
-                                       11,
-                                       9,
-                                       7,
-                                       5,
-                                       3,
-                                       1,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0);
+    // clang-format off
+    __m256i MoveMask = _mm256_set_epi8(
+        15, 13, 11, 9,
+        7 , 5 , 3 , 1,
+        14, 12, 10, 8,
+        6 , 4 , 2 , 0,
+        15, 13, 11, 9,
+        7 , 5 , 3 , 1,
+        14, 12, 10, 8,
+        6 , 4 , 2 , 0);
+    // clang-format on
 
     for (; number < sixteenthPoints; number++) {
         complexVal = _mm256_loadu_si256((__m256i*)complexVectorPtr);

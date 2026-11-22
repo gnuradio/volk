@@ -61,237 +61,212 @@
 #define INCLUDED_volk_32f_x2_interleave_32fc_a_H
 
 #include <inttypes.h>
-#include <stdio.h>
-
-#ifdef LV_HAVE_AVX
-#include <immintrin.h>
-
-static inline void volk_32f_x2_interleave_32fc_a_avx(lv_32fc_t* complexVector,
-                                                     const float* iBuffer,
-                                                     const float* qBuffer,
-                                                     unsigned int num_points)
-{
-    unsigned int number = 0;
-    float* complexVectorPtr = (float*)complexVector;
-    const float* iBufferPtr = iBuffer;
-    const float* qBufferPtr = qBuffer;
-
-    const uint64_t eighthPoints = num_points / 8;
-
-    __m256 iValue, qValue, cplxValue1, cplxValue2, cplxValue;
-    for (; number < eighthPoints; number++) {
-        iValue = _mm256_load_ps(iBufferPtr);
-        qValue = _mm256_load_ps(qBufferPtr);
-
-        // Interleaves the lower two values in the i and q variables into one buffer
-        cplxValue1 = _mm256_unpacklo_ps(iValue, qValue);
-        // Interleaves the upper two values in the i and q variables into one buffer
-        cplxValue2 = _mm256_unpackhi_ps(iValue, qValue);
-
-        cplxValue = _mm256_permute2f128_ps(cplxValue1, cplxValue2, 0x20);
-        _mm256_store_ps(complexVectorPtr, cplxValue);
-        complexVectorPtr += 8;
-
-        cplxValue = _mm256_permute2f128_ps(cplxValue1, cplxValue2, 0x31);
-        _mm256_store_ps(complexVectorPtr, cplxValue);
-        complexVectorPtr += 8;
-
-        iBufferPtr += 8;
-        qBufferPtr += 8;
-    }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *complexVectorPtr++ = *iBufferPtr++;
-        *complexVectorPtr++ = *qBufferPtr++;
-    }
-}
-
-#endif /* LV_HAV_AVX */
-
-#ifdef LV_HAVE_SSE
-#include <xmmintrin.h>
-
-static inline void volk_32f_x2_interleave_32fc_a_sse(lv_32fc_t* complexVector,
-                                                     const float* iBuffer,
-                                                     const float* qBuffer,
-                                                     unsigned int num_points)
-{
-    unsigned int number = 0;
-    float* complexVectorPtr = (float*)complexVector;
-    const float* iBufferPtr = iBuffer;
-    const float* qBufferPtr = qBuffer;
-
-    const uint64_t quarterPoints = num_points / 4;
-
-    __m128 iValue, qValue, cplxValue;
-    for (; number < quarterPoints; number++) {
-        iValue = _mm_load_ps(iBufferPtr);
-        qValue = _mm_load_ps(qBufferPtr);
-
-        // Interleaves the lower two values in the i and q variables into one buffer
-        cplxValue = _mm_unpacklo_ps(iValue, qValue);
-        _mm_store_ps(complexVectorPtr, cplxValue);
-        complexVectorPtr += 4;
-
-        // Interleaves the upper two values in the i and q variables into one buffer
-        cplxValue = _mm_unpackhi_ps(iValue, qValue);
-        _mm_store_ps(complexVectorPtr, cplxValue);
-        complexVectorPtr += 4;
-
-        iBufferPtr += 4;
-        qBufferPtr += 4;
-    }
-
-    number = quarterPoints * 4;
-    for (; number < num_points; number++) {
-        *complexVectorPtr++ = *iBufferPtr++;
-        *complexVectorPtr++ = *qBufferPtr++;
-    }
-}
-#endif /* LV_HAVE_SSE */
-
-
-#ifdef LV_HAVE_NEON
-#include <arm_neon.h>
-
-static inline void volk_32f_x2_interleave_32fc_neon(lv_32fc_t* complexVector,
-                                                    const float* iBuffer,
-                                                    const float* qBuffer,
-                                                    unsigned int num_points)
-{
-    unsigned int quarter_points = num_points / 4;
-    unsigned int number;
-    float* complexVectorPtr = (float*)complexVector;
-
-    float32x4x2_t complex_vec;
-    for (number = 0; number < quarter_points; ++number) {
-        complex_vec.val[0] = vld1q_f32(iBuffer);
-        complex_vec.val[1] = vld1q_f32(qBuffer);
-        vst2q_f32(complexVectorPtr, complex_vec);
-        iBuffer += 4;
-        qBuffer += 4;
-        complexVectorPtr += 8;
-    }
-
-    for (number = quarter_points * 4; number < num_points; ++number) {
-        *complexVectorPtr++ = *iBuffer++;
-        *complexVectorPtr++ = *qBuffer++;
-    }
-}
-#endif /* LV_HAVE_NEON */
-
-#ifdef LV_HAVE_NEONV8
-#include <arm_neon.h>
-
-static inline void volk_32f_x2_interleave_32fc_neonv8(lv_32fc_t* complexVector,
-                                                      const float* iBuffer,
-                                                      const float* qBuffer,
-                                                      unsigned int num_points)
-{
-    const unsigned int eighthPoints = num_points / 8;
-
-    float* outPtr = (float*)complexVector;
-    const float* iPtr = iBuffer;
-    const float* qPtr = qBuffer;
-
-    for (unsigned int number = 0; number < eighthPoints; number++) {
-        float32x4x2_t cplx0, cplx1;
-        cplx0.val[0] = vld1q_f32(iPtr);
-        cplx0.val[1] = vld1q_f32(qPtr);
-        cplx1.val[0] = vld1q_f32(iPtr + 4);
-        cplx1.val[1] = vld1q_f32(qPtr + 4);
-        __VOLK_PREFETCH(iPtr + 16);
-        __VOLK_PREFETCH(qPtr + 16);
-
-        vst2q_f32(outPtr, cplx0);
-        vst2q_f32(outPtr + 8, cplx1);
-
-        iPtr += 8;
-        qPtr += 8;
-        outPtr += 16;
-    }
-
-    for (unsigned int number = eighthPoints * 8; number < num_points; number++) {
-        *outPtr++ = *iPtr++;
-        *outPtr++ = *qPtr++;
-    }
-}
-#endif /* LV_HAVE_NEONV8 */
-
 
 #ifdef LV_HAVE_GENERIC
-
 static inline void volk_32f_x2_interleave_32fc_generic(lv_32fc_t* complexVector,
                                                        const float* iBuffer,
                                                        const float* qBuffer,
                                                        unsigned int num_points)
 {
-    float* complexVectorPtr = (float*)complexVector;
-    const float* iBufferPtr = iBuffer;
-    const float* qBufferPtr = qBuffer;
-    unsigned int number;
-
-    for (number = 0; number < num_points; number++) {
-        *complexVectorPtr++ = *iBufferPtr++;
-        *complexVectorPtr++ = *qBufferPtr++;
+    for (unsigned int number = 0; number < num_points; ++number) {
+        ((float*)complexVector)[0] = *iBuffer++;
+        ((float*)complexVector)[1] = *qBuffer++;
+        ++complexVector;
     }
 }
-#endif /* LV_HAVE_GENERIC */
+#endif
 
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+static inline void volk_32f_x2_interleave_32fc_a_avx512f(lv_32fc_t* complexVector,
+                                                         const float* iBuffer,
+                                                         const float* qBuffer,
+                                                         unsigned int num_points)
+{
+    const unsigned int blocks = num_points / 16;
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const __m512 iValue = _mm512_load_ps(iBuffer);
+        const __m512 qValue = _mm512_load_ps(qBuffer);
+        const __m512 low = _mm512_unpacklo_ps(iValue, qValue);
+        const __m512 high = _mm512_unpackhi_ps(iValue, qValue);
+        const __m512 first = _mm512_permutex2var_ps(
+            low,
+            _mm512_setr_epi32(0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23),
+            high);
+        const __m512 second = _mm512_permutex2var_ps(
+            low,
+            _mm512_setr_epi32(
+                8, 9, 10, 11, 24, 25, 26, 27, 12, 13, 14, 15, 28, 29, 30, 31),
+            high);
+        _mm512_store_ps((float*)complexVector, first);
+        _mm512_store_ps((float*)(complexVector + 8), second);
+        complexVector += 16;
+        iBuffer += 16;
+        qBuffer += 16;
+    }
+    volk_32f_x2_interleave_32fc_generic(
+        complexVector, iBuffer, qBuffer, num_points - blocks * 16);
+}
+#endif
 
-#endif /* INCLUDED_volk_32f_x2_interleave_32fc_a_H */
-
-#ifndef INCLUDED_volk_32f_x2_interleave_32fc_u_H
-#define INCLUDED_volk_32f_x2_interleave_32fc_u_H
-
-#include <inttypes.h>
-#include <stdio.h>
+#ifdef LV_HAVE_AVX512F
+#include <immintrin.h>
+static inline void volk_32f_x2_interleave_32fc_u_avx512f(lv_32fc_t* complexVector,
+                                                         const float* iBuffer,
+                                                         const float* qBuffer,
+                                                         unsigned int num_points)
+{
+    const unsigned int blocks = num_points / 16;
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const __m512 iValue = _mm512_loadu_ps(iBuffer);
+        const __m512 qValue = _mm512_loadu_ps(qBuffer);
+        const __m512 low = _mm512_unpacklo_ps(iValue, qValue);
+        const __m512 high = _mm512_unpackhi_ps(iValue, qValue);
+        const __m512 first = _mm512_permutex2var_ps(
+            low,
+            _mm512_setr_epi32(0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23),
+            high);
+        const __m512 second = _mm512_permutex2var_ps(
+            low,
+            _mm512_setr_epi32(
+                8, 9, 10, 11, 24, 25, 26, 27, 12, 13, 14, 15, 28, 29, 30, 31),
+            high);
+        _mm512_storeu_ps((float*)complexVector, first);
+        _mm512_storeu_ps((float*)(complexVector + 8), second);
+        complexVector += 16;
+        iBuffer += 16;
+        qBuffer += 16;
+    }
+    volk_32f_x2_interleave_32fc_generic(
+        complexVector, iBuffer, qBuffer, num_points - blocks * 16);
+}
+#endif
 
 #ifdef LV_HAVE_AVX
 #include <immintrin.h>
+static inline void volk_32f_x2_interleave_32fc_a_avx(lv_32fc_t* complexVector,
+                                                     const float* iBuffer,
+                                                     const float* qBuffer,
+                                                     unsigned int num_points)
+{
+    const unsigned int blocks = num_points / 8;
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const __m256 iValue = _mm256_load_ps(iBuffer);
+        const __m256 qValue = _mm256_load_ps(qBuffer);
+        const __m256 low = _mm256_unpacklo_ps(iValue, qValue);
+        const __m256 high = _mm256_unpackhi_ps(iValue, qValue);
+        const __m256 first = _mm256_permute2f128_ps(low, high, 0x20);
+        const __m256 second = _mm256_permute2f128_ps(low, high, 0x31);
+        _mm256_store_ps((float*)complexVector, first);
+        _mm256_store_ps((float*)(complexVector + 4), second);
+        complexVector += 8;
+        iBuffer += 8;
+        qBuffer += 8;
+    }
+    volk_32f_x2_interleave_32fc_generic(
+        complexVector, iBuffer, qBuffer, num_points - blocks * 8);
+}
+#endif
 
+#ifdef LV_HAVE_AVX
+#include <immintrin.h>
 static inline void volk_32f_x2_interleave_32fc_u_avx(lv_32fc_t* complexVector,
                                                      const float* iBuffer,
                                                      const float* qBuffer,
                                                      unsigned int num_points)
 {
-    unsigned int number = 0;
-    float* complexVectorPtr = (float*)complexVector;
-    const float* iBufferPtr = iBuffer;
-    const float* qBufferPtr = qBuffer;
-
-    const uint64_t eighthPoints = num_points / 8;
-
-    __m256 iValue, qValue, cplxValue1, cplxValue2, cplxValue;
-    for (; number < eighthPoints; number++) {
-        iValue = _mm256_loadu_ps(iBufferPtr);
-        qValue = _mm256_loadu_ps(qBufferPtr);
-
-        // Interleaves the lower two values in the i and q variables into one buffer
-        cplxValue1 = _mm256_unpacklo_ps(iValue, qValue);
-        // Interleaves the upper two values in the i and q variables into one buffer
-        cplxValue2 = _mm256_unpackhi_ps(iValue, qValue);
-
-        cplxValue = _mm256_permute2f128_ps(cplxValue1, cplxValue2, 0x20);
-        _mm256_storeu_ps(complexVectorPtr, cplxValue);
-        complexVectorPtr += 8;
-
-        cplxValue = _mm256_permute2f128_ps(cplxValue1, cplxValue2, 0x31);
-        _mm256_storeu_ps(complexVectorPtr, cplxValue);
-        complexVectorPtr += 8;
-
-        iBufferPtr += 8;
-        qBufferPtr += 8;
+    const unsigned int blocks = num_points / 8;
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const __m256 iValue = _mm256_loadu_ps(iBuffer);
+        const __m256 qValue = _mm256_loadu_ps(qBuffer);
+        const __m256 low = _mm256_unpacklo_ps(iValue, qValue);
+        const __m256 high = _mm256_unpackhi_ps(iValue, qValue);
+        const __m256 first = _mm256_permute2f128_ps(low, high, 0x20);
+        const __m256 second = _mm256_permute2f128_ps(low, high, 0x31);
+        _mm256_storeu_ps((float*)complexVector, first);
+        _mm256_storeu_ps((float*)(complexVector + 4), second);
+        complexVector += 8;
+        iBuffer += 8;
+        qBuffer += 8;
     }
-
-    number = eighthPoints * 8;
-    for (; number < num_points; number++) {
-        *complexVectorPtr++ = *iBufferPtr++;
-        *complexVectorPtr++ = *qBufferPtr++;
-    }
+    volk_32f_x2_interleave_32fc_generic(
+        complexVector, iBuffer, qBuffer, num_points - blocks * 8);
 }
-#endif /* LV_HAVE_AVX */
+#endif
+
+#ifdef LV_HAVE_SSE
+#include <immintrin.h>
+static inline void volk_32f_x2_interleave_32fc_a_sse(lv_32fc_t* complexVector,
+                                                     const float* iBuffer,
+                                                     const float* qBuffer,
+                                                     unsigned int num_points)
+{
+    const unsigned int blocks = num_points / 4;
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const __m128 iValue = _mm_load_ps(iBuffer);
+        const __m128 qValue = _mm_load_ps(qBuffer);
+        const __m128 low = _mm_unpacklo_ps(iValue, qValue);
+        const __m128 high = _mm_unpackhi_ps(iValue, qValue);
+        _mm_store_ps((float*)complexVector, low);
+        _mm_store_ps((float*)(complexVector + 2), high);
+        complexVector += 4;
+        iBuffer += 4;
+        qBuffer += 4;
+    }
+    volk_32f_x2_interleave_32fc_generic(
+        complexVector, iBuffer, qBuffer, num_points - blocks * 4);
+}
+#endif
+
+#ifdef LV_HAVE_NEON
+#include <arm_neon.h>
+static inline void volk_32f_x2_interleave_32fc_neon(lv_32fc_t* complexVector,
+                                                    const float* iBuffer,
+                                                    const float* qBuffer,
+                                                    unsigned int num_points)
+{
+    const unsigned int blocks = num_points / 4;
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const float32x4x2_t values = { { vld1q_f32(iBuffer), vld1q_f32(qBuffer) } };
+        vst2q_f32((float*)complexVector, values);
+        complexVector += 4;
+        iBuffer += 4;
+        qBuffer += 4;
+    }
+    volk_32f_x2_interleave_32fc_generic(
+        complexVector, iBuffer, qBuffer, num_points - blocks * 4);
+}
+#endif
+
+#ifdef LV_HAVE_NEONV8
+#include <arm_neon.h>
+static inline void volk_32f_x2_interleave_32fc_neonv8(lv_32fc_t* complexVector,
+                                                      const float* iBuffer,
+                                                      const float* qBuffer,
+                                                      unsigned int num_points)
+{
+    const unsigned int blocks = num_points / 8;
+    for (unsigned int number = 0; number < blocks; ++number) {
+        const float32x4x2_t values = { { vld1q_f32(iBuffer), vld1q_f32(qBuffer) } };
+        vst2q_f32((float*)complexVector, values);
+        const float32x4x2_t values1 = { { vld1q_f32(iBuffer + 4),
+                                          vld1q_f32(qBuffer + 4) } };
+        __VOLK_PREFETCH(iBuffer + 16);
+        __VOLK_PREFETCH(qBuffer + 16);
+        vst2q_f32((float*)(complexVector + 4), values1);
+        complexVector += 8;
+        iBuffer += 8;
+        qBuffer += 8;
+    }
+    volk_32f_x2_interleave_32fc_generic(
+        complexVector, iBuffer, qBuffer, num_points - blocks * 8);
+}
+#endif
+
+#endif /* INCLUDED_volk_32f_x2_interleave_32fc_a_H */
+#ifndef INCLUDED_volk_32f_x2_interleave_32fc_u_H
+#define INCLUDED_volk_32f_x2_interleave_32fc_u_H
+#include <inttypes.h>
 
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>

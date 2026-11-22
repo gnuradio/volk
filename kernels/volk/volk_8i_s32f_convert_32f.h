@@ -338,8 +338,9 @@ static inline void volk_8i_s32f_convert_32f_u_orc(float* outputVector,
                                                   const float scalar,
                                                   unsigned int num_points)
 {
-    float invscalar = 1.0 / scalar;
-    volk_8i_s32f_convert_32f_a_orc_impl(outputVector, inputVector, invscalar, num_points);
+    float invscalar = 1.0f / scalar;
+    volk_8i_s32f_convert_32f_a_orc_impl(
+        outputVector, inputVector, invscalar, (int)num_points);
 }
 #endif /* LV_HAVE_ORC */
 

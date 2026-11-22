@@ -251,7 +251,7 @@ static inline void volk_32f_x2_subtract_32f_u_orc(float* cVector,
                                                   const float* bVector,
                                                   unsigned int num_points)
 {
-    volk_32f_x2_subtract_32f_a_orc_impl(cVector, aVector, bVector, num_points);
+    volk_32f_x2_subtract_32f_a_orc_impl(cVector, aVector, bVector, (int)num_points);
 }
 #endif /* LV_HAVE_ORC */
 

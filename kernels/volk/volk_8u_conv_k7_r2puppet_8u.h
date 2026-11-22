@@ -37,11 +37,11 @@ static inline int chainback_viterbi(unsigned char* data,
                                     unsigned char* decisions)
 {
     unsigned char* d;
-    int d_ADDSHIFT = 0;
-    int d_numstates = (1 << 6);
-    int d_decision_t_size = d_numstates / 8;
+    const unsigned int d_ADDSHIFT = 0;
+    const unsigned int d_numstates = (1U << 6);
+    const unsigned int d_decision_t_size = d_numstates / 8;
     unsigned int d_k = 7;
-    int d_framebits = nbits;
+    const unsigned int d_framebits = nbits;
     /* ADDSHIFT and SUBSHIFT make sure that the thing returned is a byte. */
     d = decisions;
     /* Make room beyond the end of the encoder register so we can
@@ -57,32 +57,32 @@ static inline int chainback_viterbi(unsigned char* data,
 
     d += tailsize * d_decision_t_size; /* Look past tail */
     int retval;
-    int dif = tailsize - (d_k - 1);
+    const unsigned int dif = tailsize - (d_k - 1);
     // printf("break, %d, %d\n", dif, (nbits+dif)%d_framebits);
     p_decision_t dec;
     while (nbits-- > d_framebits - (d_k - 1)) {
-        int k;
+        unsigned int k;
         dec.t = &d[nbits * d_decision_t_size];
         k = (dec.w[(endstate >> d_ADDSHIFT) / 32] >> ((endstate >> d_ADDSHIFT) % 32)) & 1;
 
         endstate = (endstate >> 1) | (k << (d_k - 2 + d_ADDSHIFT));
         // data[((nbits+dif)%nbits)>>3] = endstate>>d_SUBSHIFT;
         // printf("%d, %d\n", k, (nbits+dif)%d_framebits);
-        data[((nbits + dif) % d_framebits)] = k;
+        data[((nbits + dif) % d_framebits)] = (unsigned char)(k);
 
-        retval = endstate;
+        retval = (int)endstate;
     }
     nbits += 1;
 
     while (nbits-- != 0) {
-        int k;
+        unsigned int k;
 
         dec.t = &d[nbits * d_decision_t_size];
 
         k = (dec.w[(endstate >> d_ADDSHIFT) / 32] >> ((endstate >> d_ADDSHIFT) % 32)) & 1;
 
         endstate = (endstate >> 1) | (k << (d_k - 2 + d_ADDSHIFT));
-        data[((nbits + dif) % d_framebits)] = k;
+        data[((nbits + dif) % d_framebits)] = (unsigned char)(k);
     }
     // printf("%d, %d, %d, %d, %d, %d, %d, %d\n",
     // data[4095],data[4094],data[4093],data[4092],data[4091],data[4090],data[4089],data[4088]);
@@ -109,8 +109,8 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* dec,
     }
 
     static int once = 1;
-    int d_numstates = (1 << 6);
-    int rate = 2;
+    const unsigned int d_numstates = (1U << 6);
+    const unsigned int rate = 2;
     static unsigned char* D;
     static unsigned char* Y;
     static unsigned char* X;
@@ -128,13 +128,13 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* dec,
             (unsigned char*)volk_malloc(d_numstates / 2 * rate, volk_get_alignment());
         D = (unsigned char*)volk_malloc((d_numstates / 8) * (framebits + 6),
                                         volk_get_alignment());
-        int state, i;
+        unsigned int state, i;
 
         /*  Initialize the branch table */
         for (state = 0; state < d_numstates / 2; state++) {
             for (i = 0; i < rate; i++) {
                 Branchtab[i * d_numstates / 2 + state] =
-                    parity((2 * state) & d_polys[i]) ? 255 : 0;
+                    parity((int)(2 * state) & d_polys[i]) ? 255 : 0;
             }
         }
 
@@ -151,7 +151,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_spiral(unsigned char* dec,
         Y, X, syms, D, framebits / 2 - excess, excess, Branchtab);
 
     unsigned int min = X[0];
-    int i = 0, state = 0;
+    unsigned int i = 0, state = 0;
     for (i = 0; i < (d_numstates); ++i) {
         if (X[i] < min) {
             min = X[i];
@@ -178,8 +178,8 @@ static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* dec,
     }
 
     static int once = 1;
-    int d_numstates = (1 << 6);
-    int rate = 2;
+    const unsigned int d_numstates = (1U << 6);
+    const unsigned int rate = 2;
     static unsigned char* D;
     static unsigned char* Y;
     static unsigned char* X;
@@ -197,13 +197,13 @@ static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* dec,
             (unsigned char*)volk_malloc(d_numstates / 2 * rate, volk_get_alignment());
         D = (unsigned char*)volk_malloc((d_numstates / 8) * (framebits + 6),
                                         volk_get_alignment());
-        int state, i;
+        unsigned int state, i;
 
         /*  Initialize the branch table */
         for (state = 0; state < d_numstates / 2; state++) {
             for (i = 0; i < rate; i++) {
                 Branchtab[i * d_numstates / 2 + state] =
-                    parity((2 * state) & d_polys[i]) ? 255 : 0;
+                    parity((int)(2 * state) & d_polys[i]) ? 255 : 0;
             }
         }
 
@@ -220,7 +220,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_neonspiral(unsigned char* dec,
         Y, X, syms, D, framebits / 2 - excess, excess, Branchtab);
 
     unsigned int min = X[0];
-    int i = 0, state = 0;
+    unsigned int i = 0, state = 0;
     for (i = 0; i < (d_numstates); ++i) {
         if (X[i] < min) {
             min = X[i];
@@ -250,8 +250,8 @@ static inline void volk_8u_conv_k7_r2puppet_8u_avx2(unsigned char* dec,
     }
 
     static int once = 1;
-    int d_numstates = (1 << 6);
-    int rate = 2;
+    const unsigned int d_numstates = (1U << 6);
+    const unsigned int rate = 2;
     static unsigned char* D;
     static unsigned char* Y;
     static unsigned char* X;
@@ -269,13 +269,13 @@ static inline void volk_8u_conv_k7_r2puppet_8u_avx2(unsigned char* dec,
             (unsigned char*)volk_malloc(d_numstates / 2 * rate, volk_get_alignment());
         D = (unsigned char*)volk_malloc((d_numstates / 8) * (framebits + 6),
                                         volk_get_alignment());
-        int state, i;
+        unsigned int state, i;
 
         /*  Initialize the branch table */
         for (state = 0; state < d_numstates / 2; state++) {
             for (i = 0; i < rate; i++) {
                 Branchtab[i * d_numstates / 2 + state] =
-                    parity((2 * state) & d_polys[i]) ? 255 : 0;
+                    parity((int)(2 * state) & d_polys[i]) ? 255 : 0;
             }
         }
 
@@ -292,7 +292,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_avx2(unsigned char* dec,
         Y, X, syms, D, framebits / 2 - excess, excess, Branchtab);
 
     unsigned int min = X[0];
-    int i = 0, state = 0;
+    unsigned int i = 0, state = 0;
     for (i = 0; i < (d_numstates); ++i) {
         if (X[i] < min) {
             min = X[i];
@@ -320,8 +320,8 @@ static inline void volk_8u_conv_k7_r2puppet_8u_generic(unsigned char* dec,
     }
 
     static int once = 1;
-    int d_numstates = (1 << 6);
-    int rate = 2;
+    const unsigned int d_numstates = (1U << 6);
+    const unsigned int rate = 2;
     static unsigned char* Y;
     static unsigned char* X;
     static unsigned char* D;
@@ -340,13 +340,13 @@ static inline void volk_8u_conv_k7_r2puppet_8u_generic(unsigned char* dec,
         D = (unsigned char*)volk_malloc((d_numstates / 8) * (framebits + 6),
                                         volk_get_alignment());
 
-        int state, i;
+        unsigned int state, i;
 
         /*  Initialize the branch table */
         for (state = 0; state < d_numstates / 2; state++) {
             for (i = 0; i < rate; i++) {
                 Branchtab[i * d_numstates / 2 + state] =
-                    parity((2 * state) & d_polys[i]) ? 255 : 0;
+                    parity((int)(2 * state) & d_polys[i]) ? 255 : 0;
             }
         }
 
@@ -363,7 +363,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_generic(unsigned char* dec,
         Y, X, syms, D, framebits / 2 - excess, excess, Branchtab);
 
     unsigned int min = X[0];
-    int i = 0, state = 0;
+    unsigned int i = 0, state = 0;
     for (i = 0; i < (d_numstates); ++i) {
         if (X[i] < min) {
             min = X[i];
@@ -388,7 +388,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_rvv(unsigned char* dec,
     if (framebits < 12)
         return;
 
-    int d_numstates = (1 << 6);
+    const unsigned int d_numstates = (1U << 6);
     static unsigned char* D;
     static unsigned char* Y;
     static unsigned char* X;
@@ -419,7 +419,7 @@ static inline void volk_8u_conv_k7_r2puppet_8u_rvv(unsigned char* dec,
         Y, X, syms, D, framebits / 2 - excess, excess, Branchtab);
 
     unsigned int min = X[0];
-    int i = 0, state = 0;
+    unsigned int i = 0, state = 0;
     for (i = 0; i < d_numstates; ++i) {
         if (X[i] < min) {
             min = X[i];

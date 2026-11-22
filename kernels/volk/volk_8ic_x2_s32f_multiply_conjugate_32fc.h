@@ -69,7 +69,7 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_avx2(lv_32fc_t* cVector,
     __m256i conjugateSign =
         _mm256_set_epi16(-1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1);
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    __m256 invScalar = _mm256_set1_ps(1.0f / scalar);
 
     for (; number < oneEigthPoints; number++) {
         // Convert  8 bit values into 16 bit values
@@ -153,7 +153,7 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_a_sse4_1(lv_32fc_t* cVector,
     const lv_8sc_t* b = bVector;
     __m128i conjugateSign = _mm_set_epi16(-1, 1, -1, 1, -1, 1, -1, 1);
 
-    __m128 invScalar = _mm_set_ps1(1.0 / scalar);
+    __m128 invScalar = _mm_set_ps1(1.0f / scalar);
 
     for (; number < quarterPoints; number++) {
         // Convert into 8 bit values into 16 bit values
@@ -228,7 +228,7 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_generic(lv_32fc_t* cVector,
 {
     unsigned int number = 0;
     float* cPtr = (float*)cVector;
-    const float invScalar = 1.0 / scalar;
+    const float invScalar = 1.0f / scalar;
     int8_t* a8Ptr = (int8_t*)aVector;
     int8_t* b8Ptr = (int8_t*)bVector;
     for (number = 0; number < num_points; number++) {
@@ -375,7 +375,7 @@ volk_8ic_x2_s32f_multiply_conjugate_32fc_u_avx2(lv_32fc_t* cVector,
     __m256i conjugateSign =
         _mm256_set_epi16(-1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1);
 
-    __m256 invScalar = _mm256_set1_ps(1.0 / scalar);
+    __m256 invScalar = _mm256_set1_ps(1.0f / scalar);
 
     for (; number < oneEigthPoints; number++) {
         // Convert  8 bit values into 16 bit values

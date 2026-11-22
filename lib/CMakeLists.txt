@@ -521,6 +521,10 @@ if(ORC_FOUND AND NOT VOLK_STATIC_DISPATCH)
             DEPENDS ${orc_file}
             OUTPUT ${orcc_gen})
         list(APPEND volk_sources ${orcc_gen})
+        set_source_files_properties(
+            ${orcc_gen}
+            PROPERTIES COMPILE_OPTIONS
+                       "-Wno-pedantic;-Wno-conversion;-Wno-sign-conversion")
 
     endforeach(orc_file)
 elseif(NOT ORC_FOUND)
@@ -539,6 +543,10 @@ string(REPLACE "${PROJECT_SOURCE_DIR}" "$BUILD_DIR" COMPILER_INFO "${COMPILER_IN
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/constants.c.in
                ${CMAKE_CURRENT_BINARY_DIR}/constants.c @ONLY)
 
+if(NOT MSVC)
+    set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/constants.c
+                                PROPERTIES COMPILE_OPTIONS "-Wno-overlength-strings")
+endif()
 list(APPEND volk_sources ${CMAKE_CURRENT_BINARY_DIR}/constants.c)
 
 ########################################################################
@@ -598,18 +606,6 @@ target_compile_features(volk_obj PUBLIC c_std_17)
 
 #Configure object target properties
 set_target_properties(volk_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-# Disable complex math NaN/INFO range checking for performance
-include(CheckCCompilerFlag)
-check_c_compiler_flag(-fcx-limited-range HAVE_C_LIMITED_RANGE)
-if(HAVE_C_LIMITED_RANGE)
-    set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS "-fcx-limited-range")
-    check_c_compiler_flag(-Wno-unused-command-line-argument HAVE_WNO_UNUSED_CMD_LINE_ARG)
-    if(HAVE_WNO_UNUSED_CMD_LINE_ARG)
-        set_target_properties(volk_obj PROPERTIES COMPILE_FLAGS
-                                                  "-Wno-unused-command-line-argument")
-    endif(HAVE_WNO_UNUSED_CMD_LINE_ARG)
-endif(HAVE_C_LIMITED_RANGE)
 
 # Disable complex math NaN/INFO range checking for performance
 include(CheckCCompilerFlag)

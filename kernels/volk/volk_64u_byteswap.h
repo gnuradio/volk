@@ -65,9 +65,8 @@ static inline void volk_64u_byteswap_u_sse2(uint64_t* intsToSwap, unsigned int n
     __m128i input, byte1, byte2, byte3, byte4, output;
     __m128i byte2mask = _mm_set1_epi32(0x00FF0000);
     __m128i byte3mask = _mm_set1_epi32(0x0000FF00);
-    uint64_t number = 0;
     const unsigned int halfPoints = num_points / 2;
-    for (; number < halfPoints; number++) {
+    for (unsigned int number = 0; number < halfPoints; ++number) {
         // Load the 32t values, increment inputPtr later since we're doing it in-place.
         input = _mm_loadu_si128((__m128i*)inputPtr);
 
@@ -92,8 +91,7 @@ static inline void volk_64u_byteswap_u_sse2(uint64_t* intsToSwap, unsigned int n
     }
 
     // Byteswap any remaining points:
-    number = halfPoints * 2;
-    for (; number < num_points; number++) {
+    for (unsigned int number = halfPoints * 2; number < num_points; ++number) {
         uint32_t output1 = *inputPtr;
         uint32_t output2 = inputPtr[1];
 
@@ -116,10 +114,9 @@ static inline void volk_64u_byteswap_u_sse2(uint64_t* intsToSwap, unsigned int n
 static inline void volk_64u_byteswap_neon(uint64_t* intsToSwap, unsigned int num_points)
 {
     uint8_t* inputPtr = (uint8_t*)intsToSwap;
-    unsigned int number = 0;
     const unsigned int eighth_points = num_points / 8;
 
-    for (; number < eighth_points; number++) {
+    for (unsigned int number = 0; number < eighth_points; ++number) {
         uint8x16_t input0 = vld1q_u8(inputPtr);
         uint8x16_t input1 = vld1q_u8(inputPtr + 16);
         uint8x16_t input2 = vld1q_u8(inputPtr + 32);
@@ -140,9 +137,8 @@ static inline void volk_64u_byteswap_neon(uint64_t* intsToSwap, unsigned int num
     }
 
     // Handle remaining points
-    number = eighth_points * 8;
-    uint32_t* intPtr = (uint32_t*)(intsToSwap + number);
-    for (; number < num_points; number++) {
+    uint32_t* intPtr = (uint32_t*)(intsToSwap + eighth_points * 8);
+    for (unsigned int number = eighth_points * 8; number < num_points; ++number) {
         uint32_t output1 = *intPtr;
         uint32_t output2 = intPtr[1];
 
@@ -186,10 +182,9 @@ static inline void volk_64u_byteswap_generic(uint64_t* intsToSwap,
 #include <immintrin.h>
 static inline void volk_64u_byteswap_a_avx2(uint64_t* intsToSwap, unsigned int num_points)
 {
-    unsigned int number = 0;
 
     const unsigned int nPerSet = 4;
-    const uint64_t nSets = num_points / nPerSet;
+    const unsigned int nSets = num_points / nPerSet;
 
     uint32_t* inputPtr = (uint32_t*)intsToSwap;
 
@@ -199,7 +194,7 @@ static inline void volk_64u_byteswap_a_avx2(uint64_t* intsToSwap, unsigned int n
 
     const __m256i myShuffle = _mm256_loadu_si256((__m256i*)&shuffleVector[0]);
 
-    for (; number < nSets; number++) {
+    for (unsigned int number = 0; number < nSets; ++number) {
 
         // Load the 32t values, increment inputPtr later since we're doing it in-place.
         const __m256i input = _mm256_load_si256((__m256i*)inputPtr);
@@ -213,7 +208,7 @@ static inline void volk_64u_byteswap_a_avx2(uint64_t* intsToSwap, unsigned int n
     }
 
     // Byteswap any remaining points:
-    for (number = nSets * nPerSet; number < num_points; ++number) {
+    for (unsigned int number = nSets * nPerSet; number < num_points; ++number) {
         uint32_t output1 = *inputPtr;
         uint32_t output2 = inputPtr[1];
         uint32_t out1 =
@@ -236,10 +231,9 @@ static inline void volk_64u_byteswap_a_avx2(uint64_t* intsToSwap, unsigned int n
 static inline void volk_64u_byteswap_a_ssse3(uint64_t* intsToSwap,
                                              unsigned int num_points)
 {
-    unsigned int number = 0;
 
     const unsigned int nPerSet = 2;
-    const uint64_t nSets = num_points / nPerSet;
+    const unsigned int nSets = num_points / nPerSet;
 
     uint32_t* inputPtr = (uint32_t*)intsToSwap;
 
@@ -247,7 +241,7 @@ static inline void volk_64u_byteswap_a_ssse3(uint64_t* intsToSwap,
 
     const __m128i myShuffle = _mm_loadu_si128((__m128i*)&shuffleVector);
 
-    for (; number < nSets; number++) {
+    for (unsigned int number = 0; number < nSets; ++number) {
 
         // Load the 32t values, increment inputPtr later since we're doing it in-place.
         const __m128i input = _mm_load_si128((__m128i*)inputPtr);
@@ -261,7 +255,7 @@ static inline void volk_64u_byteswap_a_ssse3(uint64_t* intsToSwap,
     }
 
     // Byteswap any remaining points:
-    for (number = nSets * nPerSet; number < num_points; ++number) {
+    for (unsigned int number = nSets * nPerSet; number < num_points; ++number) {
         uint32_t output1 = *inputPtr;
         uint32_t output2 = inputPtr[1];
         uint32_t out1 =
@@ -294,9 +288,8 @@ static inline void volk_64u_byteswap_a_sse2(uint64_t* intsToSwap, unsigned int n
     __m128i input, byte1, byte2, byte3, byte4, output;
     __m128i byte2mask = _mm_set1_epi32(0x00FF0000);
     __m128i byte3mask = _mm_set1_epi32(0x0000FF00);
-    uint64_t number = 0;
     const unsigned int halfPoints = num_points / 2;
-    for (; number < halfPoints; number++) {
+    for (unsigned int number = 0; number < halfPoints; ++number) {
         // Load the 32t values, increment inputPtr later since we're doing it in-place.
         input = _mm_load_si128((__m128i*)inputPtr);
 
@@ -321,8 +314,7 @@ static inline void volk_64u_byteswap_a_sse2(uint64_t* intsToSwap, unsigned int n
     }
 
     // Byteswap any remaining points:
-    number = halfPoints * 2;
-    for (; number < num_points; number++) {
+    for (unsigned int number = halfPoints * 2; number < num_points; ++number) {
         uint32_t output1 = *inputPtr;
         uint32_t output2 = inputPtr[1];
 
@@ -342,10 +334,9 @@ static inline void volk_64u_byteswap_a_sse2(uint64_t* intsToSwap, unsigned int n
 #include <immintrin.h>
 static inline void volk_64u_byteswap_u_avx2(uint64_t* intsToSwap, unsigned int num_points)
 {
-    unsigned int number = 0;
 
     const unsigned int nPerSet = 4;
-    const uint64_t nSets = num_points / nPerSet;
+    const unsigned int nSets = num_points / nPerSet;
 
     uint32_t* inputPtr = (uint32_t*)intsToSwap;
 
@@ -355,7 +346,7 @@ static inline void volk_64u_byteswap_u_avx2(uint64_t* intsToSwap, unsigned int n
 
     const __m256i myShuffle = _mm256_loadu_si256((__m256i*)&shuffleVector[0]);
 
-    for (; number < nSets; number++) {
+    for (unsigned int number = 0; number < nSets; ++number) {
         // Load the 32t values, increment inputPtr later since we're doing it in-place.
         const __m256i input = _mm256_loadu_si256((__m256i*)inputPtr);
         const __m256i output = _mm256_shuffle_epi8(input, myShuffle);
@@ -368,7 +359,7 @@ static inline void volk_64u_byteswap_u_avx2(uint64_t* intsToSwap, unsigned int n
     }
 
     // Byteswap any remaining points:
-    for (number = nSets * nPerSet; number < num_points; ++number) {
+    for (unsigned int number = nSets * nPerSet; number < num_points; ++number) {
         uint32_t output1 = *inputPtr;
         uint32_t output2 = inputPtr[1];
         uint32_t out1 =
@@ -391,10 +382,9 @@ static inline void volk_64u_byteswap_u_avx2(uint64_t* intsToSwap, unsigned int n
 static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
                                              unsigned int num_points)
 {
-    unsigned int number = 0;
 
     const unsigned int nPerSet = 2;
-    const uint64_t nSets = num_points / nPerSet;
+    const unsigned int nSets = num_points / nPerSet;
 
     uint32_t* inputPtr = (uint32_t*)intsToSwap;
 
@@ -402,7 +392,7 @@ static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
 
     const __m128i myShuffle = _mm_loadu_si128((__m128i*)&shuffleVector);
 
-    for (; number < nSets; number++) {
+    for (unsigned int number = 0; number < nSets; ++number) {
         // Load the 32t values, increment inputPtr later since we're doing it in-place.
         const __m128i input = _mm_loadu_si128((__m128i*)inputPtr);
         const __m128i output = _mm_shuffle_epi8(input, myShuffle);
@@ -415,7 +405,7 @@ static inline void volk_64u_byteswap_u_ssse3(uint64_t* intsToSwap,
     }
 
     // Byteswap any remaining points:
-    for (number = nSets * nPerSet; number < num_points; ++number) {
+    for (unsigned int number = nSets * nPerSet; number < num_points; ++number) {
         uint32_t output1 = *inputPtr;
         uint32_t output2 = inputPtr[1];
         uint32_t out1 =

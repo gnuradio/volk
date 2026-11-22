@@ -13,39 +13,7 @@
 
 #ifndef VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_
 #define VOLK_KERNELS_VOLK_VOLK_8U_X2_ENCODEFRAMEPOLAR_8U_U_H_
-#include <string.h>
-
-static inline unsigned int log2_of_power_of_2(unsigned int val)
-{
-    // algorithm from: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
-    static const unsigned int b[] = {
-        0xAAAAAAAA, 0xCCCCCCCC, 0xF0F0F0F0, 0xFF00FF00, 0xFFFF0000
-    };
-
-    unsigned int res = (val & b[0]) != 0;
-    res |= ((val & b[4]) != 0) << 4;
-    res |= ((val & b[3]) != 0) << 3;
-    res |= ((val & b[2]) != 0) << 2;
-    res |= ((val & b[1]) != 0) << 1;
-    return res;
-}
-
-static inline void encodepolar_single_stage(unsigned char* frame_ptr,
-                                            const unsigned char* temp_ptr,
-                                            const unsigned int num_branches,
-                                            const unsigned int frame_half)
-{
-    unsigned int branch, bit;
-    for (branch = 0; branch < num_branches; ++branch) {
-        for (bit = 0; bit < frame_half; ++bit) {
-            *frame_ptr = *temp_ptr ^ *(temp_ptr + 1);
-            *(frame_ptr + frame_half) = *(temp_ptr + 1);
-            ++frame_ptr;
-            temp_ptr += 2;
-        }
-        frame_ptr += frame_half;
-    }
-}
+#include <volk/polar_helpers.h>
 
 #ifdef LV_HAVE_GENERIC
 
@@ -94,30 +62,26 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
     unsigned int bit;
 
     // prepare constants
-    const __m128i mask_stage1 = _mm_set_epi8(0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF);
+    // clang-format off
+    const __m128i mask_stage1 = _mm_set_epi8(
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF');
+    // clang-format on
 
     // get some SIMD registers to play with.
     __m128i r_frame0, r_temp0, shifted;
 
     {
         __m128i r_frame1, r_temp1;
-        const __m128i shuffle_separate =
-            _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15);
+        // clang-format off
+        const __m128i shuffle_separate = _mm_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
 
         while (stage > 4) {
             frame_ptr = frame;
@@ -169,56 +133,34 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_ssse3(unsigned char* frame,
     // prefetch first chunk
     __VOLK_PREFETCH(temp_ptr);
 
-    const __m128i shuffle_stage4 =
-        _mm_setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15);
-    const __m128i mask_stage4 = _mm_set_epi8(0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF);
-    const __m128i mask_stage3 = _mm_set_epi8(0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF);
-    const __m128i mask_stage2 = _mm_set_epi8(0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF);
+    // clang-format off
+    const __m128i shuffle_stage4 = _mm_setr_epi8(
+        0 , 8 , 4 , 12,
+        2 , 10, 6 , 14,
+        1 , 9 , 5 , 13,
+        3 , 11, 7 , 15);
+    // clang-format on
+    // clang-format off
+    const __m128i mask_stage4 = _mm_set_epi8(
+        0x0   , 0x0   , 0x0   , 0x0,
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        '\xFF', '\xFF', '\xFF', '\xFF');
+    // clang-format on
+    // clang-format off
+    const __m128i mask_stage3 = _mm_set_epi8(
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF');
+    // clang-format on
+    // clang-format off
+    const __m128i mask_stage2 = _mm_set_epi8(
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF');
+    // clang-format on
 
     for (branch = 0; branch < num_branches; ++branch) {
         r_temp0 = _mm_loadu_si128((__m128i*)temp_ptr);
@@ -278,95 +220,49 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
     unsigned int bit;
 
     // prepare constants
-    const __m256i mask_stage1 = _mm256_set_epi8(0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF);
+    // clang-format off
+    const __m256i mask_stage1 = _mm256_set_epi8(
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF');
+    // clang-format on
 
-    const __m128i mask_stage0 = _mm_set_epi8(0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF);
+    // clang-format off
+    const __m128i mask_stage0 = _mm_set_epi8(
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF');
+    // clang-format on
     // get some SIMD registers to play with.
     __m256i r_frame0, r_temp0, shifted;
     __m128i r_temp2, r_frame2, shifted2;
     {
         __m256i r_frame1, r_temp1;
         __m128i r_frame3, r_temp3;
-        const __m256i shuffle_separate = _mm256_setr_epi8(0,
-                                                          2,
-                                                          4,
-                                                          6,
-                                                          8,
-                                                          10,
-                                                          12,
-                                                          14,
-                                                          1,
-                                                          3,
-                                                          5,
-                                                          7,
-                                                          9,
-                                                          11,
-                                                          13,
-                                                          15,
-                                                          0,
-                                                          2,
-                                                          4,
-                                                          6,
-                                                          8,
-                                                          10,
-                                                          12,
-                                                          14,
-                                                          1,
-                                                          3,
-                                                          5,
-                                                          7,
-                                                          9,
-                                                          11,
-                                                          13,
-                                                          15);
-        const __m128i shuffle_separate128 =
-            _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15);
+        // clang-format off
+        const __m256i shuffle_separate = _mm256_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15,
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
+        // clang-format off
+        const __m128i shuffle_separate128 = _mm_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
 
         while (stage > 4) {
             frame_ptr = frame;
@@ -447,134 +343,50 @@ static inline void volk_8u_x2_encodeframepolar_8u_u_avx2(unsigned char* frame,
     // prefetch first chunk
     __VOLK_PREFETCH(temp_ptr);
 
-    const __m256i shuffle_stage4 = _mm256_setr_epi8(0,
-                                                    8,
-                                                    4,
-                                                    12,
-                                                    2,
-                                                    10,
-                                                    6,
-                                                    14,
-                                                    1,
-                                                    9,
-                                                    5,
-                                                    13,
-                                                    3,
-                                                    11,
-                                                    7,
-                                                    15,
-                                                    0,
-                                                    8,
-                                                    4,
-                                                    12,
-                                                    2,
-                                                    10,
-                                                    6,
-                                                    14,
-                                                    1,
-                                                    9,
-                                                    5,
-                                                    13,
-                                                    3,
-                                                    11,
-                                                    7,
-                                                    15);
-    const __m256i mask_stage4 = _mm256_set_epi8(0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF);
-    const __m256i mask_stage3 = _mm256_set_epi8(0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF);
-    const __m256i mask_stage2 = _mm256_set_epi8(0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF);
+    // clang-format off
+    const __m256i shuffle_stage4 = _mm256_setr_epi8(
+        0 , 8 , 4 , 12,
+        2 , 10, 6 , 14,
+        1 , 9 , 5 , 13,
+        3 , 11, 7 , 15,
+        0 , 8 , 4 , 12,
+        2 , 10, 6 , 14,
+        1 , 9 , 5 , 13,
+        3 , 11, 7 , 15);
+    // clang-format on
+    // clang-format off
+    const __m256i mask_stage4 = _mm256_set_epi8(
+        0x0   , 0x0   , 0x0   , 0x0,
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        '\xFF', '\xFF', '\xFF', '\xFF');
+    // clang-format on
+    // clang-format off
+    const __m256i mask_stage3 = _mm256_set_epi8(
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF');
+    // clang-format on
+    // clang-format off
+    const __m256i mask_stage2 = _mm256_set_epi8(
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF');
+    // clang-format on
 
     for (branch = 0; branch < num_branches / 2; ++branch) {
         r_temp0 = _mm256_loadu_si256((__m256i*)temp_ptr);
@@ -639,30 +451,26 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
     unsigned int bit;
 
     // prepare constants
-    const __m128i mask_stage1 = _mm_set_epi8(0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF);
+    // clang-format off
+    const __m128i mask_stage1 = _mm_set_epi8(
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF');
+    // clang-format on
 
     // get some SIMD registers to play with.
     __m128i r_frame0, r_temp0, shifted;
 
     {
         __m128i r_frame1, r_temp1;
-        const __m128i shuffle_separate =
-            _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15);
+        // clang-format off
+        const __m128i shuffle_separate = _mm_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
 
         while (stage > 4) {
             frame_ptr = frame;
@@ -714,56 +522,34 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_ssse3(unsigned char* frame,
     // prefetch first chunk
     __VOLK_PREFETCH(temp_ptr);
 
-    const __m128i shuffle_stage4 =
-        _mm_setr_epi8(0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15);
-    const __m128i mask_stage4 = _mm_set_epi8(0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF);
-    const __m128i mask_stage3 = _mm_set_epi8(0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF,
-                                             0xFF);
-    const __m128i mask_stage2 = _mm_set_epi8(0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF,
-                                             0x0,
-                                             0x0,
-                                             0xFF,
-                                             0xFF);
+    // clang-format off
+    const __m128i shuffle_stage4 = _mm_setr_epi8(
+        0 , 8 , 4 , 12,
+        2 , 10, 6 , 14,
+        1 , 9 , 5 , 13,
+        3 , 11, 7 , 15);
+    // clang-format on
+    // clang-format off
+    const __m128i mask_stage4 = _mm_set_epi8(
+        0x0   , 0x0   , 0x0   , 0x0,
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        '\xFF', '\xFF', '\xFF', '\xFF');
+    // clang-format on
+    // clang-format off
+    const __m128i mask_stage3 = _mm_set_epi8(
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF');
+    // clang-format on
+    // clang-format off
+    const __m128i mask_stage2 = _mm_set_epi8(
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF');
+    // clang-format on
 
     for (branch = 0; branch < num_branches; ++branch) {
         r_temp0 = _mm_load_si128((__m128i*)temp_ptr);
@@ -822,95 +608,49 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
     unsigned int bit;
 
     // prepare constants
-    const __m256i mask_stage1 = _mm256_set_epi8(0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF,
-                                                0x0,
-                                                0xFF);
+    // clang-format off
+    const __m256i mask_stage1 = _mm256_set_epi8(
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF');
+    // clang-format on
 
-    const __m128i mask_stage0 = _mm_set_epi8(0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF,
-                                             0x0,
-                                             0xFF);
+    // clang-format off
+    const __m128i mask_stage0 = _mm_set_epi8(
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF',
+        0x0   , '\xFF', 0x0   , '\xFF');
+    // clang-format on
     // get some SIMD registers to play with.
     __m256i r_frame0, r_temp0, shifted;
     __m128i r_temp2, r_frame2, shifted2;
     {
         __m256i r_frame1, r_temp1;
         __m128i r_frame3, r_temp3;
-        const __m256i shuffle_separate = _mm256_setr_epi8(0,
-                                                          2,
-                                                          4,
-                                                          6,
-                                                          8,
-                                                          10,
-                                                          12,
-                                                          14,
-                                                          1,
-                                                          3,
-                                                          5,
-                                                          7,
-                                                          9,
-                                                          11,
-                                                          13,
-                                                          15,
-                                                          0,
-                                                          2,
-                                                          4,
-                                                          6,
-                                                          8,
-                                                          10,
-                                                          12,
-                                                          14,
-                                                          1,
-                                                          3,
-                                                          5,
-                                                          7,
-                                                          9,
-                                                          11,
-                                                          13,
-                                                          15);
-        const __m128i shuffle_separate128 =
-            _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15);
+        // clang-format off
+        const __m256i shuffle_separate = _mm256_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15,
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
+        // clang-format off
+        const __m128i shuffle_separate128 = _mm_setr_epi8(
+            0 , 2 , 4 , 6,
+            8 , 10, 12, 14,
+            1 , 3 , 5 , 7,
+            9 , 11, 13, 15);
+        // clang-format on
 
         while (stage > 4) {
             frame_ptr = frame;
@@ -991,134 +731,50 @@ static inline void volk_8u_x2_encodeframepolar_8u_a_avx2(unsigned char* frame,
     // prefetch first chunk.
     __VOLK_PREFETCH(temp_ptr);
 
-    const __m256i shuffle_stage4 = _mm256_setr_epi8(0,
-                                                    8,
-                                                    4,
-                                                    12,
-                                                    2,
-                                                    10,
-                                                    6,
-                                                    14,
-                                                    1,
-                                                    9,
-                                                    5,
-                                                    13,
-                                                    3,
-                                                    11,
-                                                    7,
-                                                    15,
-                                                    0,
-                                                    8,
-                                                    4,
-                                                    12,
-                                                    2,
-                                                    10,
-                                                    6,
-                                                    14,
-                                                    1,
-                                                    9,
-                                                    5,
-                                                    13,
-                                                    3,
-                                                    11,
-                                                    7,
-                                                    15);
-    const __m256i mask_stage4 = _mm256_set_epi8(0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF);
-    const __m256i mask_stage3 = _mm256_set_epi8(0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF,
-                                                0xFF);
-    const __m256i mask_stage2 = _mm256_set_epi8(0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF,
-                                                0x0,
-                                                0x0,
-                                                0xFF,
-                                                0xFF);
+    // clang-format off
+    const __m256i shuffle_stage4 = _mm256_setr_epi8(
+        0 , 8 , 4 , 12,
+        2 , 10, 6 , 14,
+        1 , 9 , 5 , 13,
+        3 , 11, 7 , 15,
+        0 , 8 , 4 , 12,
+        2 , 10, 6 , 14,
+        1 , 9 , 5 , 13,
+        3 , 11, 7 , 15);
+    // clang-format on
+    // clang-format off
+    const __m256i mask_stage4 = _mm256_set_epi8(
+        0x0   , 0x0   , 0x0   , 0x0,
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        '\xFF', '\xFF', '\xFF', '\xFF');
+    // clang-format on
+    // clang-format off
+    const __m256i mask_stage3 = _mm256_set_epi8(
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF',
+        0x0   , 0x0   , 0x0   , 0x0,
+        '\xFF', '\xFF', '\xFF', '\xFF');
+    // clang-format on
+    // clang-format off
+    const __m256i mask_stage2 = _mm256_set_epi8(
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF',
+        0x0   , 0x0   , '\xFF', '\xFF');
+    // clang-format on
 
     for (branch = 0; branch < num_branches / 2; ++branch) {
         r_temp0 = _mm256_load_si256((__m256i*)temp_ptr);

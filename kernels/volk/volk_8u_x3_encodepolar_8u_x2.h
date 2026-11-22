@@ -64,20 +64,8 @@
 
 #ifndef VOLK_KERNELS_VOLK_VOLK_8U_X3_ENCODEPOLAR_8U_X2_U_H_
 #define VOLK_KERNELS_VOLK_VOLK_8U_X3_ENCODEPOLAR_8U_X2_U_H_
-#include <stdio.h>
+#include <volk/polar_helpers.h>
 #include <volk/volk_8u_x2_encodeframepolar_8u.h>
-
-static inline void interleave_frozen_and_info_bits(unsigned char* target,
-                                                   const unsigned char* frozen_bit_mask,
-                                                   const unsigned char* frozen_bits,
-                                                   const unsigned char* info_bits,
-                                                   const unsigned int frame_size)
-{
-    unsigned int bit;
-    for (bit = 0; bit < frame_size; ++bit) {
-        *target++ = *frozen_bit_mask++ ? *frozen_bits++ : *info_bits++;
-    }
-}
 
 #ifdef LV_HAVE_GENERIC
 

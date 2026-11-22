@@ -90,7 +90,7 @@ static inline void volk_64u_popcnt_generic(uint64_t* ret, const uint64_t value)
 
 static inline void volk_64u_popcnt_a_sse4_2(uint64_t* ret, const uint64_t value)
 {
-    *ret = _mm_popcnt_u64(value);
+    *ret = (uint64_t)_mm_popcnt_u64(value);
 }
 
 #endif /*LV_HAVE_SSE4_2*/
@@ -112,7 +112,7 @@ static inline void volk_64u_popcnt_neon(uint64_t* ret, const uint64_t value)
     count64x1_val = vpaddl_u32(count32x2_val);
     vst1_u64(ret, count64x1_val);
 
-    //*ret = _mm_popcnt_u64(value);
+    //*ret = (uint64_t)_mm_popcnt_u64(value);
 }
 #endif /*LV_HAVE_NEON*/
 

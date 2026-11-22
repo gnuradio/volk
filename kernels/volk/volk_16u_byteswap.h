@@ -63,7 +63,7 @@ static inline void volk_16u_byteswap_generic(uint16_t* intsToSwap,
 static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int num_points)
 {
     const unsigned int nPerSet = 16;
-    const uint64_t nSets = num_points / nPerSet;
+    const unsigned int nSets = num_points / nPerSet;
 
     uint16_t* inputPtr = (uint16_t*)intsToSwap;
 
@@ -99,7 +99,7 @@ static inline void volk_16u_byteswap_a_avx2(uint16_t* intsToSwap, unsigned int n
 static inline void volk_16u_byteswap_u_avx2(uint16_t* intsToSwap, unsigned int num_points)
 {
     const unsigned int nPerSet = 16;
-    const uint64_t nSets = num_points / nPerSet;
+    const unsigned int nSets = num_points / nPerSet;
 
     uint16_t* inputPtr = (uint16_t*)intsToSwap;
 
@@ -295,7 +295,7 @@ static inline void volk_16u_byteswap_neonv8(uint16_t* intsToSwap, unsigned int n
 extern void volk_16u_byteswap_a_orc_impl(uint16_t* intsToSwap, int num_points);
 static inline void volk_16u_byteswap_u_orc(uint16_t* intsToSwap, unsigned int num_points)
 {
-    volk_16u_byteswap_a_orc_impl(intsToSwap, num_points);
+    volk_16u_byteswap_a_orc_impl(intsToSwap, (int)num_points);
 }
 #endif /* LV_HAVE_ORC */
 

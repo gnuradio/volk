@@ -63,7 +63,7 @@ static inline void volk_16i_x4_quad_max_star_16i_a_sse2(short* target,
 
     int i = 0;
 
-    int bound = (num_bytes >> 4);
+    int bound = (int)(num_bytes >> 4);
     int bound_copy = bound;
     int leftovers = (num_bytes >> 1) & 7;
 
@@ -215,7 +215,7 @@ static inline void volk_16i_x4_quad_max_star_16i_generic(short* target,
 
     int i = 0;
 
-    int bound = num_bytes >> 1;
+    int bound = (int)(num_bytes >> 1);
 
     short temp0 = 0;
     short temp1 = 0;

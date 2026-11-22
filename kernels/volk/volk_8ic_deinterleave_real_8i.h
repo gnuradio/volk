@@ -53,70 +53,28 @@ static inline void volk_8ic_deinterleave_real_8i_a_avx2(int8_t* iBuffer,
     unsigned int number = 0;
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
-    __m256i moveMask1 = _mm256_set_epi8(0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0);
-    __m256i moveMask2 = _mm256_set_epi8(14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80);
+    // clang-format off
+    __m256i moveMask1 = _mm256_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on
+    // clang-format off
+    __m256i moveMask2 = _mm256_set_epi8(
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80');
+    // clang-format on
     __m256i complexVal1, complexVal2, outputVal;
 
     unsigned int thirtysecondPoints = num_points / 32;
@@ -156,10 +114,20 @@ static inline void volk_8ic_deinterleave_real_8i_a_ssse3(int8_t* iBuffer,
     unsigned int number = 0;
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
+    // clang-format off
     __m128i moveMask1 = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on
+    // clang-format off
     __m128i moveMask2 = _mm_set_epi8(
-        14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80');
+    // clang-format on
     __m128i complexVal1, complexVal2, outputVal;
 
     unsigned int sixteenthPoints = num_points / 16;
@@ -198,10 +166,20 @@ static inline void volk_8ic_deinterleave_real_8i_a_avx(int8_t* iBuffer,
     unsigned int number = 0;
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
+    // clang-format off
     __m128i moveMaskL = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 14, 12, 10, 8, 6, 4, 2, 0);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on
+    // clang-format off
     __m128i moveMaskH = _mm_set_epi8(
-        14, 12, 10, 8, 6, 4, 2, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80');
+    // clang-format on
     __m256i complexVal1, complexVal2, outputVal;
     __m128i complexVal1H, complexVal1L, complexVal2H, complexVal2L, outputVal1,
         outputVal2;
@@ -339,70 +317,28 @@ static inline void volk_8ic_deinterleave_real_8i_u_avx2(int8_t* iBuffer,
     unsigned int number = 0;
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
-    __m256i moveMask1 = _mm256_set_epi8(0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0);
-    __m256i moveMask2 = _mm256_set_epi8(14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        14,
-                                        12,
-                                        10,
-                                        8,
-                                        6,
-                                        4,
-                                        2,
-                                        0,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80,
-                                        0x80);
+    // clang-format off
+    __m256i moveMask1 = _mm256_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on
+    // clang-format off
+    __m256i moveMask2 = _mm256_set_epi8(
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80');
+    // clang-format on
     __m256i complexVal1, complexVal2, outputVal;
 
     unsigned int thirtysecondPoints = num_points / 32;

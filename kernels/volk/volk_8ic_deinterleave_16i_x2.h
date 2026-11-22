@@ -56,38 +56,17 @@ static inline void volk_8ic_deinterleave_16i_x2_a_avx2(int16_t* iBuffer,
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int16_t* iBufferPtr = iBuffer;
     int16_t* qBufferPtr = qBuffer;
-    __m256i MoveMask = _mm256_set_epi8(15,
-                                       13,
-                                       11,
-                                       9,
-                                       7,
-                                       5,
-                                       3,
-                                       1,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0,
-                                       15,
-                                       13,
-                                       11,
-                                       9,
-                                       7,
-                                       5,
-                                       3,
-                                       1,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0);
+    // clang-format off
+    __m256i MoveMask = _mm256_set_epi8(
+        15, 13, 11, 9,
+        7 , 5 , 3 , 1,
+        14, 12, 10, 8,
+        6 , 4 , 2 , 0,
+        15, 13, 11, 9,
+        7 , 5 , 3 , 1,
+        14, 12, 10, 8,
+        6 , 4 , 2 , 0);
+    // clang-format on
     __m256i complexVal, iOutputVal, qOutputVal;
     __m128i iOutputVal0, qOutputVal0;
 
@@ -138,24 +117,20 @@ static inline void volk_8ic_deinterleave_16i_x2_a_sse4_1(int16_t* iBuffer,
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int16_t* iBufferPtr = iBuffer;
     int16_t* qBufferPtr = qBuffer;
-    __m128i iMoveMask = _mm_set_epi8(0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     14,
-                                     12,
-                                     10,
-                                     8,
-                                     6,
-                                     4,
-                                     2,
-                                     0); // set 16 byte values
+    // clang-format off
+    __m128i iMoveMask = _mm_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on // set 16 byte values
+    // clang-format off
     __m128i qMoveMask = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 13, 11, 9, 7, 5, 3, 1);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        15    , 13    , 11    , 9,
+        7     , 5     , 3     , 1);
+    // clang-format on
     __m128i complexVal, iOutputVal, qOutputVal;
 
     unsigned int eighthPoints = num_points / 8;
@@ -207,24 +182,20 @@ static inline void volk_8ic_deinterleave_16i_x2_a_avx(int16_t* iBuffer,
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int16_t* iBufferPtr = iBuffer;
     int16_t* qBufferPtr = qBuffer;
-    __m128i iMoveMask = _mm_set_epi8(0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     0x80,
-                                     14,
-                                     12,
-                                     10,
-                                     8,
-                                     6,
-                                     4,
-                                     2,
-                                     0); // set 16 byte values
+    // clang-format off
+    __m128i iMoveMask = _mm_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        14    , 12    , 10    , 8,
+        6     , 4     , 2     , 0);
+    // clang-format on // set 16 byte values
+    // clang-format off
     __m128i qMoveMask = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 13, 11, 9, 7, 5, 3, 1);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        15    , 13    , 11    , 9,
+        7     , 5     , 3     , 1);
+    // clang-format on
     __m256i complexVal, iOutputVal, qOutputVal;
     __m128i complexVal1, complexVal0;
     __m128i iOutputVal1, iOutputVal0, qOutputVal1, qOutputVal0;
@@ -323,38 +294,17 @@ static inline void volk_8ic_deinterleave_16i_x2_u_avx2(int16_t* iBuffer,
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int16_t* iBufferPtr = iBuffer;
     int16_t* qBufferPtr = qBuffer;
-    __m256i MoveMask = _mm256_set_epi8(15,
-                                       13,
-                                       11,
-                                       9,
-                                       7,
-                                       5,
-                                       3,
-                                       1,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0,
-                                       15,
-                                       13,
-                                       11,
-                                       9,
-                                       7,
-                                       5,
-                                       3,
-                                       1,
-                                       14,
-                                       12,
-                                       10,
-                                       8,
-                                       6,
-                                       4,
-                                       2,
-                                       0);
+    // clang-format off
+    __m256i MoveMask = _mm256_set_epi8(
+        15, 13, 11, 9,
+        7 , 5 , 3 , 1,
+        14, 12, 10, 8,
+        6 , 4 , 2 , 0,
+        15, 13, 11, 9,
+        7 , 5 , 3 , 1,
+        14, 12, 10, 8,
+        6 , 4 , 2 , 0);
+    // clang-format on
     __m256i complexVal, iOutputVal, qOutputVal;
     __m128i iOutputVal0, qOutputVal0;
 

@@ -374,21 +374,21 @@ volk_32fc_x2_conjugate_dot_prod_32fc_u_avx512dq(lv_32fc_t* result,
 
     // Sign mask for emulating addsub: negate even indices (real parts)
     const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set_epi32(0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000));
+                                                                  (-0x7fffffff - 1)));
 
     for (long unsigned i = 0; i < (num_points & ~7u); i += 8) {
         /* Eight complex elements a time are processed.
@@ -461,21 +461,21 @@ volk_32fc_x2_conjugate_dot_prod_32fc_a_avx512dq(lv_32fc_t* result,
 
     // Sign mask for emulating addsub: negate even indices (real parts)
     const __m512 sign_mask = _mm512_castsi512_ps(_mm512_set_epi32(0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000,
+                                                                  (-0x7fffffff - 1),
                                                                   0,
-                                                                  0x80000000));
+                                                                  (-0x7fffffff - 1)));
 
     for (long unsigned i = 0; i < (num_points & ~7u); i += 8) {
         /* Eight complex elements a time are processed.

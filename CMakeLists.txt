@@ -179,7 +179,11 @@ if(VOLK_CPU_FEATURES)
                     unix_based_hardware_detection)
                 if(TARGET ${cpu_features_target})
                     target_compile_options(${cpu_features_target}
-                                           PRIVATE -Wno-unused-variable)
+                                           PRIVATE
+                                           -Wno-unused-variable
+                                           -Wno-pedantic
+                                           -Wno-conversion
+                                           -Wno-sign-conversion)
                 endif()
             endforeach()
         endif()
@@ -236,7 +240,7 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Coverage")
     append_coverage_compiler_flags()
     setup_target_for_coverage_gcovr_html(
         NAME coverage
-        EXECUTABLE "ctest"  
+        EXECUTABLE "ctest"
         DEPENDENCIES volk_profile
         )
 endif()
@@ -278,6 +282,7 @@ set(VOLK_INSTALL_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_common.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_mathematical_functions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/saturation_arithmetic.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/polar_helpers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx_intrinsics.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_intrinsics.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/volk/volk_avx2_fma_intrinsics.h

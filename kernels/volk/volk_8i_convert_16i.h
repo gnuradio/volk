@@ -263,7 +263,7 @@ static inline void volk_8i_convert_16i_u_orc(int16_t* outputVector,
                                              const int8_t* inputVector,
                                              unsigned int num_points)
 {
-    volk_8i_convert_16i_a_orc_impl(outputVector, inputVector, num_points);
+    volk_8i_convert_16i_a_orc_impl(outputVector, inputVector, (int)num_points);
 }
 #endif /* LV_HAVE_ORC */
 

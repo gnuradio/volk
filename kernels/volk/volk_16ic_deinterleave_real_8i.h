@@ -55,70 +55,28 @@ static inline void volk_16ic_deinterleave_real_8i_a_avx2(int8_t* iBuffer,
     unsigned int number = 0;
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
-    __m256i iMoveMask1 = _mm256_set_epi8(0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         13,
-                                         12,
-                                         9,
-                                         8,
-                                         5,
-                                         4,
-                                         1,
-                                         0,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         13,
-                                         12,
-                                         9,
-                                         8,
-                                         5,
-                                         4,
-                                         1,
-                                         0);
-    __m256i iMoveMask2 = _mm256_set_epi8(13,
-                                         12,
-                                         9,
-                                         8,
-                                         5,
-                                         4,
-                                         1,
-                                         0,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         13,
-                                         12,
-                                         9,
-                                         8,
-                                         5,
-                                         4,
-                                         1,
-                                         0,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80);
+    // clang-format off
+    __m256i iMoveMask1 = _mm256_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0);
+    // clang-format on
+    // clang-format off
+    __m256i iMoveMask2 = _mm256_set_epi8(
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80');
+    // clang-format on
     __m256i complexVal1, complexVal2, complexVal3, complexVal4, iOutputVal;
 
     unsigned int thirtysecondPoints = num_points / 32;
@@ -177,10 +135,20 @@ static inline void volk_16ic_deinterleave_real_8i_a_ssse3(int8_t* iBuffer,
     unsigned int number = 0;
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
+    // clang-format off
     __m128i iMoveMask1 = _mm_set_epi8(
-        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 13, 12, 9, 8, 5, 4, 1, 0);
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0);
+    // clang-format on
+    // clang-format off
     __m128i iMoveMask2 = _mm_set_epi8(
-        13, 12, 9, 8, 5, 4, 1, 0, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80');
+    // clang-format on
     __m128i complexVal1, complexVal2, complexVal3, complexVal4, iOutputVal;
 
     unsigned int sixteenthPoints = num_points / 16;
@@ -314,7 +282,7 @@ static inline void volk_16ic_deinterleave_real_8i_u_orc(int8_t* iBuffer,
                                                         const lv_16sc_t* complexVector,
                                                         unsigned int num_points)
 {
-    volk_16ic_deinterleave_real_8i_a_orc_impl(iBuffer, complexVector, num_points);
+    volk_16ic_deinterleave_real_8i_a_orc_impl(iBuffer, complexVector, (int)num_points);
 }
 #endif /* LV_HAVE_ORC */
 
@@ -338,70 +306,28 @@ static inline void volk_16ic_deinterleave_real_8i_u_avx2(int8_t* iBuffer,
     unsigned int number = 0;
     const int8_t* complexVectorPtr = (int8_t*)complexVector;
     int8_t* iBufferPtr = iBuffer;
-    __m256i iMoveMask1 = _mm256_set_epi8(0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         13,
-                                         12,
-                                         9,
-                                         8,
-                                         5,
-                                         4,
-                                         1,
-                                         0,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         13,
-                                         12,
-                                         9,
-                                         8,
-                                         5,
-                                         4,
-                                         1,
-                                         0);
-    __m256i iMoveMask2 = _mm256_set_epi8(13,
-                                         12,
-                                         9,
-                                         8,
-                                         5,
-                                         4,
-                                         1,
-                                         0,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         13,
-                                         12,
-                                         9,
-                                         8,
-                                         5,
-                                         4,
-                                         1,
-                                         0,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80,
-                                         0x80);
+    // clang-format off
+    __m256i iMoveMask1 = _mm256_set_epi8(
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0);
+    // clang-format on
+    // clang-format off
+    __m256i iMoveMask2 = _mm256_set_epi8(
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80',
+        13    , 12    , 9     , 8,
+        5     , 4     , 1     , 0,
+        '\x80', '\x80', '\x80', '\x80',
+        '\x80', '\x80', '\x80', '\x80');
+    // clang-format on
     __m256i complexVal1, complexVal2, complexVal3, complexVal4, iOutputVal;
 
     unsigned int thirtysecondPoints = num_points / 32;
