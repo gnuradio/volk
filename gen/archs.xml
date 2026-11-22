@@ -105,6 +105,20 @@ at the top, as a last resort.
   <check name="neon"></check>
 </arch>
 
+<arch name="sve">
+  <flag compiler="gnu">-march=armv8-a+sve</flag>
+  <flag compiler="clang">-march=armv8-a+sve</flag>
+  <alignment>16</alignment>
+  <check name="sve"></check>
+</arch>
+
+<arch name="sve2">
+  <flag compiler="gnu">-march=armv8-a+sve2</flag>
+  <flag compiler="clang">-march=armv8-a+sve2</flag>
+  <alignment>16</alignment>
+  <check name="sve2"></check>
+</arch>
+
 <arch name="sse3">
   <check name="sse3"></check>
   <flag compiler="gnu">-msse3</flag>
