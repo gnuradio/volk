@@ -15,6 +15,15 @@
  * Computes the magnitude of the complexVector and stores the results
  * in the magnitudeVector.
  *
+ * \b WARNING: Overflow occurs when the computed magnitude exceeds
+ * SHRT_MAX, i.e., when re*re + im*im > SHRT_MAX*SHRT_MAX. For
+ * example, re = SHRT_MAX and im > 0, or both |re| and |im| > 23170.
+ * The expected behavior is to saturate the output to SHRT_MAX. The
+ * AVX2 protokernel does this correctly via _mm256_packs_epi32. However,
+ * the SSE and generic protokernels cast the float result to int16_t,
+ * which is undefined for out-of-range values. The NEON protokernels
+ * use a narrowing conversion that wraps on overflow.
+ *
  * <b>Dispatcher Prototype</b>
  * \code
  * void volk_16ic_magnitude_16i(int16_t* magnitudeVector, const lv_16sc_t* complexVector,
