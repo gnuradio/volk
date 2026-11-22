@@ -406,6 +406,7 @@ static inline void volk_32fc_magnitude_32f_a_sse(float* magnitudeVector,
 
 #ifdef LV_HAVE_NEON
 #include <arm_neon.h>
+#include <volk/volk_neon_intrinsics.h>
 
 static inline void volk_32fc_magnitude_32f_neon(float* magnitudeVector,
                                                 const lv_32fc_t* complexVector,
@@ -423,8 +424,7 @@ static inline void volk_32fc_magnitude_32f_neon(float* magnitudeVector,
         complex_vec.val[0] = vmulq_f32(complex_vec.val[0], complex_vec.val[0]);
         magnitude_vec =
             vmlaq_f32(complex_vec.val[0], complex_vec.val[1], complex_vec.val[1]);
-        magnitude_vec = vrsqrteq_f32(magnitude_vec);
-        magnitude_vec = vrecpeq_f32(magnitude_vec); // no plain ol' sqrt
+        magnitude_vec = _vsqrtq_f32(magnitude_vec);
         vst1q_f32(magnitudeVectorPtr, magnitude_vec);
 
         complexVectorPtr += 8;
