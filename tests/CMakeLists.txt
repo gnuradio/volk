@@ -32,6 +32,11 @@ target_link_libraries(volk_tests
 )
 
 include(GoogleTest)
+if(WIN32)
+  # Windows cannot run volk_tests during the build because its dependent DLLs
+  # are not available from the test executable's build directory yet.
+  set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
+endif()
 gtest_discover_tests(volk_tests)
 
 
