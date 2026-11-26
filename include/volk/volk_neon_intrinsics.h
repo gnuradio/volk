@@ -407,6 +407,100 @@ static inline float32x4_t _vcos_poly_f32(float32x4_t x)
     return vmlaq_f32(one, x2, poly);
 }
 
+static inline int _vtrig_half_wave_in_range_f32(float32x4_t x, float limit)
+{
+    // Integer magnitudes also send infinities and NaNs to the scalar fallback.
+    const uint32_t bound = vgetq_lane_u32(vreinterpretq_u32_f32(vdupq_n_f32(limit)), 0);
+    const uint32x4_t magnitude =
+        vandq_u32(vreinterpretq_u32_f32(x), vdupq_n_u32(0x7fffffff));
+#ifdef __aarch64__
+    return vmaxvq_u32(magnitude) <= bound;
+#else
+    const uint32x2_t pairs = vpmax_u32(vget_low_u32(magnitude), vget_high_u32(magnitude));
+    return vget_lane_u32(vpmax_u32(pairs, pairs), 0) <= bound;
+#endif
+}
+
+static inline float32x4_t _vtrig_apply_sign_f32(float32x4_t x, uint32x4_t sign)
+{
+    return vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(x), sign));
+}
+
+static inline float32x4_t _vtrig_bound_f32(float32x4_t x)
+{
+    // Roundoff near the peaks can overshoot the unit interval.
+    return vminq_f32(vmaxq_f32(x, vdupq_n_f32(-1.0f)), vdupq_n_f32(1.0f));
+}
+
+static inline int32x4_t _vtrig_round_f32(float32x4_t x)
+{
+    const uint32x4_t sign = vandq_u32(vreinterpretq_u32_f32(x), vdupq_n_u32(0x80000000));
+    const float32x4_t half = _vtrig_apply_sign_f32(vdupq_n_f32(0.5f), sign);
+    return vcvtq_s32_f32(vaddq_f32(x, half));
+}
+
+// Odd degree-nine polynomial fitted with Sollya on [0, pi/2 + 1/8].
+static inline float32x4_t _vtrig_half_wave_neon_f32(float32x4_t x, int cosine)
+{
+#ifdef __clang__
+    // Keep the split reduction intact when VOLK enables unsafe math optimizations.
+#pragma clang fp reassociate(off)
+#endif
+    const uint32x4_t sign_bit = vdupq_n_u32(0x80000000);
+    uint32x4_t sign;
+    float32x4_t n_f;
+    if (cosine) {
+        // Pick the odd multiple of pi/2 at the center of the half-wave.
+        x = vabsq_f32(x);
+        const uint32x4_t q = vcvtq_u32_f32(vmulq_n_f32(x, 0x1.45f306p-1f));
+        const uint32x4_t n = vorrq_u32(q, vdupq_n_u32(1));
+        n_f = vcvtq_f32_u32(n);
+        sign = vbicq_u32(sign_bit, vshlq_n_u32(n, 30));
+    } else {
+        // Pick the nearest multiple of pi and use its parity for the sign.
+        const int32x4_t n = _vtrig_round_f32(vmulq_n_f32(x, 0x1.45f306p-2f));
+        n_f = vcvtq_f32_s32(n);
+        sign = vshlq_n_u32(vreinterpretq_u32_s32(n), 31);
+    }
+
+    // Without FMA, the leading pieces must multiply exactly. The unary kernels
+    // limit |x| to 2^12 radians, so the quotient fits in 12 bits.
+    const float hi = cosine ? 0x1.920p+0f : 0x1.920p+1f;
+    const float mid = cosine ? 0x1.fb4p-12f : 0x1.fb4p-11f;
+    const float lo = cosine ? 0x1.4442d2p-24f : 0x1.4442d2p-23f;
+#ifdef __clang__
+    // Vector operators observe the pragma in this function. Intrinsic wrappers
+    // inherit the floating-point options of arm_neon.h.
+    const float32x4_t r = ((x - n_f * hi) - n_f * mid) - n_f * lo;
+#else
+    float32x4_t r = vmlsq_n_f32(x, n_f, hi);
+    r = vmlsq_n_f32(r, n_f, mid);
+    r = vmlsq_n_f32(r, n_f, lo);
+#endif
+
+    const float32x4_t r2 = vmulq_f32(r, r);
+    float32x4_t p = vmlaq_n_f32(vdupq_n_f32(-0x1.9f1f3cp-13f), r2, 0x1.59a39cp-19f);
+    p = vmlaq_f32(vdupq_n_f32(0x1.110ceap-7f), r2, p);
+    p = vmlaq_f32(vdupq_n_f32(-0x1.55553ep-3f), r2, p);
+    const float32x4_t y = vmlaq_f32(r, vmulq_f32(r2, r), p);
+    return _vtrig_apply_sign_f32(_vtrig_bound_f32(y), sign);
+}
+
+static inline void _vsincos_quadrant_f32(int32x4_t n,
+                                         float32x4_t sin_r,
+                                         float32x4_t cos_r,
+                                         float32x4_t* sin_x,
+                                         float32x4_t* cos_x)
+{
+    // Swap on bit 0, flip sine on bit 1, and flip cosine when those bits differ.
+    const uint32x4_t q = vreinterpretq_u32_s32(n);
+    const uint32x4_t swap = vtstq_u32(q, vdupq_n_u32(1));
+    const uint32x4_t sin_sign = vandq_u32(vshlq_n_u32(q, 30), vdupq_n_u32(0x80000000));
+    const uint32x4_t cos_sign = veorq_u32(sin_sign, vshlq_n_u32(q, 31));
+    *sin_x = _vtrig_apply_sign_f32(vbslq_f32(swap, cos_r, sin_r), sin_sign);
+    *cos_x = _vtrig_apply_sign_f32(vbslq_f32(swap, sin_r, cos_r), cos_sign);
+}
+
 /*
  * Polynomial coefficients for log2(x)/(x-1) on [1, 2]
  * Generated with Sollya: remez(log2(x)/(x-1), 6, [1+1b-20, 2])
@@ -489,6 +583,26 @@ static inline float32x4_t _vcos_poly_neonv8(float32x4_t x)
     float32x4_t poly = vfmaq_f32(c2, x2, c3);
     poly = vfmaq_f32(c1, x2, poly);
     return vfmaq_f32(one, x2, poly);
+}
+
+// Odd degree-nine polynomial fitted with Sollya on [0, pi/2 + 1/8].
+static inline float32x4_t _vtrig_half_wave_neonv8_f32(float32x4_t x, int cosine)
+{
+    const float32x4_t q = vmulq_n_f32(x, 0x1.45f306p-2f);
+    const int32x4_t n = cosine ? vcvtpq_s32_f32(q) : vcvtnq_s32_f32(q);
+    const float32x4_t n_f = vcvtq_f32_s32(n);
+    // For cosine the centers are half-integer multiples of pi.
+    const float32x4_t k = cosine ? vsubq_f32(n_f, vdupq_n_f32(0.5f)) : n_f;
+    float32x4_t r = vfmsq_n_f32(x, k, 0x1.921fb6p+1f);
+    r = vfmsq_n_f32(r, k, -0x1.777a5cp-24f);
+
+    const float32x4_t r2 = vmulq_f32(r, r);
+    float32x4_t p = vfmaq_n_f32(vdupq_n_f32(-0x1.9f1f3cp-13f), r2, 0x1.59a39cp-19f);
+    p = vfmaq_f32(vdupq_n_f32(0x1.110ceap-7f), r2, p);
+    p = vfmaq_f32(vdupq_n_f32(-0x1.55553ep-3f), r2, p);
+    const float32x4_t y = vfmaq_f32(r, vmulq_f32(r2, r), p);
+    return _vtrig_apply_sign_f32(_vtrig_bound_f32(y),
+                                 vshlq_n_u32(vreinterpretq_u32_s32(n), 31));
 }
 
 /*
