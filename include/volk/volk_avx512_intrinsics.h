@@ -238,6 +238,72 @@ static inline __m512 _mm512_cos_poly_avx512(const __m512 x)
     return _mm512_fmadd_ps(x2, poly, one);
 }
 
+// The half-wave Cody-Waite reduction is bounded to |x| <= 2^20 radians.
+static inline int _mm512_trig_half_wave_in_range(__m512 x)
+{
+    const __m512i magnitude =
+        _mm512_and_si512(_mm512_castps_si512(x), _mm512_set1_epi32(0x7fffffff));
+    const __mmask16 outside =
+        _mm512_cmpgt_epi32_mask(magnitude, _mm512_castps_si512(_mm512_set1_ps(0x1p20f)));
+    const int in_range = _kortestz_mask16_u8(outside, outside);
+#if defined(__GNUC__)
+    return __builtin_expect(in_range, 1);
+#else
+    return in_range;
+#endif
+}
+
+// Remez polynomial on [0, pi/2 + 1/8], extended by odd symmetry.
+// The extra interval covers rounding in x/pi before selecting the half-wave.
+static inline __m512 _mm512_trig_half_wave_avx512(__m512 x, int cosine)
+{
+    const __m512 q = _mm512_mul_ps(x, _mm512_set1_ps(0x1.45f306p-2f));
+    // sin(x) = (-1)^n sin(x - n*pi), with n = round(x/pi).
+    // cos(x) = (-1)^n sin(x - (n - 1/2)*pi), with n = ceil(x/pi).
+    const __m512 n_f =
+        cosine ? _mm512_roundscale_ps(q, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC)
+               : _mm512_roundscale_ps(q, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+    const __m512i n = _mm512_cvtps_epi32(n_f);
+    const __m512 k = cosine ? _mm512_sub_ps(n_f, _mm512_set1_ps(0.5f)) : n_f;
+    __m512 r = _mm512_fnmadd_ps(k, _mm512_set1_ps(0x1.921fb6p+1f), x);
+    r = _mm512_fnmadd_ps(k, _mm512_set1_ps(-0x1.777a5cp-24f), r);
+
+    const __m512 r2 = _mm512_mul_ps(r, r);
+    __m512 p = _mm512_fmadd_ps(
+        r2, _mm512_set1_ps(0x1.59a39cp-19f), _mm512_set1_ps(-0x1.9f1f3cp-13f));
+    p = _mm512_fmadd_ps(r2, p, _mm512_set1_ps(0x1.110ceap-7f));
+    p = _mm512_fmadd_ps(r2, p, _mm512_set1_ps(-0x1.55553ep-3f));
+    const __m512 y = _mm512_fmadd_ps(_mm512_mul_ps(r2, r), p, r);
+    // Rounding can overshoot by one ulp near the peaks.
+    const __m512 bounded =
+        _mm512_min_ps(_mm512_max_ps(y, _mm512_set1_ps(-1.0f)), _mm512_set1_ps(1.0f));
+    const __m512i sign = _mm512_slli_epi32(n, 31);
+    return _mm512_castsi512_ps(_mm512_xor_si512(_mm512_castps_si512(bounded), sign));
+}
+
+// Reduce once and evaluate the two short polynomials for paired outputs.
+static inline void _mm512_sincos_avx512(__m512 x, __m512* sin_x, __m512* cos_x)
+{
+    const __m512 n_f =
+        _mm512_roundscale_ps(_mm512_mul_ps(x, _mm512_set1_ps(0x1.45f306p-1f)),
+                             _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+    const __m512i n = _mm512_cvtps_epi32(n_f);
+    __m512 r = _mm512_fnmadd_ps(n_f, _mm512_set1_ps(0x1.921fb6p+0f), x);
+    r = _mm512_fnmadd_ps(n_f, _mm512_set1_ps(-0x1.777a5cp-25f), r);
+    const __m512 sin_r = _mm512_sin_poly_avx512(r);
+    const __m512 cos_r = _mm512_cos_poly_avx512(r);
+
+    // Swap on bit 0, flip sine on bit 1, and flip cosine when those bits differ.
+    const __mmask16 swap = _mm512_test_epi32_mask(n, _mm512_set1_epi32(1));
+    const __mmask16 sin_neg = _mm512_test_epi32_mask(n, _mm512_set1_epi32(2));
+    const __mmask16 cos_neg = _kxor_mask16(sin_neg, swap);
+    const __m512i sign_bit = _mm512_set1_epi32(0x80000000);
+    const __m512i s = _mm512_castps_si512(_mm512_mask_blend_ps(swap, sin_r, cos_r));
+    const __m512i c = _mm512_castps_si512(_mm512_mask_blend_ps(swap, cos_r, sin_r));
+    *sin_x = _mm512_castsi512_ps(_mm512_mask_xor_epi32(s, sin_neg, s, sign_bit));
+    *cos_x = _mm512_castsi512_ps(_mm512_mask_xor_epi32(c, cos_neg, c, sign_bit));
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Polynomial coefficients for log2(x)/(x-1) on [1, 2]
 // Generated with Sollya: remez(log2(x)/(x-1), 6, [1+1b-20, 2])

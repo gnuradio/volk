@@ -110,6 +110,69 @@ static inline __m256 _mm256_cos_poly_avx2_fma(const __m256 x)
     return _mm256_fmadd_ps(x2, poly, one);
 }
 
+// The half-wave Cody-Waite reduction is bounded to |x| <= 2^20 radians.
+static inline int _mm256_trig_half_wave_in_range(__m256 x)
+{
+    const __m256i magnitude =
+        _mm256_and_si256(_mm256_castps_si256(x), _mm256_set1_epi32(0x7fffffff));
+    const __m256i outside =
+        _mm256_cmpgt_epi32(magnitude, _mm256_castps_si256(_mm256_set1_ps(0x1p20f)));
+    const int in_range = _mm256_testz_si256(outside, outside);
+#if defined(__GNUC__)
+    return __builtin_expect(in_range, 1);
+#else
+    return in_range;
+#endif
+}
+
+// Remez polynomial on [0, pi/2 + 1/8], extended by odd symmetry.
+// The extra interval covers rounding in x/pi before selecting the half-wave.
+static inline __m256 _mm256_trig_half_wave_avx2_fma(__m256 x, int cosine)
+{
+    const __m256 q = _mm256_mul_ps(x, _mm256_set1_ps(0x1.45f306p-2f));
+    // sin(x) = (-1)^n sin(x - n*pi), with n = round(x/pi).
+    // cos(x) = (-1)^n sin(x - (n - 1/2)*pi), with n = ceil(x/pi).
+    const __m256 n_f =
+        cosine ? _mm256_round_ps(q, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC)
+               : _mm256_round_ps(q, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+    const __m256i n = _mm256_cvtps_epi32(n_f);
+    const __m256 k = cosine ? _mm256_sub_ps(n_f, _mm256_set1_ps(0.5f)) : n_f;
+    __m256 r = _mm256_fnmadd_ps(k, _mm256_set1_ps(0x1.921fb6p+1f), x);
+    r = _mm256_fnmadd_ps(k, _mm256_set1_ps(-0x1.777a5cp-24f), r);
+
+    const __m256 r2 = _mm256_mul_ps(r, r);
+    __m256 p = _mm256_fmadd_ps(
+        r2, _mm256_set1_ps(0x1.59a39cp-19f), _mm256_set1_ps(-0x1.9f1f3cp-13f));
+    p = _mm256_fmadd_ps(r2, p, _mm256_set1_ps(0x1.110ceap-7f));
+    p = _mm256_fmadd_ps(r2, p, _mm256_set1_ps(-0x1.55553ep-3f));
+    const __m256 y = _mm256_fmadd_ps(_mm256_mul_ps(r2, r), p, r);
+    // Rounding can overshoot by one ulp near the peaks.
+    const __m256 bounded =
+        _mm256_min_ps(_mm256_max_ps(y, _mm256_set1_ps(-1.0f)), _mm256_set1_ps(1.0f));
+    const __m256 sign = _mm256_castsi256_ps(_mm256_slli_epi32(n, 31));
+    return _mm256_xor_ps(bounded, sign);
+}
+
+// Reduce once and evaluate the two short polynomials for paired outputs.
+static inline void _mm256_sincos_avx2_fma(__m256 x, __m256* sin_x, __m256* cos_x)
+{
+    const __m256 n_f = _mm256_round_ps(_mm256_mul_ps(x, _mm256_set1_ps(0x1.45f306p-1f)),
+                                       _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+    const __m256i n = _mm256_cvtps_epi32(n_f);
+    __m256 r = _mm256_fnmadd_ps(n_f, _mm256_set1_ps(0x1.921fb6p+0f), x);
+    r = _mm256_fnmadd_ps(n_f, _mm256_set1_ps(-0x1.777a5cp-25f), r);
+    const __m256 sin_r = _mm256_sin_poly_avx2_fma(r);
+    const __m256 cos_r = _mm256_cos_poly_avx2_fma(r);
+
+    // Swap on bit 0, flip sine on bit 1, and flip cosine when those bits differ.
+    const __m256 swap = _mm256_castsi256_ps(_mm256_slli_epi32(n, 31));
+    const __m256 sin_sign = _mm256_and_ps(_mm256_castsi256_ps(_mm256_slli_epi32(n, 30)),
+                                          _mm256_set1_ps(-0.0f));
+    const __m256 cos_sign = _mm256_xor_ps(sin_sign, swap);
+    *sin_x = _mm256_xor_ps(_mm256_blendv_ps(sin_r, cos_r, swap), sin_sign);
+    *cos_x = _mm256_xor_ps(_mm256_blendv_ps(cos_r, sin_r, swap), cos_sign);
+}
+
 /*
  * Polynomial coefficients for log2(x)/(x-1) on [1, 2]
  * Generated with Sollya: remez(log2(x)/(x-1), 6, [1+1b-20, 2])
